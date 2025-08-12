@@ -7,8 +7,6 @@ import {
   Stack,
   Group,
   rem,
-  ActionIcon,
-  Tooltip,
   TextInput,
   Button,
   Card,
@@ -28,6 +26,10 @@ import {
   IconRefresh,
 } from '@tabler/icons-react';
 import { useTheme } from '@/contexts/ThemeContext';
+import {
+  getPlatformDisplayName,
+  isAssetCompatibleWithPlatform,
+} from '@/utils/platform';
 import type { InstalledVersion, ReleaseWithStatus } from '@/types/electron';
 
 interface SettingsModalProps {
@@ -60,15 +62,12 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
   const [userPlatform, setUserPlatform] = useState<string>('');
   const [activeTab, setActiveTab] = useState('general');
 
-  // Prevent layout shift by preserving scrollbar space
   useEffect(() => {
     if (opened) {
-      // Store original body overflow and calculate scrollbar width
       const originalOverflow = document.body.style.overflow;
       const scrollbarWidth =
         window.innerWidth - document.documentElement.clientWidth;
 
-      // Apply styles to prevent layout shift
       document.body.style.overflow = 'hidden';
       document.body.style.paddingRight = `${scrollbarWidth}px`;
 
@@ -81,7 +80,6 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
 
   useEffect(() => {
     if (opened && window.electronAPI) {
-      console.log('Frontend: Settings modal opened, loading data...');
       loadCurrentInstallDir();
       loadVersions();
       loadLatestRelease();
@@ -101,17 +99,8 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
 
   const loadVersions = async () => {
     try {
-      console.log('Frontend: Loading versions...');
       const versions = await window.electronAPI.kobold.getInstalledVersions();
       const current = await window.electronAPI.kobold.getCurrentVersion();
-      console.log(
-        'Frontend: Received versions:',
-        JSON.stringify(versions, null, 2)
-      );
-      console.log(
-        'Frontend: Current version:',
-        JSON.stringify(current, null, 2)
-      );
       setInstalledVersions(versions);
       setCurrentVersion(current);
     } catch (error) {
@@ -156,12 +145,11 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
       const result = await window.electronAPI.kobold.downloadRelease({
         name: assetName,
         browser_download_url: downloadUrl,
-        size: 0, // Size not needed for download
+        size: 0,
         created_at: '',
       });
 
       if (result.success) {
-        // Reload versions and latest release to update download status
         await loadVersions();
         await loadLatestRelease();
       }
@@ -178,7 +166,6 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
       const result = await window.electronAPI.kobold.downloadROCm();
 
       if (result.success) {
-        // Reload versions to show the newly downloaded ROCm version
         await loadVersions();
       }
     } catch (error) {
@@ -188,13 +175,7 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
     }
   };
 
-  // Create a unified list of all versions (latest + installed)
   const getAllVersions = () => {
-    console.log('Frontend: getAllVersions called');
-    console.log('Frontend: installedVersions:', installedVersions);
-    console.log('Frontend: latestRelease:', latestRelease);
-    console.log('Frontend: currentVersion:', currentVersion);
-
     const allVersions: Array<{
       name: string;
       version: string;
@@ -204,70 +185,48 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
       downloadUrl?: string;
       size?: number;
       downloadDate?: string;
-      lastUsed?: string;
       installedData?: InstalledVersion;
     }> = [];
 
-    // Add latest release versions
     if (latestRelease) {
-      latestRelease.availableAssets.forEach((item) => {
-        // Find installed version by matching asset name with filename from path
-        const installedVersion = installedVersions.find((v) => {
-          const filename = v.path.split('/').pop();
-          console.log(
-            `Frontend: Matching asset "${item.asset.name}" with installed filename "${filename}"`
+      latestRelease.availableAssets
+        .filter((item) =>
+          isAssetCompatibleWithPlatform(item.asset.name, userPlatform)
+        )
+        .forEach((item) => {
+          const installedVersion = installedVersions.find(
+            (v) => v.path.split('/').pop() === item.asset.name
           );
-          return filename === item.asset.name;
+
+          const isCurrent = Boolean(
+            installedVersion &&
+              currentVersion &&
+              (currentVersion.version === installedVersion.version ||
+                currentVersion.path === installedVersion.path)
+          );
+
+          allVersions.push({
+            name: item.asset.name,
+            version: latestRelease.release.tag_name.replace(/^v/, ''),
+            isLatest: true,
+            isDownloaded: item.isDownloaded,
+            isCurrent,
+            downloadUrl: item.asset.browser_download_url,
+            size: item.asset.size,
+            installedData: installedVersion,
+          });
         });
-
-        // Check if this version is current - use path-based comparison for better accuracy
-        const isCurrent = Boolean(
-          installedVersion &&
-            currentVersion &&
-            (currentVersion.version === installedVersion.version ||
-              currentVersion.path === installedVersion.path)
-        );
-
-        console.log(
-          `Frontend: Asset "${item.asset.name}": isDownloaded=${item.isDownloaded}, installedVersion=${!!installedVersion}, currentVersion=${currentVersion?.version}, installedVersion.version=${installedVersion?.version}, isCurrent=${isCurrent}`
-        );
-        console.log(
-          `Frontend: Button logic for "${item.asset.name}": shouldShowDownload=${!item.isDownloaded && !!item.asset.browser_download_url}, shouldShowMakeCurrent=${item.isDownloaded && !isCurrent && !!installedVersion}`
-        );
-
-        allVersions.push({
-          name: item.asset.name,
-          version: latestRelease.release.tag_name.replace(/^v/, ''),
-          isLatest: true,
-          isDownloaded: item.isDownloaded,
-          isCurrent,
-          downloadUrl: item.asset.browser_download_url,
-          size: item.asset.size,
-          installedData: installedVersion,
-        });
-      });
     }
 
-    // Add any installed versions that aren't in the latest release
     installedVersions.forEach((installed) => {
-      // Extract filename from path for display
       const filename = installed.path.split('/').pop() || installed.path;
       const existsInLatest = allVersions.some((v) => v.name === filename);
-      console.log(
-        `Frontend: Checking installed version - filename: ${filename}, existsInLatest: ${existsInLatest}`
-      );
+
       if (!existsInLatest) {
-        console.log(
-          'Frontend: Adding installed version to allVersions:',
-          installed
-        );
         const isCurrent = Boolean(
           currentVersion &&
             (currentVersion.version === installed.version ||
               currentVersion.path === installed.path)
-        );
-        console.log(
-          `Frontend: Non-latest version "${filename}": currentVersion=${currentVersion?.version}, installed.version=${installed.version}, isCurrent=${isCurrent}`
         );
         allVersions.push({
           name: filename,
@@ -276,13 +235,10 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
           isDownloaded: true,
           isCurrent,
           downloadDate: installed.downloadDate,
-          lastUsed: installed.lastUsed,
           installedData: installed,
         });
       }
     });
-
-    console.log('Frontend: Final allVersions:', allVersions);
     return allVersions;
   };
 
@@ -424,7 +380,6 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
 
         <Tabs.Panel value="versions">
           <Stack gap="lg" h="100%">
-            {/* All Versions Section */}
             <div>
               <Group justify="space-between" align="center" mb="sm">
                 <Text fw={500}>Available Versions</Text>
@@ -441,14 +396,14 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
                 </Button>
               </Group>
               <Text size="sm" c="dimmed" mb="md">
-                All available KoboldCpp versions for your system. Click on
-                downloaded versions to set them as current.
+                KoboldCpp versions available for{' '}
+                {getPlatformDisplayName(userPlatform)}. Click on downloaded
+                versions to set them as current.
               </Text>
 
               <Stack gap="xs">
                 {(() => {
                   const allVersions = getAllVersions();
-                  console.log('Frontend: Rendering versions:', allVersions);
                   return allVersions.map((version, index) => (
                     <Card
                       key={`${version.name}-${version.version}-${index}`}
@@ -532,7 +487,6 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
                   ));
                 })()}
 
-                {/* ROCm Download Card (Linux only) */}
                 {userPlatform === 'linux' && rocmDownload && (
                   <Card withBorder radius="sm" padding="sm">
                     <Group justify="space-between" align="center">
@@ -642,25 +596,5 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
         </Tabs.Panel>
       </Tabs>
     </Modal>
-  );
-};
-
-export const SettingsButton = () => {
-  const [opened, setOpened] = useState(false);
-
-  return (
-    <>
-      <Tooltip label="Settings" position="bottom">
-        <ActionIcon
-          variant="subtle"
-          size="lg"
-          onClick={() => setOpened(true)}
-          aria-label="Open settings"
-        >
-          <IconSettings style={{ width: rem(18), height: rem(18) }} />
-        </ActionIcon>
-      </Tooltip>
-      <SettingsModal opened={opened} onClose={() => setOpened(false)} />
-    </>
   );
 };

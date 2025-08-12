@@ -34,7 +34,6 @@ interface InstalledVersion {
   path: string;
   type: 'github' | 'rocm';
   downloadDate: string;
-  lastUsed?: string;
   filename: string;
 }
 
@@ -55,6 +54,11 @@ export interface KoboldAPI {
   getLatestRelease: () => Promise<GitHubRelease>;
   getAllReleases: () => Promise<GitHubRelease[]>;
   getPlatform: () => Promise<{ platform: string; arch: string }>;
+  detectGPU: () => Promise<{
+    hasAMD: boolean;
+    hasNVIDIA: boolean;
+    gpuInfo: string[];
+  }>;
   getCurrentInstallDir: () => Promise<string>;
   selectInstallDirectory: () => Promise<string | null>;
   downloadRelease: (
@@ -72,6 +76,11 @@ export interface KoboldAPI {
     args?: string[]
   ) => Promise<{ success: boolean; pid?: number; error?: string }>;
   openInstallDialog: () => Promise<{ success: boolean; path?: string }>;
+  getConfigFiles: () => Promise<
+    Array<{ name: string; path: string; size: number }>
+  >;
+  getSelectedConfig: () => Promise<string | null>;
+  setSelectedConfig: (configName: string) => Promise<boolean>;
   onDownloadProgress: (callback: (progress: number) => void) => void;
   onUpdateAvailable: (callback: (updateInfo: UpdateInfo) => void) => void;
   removeAllListeners: (channel: string) => void;
