@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
-import type { KoboldAPI, AppAPI, UpdateInfo } from '../src/types/electron.js';
+import type { KoboldAPI, AppAPI, UpdateInfo } from '../types/electron';
 
 const koboldAPI: KoboldAPI = {
   isInstalled: () => ipcRenderer.invoke('kobold:isInstalled'),
@@ -18,6 +18,7 @@ const koboldAPI: KoboldAPI = {
   getLatestRelease: () => ipcRenderer.invoke('kobold:getLatestRelease'),
   getAllReleases: () => ipcRenderer.invoke('kobold:getAllReleases'),
   getPlatform: () => ipcRenderer.invoke('kobold:getPlatform'),
+  detectGPU: () => ipcRenderer.invoke('kobold:detectGPU'),
   getCurrentInstallDir: () => ipcRenderer.invoke('kobold:getCurrentInstallDir'),
   selectInstallDirectory: () =>
     ipcRenderer.invoke('kobold:selectInstallDirectory'),
@@ -25,6 +26,10 @@ const koboldAPI: KoboldAPI = {
     ipcRenderer.invoke('kobold:downloadRelease', asset),
   launchKoboldCpp: (args) => ipcRenderer.invoke('kobold:launchKoboldCpp', args),
   openInstallDialog: () => ipcRenderer.invoke('kobold:openInstallDialog'),
+  getConfigFiles: () => ipcRenderer.invoke('kobold:getConfigFiles'),
+  getSelectedConfig: () => ipcRenderer.invoke('kobold:getSelectedConfig'),
+  setSelectedConfig: (configName: string) =>
+    ipcRenderer.invoke('kobold:setSelectedConfig', configName),
   onDownloadProgress: (callback) => {
     ipcRenderer.on(
       'download-progress',

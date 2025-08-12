@@ -13,7 +13,7 @@ import type { Linter } from 'eslint';
 
 const config: Linter.Config[] = [
   {
-    ignores: ['dist', 'dist-electron'],
+    ignores: ['dist', 'dist-electron', 'out', 'electron', 'scripts'],
   },
   js.configs.recommended,
   sonarjs.configs.recommended,
@@ -78,6 +78,17 @@ const config: Linter.Config[] = [
       // Enforce arrow function shorthand when possible
       'arrow-body-style': ['error', 'as-needed'],
       'prefer-arrow-callback': ['error', { allowNamedFunctions: false }],
+      // Disallow console.log usage
+      'no-console': ['error', { allow: ['warn', 'error'] }],
+      // Warn about unnecessary explicit type annotations
+      '@typescript-eslint/no-inferrable-types': 'warn',
+      // Don't require explicit return types (prefer inference)
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      // Disable some overly strict security rules for Electron apps
+      'security/detect-non-literal-fs-filename': 'off',
+      'security/detect-object-injection': 'off',
+      // Relax cognitive complexity for complex business logic
+      'sonarjs/cognitive-complexity': ['warn', 25],
       // Spell checking for code
       '@cspell/spellchecker': ['warn'],
     },

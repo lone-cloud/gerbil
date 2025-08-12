@@ -1,29 +1,26 @@
 import { useState, useEffect } from 'react';
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Navigate,
-  useNavigate,
-} from 'react-router-dom';
-import { AppShell, Group } from '@mantine/core';
-import { DownloadScreen } from '@/components/DownloadScreen';
-import { LaunchScreen } from '@/components/LaunchScreen';
+import { AppShell, Group, ActionIcon, Tooltip, rem } from '@mantine/core';
+import { IconSettings } from '@tabler/icons-react';
+import { DownloadScreen } from '@/screens/DownloadScreen';
+import { LaunchScreen } from '@/screens/LaunchScreen';
 import { UpdateDialog } from '@/components/UpdateDialog';
-import { SettingsButton } from '@/components/SettingsModal';
+import { SettingsModal } from '@/components/SettingsModal';
 import type { UpdateInfo } from '@/types/electron';
 
-const AppContent = () => {
-  const navigate = useNavigate();
+type Screen = 'download' | 'launch';
+
+export const App = () => {
+  const [currentScreen, setCurrentScreen] = useState<Screen>('download');
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
+  const [settingsOpened, setSettingsOpened] = useState(false);
 
   useEffect(() => {
     const checkInstallation = async () => {
       if (window.electronAPI) {
         try {
           const installed = await window.electronAPI.kobold.isInstalled();
-          navigate(installed ? '/launch' : '/download', { replace: true });
+          setCurrentScreen(installed ? 'launch' : 'download');
         } catch (error) {
           console.error('Error checking installation:', error);
         }
@@ -44,14 +41,10 @@ const AppContent = () => {
         window.electronAPI.kobold.removeAllListeners('update-available');
       }
     };
-  }, [navigate]);
+  }, []);
 
   const handleInstallComplete = () => {
-    navigate('/launch');
-  };
-
-  const handleDownloadStart = () => {
-    navigate('/download');
+    setCurrentScreen('launch');
   };
 
   const handleUpdateIgnore = () => {
@@ -60,31 +53,31 @@ const AppContent = () => {
 
   const handleUpdateAccept = () => {
     setShowUpdateDialog(false);
-    navigate('/download');
+    setCurrentScreen('download');
   };
 
   return (
     <AppShell header={{ height: 60 }} padding="md">
       <AppShell.Header>
         <Group h="100%" px="md" justify="flex-end">
-          <SettingsButton />
+          <Tooltip label="Settings" position="bottom">
+            <ActionIcon
+              variant="subtle"
+              size="lg"
+              onClick={() => setSettingsOpened(true)}
+              aria-label="Open settings"
+            >
+              <IconSettings style={{ width: rem(18), height: rem(18) }} />
+            </ActionIcon>
+          </Tooltip>
         </Group>
       </AppShell.Header>
 
       <AppShell.Main>
-        <Routes>
-          <Route
-            path="/download"
-            element={
-              <DownloadScreen onInstallComplete={handleInstallComplete} />
-            }
-          />
-          <Route
-            path="/launch"
-            element={<LaunchScreen onBackToDownload={handleDownloadStart} />}
-          />
-          <Route path="*" element={<Navigate to="/download" replace />} />
-        </Routes>
+        {currentScreen === 'download' && (
+          <DownloadScreen onInstallComplete={handleInstallComplete} />
+        )}
+        {currentScreen === 'launch' && <LaunchScreen />}
 
         {showUpdateDialog && updateInfo && (
           <UpdateDialog
@@ -94,12 +87,11 @@ const AppContent = () => {
           />
         )}
       </AppShell.Main>
+
+      <SettingsModal
+        opened={settingsOpened}
+        onClose={() => setSettingsOpened(false)}
+      />
     </AppShell>
   );
 };
-
-export const App = () => (
-  <BrowserRouter>
-    <AppContent />
-  </BrowserRouter>
-);

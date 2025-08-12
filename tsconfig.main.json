@@ -11,6 +11,6 @@
     "noUnusedParameters": false,
     "skipLibCheck": true
   },
-  "include": ["electron/**/*"],
+  "include": ["src/main/**/*", "src/preload/**/*"],
   "exclude": ["node_modules", "dist", "dist-electron"]
 }
