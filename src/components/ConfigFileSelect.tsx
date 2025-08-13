@@ -6,7 +6,7 @@ import type { ConfigFile } from '@/types';
 interface ConfigFileSelectProps {
   configFiles: ConfigFile[];
   selectedFile: string | null;
-  loading: boolean;
+  loading?: boolean;
   onFileSelection: (fileName: string) => void;
 }
 
@@ -46,7 +46,7 @@ SelectItem.displayName = 'SelectItem';
 export const ConfigFileSelect = ({
   configFiles,
   selectedFile,
-  loading,
+  loading = false,
   onFileSelection,
 }: ConfigFileSelectProps) => {
   if (loading) {

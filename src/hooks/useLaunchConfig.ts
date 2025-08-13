@@ -27,7 +27,6 @@ export const useLaunchConfig = () => {
 
       if (typeof configData.model_param === 'string') {
         setModelPath(configData.model_param);
-        await window.electronAPI.config.setModelPath(configData.model_param);
       }
     } else {
       setGpuLayers(0);
@@ -36,13 +35,10 @@ export const useLaunchConfig = () => {
   }, []);
 
   const loadSavedSettings = useCallback(async () => {
-    const [savedServerOnly, savedModelPath] = await Promise.all([
-      window.electronAPI.config.getServerOnly(),
-      window.electronAPI.config.getModelPath(),
-    ]);
+    const savedServerOnly = await window.electronAPI.config.getServerOnly();
 
     setServerOnly(savedServerOnly);
-    setModelPath(savedModelPath || '');
+    setModelPath(''); // Model path comes from config file, not saved settings
     setGpuLayers(0);
     setContextSize(2048);
   }, []);
@@ -95,15 +91,14 @@ export const useLaunchConfig = () => {
     [roundToValidContextSize]
   );
 
-  const handleModelPathChange = useCallback(async (value: string) => {
+  const handleModelPathChange = useCallback((value: string) => {
     setModelPath(value);
-    await window.electronAPI.config.setModelPath(value);
   }, []);
 
   const handleSelectModelFile = useCallback(async () => {
     const filePath = await window.electronAPI.kobold.selectModelFile();
     if (filePath) {
-      await handleModelPathChange(filePath);
+      handleModelPathChange(filePath);
     }
   }, [handleModelPathChange]);
 

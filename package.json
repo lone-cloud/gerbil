@@ -1,6 +1,6 @@
 {
   "name": "friendly-kobold",
-  "productName": "FriendlyKobold",
+  "productName": "friendly-kobold",
   "version": "0.1.0",
   "description": "A modern Electron shell for KoboldCpp",
   "main": "out/main/index.js",

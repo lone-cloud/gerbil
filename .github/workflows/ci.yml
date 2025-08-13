@@ -24,10 +24,10 @@ jobs:
         run: npm ci
 
       - name: Run type check
-        run: npm run type-check
+        run: npm run compile
 
       - name: Run linter
-        run: npm run lint:check
+        run: npm run lint
 
       - name: Run spell check
         run: npm run spell-check

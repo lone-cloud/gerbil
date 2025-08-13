@@ -187,14 +187,6 @@ export class IPCHandlers {
       this.configManager.setServerOnly(serverOnly)
     );
 
-    ipcMain.handle('config:getModelPath', () =>
-      this.configManager.getModelPath()
-    );
-
-    ipcMain.handle('config:setModelPath', (_event, path) =>
-      this.configManager.setModelPath(path)
-    );
-
     ipcMain.handle('config:get', (_event, key) => this.configManager.get(key));
 
     ipcMain.handle('config:set', (_event, key, value) =>

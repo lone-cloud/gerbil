@@ -33,7 +33,6 @@ interface InstalledVersion {
   version: string;
   path: string;
   type: 'github' | 'rocm';
-  downloadDate: string;
   filename: string;
 }
 
@@ -106,8 +105,6 @@ export interface AppAPI {
 export interface ConfigAPI {
   getServerOnly: () => Promise<boolean>;
   setServerOnly: (serverOnly: boolean) => Promise<void>;
-  getModelPath: () => Promise<string | null>;
-  setModelPath: (path: string) => Promise<void>;
   get: (key: string) => Promise<unknown>;
   set: (key: string, value: unknown) => Promise<void>;
 }
