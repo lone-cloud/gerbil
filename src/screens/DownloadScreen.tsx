@@ -1,16 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import {
-  Card,
-  Text,
-  Title,
-  Loader,
-  Alert,
-  Stack,
-  Container,
-  Progress,
-} from '@mantine/core';
-import { IconAlertCircle } from '@tabler/icons-react';
-import { DownloadOptionCard } from '../components/DownloadOptionCard';
+import { Card, Text, Title, Loader, Stack, Container } from '@mantine/core';
+import { useNotifications } from '@/hooks/useNotifications';
+import { DownloadOptionCard } from '@/components/DownloadOptionCard';
 import {
   getPlatformDisplayName,
   filterAssetsByPlatform,
@@ -21,27 +12,15 @@ import {
   isAssetRecommended,
   sortAssetsByRecommendation,
 } from '@/utils/assets';
+import { ROCM } from '@/constants/app';
+import type { GitHubAsset, GitHubRelease } from '@/types';
 
 interface DownloadScreenProps {
-  onInstallComplete: () => void;
+  onDownloadComplete: () => void;
 }
 
-interface GitHubAsset {
-  name: string;
-  browser_download_url: string;
-  size: number;
-  created_at: string;
-}
-
-interface GitHubRelease {
-  tag_name: string;
-  name: string;
-  published_at: string;
-  body: string;
-  assets: GitHubAsset[];
-}
-
-export const DownloadScreen = ({ onInstallComplete }: DownloadScreenProps) => {
+export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
+  const notify = useNotifications();
   const [latestRelease, setLatestRelease] = useState<GitHubRelease | null>(
     null
   );
@@ -53,15 +32,15 @@ export const DownloadScreen = ({ onInstallComplete }: DownloadScreenProps) => {
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const [error, setError] = useState<string | null>(null);
+  const [downloadingType, setDownloadingType] = useState<
+    'asset' | 'rocm' | null
+  >(null);
   const [rocmDownload, setRocmDownload] = useState<{
     name: string;
     url: string;
     size: number;
-    type: 'rocm';
     version?: string;
   } | null>(null);
-  const [downloadingROCm, setDownloadingROCm] = useState(false);
 
   const loadLatestReleaseAndPlatform = useCallback(async () => {
     if (!window.electronAPI) return;
@@ -90,18 +69,25 @@ export const DownloadScreen = ({ onInstallComplete }: DownloadScreenProps) => {
         setHasAMDGPU(false);
       }
 
-      const filtered = filterAssetsByPlatform(
-        releaseData.assets,
-        platformInfo.platform
-      );
-      setFilteredAssets(filtered);
+      if (releaseData) {
+        const filtered = filterAssetsByPlatform(
+          releaseData.assets,
+          platformInfo.platform
+        );
+        setFilteredAssets(filtered);
+      } else {
+        notify.error(
+          'Error',
+          'GitHub API is currently unavailable. Please try again later.'
+        );
+      }
     } catch (err) {
-      setError('Failed to load release information');
+      notify.error('Error', 'Failed to load release information');
       console.error('Error loading release:', err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [notify]);
 
   useEffect(() => {
     loadLatestReleaseAndPlatform();
@@ -119,83 +105,73 @@ export const DownloadScreen = ({ onInstallComplete }: DownloadScreenProps) => {
     };
   }, [loadLatestReleaseAndPlatform]);
 
-  const handleDownload = async () => {
-    if (!selectedAsset || !window.electronAPI) return;
+  const handleDownload = async (type: 'asset' | 'rocm' = 'asset') => {
+    if (!window.electronAPI) return;
+    if (type === 'asset' && !selectedAsset) return;
 
     try {
       setDownloading(true);
       setDownloadProgress(0);
-      setError(null);
+      setDownloadingType(type);
 
       const result =
-        await window.electronAPI.kobold.downloadRelease(selectedAsset);
+        type === 'rocm'
+          ? await window.electronAPI.kobold.downloadROCm()
+          : await window.electronAPI.kobold.downloadRelease(selectedAsset!);
 
       if (result.success) {
-        onInstallComplete();
+        onDownloadComplete();
       } else {
-        setError(result.error || 'Download failed');
+        notify.error(
+          'Download Failed',
+          result.error || `${type === 'rocm' ? 'ROCm' : ''} Download failed`
+        );
       }
     } catch (err) {
-      setError('Download failed');
-      console.error('Download error:', err);
+      notify.error(
+        'Download Failed',
+        `${type === 'rocm' ? 'ROCm' : ''} Download failed`
+      );
+      console.error(`${type === 'rocm' ? 'ROCm' : ''} Download error:`, err);
     } finally {
       setDownloading(false);
       setDownloadProgress(0);
+      setDownloadingType(null);
     }
   };
 
-  const handleDownloadROCm = async () => {
-    if (!window.electronAPI) return;
+  const renderROCmCard = () => {
+    if (!rocmDownload) return null;
 
-    try {
-      setDownloadingROCm(true);
-      setDownloadProgress(0);
-      setError(null);
-
-      const result = await window.electronAPI.kobold.downloadROCm();
-
-      if (result.success) {
-        onInstallComplete();
-      } else {
-        setError(result.error || 'ROCm download failed');
-      }
-    } catch (err) {
-      setError('ROCm download failed');
-      console.error('ROCm download error:', err);
-    } finally {
-      setDownloadingROCm(false);
-      setDownloadProgress(0);
-    }
+    return (
+      <DownloadOptionCard
+        name={ROCM.BINARY_NAME}
+        description={getAssetDescription(ROCM.BINARY_NAME)}
+        size={formatFileSize(ROCM.SIZE_BYTES)}
+        isSelected={selectedROCm}
+        isRecommended={isAssetRecommended(ROCM.BINARY_NAME, hasAMDGPU)}
+        isDownloading={downloading && downloadingType === 'rocm'}
+        downloadProgress={downloadingType === 'rocm' ? downloadProgress : 0}
+        onClick={() => {
+          if (!selectedROCm) {
+            setSelectedROCm(true);
+            setSelectedAsset(null);
+          }
+        }}
+        onDownload={(e) => {
+          e.stopPropagation();
+          handleDownload('rocm');
+        }}
+      />
+    );
   };
 
   return (
-    <Container size="md" py="xl">
+    <Container size="sm" py="xl">
       <Stack gap="xl">
-        {error && (
-          <Alert
-            icon={<IconAlertCircle size="1rem" />}
-            color="red"
-            variant="light"
-          >
-            {error}
-          </Alert>
-        )}
-
-        {downloading && selectedAsset && (
-          <Card withBorder radius="md" shadow="sm">
-            <Stack gap="md">
-              <Text fw={500}>Downloading {selectedAsset.name}...</Text>
-              <Progress value={downloadProgress} color="blue" radius="xl" />
-              <Text size="sm" c="dimmed">
-                {downloadProgress.toFixed(1)}% complete
-              </Text>
-            </Stack>
-          </Card>
-        )}
-
         <Card withBorder radius="md" shadow="sm">
           <Stack gap="lg">
-            <Title order={3}>Available Downloads for Your Platform</Title>
+            <Title order={3}>Available Binaries for Your Platform</Title>
 
             {loading ? (
               <Stack align="center" gap="md" py="xl">
@@ -234,31 +210,7 @@ export const DownloadScreen = ({ onInstallComplete }: DownloadScreenProps) => {
 
                     {filteredAssets.length > 0 || rocmDownload ? (
                       <Stack gap="sm">
-                        {rocmDownload && hasAMDGPU && (
-                          <DownloadOptionCard
-                            name="koboldcpp-linux-x64-rocm"
-                            description={getAssetDescription(
-                              'koboldcpp-linux-x64-rocm'
-                            )}
-                            size="~1GB"
-                            isSelected={selectedROCm}
-                            isRecommended={isAssetRecommended(
-                              'koboldcpp-linux-x64-rocm',
-                              hasAMDGPU
-                            )}
-                            isDownloading={downloadingROCm}
-                            onClick={() => {
-                              if (!selectedROCm) {
-                                setSelectedROCm(true);
-                                setSelectedAsset(null);
-                              }
-                            }}
-                            onDownload={(e) => {
-                              e.stopPropagation();
-                              handleDownloadROCm();
-                            }}
-                          />
-                        )}
+                        {rocmDownload && hasAMDGPU && renderROCmCard()}
 
                         {sortAssetsByRecommendation(
                           filteredAssets,
@@ -274,7 +226,18 @@ export const DownloadScreen = ({ onInstallComplete }: DownloadScreenProps) => {
                               asset.name,
                               hasAMDGPU
                             )}
-                            isDownloading={downloading}
+                            isDownloading={
+                              downloading &&
+                              downloadingType === 'asset' &&
+                              selectedAsset?.name === asset.name
+                            }
+                            downloadProgress={
+                              downloading &&
+                              downloadingType === 'asset' &&
+                              selectedAsset?.name === asset.name
+                                ? downloadProgress
+                                : 0
+                            }
                             onClick={() => {
                               if (selectedAsset?.name !== asset.name) {
                                 setSelectedAsset(asset);
@@ -288,48 +251,18 @@ export const DownloadScreen = ({ onInstallComplete }: DownloadScreenProps) => {
                           />
                         ))}
 
-                        {rocmDownload && !hasAMDGPU && (
-                          <DownloadOptionCard
-                            name="koboldcpp-linux-x64-rocm"
-                            description={getAssetDescription(
-                              'koboldcpp-linux-x64-rocm'
-                            )}
-                            size="~1GB"
-                            isSelected={selectedROCm}
-                            isRecommended={isAssetRecommended(
-                              'koboldcpp-linux-x64-rocm',
-                              hasAMDGPU
-                            )}
-                            isDownloading={downloadingROCm}
-                            onClick={() => {
-                              if (!selectedROCm) {
-                                setSelectedROCm(true);
-                                setSelectedAsset(null);
-                              }
-                            }}
-                            onDownload={(e) => {
-                              e.stopPropagation();
-                              handleDownloadROCm();
-                            }}
-                          />
-                        )}
+                        {rocmDownload && !hasAMDGPU && renderROCmCard()}
                       </Stack>
                     ) : (
-                      <Alert
-                        icon={<IconAlertCircle size="1rem" />}
-                        color="yellow"
-                        variant="light"
-                      >
+                      <Card withBorder p="md" bg="yellow.0" c="yellow.9">
                         <Stack gap="xs">
                           <Text fw={500}>No downloads available</Text>
                           <Text size="sm">
                             No downloads available for your platform (
-                            {getPlatformDisplayName(userPlatform)}). This might
-                            be a new release that doesn&apos;t have builds ready
-                            yet.
+                            {getPlatformDisplayName(userPlatform)}).
                           </Text>
                         </Stack>
-                      </Alert>
+                      </Card>
                     )}
                   </>
                 )}

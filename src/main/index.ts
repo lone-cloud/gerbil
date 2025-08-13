@@ -3,12 +3,13 @@ import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import { homedir } from 'os';
 
-import { WindowManager } from './managers/WindowManager';
-import { ConfigManager } from './managers/ConfigManager';
-import { KoboldCppManager } from './managers/KoboldCppManager';
-import { GitHubService } from './services/GitHubService';
-import { GPUService } from './services/GPUService';
-import { IPCHandlers } from './utils/IPCHandlers';
+import { WindowManager } from '@/main/managers/WindowManager';
+import { ConfigManager } from '@/main/managers/ConfigManager';
+import { KoboldCppManager } from '@/main/managers/KoboldCppManager';
+import { GitHubService } from '@/main/services/GitHubService';
+import { GPUService } from '@/main/services/GPUService';
+import { IPCHandlers } from '@/main/utils/IPCHandlers';
+import { APP_NAME, CONFIG_FILE_NAME } from '@/constants/app';
 
 class FriendlyKoboldApp {
   private windowManager: WindowManager;
@@ -25,7 +26,8 @@ class FriendlyKoboldApp {
     this.gpuService = new GPUService();
     this.koboldManager = new KoboldCppManager(
       this.configManager,
-      this.githubService
+      this.githubService,
+      this.windowManager
     );
     this.ipcHandlers = new IPCHandlers(
       this.koboldManager,
@@ -38,7 +40,7 @@ class FriendlyKoboldApp {
   }
 
   private getConfigPath() {
-    return join(app.getPath('userData'), 'config.json');
+    return join(app.getPath('userData'), CONFIG_FILE_NAME);
   }
 
   private getDefaultInstallPath() {
@@ -47,11 +49,11 @@ class FriendlyKoboldApp {
 
     switch (platform) {
       case 'win32':
-        return join(home, 'FriendlyKobold');
+        return join(home, APP_NAME);
       case 'darwin':
-        return join(home, 'Applications', 'FriendlyKobold');
+        return join(home, 'Applications', APP_NAME);
       default:
-        return join(home, '.local', 'share', 'friendly-kobold');
+        return join(home, '.local', 'share', APP_NAME);
     }
   }
 
@@ -76,9 +78,23 @@ class FriendlyKoboldApp {
     this.ipcHandlers.setupHandlers();
 
     app.on('window-all-closed', () => {
-      if (process.platform !== 'darwin') {
-        app.quit();
+      if (process.platform === 'darwin') {
+        return;
       }
+    });
+
+    app.on('before-quit', async (event) => {
+      // Prevent immediate quit to allow cleanup
+      event.preventDefault();
+
+      // Clean up KoboldCpp process
+      await this.koboldManager.cleanup();
+
+      // Clean up window manager
+      this.windowManager.cleanup();
+
+      // Now actually quit
+      app.exit(0);
     });
 
     app.on('activate', () => {

@@ -1,8 +1,10 @@
-import { BrowserWindow, app, Menu, shell } from 'electron';
+import { BrowserWindow, app, Menu, shell, Tray, nativeImage } from 'electron';
 import { join } from 'path';
 
 export class WindowManager {
   private mainWindow: BrowserWindow | null = null;
+  private tray: Tray | null = null;
+  private isQuitting = false;
 
   createMainWindow(): BrowserWindow {
     this.mainWindow = new BrowserWindow({
@@ -28,6 +30,14 @@ export class WindowManager {
       this.mainWindow = null;
     });
 
+    this.mainWindow.on('close', (event) => {
+      if (this.tray && !this.isQuitting) {
+        event.preventDefault();
+        this.mainWindow?.hide();
+      }
+    });
+
+    this.createSystemTray();
     this.setupContextMenu();
     return this.mainWindow;
   }
@@ -36,10 +46,60 @@ export class WindowManager {
     return this.mainWindow;
   }
 
+  private createSystemTray() {
+    // Create system tray icon
+    const iconPath = join(process.cwd(), 'assets', 'icon.png');
+    this.tray = new Tray(nativeImage.createFromPath(iconPath));
+
+    this.tray.setToolTip('Friendly Kobold');
+
+    // Create context menu for tray
+    const trayMenu = Menu.buildFromTemplate([
+      {
+        label: 'Show',
+        click: () => {
+          this.mainWindow?.show();
+        },
+      },
+      {
+        label: 'Hide',
+        click: () => {
+          this.mainWindow?.hide();
+        },
+      },
+      { type: 'separator' },
+      {
+        label: 'Quit',
+        click: () => {
+          this.isQuitting = true;
+          app.quit();
+        },
+      },
+    ]);
+
+    this.tray.setContextMenu(trayMenu);
+
+    // Double-click to show/hide window
+    this.tray.on('double-click', () => {
+      if (this.mainWindow?.isVisible()) {
+        this.mainWindow.hide();
+      } else {
+        this.mainWindow?.show();
+      }
+    });
+  }
+
+  public cleanup() {
+    this.tray?.destroy();
+    this.tray = null;
+  }
+
   private setupContextMenu() {
     if (!this.mainWindow) return;
 
     this.mainWindow.webContents.on('context-menu', (_event, params) => {
+      const hasLinkURL = !!params.linkURL;
+
       const menu = Menu.buildFromTemplate([
         {
           label: 'Inspect Element',
@@ -53,10 +113,10 @@ export class WindowManager {
         { label: 'Paste', role: 'paste' },
         { type: 'separator' },
         { label: 'Select All', role: 'selectAll' },
-        { type: 'separator' },
+        ...(hasLinkURL ? [{ type: 'separator' as const }] : []),
         {
           label: 'Open Link in Browser',
-          visible: !!params.linkURL,
+          visible: hasLinkURL,
           click: () => {
             if (params.linkURL) {
               shell.openExternal(params.linkURL);
@@ -78,6 +138,7 @@ export class WindowManager {
             label: 'Quit',
             accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
             click: () => {
+              this.isQuitting = true;
               app.quit();
             },
           },

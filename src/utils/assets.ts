@@ -1,16 +1,18 @@
+import { ASSET_SUFFIXES } from '@/constants/app';
+
 export const getAssetDescription = (assetName: string): string => {
   const name = assetName.toLowerCase();
 
-  if (name.includes('rocm')) {
+  if (name.includes(ASSET_SUFFIXES.ROCM)) {
     return 'Optimized for AMD GPUs with ROCm support.';
   }
 
-  if (name.endsWith('oldpc')) {
+  if (name.endsWith(ASSET_SUFFIXES.OLDPC)) {
     return 'Meant for old PCs that cannot normally run the standard build.';
   }
 
-  if (name.endsWith('nocuda')) {
-    return 'Standard build with NVIDIA CUDA removed for minimal file size.';
+  if (name.endsWith(ASSET_SUFFIXES.NOCUDA)) {
+    return 'Standard build with NVIDIA CUDA support removed for minimal file size.';
   }
 
   return "Standard build that's ideal for most cases.";
@@ -22,15 +24,15 @@ export const isAssetRecommended = (
 ): boolean => {
   const name = assetName.toLowerCase();
 
-  if (hasAMDGPU && name.includes('rocm')) {
+  if (hasAMDGPU && name.includes(ASSET_SUFFIXES.ROCM)) {
     return true;
   }
 
   return (
     !hasAMDGPU &&
-    !name.includes('rocm') &&
-    !name.endsWith('oldpc') &&
-    !name.endsWith('nocuda')
+    !name.includes(ASSET_SUFFIXES.ROCM) &&
+    !name.endsWith(ASSET_SUFFIXES.OLDPC) &&
+    !name.endsWith(ASSET_SUFFIXES.NOCUDA)
   );
 };
 

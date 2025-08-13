@@ -6,6 +6,11 @@ import { visualizer } from 'rollup-plugin-visualizer';
 export default defineConfig({
   main: {
     plugins: [externalizeDepsPlugin()],
+    resolve: {
+      alias: {
+        '@': resolve(__dirname, './src'),
+      },
+    },
     define: {
       'process.env.VITE_DEV_SERVER_URL': JSON.stringify(
         process.env.VITE_DEV_SERVER_URL
@@ -14,6 +19,11 @@ export default defineConfig({
   },
   preload: {
     plugins: [externalizeDepsPlugin()],
+    resolve: {
+      alias: {
+        '@': resolve(__dirname, './src'),
+      },
+    },
   },
   renderer: {
     root: '.',

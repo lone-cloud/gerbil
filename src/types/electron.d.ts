@@ -73,7 +73,8 @@ export interface KoboldAPI {
   checkForUpdates: () => Promise<UpdateInfo | null>;
   getLatestReleaseWithStatus: () => Promise<ReleaseWithStatus | null>;
   launchKoboldCpp: (
-    args?: string[]
+    args?: string[],
+    configFilePath?: string
   ) => Promise<{ success: boolean; pid?: number; error?: string }>;
   openInstallDialog: () => Promise<{ success: boolean; path?: string }>;
   getConfigFiles: () => Promise<
@@ -81,8 +82,19 @@ export interface KoboldAPI {
   >;
   getSelectedConfig: () => Promise<string | null>;
   setSelectedConfig: (configName: string) => Promise<boolean>;
+  parseConfigFile: (filePath: string) => Promise<{
+    gpulayers?: number;
+    contextsize?: number;
+    model_param?: string;
+    [key: string]: unknown;
+  } | null>;
+  selectModelFile: () => Promise<string | null>;
+  stopKoboldCpp: () => void;
+  confirmEject: () => Promise<boolean>;
   onDownloadProgress: (callback: (progress: number) => void) => void;
   onUpdateAvailable: (callback: (updateInfo: UpdateInfo) => void) => void;
+  onInstallDirChanged: (callback: (newPath: string) => void) => () => void;
+  onKoboldOutput: (callback: (data: string) => void) => () => void;
   removeAllListeners: (channel: string) => void;
 }
 
@@ -91,11 +103,21 @@ export interface AppAPI {
   openExternal: (url: string) => Promise<void>;
 }
 
+export interface ConfigAPI {
+  getServerOnly: () => Promise<boolean>;
+  setServerOnly: (serverOnly: boolean) => Promise<void>;
+  getModelPath: () => Promise<string | null>;
+  setModelPath: (path: string) => Promise<void>;
+  get: (key: string) => Promise<unknown>;
+  set: (key: string, value: unknown) => Promise<void>;
+}
+
 declare global {
   interface Window {
     electronAPI: {
       kobold: KoboldAPI;
       app: AppAPI;
+      config: ConfigAPI;
     };
   }
 }

@@ -1,0 +1,154 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag version to release (e.g., v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run type check
+        run: npm run type-check
+
+      - name: Run linter
+        run: npm run lint:check
+
+      - name: Build Electron app
+        run: npm run build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifacts (macOS)
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-release
+          path: |
+            release/*.dmg
+            release/latest-mac.yml
+
+      - name: Upload artifacts (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: |
+            release/*.exe
+            release/latest.yml
+
+      - name: Upload artifacts (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-release
+          path: |
+            release/*.AppImage
+            release/latest-linux.yml
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -la artifacts/**/*
+
+      - name: Determine tag name
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        run: |
+          gh release create ${{ steps.tag.outputs.tag }} \
+            --title "FriendlyKobold ${{ steps.tag.outputs.tag }}" \
+            --notes "## What's New
+            
+            Release ${{ steps.tag.outputs.tag }} of FriendlyKobold
+            
+            ### Downloads
+            - **macOS**: Download the \`.dmg\` file
+            - **Windows**: Download the \`.exe\` installer
+            - **Linux**: Download the \`.AppImage\` file
+            
+            ### Installation
+            - **macOS**: Open the \`.dmg\` file and drag FriendlyKobold to Applications
+            - **Windows**: Run the \`.exe\` installer
+            - **Linux**: Make the \`.AppImage\` executable and run it
+            
+            ---
+            
+            For more information, visit our [repository](https://github.com/${{ github.repository }})."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload macOS Release Asset
+        run: |
+          for file in artifacts/macos-release/*.dmg; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              gh release upload ${{ steps.tag.outputs.tag }} "$file" --clobber
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Windows Release Asset
+        run: |
+          for file in artifacts/windows-release/*.exe; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              gh release upload ${{ steps.tag.outputs.tag }} "$file" --clobber
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Linux Release Asset
+        run: |
+          for file in artifacts/linux-release/*.AppImage; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              gh release upload ${{ steps.tag.outputs.tag }} "$file" --clobber
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

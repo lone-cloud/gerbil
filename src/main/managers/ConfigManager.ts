@@ -4,8 +4,10 @@ type ConfigValue = string | number | boolean | unknown[] | undefined;
 
 interface AppConfig {
   installDir?: string;
-  currentVersion?: string;
+  currentKoboldBinary?: string;
   selectedConfig?: string;
+  serverOnly?: boolean;
+  modelPath?: string;
   [key: string]: ConfigValue;
 }
 
@@ -55,12 +57,12 @@ export class ConfigManager {
     this.saveConfig();
   }
 
-  getCurrentVersion(): string | undefined {
-    return this.config.currentVersion;
+  getCurrentKoboldBinary(): string | undefined {
+    return this.config.currentKoboldBinary as string | undefined;
   }
 
-  setCurrentVersion(version: string) {
-    this.config.currentVersion = version;
+  setCurrentKoboldBinary(binaryPath: string) {
+    this.config.currentKoboldBinary = binaryPath;
     this.saveConfig();
   }
 
@@ -70,6 +72,24 @@ export class ConfigManager {
 
   setSelectedConfig(configName: string) {
     this.config.selectedConfig = configName;
+    this.saveConfig();
+  }
+
+  getServerOnly(): boolean {
+    return this.config.serverOnly || false;
+  }
+
+  setServerOnly(serverOnly: boolean) {
+    this.config.serverOnly = serverOnly;
+    this.saveConfig();
+  }
+
+  getModelPath(): string | undefined {
+    return this.config.modelPath;
+  }
+
+  setModelPath(path: string) {
+    this.config.modelPath = path;
     this.saveConfig();
   }
 }

@@ -24,4 +24,4 @@ A koboldcpp manager.
 
 ## License
 
-GPL3 License - see LICENSE file for details
+AGPL v3 License - see LICENSE file for details
