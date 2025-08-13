@@ -20,11 +20,10 @@
     "format": "prettier --write . --ignore-path .gitignore",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "lint:check": "eslint . --max-warnings 0",
-    "type-check": "tsc --noEmit",
+    "compile": "tsc --noEmit",
     "spell-check": "cspell \"**/*.{ts,tsx,js,jsx,md,json}\" --no-progress",
     "spell-check:fix": "cspell \"**/*.{ts,tsx,js,jsx,md,json}\" --no-progress --show-suggestions",
-    "check-all": "npm run lint && npm run type-check && npm run spell-check",
+    "check-all": "npm run lint && npm run compile && npm run spell-check",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -44,12 +43,11 @@
     "ai",
     "llm"
   ],
-  "author": "",
-  "license": "GPL-3.0-or-later",
+  "author": "Egor Philippov",
+  "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@cspell/eslint-plugin": "^9.2.0",
     "@eslint/js": "^9.33.0",
-    "@tailwindcss/postcss": "^4.1.11",
     "@types/node": "^24.2.1",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
@@ -66,14 +64,13 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
-    "eslint-plugin-security": "^3.0.1",
     "eslint-plugin-sonarjs": "^3.0.4",
     "globals": "^16.3.0",
     "husky": "^9.1.7",
+    "jiti": "^2.5.1",
     "lint-staged": "^16.1.5",
     "prettier": "^3.6.2",
     "rollup-plugin-visualizer": "^6.0.3",
-    "tailwindcss": "^4.1.11",
     "typescript": "^5.9.2",
     "vite": "^7.1.2",
     "wait-on": "^8.0.4"
@@ -82,23 +79,41 @@
     "@emotion/react": "^11.14.0",
     "@mantine/core": "^8.2.4",
     "@mantine/hooks": "^8.2.4",
-    "@tabler/icons-react": "^3.34.1",
+    "@mantine/notifications": "^8.2.4",
+    "lucide-react": "^0.539.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
   "build": {
     "appId": "com.friendlykobold.app",
     "productName": "FriendlyKobold",
+    "compression": "maximum",
     "directories": {
       "output": "release"
     },
     "files": [
-      "dist/**/*",
-      "dist-electron/**/*",
-      "node_modules/**/*"
+      "out/**/*",
+      "!**/node_modules/**/*",
+      "!out/renderer/node_modules/**/*",
+      "!**/*.map",
+      "!**/*.ts",
+      "!**/*.tsx",
+      "!**/test/**/*",
+      "!**/tests/**/*",
+      "!**/__tests__/**/*",
+      "!**/coverage/**/*",
+      "!**/.nyc_output/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "!**/node_modules/**/*"
     ],
     "mac": {
-      "icon": "assets/icon.icns",
+      "category": "public.app-category.productivity",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
       "target": [
         {
           "target": "dmg",
@@ -110,7 +125,6 @@
       ]
     },
     "win": {
-      "icon": "assets/icon.ico",
       "target": [
         {
           "target": "nsis",
@@ -121,7 +135,6 @@
       ]
     },
     "linux": {
-      "icon": "assets/icon.png",
       "target": [
         {
           "target": "AppImage",
@@ -130,6 +143,9 @@
           ]
         }
       ]
+    },
+    "nsis": {
+      "differentialPackage": true
     }
   }
 }

@@ -1,9 +1,18 @@
 import { spawn, ChildProcess } from 'child_process';
 import { join } from 'path';
-import { existsSync, readdirSync, statSync, createWriteStream } from 'fs';
+import {
+  existsSync,
+  readdirSync,
+  statSync,
+  createWriteStream,
+  chmodSync,
+  readFileSync,
+} from 'fs';
 import { dialog } from 'electron';
-import { GitHubService } from '../services/GitHubService';
-import { ConfigManager } from './ConfigManager';
+import { GitHubService } from '@/main/services/GitHubService';
+import { ConfigManager } from '@/main/managers/ConfigManager';
+import { WindowManager } from '@/main/managers/WindowManager';
+import { APP_NAME, DIALOG_TITLES, ROCM } from '@/constants/app';
 
 interface GitHubAsset {
   name: string;
@@ -39,7 +48,6 @@ interface ReleaseWithStatus {
 export interface InstalledVersion {
   version: string;
   path: string;
-  type: 'github' | 'rocm';
   downloadDate: string;
   filename: string;
 }
@@ -49,13 +57,19 @@ export class KoboldCppManager {
   private koboldProcess: ChildProcess | null = null;
   private configManager: ConfigManager;
   private githubService: GitHubService;
+  private windowManager: WindowManager;
 
-  constructor(configManager: ConfigManager, githubService: GitHubService) {
+  constructor(
+    configManager: ConfigManager,
+    githubService: GitHubService,
+    windowManager: WindowManager
+  ) {
     this.configManager = configManager;
     this.githubService = githubService;
+    this.windowManager = windowManager;
     this.installDir =
       this.configManager.getInstallDir() ||
-      join(process.env.HOME || process.env.USERPROFILE || '.', 'KoboldCpp');
+      join(process.env.HOME || process.env.USERPROFILE || '.', APP_NAME);
   }
 
   async downloadRelease(
@@ -105,14 +119,23 @@ export class KoboldCppManager {
       reader.releaseLock();
     }
 
+    if (process.platform !== 'win32') {
+      try {
+        chmodSync(filePath, 0o755);
+      } catch (error) {
+        console.warn('Failed to make binary executable:', error);
+      }
+    }
+
+    const currentBinary = this.configManager.getCurrentKoboldBinary();
+    if (!currentBinary) {
+      this.configManager.setCurrentKoboldBinary(filePath);
+    }
+
     return filePath;
   }
 
   async getInstalledVersions(): Promise<InstalledVersion[]> {
-    const configData = this.configManager.get('installedVersions');
-    const configVersions: InstalledVersion[] = Array.isArray(configData)
-      ? (configData as unknown as InstalledVersion[])
-      : [];
     const scannedVersions: InstalledVersion[] = [];
 
     try {
@@ -126,48 +149,26 @@ export class KoboldCppManager {
             statSync(filePath).isFile() &&
             (file.includes('koboldcpp') || file.includes('kobold'))
           ) {
-            const existingVersion = configVersions.find(
-              (v: InstalledVersion) => v.path === filePath
-            );
+            try {
+              const detectedVersion = await this.getVersionFromBinary(filePath);
+              const version = detectedVersion || 'unknown';
 
-            if (existingVersion) {
-              scannedVersions.push(existingVersion);
-            } else {
-              try {
-                const detectedVersion =
-                  await this.getVersionFromBinary(filePath);
-                const version = detectedVersion || 'unknown';
+              const newVersion: InstalledVersion = {
+                version,
+                path: filePath,
+                downloadDate: new Date().toISOString(),
+                filename: file,
+              };
 
-                const newVersion: InstalledVersion = {
-                  version,
-                  path: filePath,
-                  type: 'github',
-                  downloadDate: new Date().toISOString(),
-                  filename: file,
-                };
-
-                scannedVersions.push(newVersion);
-              } catch (error) {
-                console.warn(`Could not detect version for ${file}:`, error);
-              }
+              scannedVersions.push(newVersion);
+            } catch (error) {
+              console.warn(`Could not detect version for ${file}:`, error);
             }
           }
         }
       }
     } catch (error) {
       console.warn('Error scanning install directory:', error);
-      return configVersions.filter((version: InstalledVersion) =>
-        existsSync(version.path)
-      );
-    }
-
-    if (
-      scannedVersions.length !== configVersions.length ||
-      !scannedVersions.every((sv) =>
-        configVersions.some((cv: InstalledVersion) => cv.path === sv.path)
-      )
-    ) {
-      this.configManager.set('installedVersions', scannedVersions as unknown[]);
     }
 
     return scannedVersions;
@@ -210,60 +211,87 @@ export class KoboldCppManager {
     return configFiles.sort((a, b) => a.name.localeCompare(b.name));
   }
 
+  async parseConfigFile(filePath: string): Promise<{
+    gpulayers?: number;
+    contextsize?: number;
+    model_param?: string;
+    [key: string]: unknown;
+  } | null> {
+    try {
+      if (!existsSync(filePath)) {
+        return null;
+      }
+
+      const content = readFileSync(filePath, 'utf-8');
+      const config = JSON.parse(content);
+
+      return config;
+    } catch (error) {
+      console.warn('Error parsing config file:', error);
+      return null;
+    }
+  }
+
+  async selectModelFile(): Promise<string | null> {
+    try {
+      const mainWindow = this.windowManager.getMainWindow();
+      if (!mainWindow) {
+        return null;
+      }
+
+      const result = await dialog.showOpenDialog(mainWindow, {
+        title: 'Select Model File',
+        filters: [
+          { name: 'GGUF Files', extensions: ['gguf'] },
+          { name: 'All Files', extensions: ['*'] },
+        ],
+        properties: ['openFile'],
+      });
+
+      if (result.canceled || result.filePaths.length === 0) {
+        return null;
+      }
+
+      return result.filePaths[0];
+    } catch (error) {
+      console.warn('Error selecting model file:', error);
+      return null;
+    }
+  }
+
   async getCurrentVersion(): Promise<InstalledVersion | null> {
     const versions = await this.getInstalledVersions();
-    const currentVersionString = this.configManager.getCurrentVersion();
+    const currentBinaryPath = this.configManager.getCurrentKoboldBinary();
 
-    if (currentVersionString) {
-      const found =
-        versions.find((v) => v.version === currentVersionString) || null;
-      return found;
+    if (currentBinaryPath) {
+      const found = versions.find((v) => v.path === currentBinaryPath);
+      if (found && existsSync(found.path)) {
+        return found;
+      }
+      // If the current binary no longer exists, clear it
+      this.configManager.setCurrentKoboldBinary('');
     }
 
-    const fallback =
+    // If no current binary is set, return the most recent one
+    return (
       versions.sort(
         (a, b) =>
           new Date(b.downloadDate).getTime() -
           new Date(a.downloadDate).getTime()
-      )[0] || null;
-    return fallback;
+      )[0] || null
+    );
   }
 
   async setCurrentVersion(version: string): Promise<boolean> {
     const versions = await this.getInstalledVersions();
     const targetVersion = versions.find((v) => v.version === version);
 
-    if (!targetVersion || !existsSync(targetVersion.path)) {
-      if (targetVersion) {
-        const updatedVersions = versions.filter((v) => v.version !== version);
-        this.configManager.set(
-          'installedVersions',
-          updatedVersions as unknown[]
-        );
-      }
-      return false;
+    if (targetVersion && existsSync(targetVersion.path)) {
+      this.configManager.setCurrentKoboldBinary(targetVersion.path);
+      return true;
     }
 
-    this.configManager.setCurrentVersion(version);
-
-    const installedVersionsData = this.configManager.get('installedVersions');
-    const installedVersions: InstalledVersion[] = Array.isArray(
-      installedVersionsData
-    )
-      ? (installedVersionsData as unknown as InstalledVersion[])
-      : [];
-    const versionToUpdate = installedVersions.find(
-      (v: InstalledVersion) => v.version === version
-    );
-
-    if (versionToUpdate) {
-      this.configManager.set(
-        'installedVersions',
-        installedVersions as unknown[]
-      );
-    }
-
-    return true;
+    return false;
   }
 
   async getVersionFromBinary(binaryPath: string): Promise<string | null> {
@@ -338,46 +366,31 @@ export class KoboldCppManager {
     return this.installDir;
   }
 
+  getWindowManager() {
+    return this.windowManager;
+  }
+
   async selectInstallDirectory(): Promise<string | null> {
     const result = await dialog.showOpenDialog({
       properties: ['openDirectory', 'createDirectory'],
-      title: 'Select KoboldCpp Installation Directory',
+      title: DIALOG_TITLES.SELECT_INSTALL_DIR,
       defaultPath: this.installDir,
+      buttonLabel: 'Select Directory',
     });
 
     if (!result.canceled && result.filePaths.length > 0) {
-      const newPath = join(result.filePaths[0], 'KoboldCpp');
-      this.installDir = newPath;
-      this.configManager.setInstallDir(newPath);
-      return newPath;
+      this.installDir = result.filePaths[0];
+      this.configManager.setInstallDir(result.filePaths[0]);
+
+      const mainWindow = this.windowManager.getMainWindow();
+      if (mainWindow) {
+        mainWindow.webContents.send('install-dir-changed', result.filePaths[0]);
+      }
+
+      return result.filePaths[0];
     }
 
     return null;
-  }
-
-  async addInstalledVersion(
-    version: string,
-    path: string,
-    type: 'github' | 'rocm' = 'github'
-  ) {
-    const versions = await this.getInstalledVersions();
-
-    const filteredVersions = versions.filter((v) => v.version !== version);
-    const filename = path.split(/[/\\]/).pop() || 'unknown';
-
-    const newVersion: InstalledVersion = {
-      version,
-      path,
-      type,
-      downloadDate: new Date().toISOString(),
-      filename,
-    };
-
-    this.configManager.set('installedVersions', [
-      ...filteredVersions,
-      newVersion,
-    ] as unknown[]);
-    this.configManager.setCurrentVersion(version);
   }
 
   async launchKobold(
@@ -439,7 +452,6 @@ export class KoboldCppManager {
     name: string;
     url: string;
     size: number;
-    type: 'rocm';
     version?: string;
   } | null> {
     const platform = process.platform;
@@ -451,15 +463,14 @@ export class KoboldCppManager {
     const version = latestRelease?.tag_name?.replace(/^v/, '') || 'unknown';
 
     return {
-      name: 'koboldcpp-linux-x64-rocm',
-      url: 'https://koboldai.org/cpplinuxrocm',
-      size: 1024 * 1024 * 1024,
-      type: 'rocm',
+      name: ROCM.BINARY_NAME,
+      url: ROCM.DOWNLOAD_URL,
+      size: ROCM.SIZE_BYTES,
       version,
     };
   }
 
-  async downloadROCm(): Promise<{
+  async downloadROCm(onProgress?: (progress: number) => void): Promise<{
     success: boolean;
     path?: string;
     error?: string;
@@ -469,11 +480,11 @@ export class KoboldCppManager {
       if (platform !== 'linux') {
         return {
           success: false,
-          error: 'ROCm version is only available for Linux',
+          error: ROCM.ERROR_MESSAGE,
         };
       }
 
-      const response = await fetch('https://koboldai.org/cpplinuxrocm');
+      const response = await fetch(ROCM.DOWNLOAD_URL);
       if (!response.ok) {
         return {
           success: false,
@@ -481,24 +492,52 @@ export class KoboldCppManager {
         };
       }
 
-      const filePath = join(this.installDir, 'koboldcpp-linux-x64-rocm');
+      const totalBytes = ROCM.SIZE_BYTES;
+      let downloadedBytes = 0;
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        return {
+          success: false,
+          error: 'Failed to get response reader',
+        };
+      }
+
+      const filePath = join(this.installDir, ROCM.BINARY_NAME);
       const writer = createWriteStream(filePath);
 
-      response.body?.pipeTo(
-        new WritableStream({
-          write(chunk) {
-            writer.write(chunk);
-          },
-          close() {
-            writer.end();
-          },
-        })
-      );
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
 
-      await new Promise<void>((resolve, reject) => {
-        writer.on('finish', resolve);
-        writer.on('error', reject);
-      });
+          if (done) break;
+
+          downloadedBytes += value.length;
+          writer.write(value);
+
+          if (onProgress && totalBytes > 0) {
+            onProgress((downloadedBytes / totalBytes) * 100);
+          }
+        }
+
+        writer.end();
+
+        await new Promise<void>((resolve, reject) => {
+          writer.on('finish', resolve);
+          writer.on('error', reject);
+        });
+      } finally {
+        reader.releaseLock();
+      }
+
+      // Make the binary executable on Unix-like systems (Linux/macOS)
+      if (process.platform !== 'win32') {
+        try {
+          chmodSync(filePath, 0o755);
+        } catch (error) {
+          console.warn('Failed to make ROCm binary executable:', error);
+        }
+      }
 
       return {
         success: true,
@@ -589,65 +628,122 @@ export class KoboldCppManager {
     }
   }
 
-  async openInstallDialog(): Promise<{
-    success: boolean;
-    version?: string;
-    path?: string;
-    error?: string;
-  }> {
+  async launchKoboldCpp(
+    args: string[] = [],
+    configFilePath?: string
+  ): Promise<{ success: boolean; pid?: number; error?: string }> {
     try {
-      const result = await dialog.showOpenDialog({
-        title: 'Select KoboldCpp executable',
-        filters: [
-          { name: 'Executables', extensions: ['exe', 'app', 'AppImage'] },
-          { name: 'All Files', extensions: ['*'] },
-        ],
-        properties: ['openFile'],
-      });
+      if (this.koboldProcess) {
+        this.stopKoboldCpp();
+      }
 
-      if (!result.canceled && result.filePaths.length > 0) {
-        const filePath = result.filePaths[0];
-        const detectedVersion = await this.getVersionFromBinary(filePath);
-        const version = detectedVersion || 'unknown';
-
-        await this.addInstalledVersion(version, filePath);
-
+      const currentVersion = await this.getCurrentVersion();
+      if (!currentVersion || !existsSync(currentVersion.path)) {
         return {
-          success: true,
-          version,
-          path: filePath,
+          success: false,
+          error: 'KoboldCpp not found',
         };
       }
 
-      return { success: false, error: 'No file selected' };
+      const finalArgs = [...args]; // Start with the provided arguments
+
+      if (configFilePath && existsSync(configFilePath)) {
+        finalArgs.push('--config', configFilePath);
+      }
+
+      const child = spawn(currentVersion.path, finalArgs, {
+        stdio: ['pipe', 'pipe', 'pipe'],
+        detached: false,
+      });
+
+      this.koboldProcess = child;
+
+      const mainWindow = this.windowManager.getMainWindow();
+      if (mainWindow) {
+        child.stdout?.on('data', (data) => {
+          const output = data.toString();
+          mainWindow.webContents.send('kobold-output', output);
+        });
+
+        child.stderr?.on('data', (data) => {
+          const output = data.toString();
+          mainWindow.webContents.send('kobold-output', output);
+        });
+
+        child.on('exit', (code, signal) => {
+          const exitMessage = signal
+            ? `\nProcess terminated with signal ${signal}\n`
+            : `\nProcess exited with code ${code}\n`;
+          mainWindow.webContents.send('kobold-output', exitMessage);
+          this.koboldProcess = null;
+        });
+
+        child.on('error', (error) => {
+          mainWindow.webContents.send(
+            'kobold-output',
+            `\nProcess error: ${error.message}\n`
+          );
+          this.koboldProcess = null;
+        });
+      }
+
+      return { success: true, pid: child.pid };
     } catch (error) {
       return { success: false, error: (error as Error).message };
     }
   }
 
-  async launchKoboldCpp(
-    args: string[] = []
-  ): Promise<{ success: boolean; pid?: number; error?: string }> {
-    try {
-      const currentVersion = await this.getCurrentVersion();
-      if (!currentVersion || !existsSync(currentVersion.path)) {
-        return {
-          success: false,
-          error: 'KoboldCpp not found or no version selected',
-        };
+  stopKoboldCpp(): void {
+    if (this.koboldProcess) {
+      try {
+        // Try graceful termination first
+        this.koboldProcess.kill('SIGTERM');
+
+        // Force kill after 5 seconds if still running
+        setTimeout(() => {
+          if (this.koboldProcess && !this.koboldProcess.killed) {
+            this.koboldProcess.kill('SIGKILL');
+          }
+        }, 5000);
+
+        this.koboldProcess = null;
+      } catch (error) {
+        console.warn('Error stopping KoboldCpp process:', error);
+        this.koboldProcess = null;
       }
+    }
+  }
 
-      const child = spawn(currentVersion.path, args, {
-        detached: true,
-        stdio: 'ignore',
+  // Method to handle app termination - ensures process cleanup
+  async cleanup(): Promise<void> {
+    if (this.koboldProcess) {
+      return new Promise((resolve) => {
+        if (!this.koboldProcess) {
+          resolve();
+          return;
+        }
+
+        // Set up cleanup timeout
+        const cleanup = () => {
+          this.koboldProcess = null;
+          resolve();
+        };
+
+        // Listen for process exit
+        this.koboldProcess.once('exit', cleanup);
+        this.koboldProcess.once('error', cleanup);
+
+        // Try graceful shutdown
+        this.koboldProcess.kill('SIGTERM');
+
+        // Force kill after 3 seconds
+        setTimeout(() => {
+          if (this.koboldProcess && !this.koboldProcess.killed) {
+            this.koboldProcess.kill('SIGKILL');
+          }
+          cleanup();
+        }, 3000);
       });
-
-      await this.setCurrentVersion(currentVersion.version);
-      child.unref();
-
-      return { success: true, pid: child.pid };
-    } catch (error) {
-      return { success: false, error: (error as Error).message };
     }
   }
 }

@@ -1,19 +1,5 @@
 import { Modal, Text, Button, Group, Stack } from '@mantine/core';
-
-interface GitHubRelease {
-  tag_name: string;
-  name: string;
-  published_at: string;
-  body: string;
-  assets: GitHubAsset[];
-}
-
-interface GitHubAsset {
-  name: string;
-  browser_download_url: string;
-  size: number;
-  created_at: string;
-}
+import type { GitHubRelease } from '@/types';
 
 interface UpdateDialogProps {
   updateInfo: {

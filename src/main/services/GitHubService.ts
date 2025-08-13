@@ -1,4 +1,5 @@
-import type { GitHubRelease } from '../../types/electron';
+import type { GitHubRelease } from '@/types/electron';
+import { GITHUB_API } from '@/constants/app';
 
 export class GitHubService {
   private lastApiCall = 0;
@@ -13,16 +14,14 @@ export class GitHubService {
     }
 
     try {
-      const response = await fetch(
-        'https://api.github.com/repos/LostRuins/koboldcpp/releases/latest'
-      );
+      const response = await fetch(GITHUB_API.LATEST_RELEASE_URL);
 
       if (!response.ok) {
         if (response.status === 403) {
           console.warn(
-            'GitHub API rate limit reached, using cached data or fallback'
+            'GitHub API rate limit reached, using cached data if available'
           );
-          return this.cachedRelease || this.getFallbackRelease();
+          return this.cachedRelease;
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -32,7 +31,7 @@ export class GitHubService {
       return this.cachedRelease;
     } catch (error) {
       console.error('Error fetching latest release:', error);
-      return this.cachedRelease || this.getFallbackRelease();
+      return this.cachedRelease;
     }
   }
 
@@ -47,16 +46,14 @@ export class GitHubService {
     }
 
     try {
-      const response = await fetch(
-        'https://api.github.com/repos/LostRuins/koboldcpp/releases'
-      );
+      const response = await fetch(GITHUB_API.ALL_RELEASES_URL);
 
       if (!response.ok) {
         if (response.status === 403) {
-          console.warn('GitHub API rate limit reached, using cached data');
-          return this.cachedReleases.length > 0
-            ? this.cachedReleases
-            : [this.getFallbackRelease()];
+          console.warn(
+            'GitHub API rate limit reached, using cached data if available'
+          );
+          return this.cachedReleases;
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -66,32 +63,7 @@ export class GitHubService {
       return this.cachedReleases;
     } catch (error) {
       console.error('Error fetching releases:', error);
-      return this.cachedReleases.length > 0
-        ? this.cachedReleases
-        : [this.getFallbackRelease()];
+      return this.cachedReleases;
     }
-  }
-
-  private getFallbackRelease(): GitHubRelease {
-    return {
-      tag_name: 'v1.70.1',
-      name: 'KoboldCpp v1.70.1 (Fallback)',
-      published_at: new Date().toISOString(),
-      body: 'Fallback release data - GitHub API unavailable',
-      assets: [
-        {
-          name: 'koboldcpp-linux-x64',
-          browser_download_url: 'https://koboldai.org/cpp',
-          size: 50000000,
-          created_at: new Date().toISOString(),
-        },
-        {
-          name: 'koboldcpp-linux-x64-rocm',
-          browser_download_url: 'https://koboldai.org/cpplinuxrocm',
-          size: 80000000,
-          created_at: new Date().toISOString(),
-        },
-      ],
-    };
   }
 }

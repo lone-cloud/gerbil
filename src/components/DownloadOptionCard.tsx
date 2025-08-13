@@ -1,5 +1,14 @@
-import { Card, Stack, Group, Text, Badge, Button, Loader } from '@mantine/core';
-import { IconDownload } from '@tabler/icons-react';
+import {
+  Card,
+  Stack,
+  Group,
+  Text,
+  Badge,
+  Button,
+  Loader,
+  Progress,
+} from '@mantine/core';
+import { Download } from 'lucide-react';
 import { MouseEvent } from 'react';
 
 interface DownloadOptionCardProps {
@@ -9,6 +18,7 @@ interface DownloadOptionCardProps {
   isSelected: boolean;
   isRecommended: boolean;
   isDownloading: boolean;
+  downloadProgress?: number;
   onClick: () => void;
   onDownload: (e: MouseEvent<HTMLButtonElement>) => void;
 }
@@ -20,6 +30,7 @@ export const DownloadOptionCard = ({
   isSelected,
   isRecommended,
   isDownloading,
+  downloadProgress = 0,
   onClick,
   onDownload,
 }: DownloadOptionCardProps) => (
@@ -52,16 +63,12 @@ export const DownloadOptionCard = ({
       </Text>
 
       {isSelected && (
-        <Group justify="center" pt="sm">
+        <Stack gap="sm" pt="sm">
           <Button
             onClick={onDownload}
             disabled={isDownloading}
             leftSection={
-              isDownloading ? (
-                <Loader size="1rem" />
-              ) : (
-                <IconDownload size="1rem" />
-              )
+              isDownloading ? <Loader size="1rem" /> : <Download size="1rem" />
             }
             size="sm"
             radius="md"
@@ -69,7 +76,16 @@ export const DownloadOptionCard = ({
           >
             {isDownloading ? 'Downloading...' : 'Download'}
           </Button>
-        </Group>
+
+          {isDownloading && (
+            <Stack gap="xs">
+              <Progress value={downloadProgress} color="blue" radius="xl" />
+              <Text size="xs" c="dimmed" ta="center">
+                {downloadProgress.toFixed(1)}% complete
+              </Text>
+            </Stack>
+          )}
+        </Stack>
       )}
     </Stack>
   </Card>

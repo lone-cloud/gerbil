@@ -7,7 +7,7 @@ import {
 } from 'react';
 import { MantineColorScheme } from '@mantine/core';
 
-type ThemeMode = 'light' | 'dark' | 'system';
+export type ThemeMode = 'light' | 'dark' | 'system';
 
 interface ThemeContextType {
   themeMode: ThemeMode;

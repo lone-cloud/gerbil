@@ -1,9 +1,9 @@
-import { ipcMain } from 'electron';
+import { ipcMain, dialog } from 'electron';
 import { shell, app } from 'electron';
-import { KoboldCppManager } from '../managers/KoboldCppManager';
-import { ConfigManager } from '../managers/ConfigManager';
-import { GitHubService } from '../services/GitHubService';
-import { GPUService } from '../services/GPUService';
+import { KoboldCppManager } from '@/main/managers/KoboldCppManager';
+import { ConfigManager } from '@/main/managers/ConfigManager';
+import { GitHubService } from '@/main/services/GitHubService';
+import { GPUService } from '@/main/services/GPUService';
 
 export class IPCHandlers {
   private koboldManager: KoboldCppManager;
@@ -32,11 +32,43 @@ export class IPCHandlers {
       this.githubService.getAllReleases()
     );
 
-    ipcMain.handle(
-      'kobold:downloadRelease',
-      async (_event, asset, onProgress) =>
-        this.koboldManager.downloadRelease(asset, onProgress)
-    );
+    ipcMain.handle('kobold:checkForUpdates', async () => {
+      const latest = await this.githubService.getLatestRelease();
+      return latest;
+    });
+
+    ipcMain.handle('kobold:openInstallDialog', async () => {
+      const result = await dialog.showOpenDialog({
+        properties: ['openDirectory'],
+        title: 'Select Installation Directory',
+      });
+
+      if (!result.canceled && result.filePaths.length > 0) {
+        return result.filePaths[0];
+      }
+      return null;
+    });
+
+    ipcMain.handle('kobold:downloadRelease', async (_event, asset) => {
+      try {
+        const mainWindow = this.koboldManager
+          .getWindowManager()
+          .getMainWindow();
+
+        const filePath = await this.koboldManager.downloadRelease(
+          asset,
+          (progress: number) => {
+            if (mainWindow) {
+              mainWindow.webContents.send('download-progress', progress);
+            }
+          }
+        );
+
+        return { success: true, path: filePath };
+      } catch (error) {
+        return { success: false, error: (error as Error).message };
+      }
+    });
 
     ipcMain.handle('kobold:getInstalledVersions', () =>
       this.koboldManager.getInstalledVersions()
@@ -74,12 +106,6 @@ export class IPCHandlers {
       this.koboldManager.selectInstallDirectory()
     );
 
-    ipcMain.handle(
-      'kobold:addInstalledVersion',
-      (_event, version, path, type) =>
-        this.koboldManager.addInstalledVersion(version, path, type)
-    );
-
     ipcMain.handle('kobold:detectGPU', () => this.gpuService.detectGPU());
 
     ipcMain.handle('kobold:getPlatform', () => ({
@@ -93,19 +119,19 @@ export class IPCHandlers {
 
     ipcMain.handle('kobold:downloadROCm', async () => {
       try {
-        return await this.koboldManager.downloadROCm();
+        const mainWindow = this.koboldManager
+          .getWindowManager()
+          .getMainWindow();
+
+        return await this.koboldManager.downloadROCm((progress: number) => {
+          if (mainWindow) {
+            mainWindow.webContents.send('download-progress', progress);
+          }
+        });
       } catch (error) {
         return { success: false, error: (error as Error).message };
       }
     });
-
-    ipcMain.handle('kobold:launchKobold', (_event, versionPath, args) =>
-      this.koboldManager.launchKobold(versionPath, args)
-    );
-
-    ipcMain.handle('kobold:stopKobold', () => this.koboldManager.stopKobold());
-
-    ipcMain.handle('kobold:isRunning', () => this.koboldManager.isRunning());
 
     ipcMain.handle('kobold:getInstalledVersion', () =>
       this.koboldManager.getInstalledVersion()
@@ -115,20 +141,58 @@ export class IPCHandlers {
       this.koboldManager.getVersionFromBinary(binaryPath)
     );
 
-    ipcMain.handle('kobold:checkForUpdates', () =>
-      this.koboldManager.checkForUpdates()
-    );
-
     ipcMain.handle('kobold:getLatestReleaseWithStatus', () =>
       this.koboldManager.getLatestReleaseWithDownloadStatus()
     );
 
-    ipcMain.handle('kobold:launchKoboldCpp', (_event, args) =>
-      this.koboldManager.launchKoboldCpp(args)
+    ipcMain.handle('kobold:launchKoboldCpp', (_event, args, configFilePath) =>
+      this.koboldManager.launchKoboldCpp(args, configFilePath)
     );
 
-    ipcMain.handle('kobold:openInstallDialog', () =>
-      this.koboldManager.openInstallDialog()
+    ipcMain.handle('kobold:stopKoboldCpp', () =>
+      this.koboldManager.stopKoboldCpp()
+    );
+
+    ipcMain.handle('kobold:confirmEject', async () => {
+      const mainWindow = this.koboldManager.getWindowManager().getMainWindow();
+      if (!mainWindow) return false;
+
+      const result = await dialog.showMessageBox(mainWindow, {
+        type: 'warning',
+        title: 'Confirm Eject',
+        message: 'Are you sure you want to stop KoboldCpp?',
+        detail:
+          'This will terminate the running process and return to the launch screen.',
+        buttons: ['Cancel', 'Stop KoboldCpp'],
+        defaultId: 0,
+        cancelId: 0,
+      });
+
+      return result.response === 1; // Returns true if user clicked "Stop KoboldCpp"
+    });
+
+    ipcMain.handle('kobold:parseConfigFile', (_event, filePath) =>
+      this.koboldManager.parseConfigFile(filePath)
+    );
+
+    ipcMain.handle('kobold:selectModelFile', () =>
+      this.koboldManager.selectModelFile()
+    );
+
+    ipcMain.handle('config:getServerOnly', () =>
+      this.configManager.getServerOnly()
+    );
+
+    ipcMain.handle('config:setServerOnly', (_event, serverOnly) =>
+      this.configManager.setServerOnly(serverOnly)
+    );
+
+    ipcMain.handle('config:getModelPath', () =>
+      this.configManager.getModelPath()
+    );
+
+    ipcMain.handle('config:setModelPath', (_event, path) =>
+      this.configManager.setModelPath(path)
     );
 
     ipcMain.handle('config:get', (_event, key) => this.configManager.get(key));

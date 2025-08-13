@@ -11,25 +11,24 @@ import {
   Button,
   Card,
   Badge,
+  Progress,
+  Loader,
 } from '@mantine/core';
 import {
-  IconSettings,
-  IconPalette,
-  IconMoon,
-  IconSun,
-  IconDeviceDesktop,
-  IconAdjustments,
-  IconFolder,
-  IconFolderOpen,
-  IconVersions,
-  IconDownload,
-  IconRefresh,
-} from '@tabler/icons-react';
-import { useTheme } from '@/contexts/ThemeContext';
-import {
-  getPlatformDisplayName,
-  isAssetCompatibleWithPlatform,
-} from '@/utils/platform';
+  Settings,
+  Palette,
+  Moon,
+  Sun,
+  Monitor,
+  SlidersHorizontal,
+  Folder,
+  FolderOpen,
+  GitBranch,
+  Download,
+  RotateCcw,
+} from 'lucide-react';
+import { useTheme, type ThemeMode } from '@/contexts/ThemeContext';
+import { isAssetCompatibleWithPlatform } from '@/utils/platform';
 import type { InstalledVersion, ReleaseWithStatus } from '@/types/electron';
 
 interface SettingsModalProps {
@@ -40,7 +39,6 @@ interface SettingsModalProps {
 export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
   const { themeMode, setThemeMode } = useTheme();
   const [installDir, setInstallDir] = useState<string>('');
-  const [loading, setLoading] = useState(false);
   const [installedVersions, setInstalledVersions] = useState<
     InstalledVersion[]
   >([]);
@@ -52,12 +50,15 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
   );
   const [loadingRelease, setLoadingRelease] = useState(false);
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<{
+    [key: string]: number;
+  }>({});
   const [downloadingROCm, setDownloadingROCm] = useState(false);
   const [rocmDownload, setRocmDownload] = useState<{
     name: string;
     url: string;
     size: number;
-    type: 'rocm';
+    version?: string;
   } | null>(null);
   const [userPlatform, setUserPlatform] = useState<string>('');
   const [activeTab, setActiveTab] = useState('general');
@@ -85,8 +86,24 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
       loadLatestRelease();
       loadROCmDownload();
       loadUserPlatform();
+
+      // Set up progress listener
+      const handleProgress = (progress: number) => {
+        if (downloading) {
+          setDownloadProgress((prev) => ({
+            ...prev,
+            [downloading]: progress,
+          }));
+        }
+      };
+
+      window.electronAPI.kobold.onDownloadProgress?.(handleProgress);
+
+      return () => {
+        window.electronAPI.kobold.removeAllListeners?.('download-progress');
+      };
     }
-  }, [opened]);
+  }, [opened, downloading]);
 
   const loadCurrentInstallDir = async () => {
     try {
@@ -141,6 +158,8 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
 
   const handleDownload = async (assetName: string, downloadUrl: string) => {
     setDownloading(assetName);
+    setDownloadProgress((prev) => ({ ...prev, [assetName]: 0 }));
+
     try {
       const result = await window.electronAPI.kobold.downloadRelease({
         name: assetName,
@@ -157,6 +176,11 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
       console.error('Failed to download:', error);
     } finally {
       setDownloading(null);
+      setDownloadProgress((prev) => {
+        const newProgress = { ...prev };
+        delete newProgress[assetName];
+        return newProgress;
+      });
     }
   };
 
@@ -258,17 +282,15 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
   const handleSelectInstallDir = async () => {
     if (!window.electronAPI) return;
 
-    setLoading(true);
     try {
       const selectedDir =
         await window.electronAPI.kobold.selectInstallDirectory();
+
       if (selectedDir) {
         setInstallDir(selectedDir);
       }
     } catch (error) {
       console.error('Failed to select install directory:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -278,7 +300,7 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
       onClose={onClose}
       title={
         <Group gap="xs">
-          <IconSettings size={20} />
+          <Settings size={20} />
           <Text fw={500}>Settings</Text>
         </Group>
       }
@@ -319,7 +341,7 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
           <Tabs.Tab
             value="general"
             leftSection={
-              <IconAdjustments style={{ width: rem(16), height: rem(16) }} />
+              <SlidersHorizontal style={{ width: rem(16), height: rem(16) }} />
             }
           >
             General
@@ -327,7 +349,7 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
           <Tabs.Tab
             value="versions"
             leftSection={
-              <IconVersions style={{ width: rem(16), height: rem(16) }} />
+              <GitBranch style={{ width: rem(16), height: rem(16) }} />
             }
           >
             Versions
@@ -335,7 +357,7 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
           <Tabs.Tab
             value="appearance"
             leftSection={
-              <IconPalette style={{ width: rem(16), height: rem(16) }} />
+              <Palette style={{ width: rem(16), height: rem(16) }} />
             }
           >
             Appearance
@@ -349,7 +371,7 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
                 Installation Directory
               </Text>
               <Text size="sm" c="dimmed" mb="md">
-                Choose where KoboldCpp files will be downloaded and stored
+                Choose where application files will be downloaded and stored
               </Text>
               <Group gap="xs">
                 <TextInput
@@ -358,17 +380,14 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
                   placeholder="Default installation directory"
                   style={{ flex: 1 }}
                   leftSection={
-                    <IconFolder style={{ width: rem(16), height: rem(16) }} />
+                    <Folder style={{ width: rem(16), height: rem(16) }} />
                   }
                 />
                 <Button
                   variant="outline"
                   onClick={handleSelectInstallDir}
-                  loading={loading}
                   leftSection={
-                    <IconFolderOpen
-                      style={{ width: rem(16), height: rem(16) }}
-                    />
+                    <FolderOpen style={{ width: rem(16), height: rem(16) }} />
                   }
                 >
                   Browse
@@ -389,39 +408,44 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
                   onClick={loadLatestRelease}
                   loading={loadingRelease}
                   leftSection={
-                    <IconRefresh style={{ width: rem(14), height: rem(14) }} />
+                    <RotateCcw style={{ width: rem(14), height: rem(14) }} />
                   }
                 >
                   Check for Updates
                 </Button>
               </Group>
-              <Text size="sm" c="dimmed" mb="md">
-                KoboldCpp versions available for{' '}
-                {getPlatformDisplayName(userPlatform)}. Click on downloaded
-                versions to set them as current.
-              </Text>
 
               <Stack gap="xs">
-                {(() => {
-                  const allVersions = getAllVersions();
-                  return allVersions.map((version, index) => (
+                {(() =>
+                  getAllVersions().map((version, index) => (
                     <Card
                       key={`${version.name}-${version.version}-${index}`}
                       withBorder
                       radius="sm"
                       padding="sm"
-                      style={(() => {
-                        let backgroundColor = undefined;
-                        if (version.isCurrent) {
-                          backgroundColor = 'var(--mantine-color-blue-0)';
-                        }
-                        return {
-                          backgroundColor,
-                          borderColor: version.isCurrent
-                            ? 'var(--mantine-color-blue-6)'
+                      style={{
+                        cursor:
+                          version.isDownloaded && !version.isCurrent
+                            ? 'pointer'
                             : undefined,
-                        };
-                      })()}
+                      }}
+                      bd={
+                        version.isCurrent
+                          ? '2px solid var(--mantine-color-blue-filled)'
+                          : undefined
+                      }
+                      bg={
+                        version.isCurrent
+                          ? 'var(--mantine-color-blue-light)'
+                          : undefined
+                      }
+                      onClick={
+                        version.isDownloaded &&
+                        !version.isCurrent &&
+                        version.installedData
+                          ? () => handleVersionSelect(version.installedData!)
+                          : undefined
+                      }
                     >
                       <Group justify="space-between" align="center">
                         <div style={{ flex: 1 }}>
@@ -459,33 +483,38 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
                             loading={downloading === version.name}
                             disabled={downloading !== null}
                             leftSection={
-                              <IconDownload
-                                style={{ width: rem(14), height: rem(14) }}
-                              />
+                              downloading === version.name ? (
+                                <Loader size="1rem" />
+                              ) : (
+                                <Download
+                                  style={{ width: rem(14), height: rem(14) }}
+                                />
+                              )
                             }
                           >
-                            Download
+                            {downloading === version.name
+                              ? 'Downloading...'
+                              : 'Download'}
                           </Button>
                         )}
-                        {version.isDownloaded &&
-                          !version.isCurrent &&
-                          version.installedData && (
-                            <Button
-                              variant="outline"
-                              size="xs"
-                              color="blue"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleVersionSelect(version.installedData!);
-                              }}
-                            >
-                              Make Current
-                            </Button>
-                          )}
                       </Group>
+
+                      {downloading === version.name &&
+                        downloadProgress[version.name] !== undefined && (
+                          <Stack gap="xs" mt="sm">
+                            <Progress
+                              value={downloadProgress[version.name]}
+                              color="blue"
+                              radius="xl"
+                            />
+                            <Text size="xs" c="dimmed" ta="center">
+                              {downloadProgress[version.name].toFixed(1)}%
+                              complete
+                            </Text>
+                          </Stack>
+                        )}
                     </Card>
-                  ));
-                })()}
+                  )))()}
 
                 {userPlatform === 'linux' && rocmDownload && (
                   <Card withBorder radius="sm" padding="sm">
@@ -497,7 +526,7 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
                           </Text>
                         </Group>
                         <Text size="xs" c="dimmed">
-                          AMD GPU support with ROCm
+                          Version {rocmDownload.version || 'latest'}
                           {rocmDownload.size && (
                             <>
                               {' '}
@@ -519,7 +548,7 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
                         loading={downloadingROCm}
                         disabled={downloading !== null || downloadingROCm}
                         leftSection={
-                          <IconDownload
+                          <Download
                             style={{ width: rem(14), height: rem(14) }}
                           />
                         }
@@ -556,14 +585,12 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
               <SegmentedControl
                 fullWidth
                 value={themeMode}
-                onChange={(value) =>
-                  setThemeMode(value as 'light' | 'dark' | 'system')
-                }
+                onChange={(value) => setThemeMode(value as ThemeMode)}
                 data={[
                   {
                     label: (
                       <Group gap="xs" justify="center">
-                        <IconSun style={{ width: rem(16), height: rem(16) }} />
+                        <Sun style={{ width: rem(16), height: rem(16) }} />
                         <span>Light</span>
                       </Group>
                     ),
@@ -572,7 +599,7 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
                   {
                     label: (
                       <Group gap="xs" justify="center">
-                        <IconMoon style={{ width: rem(16), height: rem(16) }} />
+                        <Moon style={{ width: rem(16), height: rem(16) }} />
                         <span>Dark</span>
                       </Group>
                     ),
@@ -581,9 +608,7 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
                   {
                     label: (
                       <Group gap="xs" justify="center">
-                        <IconDeviceDesktop
-                          style={{ width: rem(16), height: rem(16) }}
-                        />
+                        <Monitor style={{ width: rem(16), height: rem(16) }} />
                         <span>System</span>
                       </Group>
                     ),
