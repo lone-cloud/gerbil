@@ -26,7 +26,6 @@ interface LaunchScreenProps {
 
 export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
   const [configFiles, setConfigFiles] = useState<ConfigFile[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [, setInstallDir] = useState<string>('');
   const {
@@ -49,32 +48,26 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
   } = useLaunchConfig();
 
   const loadConfigFiles = useCallback(async () => {
-    try {
-      setLoading(true);
+    const [files, currentDir, savedConfig] = await Promise.all([
+      window.electronAPI.kobold.getConfigFiles(),
+      window.electronAPI.kobold.getCurrentInstallDir(),
+      window.electronAPI.kobold.getSelectedConfig(),
+    ]);
 
-      const [files, currentDir, savedConfig] = await Promise.all([
-        window.electronAPI.kobold.getConfigFiles(),
-        window.electronAPI.kobold.getCurrentInstallDir(),
-        window.electronAPI.kobold.getSelectedConfig(),
-      ]);
+    setConfigFiles(files);
+    setInstallDir(currentDir);
 
-      setConfigFiles(files);
-      setInstallDir(currentDir);
+    if (savedConfig && files.some((f) => f.name === savedConfig)) {
+      setSelectedFile(savedConfig);
+    } else if (files.length > 0 && !selectedFile) {
+      setSelectedFile(files[0].name);
+    }
 
-      if (savedConfig && files.some((f) => f.name === savedConfig)) {
-        setSelectedFile(savedConfig);
-      } else if (files.length > 0 && !selectedFile) {
-        setSelectedFile(files[0].name);
-      }
+    await loadSavedSettings();
 
-      await loadSavedSettings();
-
-      const currentSelectedFile = await loadConfigFromFile(files, savedConfig);
-      if (currentSelectedFile && !selectedFile) {
-        setSelectedFile(currentSelectedFile);
-      }
-    } finally {
-      setLoading(false);
+    const currentSelectedFile = await loadConfigFromFile(files, savedConfig);
+    if (currentSelectedFile && !selectedFile) {
+      setSelectedFile(currentSelectedFile);
     }
   }, [selectedFile, loadSavedSettings, loadConfigFromFile]);
 
@@ -153,12 +146,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
           <Card withBorder radius="md" w="100%">
             <Group justify="space-between" mb="md">
               <Text fw={500}>Select Configuration</Text>
-              <ActionIcon
-                variant="light"
-                onClick={loadConfigFiles}
-                loading={loading}
-                size="sm"
-              >
+              <ActionIcon variant="light" onClick={loadConfigFiles} size="sm">
                 <RotateCcw size={16} />
               </ActionIcon>
             </Group>
@@ -166,7 +154,6 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
             <ConfigFileSelect
               configFiles={configFiles}
               selectedFile={selectedFile}
-              loading={loading}
               onFileSelection={handleFileSelection}
             />
           </Card>

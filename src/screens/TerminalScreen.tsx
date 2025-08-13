@@ -22,45 +22,41 @@ export const TerminalScreen = () => {
   }, [terminalContent]);
 
   useEffect(() => {
-    if (window.electronAPI?.kobold?.onKoboldOutput) {
-      const cleanup = window.electronAPI.kobold.onKoboldOutput(
-        (data: string) => {
-          setTerminalContent((prev) => {
-            // Handle carriage returns for progress bars
-            const lines = prev.split('\n');
-            const newData = data.toString();
+    const cleanup = window.electronAPI.kobold.onKoboldOutput((data: string) => {
+      setTerminalContent((prev) => {
+        // Handle carriage returns for progress bars
+        const lines = prev.split('\n');
+        const newData = data.toString();
 
-            // If the new data contains carriage returns, handle line overwriting
-            if (newData.includes('\r')) {
-              const parts = newData.split('\r');
-              for (let i = 0; i < parts.length; i++) {
-                if (i === 0) {
-                  // First part gets appended to the last line
-                  if (lines.length > 0) {
-                    lines[lines.length - 1] += parts[i];
-                  } else {
-                    lines.push(parts[i]);
-                  }
-                } else {
-                  // Subsequent parts overwrite the last line
-                  if (lines.length > 0) {
-                    lines[lines.length - 1] = parts[i];
-                  } else {
-                    lines.push(parts[i]);
-                  }
-                }
+        // If the new data contains carriage returns, handle line overwriting
+        if (newData.includes('\r')) {
+          const parts = newData.split('\r');
+          for (let i = 0; i < parts.length; i++) {
+            if (i === 0) {
+              // First part gets appended to the last line
+              if (lines.length > 0) {
+                lines[lines.length - 1] += parts[i];
+              } else {
+                lines.push(parts[i]);
               }
-              return lines.join('\n');
             } else {
-              // No carriage returns, just append
-              return prev + newData;
+              // Subsequent parts overwrite the last line
+              if (lines.length > 0) {
+                lines[lines.length - 1] = parts[i];
+              } else {
+                lines.push(parts[i]);
+              }
             }
-          });
+          }
+          return lines.join('\n');
+        } else {
+          // No carriage returns, just append
+          return prev + newData;
         }
-      );
+      });
+    });
 
-      return cleanup;
-    }
+    return cleanup;
   }, []);
 
   return (

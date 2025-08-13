@@ -1,4 +1,3 @@
-// Common interfaces used across multiple components
 export interface ConfigFile {
   name: string;
   path: string;
@@ -39,7 +38,6 @@ export interface ReleaseWithStatus {
 export interface InstalledVersion {
   version: string;
   path: string;
-  downloadDate: string;
   filename: string;
 }
 

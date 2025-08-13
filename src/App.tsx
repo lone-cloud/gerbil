@@ -80,38 +80,32 @@ export const App = () => {
 
   useEffect(() => {
     const checkInstallation = async () => {
-      if (window.electronAPI) {
-        try {
-          const installed = await window.electronAPI.kobold.isInstalled();
-          setCurrentScreen(installed ? 'launch' : 'download');
-          setHasInitialized(true);
-        } catch (error) {
-          console.error('Error checking installation:', error);
-          setHasInitialized(true);
-        }
-      } else {
+      try {
+        const installed = await window.electronAPI.kobold.isInstalled();
+        setCurrentScreen(installed ? 'launch' : 'download');
+        setHasInitialized(true);
+      } catch (error) {
+        console.error('Error checking installation:', error);
         setHasInitialized(true);
       }
     };
 
     checkInstallation();
 
-    if (window.electronAPI) {
-      window.electronAPI.kobold.onUpdateAvailable((info) => {
-        setUpdateInfo(info);
-        setShowUpdateDialog(true);
+    window.electronAPI.kobold.onUpdateAvailable((info) => {
+      setUpdateInfo(info);
+      setShowUpdateDialog(true);
+    });
+
+    const cleanupInstallDirListener =
+      window.electronAPI.kobold.onInstallDirChanged(() => {
+        checkInstallation();
       });
 
-      const cleanupInstallDirListener =
-        window.electronAPI.kobold.onInstallDirChanged(() => {
-          checkInstallation();
-        });
-
-      return () => {
-        window.electronAPI.kobold.removeAllListeners('update-available');
-        cleanupInstallDirListener();
-      };
-    }
+    return () => {
+      window.electronAPI.kobold.removeAllListeners('update-available');
+      cleanupInstallDirListener();
+    };
   }, []);
 
   const handleDownloadComplete = () => {
@@ -134,24 +128,21 @@ export const App = () => {
   };
 
   const handleEject = async () => {
-    // Show confirmation dialog
     try {
       const confirmed = await window.electronAPI.kobold.confirmEject();
       if (!confirmed) {
-        return; // User cancelled
+        return;
       }
     } catch (error) {
       console.error('Error showing confirmation dialog:', error);
       return;
     }
 
-    if (window.electronAPI?.kobold?.stopKoboldCpp) {
-      try {
-        await window.electronAPI.kobold.stopKoboldCpp();
-      } catch (error) {
-        console.error('Error stopping KoboldCpp:', error);
-        notify.error('Stop Failed', 'Failed to stop KoboldCpp process');
-      }
+    try {
+      await window.electronAPI.kobold.stopKoboldCpp();
+    } catch (error) {
+      console.error('Error stopping KoboldCpp:', error);
+      notify.error('Stop Failed', 'Failed to stop KoboldCpp process');
     }
 
     handleBackToLaunch();

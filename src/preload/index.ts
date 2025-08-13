@@ -83,9 +83,6 @@ const configAPI: ConfigAPI = {
   getServerOnly: () => ipcRenderer.invoke('config:getServerOnly'),
   setServerOnly: (serverOnly: boolean) =>
     ipcRenderer.invoke('config:setServerOnly', serverOnly),
-  getModelPath: () => ipcRenderer.invoke('config:getModelPath'),
-  setModelPath: (path: string) =>
-    ipcRenderer.invoke('config:setModelPath', path),
   get: (key: string) => ipcRenderer.invoke('config:get', key),
   set: (key: string, value: unknown) =>
     ipcRenderer.invoke('config:set', key, value),

@@ -7,7 +7,6 @@ interface AppConfig {
   currentKoboldBinary?: string;
   selectedConfig?: string;
   serverOnly?: boolean;
-  modelPath?: string;
   [key: string]: ConfigValue;
 }
 
@@ -81,15 +80,6 @@ export class ConfigManager {
 
   setServerOnly(serverOnly: boolean) {
     this.config.serverOnly = serverOnly;
-    this.saveConfig();
-  }
-
-  getModelPath(): string | undefined {
-    return this.config.modelPath;
-  }
-
-  setModelPath(path: string) {
-    this.config.modelPath = path;
     this.saveConfig();
   }
 }

@@ -43,8 +43,6 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
   } | null>(null);
 
   const loadLatestReleaseAndPlatform = useCallback(async () => {
-    if (!window.electronAPI) return;
-
     try {
       setLoading(true);
 
@@ -92,21 +90,16 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
   useEffect(() => {
     loadLatestReleaseAndPlatform();
 
-    if (window.electronAPI) {
-      window.electronAPI.kobold.onDownloadProgress((progress: number) => {
-        setDownloadProgress(progress);
-      });
-    }
+    window.electronAPI.kobold.onDownloadProgress((progress: number) => {
+      setDownloadProgress(progress);
+    });
 
     return () => {
-      if (window.electronAPI) {
-        window.electronAPI.kobold.removeAllListeners('download-progress');
-      }
+      window.electronAPI.kobold.removeAllListeners('download-progress');
     };
   }, [loadLatestReleaseAndPlatform]);
 
   const handleDownload = async (type: 'asset' | 'rocm' = 'asset') => {
-    if (!window.electronAPI) return;
     if (type === 'asset' && !selectedAsset) return;
 
     try {

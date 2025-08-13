@@ -80,7 +80,7 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
   }, [opened]);
 
   useEffect(() => {
-    if (opened && window.electronAPI) {
+    if (opened) {
       loadCurrentInstallDir();
       loadVersions();
       loadLatestRelease();
@@ -208,7 +208,6 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
       isCurrent: boolean;
       downloadUrl?: string;
       size?: number;
-      downloadDate?: string;
       installedData?: InstalledVersion;
     }> = [];
 
@@ -258,7 +257,6 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
           isLatest: false,
           isDownloaded: true,
           isCurrent,
-          downloadDate: installed.downloadDate,
           installedData: installed,
         });
       }
@@ -280,8 +278,6 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
   };
 
   const handleSelectInstallDir = async () => {
-    if (!window.electronAPI) return;
-
     try {
       const selectedDir =
         await window.electronAPI.kobold.selectInstallDirectory();

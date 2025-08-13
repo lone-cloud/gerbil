@@ -48,7 +48,6 @@ interface ReleaseWithStatus {
 export interface InstalledVersion {
   version: string;
   path: string;
-  downloadDate: string;
   filename: string;
 }
 
@@ -145,10 +144,7 @@ export class KoboldCppManager {
         for (const file of files) {
           const filePath = join(this.installDir, file);
 
-          if (
-            statSync(filePath).isFile() &&
-            (file.includes('koboldcpp') || file.includes('kobold'))
-          ) {
+          if (statSync(filePath).isFile() && file.startsWith('koboldcpp')) {
             try {
               const detectedVersion = await this.getVersionFromBinary(filePath);
               const version = detectedVersion || 'unknown';
@@ -156,7 +152,6 @@ export class KoboldCppManager {
               const newVersion: InstalledVersion = {
                 version,
                 path: filePath,
-                downloadDate: new Date().toISOString(),
                 filename: file,
               };
 
@@ -175,8 +170,45 @@ export class KoboldCppManager {
   }
 
   async isInstalled(): Promise<boolean> {
-    const versions = await this.getInstalledVersions();
-    return versions.some((version) => existsSync(version.path));
+    try {
+      if (!existsSync(this.installDir)) {
+        return false;
+      }
+
+      const files = readdirSync(this.installDir);
+
+      for (const file of files) {
+        const filePath = join(this.installDir, file);
+
+        try {
+          const stats = statSync(filePath);
+
+          // Check if it's a file (not directory) and starts with "koboldcpp"
+          if (stats.isFile() && file.startsWith('koboldcpp')) {
+            // On Unix-like systems, check if file is executable
+            if (process.platform !== 'win32') {
+              // Check if the file has execute permission (owner, group, or other)
+              const isExecutable = (stats.mode & parseInt('111', 8)) !== 0;
+              if (isExecutable) {
+                return true;
+              }
+            } else {
+              // On Windows, if it's a file starting with koboldcpp, consider it valid
+              // (Windows doesn't use Unix-style executable permissions)
+              return true;
+            }
+          }
+        } catch {
+          // Skip files we can't stat (permission issues, etc.)
+          continue;
+        }
+      }
+
+      return false;
+    } catch (error) {
+      console.warn('Error checking installation:', error);
+      return false;
+    }
   }
 
   async getConfigFiles(): Promise<
@@ -268,18 +300,11 @@ export class KoboldCppManager {
       if (found && existsSync(found.path)) {
         return found;
       }
-      // If the current binary no longer exists, clear it
+
       this.configManager.setCurrentKoboldBinary('');
     }
 
-    // If no current binary is set, return the most recent one
-    return (
-      versions.sort(
-        (a, b) =>
-          new Date(b.downloadDate).getTime() -
-          new Date(a.downloadDate).getTime()
-      )[0] || null
-    );
+    return versions[0] || null;
   }
 
   async setCurrentVersion(version: string): Promise<boolean> {
