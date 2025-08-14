@@ -1,4 +1,14 @@
-import { BrowserWindow, app, Menu, shell, Tray, nativeImage } from 'electron';
+import {
+  BrowserWindow,
+  app,
+  Menu,
+  shell,
+  Tray,
+  nativeImage,
+  dialog,
+  clipboard,
+} from 'electron';
+import * as os from 'os';
 import { join } from 'path';
 import { ConfigManager } from './ConfigManager';
 
@@ -16,7 +26,7 @@ export class WindowManager {
     this.mainWindow = new BrowserWindow({
       width: 1000,
       height: 600,
-      icon: join(process.cwd(), 'assets', 'icon.png'),
+      icon: join(app.getAppPath(), 'assets', 'icon.png'),
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
@@ -36,10 +46,38 @@ export class WindowManager {
       this.mainWindow = null;
     });
 
+    // Allow navigation to localhost URLs for iframe content
+    this.mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
+      const url = new URL(navigationUrl);
+      // Only allow navigation to localhost or the app's origin
+      if (
+        url.hostname !== 'localhost' &&
+        url.hostname !== '127.0.0.1' &&
+        !navigationUrl.startsWith('file://')
+      ) {
+        event.preventDefault();
+      }
+    });
+
+    // Handle iframe navigation permissions
+    this.mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+      const parsedUrl = new URL(url);
+      // Allow localhost URLs to open in the same window/iframe
+      if (
+        parsedUrl.hostname === 'localhost' ||
+        parsedUrl.hostname === '127.0.0.1'
+      ) {
+        return { action: 'allow' };
+      }
+      // For other URLs, open in external browser
+      shell.openExternal(url);
+      return { action: 'deny' };
+    });
+
     this.mainWindow.on('close', async (event) => {
       if (!this.isQuitting) {
         const minimizeToTray =
-          this.configManager.get('minimizeToTray') !== false;
+          this.configManager.get('minimizeToTray') === true;
 
         if (minimizeToTray) {
           event.preventDefault();
@@ -53,7 +91,7 @@ export class WindowManager {
     });
 
     this.mainWindow.on('minimize', () => {
-      const minimizeToTray = this.configManager.get('minimizeToTray') !== false;
+      const minimizeToTray = this.configManager.get('minimizeToTray') === true;
 
       if (minimizeToTray) {
         this.mainWindow?.hide();
@@ -73,7 +111,7 @@ export class WindowManager {
   }
 
   private createSystemTray() {
-    const iconPath = join(process.cwd(), 'assets', 'icon.png');
+    const iconPath = join(app.getAppPath(), 'assets', 'icon.png');
     this.tray = new Tray(nativeImage.createFromPath(iconPath));
 
     this.tray.setToolTip('Friendly Kobold');
@@ -111,8 +149,15 @@ export class WindowManager {
   }
 
   public cleanup() {
-    this.tray?.destroy();
-    this.tray = null;
+    if (this.tray) {
+      this.tray.removeAllListeners();
+      this.tray.destroy();
+      this.tray = null;
+    }
+
+    if (this.mainWindow) {
+      this.mainWindow.removeAllListeners();
+    }
   }
 
   private setupContextMenu() {
@@ -217,11 +262,57 @@ export class WindowManager {
           { label: 'Close', accelerator: 'CmdOrCtrl+W', role: 'close' },
         ],
       },
+      {
+        label: 'Help',
+        submenu: [
+          {
+            label: 'About',
+            click: async () => {
+              await this.showAboutDialog();
+            },
+          },
+          {
+            label: 'KoboldCpp Wiki',
+            click: () => {
+              shell.openExternal('https://github.com/LostRuins/koboldcpp/wiki');
+            },
+          },
+        ],
+      },
     ];
 
     const menu = Menu.buildFromTemplate(
       template as Parameters<typeof Menu.buildFromTemplate>[0]
     );
     Menu.setApplicationMenu(menu);
+  }
+
+  private async showAboutDialog() {
+    const packagePath = join(app.getAppPath(), 'package.json');
+    const packageInfo = require(packagePath);
+    const electronVersion = process.versions.electron;
+    const chromeVersion = process.versions.chrome;
+    const nodeVersion = process.versions.node;
+    const v8Version = process.versions.v8;
+    const osInfo = `${process.platform} ${process.arch} ${os.release()}`;
+
+    const aboutText = `Version: ${packageInfo.version}
+Electron: ${electronVersion}
+Chromium: ${chromeVersion}
+Node.js: ${nodeVersion}
+V8: ${v8Version}
+OS: ${osInfo}`;
+
+    const response = await dialog.showMessageBox(this.mainWindow!, {
+      type: 'info',
+      message: 'Friendly Kobold',
+      detail: aboutText,
+      buttons: ['Copy', 'OK'],
+      defaultId: 1,
+    });
+
+    if (response.response === 0) {
+      clipboard.writeText(aboutText);
+    }
   }
 }

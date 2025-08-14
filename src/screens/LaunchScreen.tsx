@@ -1,23 +1,20 @@
 import {
-  Button,
   Card,
-  Text,
-  Title,
   Container,
   Stack,
+  Tabs,
+  Text,
+  Title,
   Group,
-  ActionIcon,
-  Switch,
-  Slider,
-  TextInput,
-  NumberInput,
-  Tooltip,
-  Checkbox,
+  Button,
 } from '@mantine/core';
-import { RotateCcw, File, Info } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
-import { ConfigFileSelect } from '@/components/ConfigFileSelect';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
+import { ConfigurationManager } from '@/components/launch/ConfigurationManager';
+import { GeneralTab } from '@/components/launch/GeneralTab';
+import { AdvancedTab } from '@/components/launch/AdvancedTab';
+import { NetworkTab } from '@/components/launch/NetworkTab';
+import { SaveConfigModal } from '@/components/launch/SaveConfigModal';
 import type { ConfigFile } from '@/types';
 
 interface LaunchScreenProps {
@@ -28,6 +25,11 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
   const [configFiles, setConfigFiles] = useState<ConfigFile[]>([]);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [, setInstallDir] = useState<string>('');
+  const [isLaunching, setIsLaunching] = useState(false);
+  const [activeTab, setActiveTab] = useState<string | null>('general');
+  const [saveModalOpened, setSaveModalOpened] = useState(false);
+  const [newConfigName, setNewConfigName] = useState('');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const {
     serverOnly,
     gpuLayers,
@@ -35,6 +37,8 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     contextSize,
     modelPath,
     additionalArguments,
+    port,
+    host,
     parseAndApplyConfigFile,
     loadSavedSettings,
     loadConfigFromFile,
@@ -45,6 +49,8 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     handleModelPathChange,
     handleSelectModelFile,
     handleAdditionalArgumentsChange,
+    handlePortChange,
+    handleHostChange,
   } = useLaunchConfig();
 
   const loadConfigFiles = useCallback(async () => {
@@ -79,6 +85,50 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     if (selectedConfig) {
       await parseAndApplyConfigFile(selectedConfig.path);
     }
+
+    // Reset unsaved changes when loading a new config
+    setHasUnsavedChanges(false);
+  };
+
+  // Wrapper functions to track changes
+  const handleModelPathChangeWithTracking = (path: string) => {
+    handleModelPathChange(path);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleGpuLayersChangeWithTracking = (layers: number) => {
+    handleGpuLayersChange(layers);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleAutoGpuLayersChangeWithTracking = (auto: boolean) => {
+    handleAutoGpuLayersChange(auto);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleContextSizeChangeWithTracking = (size: number) => {
+    handleContextSizeChangeWithStep(size);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleAdditionalArgumentsChangeWithTracking = (args: string) => {
+    handleAdditionalArgumentsChange(args);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleServerOnlyChangeWithTracking = (serverOnly: boolean) => {
+    handleServerOnlyChange(serverOnly);
+    setHasUnsavedChanges(true);
+  };
+
+  const handlePortChangeWithTracking = (port: number) => {
+    handlePortChange(port);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleHostChangeWithTracking = (host: string) => {
+    handleHostChange(host);
+    setHasUnsavedChanges(true);
   };
 
   useEffect(() => {
@@ -96,6 +146,12 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
   }, [loadConfigFiles]);
 
   const handleLaunch = async () => {
+    if (isLaunching || !modelPath) {
+      return;
+    }
+
+    setIsLaunching(true);
+
     try {
       const selectedConfig = selectedFile
         ? configFiles.find((f) => f.name === selectedFile)
@@ -103,9 +159,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
 
       const args: string[] = [];
 
-      if (modelPath) {
-        args.push('--model', modelPath);
-      }
+      args.push('--model', modelPath);
 
       if (autoGpuLayers) {
         args.push('--gpulayers', '-1');
@@ -115,6 +169,14 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
 
       if (contextSize) {
         args.push('--contextsize', contextSize.toString());
+      }
+
+      if (port !== 5001) {
+        args.push('--port', port.toString());
+      }
+
+      if (host !== 'localhost') {
+        args.push('--host', host);
       }
 
       if (additionalArguments.trim()) {
@@ -128,230 +190,136 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
       );
 
       if (result.success) {
-        onLaunch();
+        setTimeout(() => {
+          onLaunch();
+        }, 100);
       } else {
         console.error('Launch failed:', result.error);
       }
     } catch (error) {
       console.error('Error launching KoboldCpp:', error);
+    } finally {
+      setIsLaunching(false);
     }
   };
 
   return (
-    <Container size="sm" py="xl">
-      <Card withBorder radius="md" shadow="sm">
-        <Stack gap="lg">
-          <Title order={3}>Launch Configuration</Title>
-
-          <Card withBorder radius="md" w="100%">
-            <Group justify="space-between" mb="md">
-              <Text fw={500}>Select Configuration</Text>
-              <ActionIcon variant="light" onClick={loadConfigFiles} size="sm">
-                <RotateCcw size={16} />
-              </ActionIcon>
-            </Group>
-
-            <ConfigFileSelect
-              configFiles={configFiles}
-              selectedFile={selectedFile}
-              onFileSelection={handleFileSelection}
-            />
-          </Card>
-
-          <Card withBorder radius="md" w="100%">
-            <Text fw={500} mb="md">
-              Launch Settings
-            </Text>
-
-            <Stack gap="l">
-              <div>
-                <Text size="sm" fw={500} mb="xs">
-                  Model File
-                </Text>
-                <Group gap="xs">
-                  <TextInput
-                    placeholder="Select a .gguf model file"
-                    value={modelPath}
-                    onChange={(event) =>
-                      handleModelPathChange(event.currentTarget.value)
-                    }
-                    style={{ flex: 1 }}
-                  />
-                  <Button
-                    onClick={handleSelectModelFile}
-                    variant="light"
-                    leftSection={<File size={16} />}
-                  >
-                    Browse
-                  </Button>
-                </Group>
-              </div>
-
-              <div>
-                <Group justify="space-between" align="center" mb="xs">
-                  <Group gap="xs" align="center">
-                    <Text size="sm" fw={500}>
-                      GPU Layers
-                    </Text>
-                    <Tooltip
-                      label="The number of layer's to offload to your GPU's VRAM. Ideally the entire LLM should fit inside the VRAM for optimal performance."
-                      multiline
-                      w={300}
-                      withArrow
-                    >
-                      <ActionIcon variant="subtle" size="xs" color="gray">
-                        <Info size={14} />
-                      </ActionIcon>
-                    </Tooltip>
-                  </Group>
-                  <Group gap="lg" align="center">
-                    <Group gap="xs" align="center">
-                      <Checkbox
-                        label="Auto"
-                        checked={autoGpuLayers}
-                        onChange={(event) =>
-                          handleAutoGpuLayersChange(event.currentTarget.checked)
-                        }
-                        size="sm"
-                      />
-                      <Tooltip
-                        label="Automatically try to allocate the GPU layers based on available VRAM."
-                        multiline
-                        w={300}
-                        withArrow
-                      >
-                        <ActionIcon variant="subtle" size="xs" color="gray">
-                          <Info size={14} />
-                        </ActionIcon>
-                      </Tooltip>
-                    </Group>
-                    <NumberInput
-                      value={gpuLayers}
-                      onChange={(value) =>
-                        handleGpuLayersChange(Number(value) || 0)
-                      }
-                      min={0}
-                      max={100}
-                      step={1}
-                      size="sm"
-                      w={80}
-                      disabled={autoGpuLayers}
-                      hideControls
-                    />
-                  </Group>
-                </Group>
-                <Slider
-                  value={gpuLayers}
-                  min={0}
-                  max={100}
-                  step={1}
-                  onChange={handleGpuLayersChange}
-                  disabled={autoGpuLayers}
-                />
-              </div>
-
-              <div>
-                <Group justify="space-between" align="center" mb="xs">
-                  <Group gap="xs" align="center">
-                    <Text size="sm" fw={500}>
-                      Context Size
-                    </Text>
-                    <Tooltip
-                      label="Controls the memory allocated for maximum context size. The larger the context, the larger the required memory."
-                      multiline
-                      w={300}
-                      withArrow
-                    >
-                      <ActionIcon variant="subtle" size="xs" color="gray">
-                        <Info size={14} />
-                      </ActionIcon>
-                    </Tooltip>
-                  </Group>
-                  <NumberInput
-                    value={contextSize}
-                    onChange={(value) =>
-                      handleContextSizeChangeWithStep(Number(value) || 256)
-                    }
-                    min={256}
-                    max={131072}
-                    step={256}
-                    size="sm"
-                    w={100}
-                    hideControls
-                  />
-                </Group>
-                <Slider
-                  value={contextSize}
-                  min={256}
-                  max={131072}
-                  step={1}
-                  onChange={handleContextSizeChangeWithStep}
-                />
-              </div>
-
-              <div>
-                <Group gap="xs" align="center" mb="xs">
-                  <Text size="sm" fw={500}>
-                    Additional arguments
+    <Container size="sm">
+      <Stack gap="lg">
+        <Card withBorder radius="md" shadow="sm">
+          <Group justify="space-between" align="center">
+            <div>
+              <Title order={3}>Launch Configuration</Title>
+              <Text size="sm" c="dimmed">
+                {selectedFile
+                  ? `Using: ${selectedFile}`
+                  : 'No configuration file selected'}
+                {hasUnsavedChanges && (
+                  <Text span c="orange">
+                    {' '}
+                    • Unsaved changes
                   </Text>
-                  <Tooltip
-                    label="Additional command line arguments to pass to the KoboldCPP binary. Leave this empty if you don't know what they are."
-                    multiline
-                    w={300}
-                    withArrow
-                  >
-                    <ActionIcon variant="subtle" size="xs" color="gray">
-                      <Info size={14} />
-                    </ActionIcon>
-                  </Tooltip>
-                </Group>
-                <TextInput
-                  placeholder="Additional command line arguments"
-                  value={additionalArguments}
-                  onChange={(event) =>
-                    handleAdditionalArgumentsChange(event.currentTarget.value)
-                  }
-                />
-              </div>
-
-              <div>
-                <Group gap="xs" align="center" mb="xs">
-                  <Text size="sm" fw={500}>
-                    Server-only mode
-                  </Text>
-                  <Tooltip
-                    label="In server-only mode, the KoboldAI Lite web UI won't be displayed. Use this if you'll be using your own frontend to interact with the LLM."
-                    multiline
-                    w={300}
-                    withArrow
-                  >
-                    <ActionIcon variant="subtle" size="xs" color="gray">
-                      <Info size={14} />
-                    </ActionIcon>
-                  </Tooltip>
-                </Group>
-                <Switch
-                  checked={serverOnly}
-                  onChange={(event) =>
-                    handleServerOnlyChange(event.currentTarget.checked)
-                  }
-                />
-              </div>
-            </Stack>
-          </Card>
-
-          <Group gap="md" justify="center">
+                )}
+              </Text>
+            </div>
             <Button
               radius="md"
-              disabled={!selectedFile}
+              disabled={!modelPath || isLaunching}
               onClick={handleLaunch}
+              loading={isLaunching}
               size="lg"
+              variant="filled"
             >
-              {selectedFile ? 'Launch' : 'Select a configuration file'}
+              {isLaunching
+                ? 'Launching...'
+                : modelPath
+                  ? 'Launch KoboldCpp'
+                  : 'Select a model file to launch'}
             </Button>
           </Group>
-        </Stack>
-      </Card>
+        </Card>
+
+        <Card withBorder radius="md">
+          <ConfigurationManager
+            configFiles={configFiles}
+            selectedFile={selectedFile}
+            onFileSelection={handleFileSelection}
+            onRefresh={loadConfigFiles}
+            onSaveAsNew={() => setSaveModalOpened(true)}
+            onUpdateCurrent={() => {
+              // TODO: Implement update current configuration
+            }}
+          />
+        </Card>
+
+        <Card withBorder radius="md">
+          <Tabs value={activeTab} onChange={setActiveTab}>
+            <Tabs.List>
+              <Tabs.Tab value="general">General</Tabs.Tab>
+              <Tabs.Tab value="advanced">Advanced</Tabs.Tab>
+              <Tabs.Tab value="network">Network</Tabs.Tab>
+              <Tabs.Tab value="image" disabled>
+                Image Generation
+              </Tabs.Tab>
+            </Tabs.List>
+
+            <Tabs.Panel value="general" pt="md">
+              <GeneralTab
+                modelPath={modelPath}
+                gpuLayers={gpuLayers}
+                autoGpuLayers={autoGpuLayers}
+                contextSize={contextSize}
+                onModelPathChange={handleModelPathChangeWithTracking}
+                onSelectModelFile={handleSelectModelFile}
+                onGpuLayersChange={handleGpuLayersChangeWithTracking}
+                onAutoGpuLayersChange={handleAutoGpuLayersChangeWithTracking}
+                onContextSizeChange={handleContextSizeChangeWithTracking}
+              />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="advanced" pt="md">
+              <AdvancedTab
+                additionalArguments={additionalArguments}
+                serverOnly={serverOnly}
+                onAdditionalArgumentsChange={
+                  handleAdditionalArgumentsChangeWithTracking
+                }
+                onServerOnlyChange={handleServerOnlyChangeWithTracking}
+              />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="network" pt="md">
+              <NetworkTab
+                port={port}
+                host={host}
+                onPortChange={handlePortChangeWithTracking}
+                onHostChange={handleHostChangeWithTracking}
+              />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="image" pt="md">
+              <Stack gap="lg" align="center" py="xl">
+                <Text c="dimmed" ta="center">
+                  Image generation configuration will be available in a future
+                  update.
+                </Text>
+              </Stack>
+            </Tabs.Panel>
+          </Tabs>
+        </Card>
+
+        <SaveConfigModal
+          opened={saveModalOpened}
+          onClose={() => setSaveModalOpened(false)}
+          configName={newConfigName}
+          onConfigNameChange={setNewConfigName}
+          onSave={() => {
+            // TODO: Implement save configuration
+            setSaveModalOpened(false);
+            setNewConfigName('');
+          }}
+        />
+      </Stack>
     </Container>
   );
 };

@@ -12,7 +12,7 @@ import { dialog } from 'electron';
 import { GitHubService } from '@/main/services/GitHubService';
 import { ConfigManager } from '@/main/managers/ConfigManager';
 import { WindowManager } from '@/main/managers/WindowManager';
-import { APP_NAME, DIALOG_TITLES, ROCM } from '@/constants/app';
+import { DIALOG_TITLES, ROCM } from '@/constants/app';
 
 interface GitHubAsset {
   name: string;
@@ -66,9 +66,7 @@ export class KoboldCppManager {
     this.configManager = configManager;
     this.githubService = githubService;
     this.windowManager = windowManager;
-    this.installDir =
-      this.configManager.getInstallDir() ||
-      join(process.env.HOME || process.env.USERPROFILE || '.', APP_NAME);
+    this.installDir = this.configManager.getInstallDir() || '';
   }
 
   async downloadRelease(
@@ -134,18 +132,41 @@ export class KoboldCppManager {
     return filePath;
   }
 
-  async getInstalledVersions(): Promise<InstalledVersion[]> {
+  async getInstalledVersions(
+    includeVersions = true
+  ): Promise<InstalledVersion[]> {
     try {
       if (!existsSync(this.installDir)) {
         return [];
       }
 
       const files = readdirSync(this.installDir);
-      const koboldFiles = files.filter(
-        (file) =>
-          statSync(join(this.installDir, file)).isFile() &&
-          file.startsWith('koboldcpp')
-      );
+      const koboldFiles = files.filter((file) => {
+        const filePath = join(this.installDir, file);
+        try {
+          const stats = statSync(filePath);
+
+          if (stats.isFile() && file.startsWith('koboldcpp')) {
+            if (process.platform !== 'win32') {
+              const isExecutable = (stats.mode & parseInt('111', 8)) !== 0;
+              return isExecutable;
+            } else {
+              return true;
+            }
+          }
+          return false;
+        } catch {
+          return false;
+        }
+      });
+
+      if (!includeVersions) {
+        return koboldFiles.map((file) => ({
+          version: 'unknown',
+          path: join(this.installDir, file),
+          filename: file,
+        }));
+      }
 
       const versionPromises = koboldFiles.map(async (file) => {
         const filePath = join(this.installDir, file);
@@ -174,49 +195,6 @@ export class KoboldCppManager {
       return [];
     }
   }
-
-  async isInstalled(): Promise<boolean> {
-    try {
-      if (!existsSync(this.installDir)) {
-        return false;
-      }
-
-      const files = readdirSync(this.installDir);
-
-      for (const file of files) {
-        const filePath = join(this.installDir, file);
-
-        try {
-          const stats = statSync(filePath);
-
-          // Check if it's a file (not directory) and starts with "koboldcpp"
-          if (stats.isFile() && file.startsWith('koboldcpp')) {
-            // On Unix-like systems, check if file is executable
-            if (process.platform !== 'win32') {
-              // Check if the file has execute permission (owner, group, or other)
-              const isExecutable = (stats.mode & parseInt('111', 8)) !== 0;
-              if (isExecutable) {
-                return true;
-              }
-            } else {
-              // On Windows, if it's a file starting with koboldcpp, consider it valid
-              // (Windows doesn't use Unix-style executable permissions)
-              return true;
-            }
-          }
-        } catch {
-          // Skip files we can't stat (permission issues, etc.)
-          continue;
-        }
-      }
-
-      return false;
-    } catch (error) {
-      console.warn('Error checking installation:', error);
-      return false;
-    }
-  }
-
   async getConfigFiles(): Promise<
     Array<{ name: string; path: string; size: number }>
   > {
@@ -313,12 +291,10 @@ export class KoboldCppManager {
         };
       } catch (error) {
         console.warn('Failed to get current version info:', error);
-        // Clear invalid binary path
         this.configManager.setCurrentKoboldBinary('');
       }
     }
 
-    // If no current binary is set or it's invalid, try to find the first available one
     const versions = await this.getInstalledVersions();
     const firstVersion = versions[0];
 
@@ -400,7 +376,7 @@ export class KoboldCppManager {
           try {
             process.kill('SIGTERM');
           } catch {
-            // Process might already be dead
+            // ignore
           }
           resolve(null);
         }, 10000);
@@ -578,7 +554,6 @@ export class KoboldCppManager {
         reader.releaseLock();
       }
 
-      // Make the binary executable on Unix-like systems (Linux/macOS)
       if (process.platform !== 'win32') {
         try {
           chmodSync(filePath, 0o755);
@@ -693,7 +668,7 @@ export class KoboldCppManager {
         };
       }
 
-      const finalArgs = [...args]; // Start with the provided arguments
+      const finalArgs = [...args];
 
       if (configFilePath && existsSync(configFilePath)) {
         finalArgs.push('--config', configFilePath);
@@ -701,36 +676,54 @@ export class KoboldCppManager {
 
       const child = spawn(currentVersion.path, finalArgs, {
         stdio: ['pipe', 'pipe', 'pipe'],
-        detached: false,
+        detached: true,
       });
 
       this.koboldProcess = child;
 
+      child.unref();
+
       const mainWindow = this.windowManager.getMainWindow();
-      if (mainWindow) {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        const commandLine = `$ ${currentVersion.path} ${finalArgs.join(' ')}\n${'─'.repeat(60)}\n`;
+
+        setTimeout(() => {
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('kobold-output', commandLine);
+          }
+        }, 200);
+
         child.stdout?.on('data', (data) => {
-          const output = data.toString();
-          mainWindow.webContents.send('kobold-output', output);
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            const output = data.toString();
+            mainWindow.webContents.send('kobold-output', output);
+          }
         });
 
         child.stderr?.on('data', (data) => {
-          const output = data.toString();
-          mainWindow.webContents.send('kobold-output', output);
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            const output = data.toString();
+            mainWindow.webContents.send('kobold-output', output);
+          }
         });
 
         child.on('exit', (code, signal) => {
-          const exitMessage = signal
-            ? `\nProcess terminated with signal ${signal}\n`
-            : `\nProcess exited with code ${code}\n`;
-          mainWindow.webContents.send('kobold-output', exitMessage);
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            const exitMessage = signal
+              ? `\nProcess terminated with signal ${signal}\n`
+              : `\nProcess exited with code ${code}\n`;
+            mainWindow.webContents.send('kobold-output', exitMessage);
+          }
           this.koboldProcess = null;
         });
 
         child.on('error', (error) => {
-          mainWindow.webContents.send(
-            'kobold-output',
-            `\nProcess error: ${error.message}\n`
-          );
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send(
+              'kobold-output',
+              `\nProcess error: ${error.message}\n`
+            );
+          }
           this.koboldProcess = null;
         });
       }
@@ -744,13 +737,26 @@ export class KoboldCppManager {
   stopKoboldCpp(): void {
     if (this.koboldProcess) {
       try {
-        // Try graceful termination first
-        this.koboldProcess.kill('SIGTERM');
+        // For detached processes, we need to kill the process group
+        if (process.platform !== 'win32') {
+          // On Unix-like systems, kill the process group
+          process.kill(-this.koboldProcess.pid!, 'SIGTERM');
+        } else {
+          // On Windows, just kill the process
+          this.koboldProcess.kill('SIGTERM');
+        }
 
-        // Force kill after 5 seconds if still running
         setTimeout(() => {
           if (this.koboldProcess && !this.koboldProcess.killed) {
-            this.koboldProcess.kill('SIGKILL');
+            try {
+              if (process.platform !== 'win32') {
+                process.kill(-this.koboldProcess.pid!, 'SIGKILL');
+              } else {
+                this.koboldProcess.kill('SIGKILL');
+              }
+            } catch (error) {
+              console.warn('Error force-killing KoboldCpp process:', error);
+            }
           }
         }, 5000);
 
@@ -762,7 +768,6 @@ export class KoboldCppManager {
     }
   }
 
-  // Method to handle app termination - ensures process cleanup
   async cleanup(): Promise<void> {
     if (this.koboldProcess) {
       return new Promise((resolve) => {
@@ -771,26 +776,42 @@ export class KoboldCppManager {
           return;
         }
 
-        // Set up cleanup timeout
         const cleanup = () => {
           this.koboldProcess = null;
           resolve();
         };
 
-        // Listen for process exit
         this.koboldProcess.once('exit', cleanup);
         this.koboldProcess.once('error', cleanup);
 
-        // Try graceful shutdown
-        this.koboldProcess.kill('SIGTERM');
-
-        // Force kill after 3 seconds
-        setTimeout(() => {
-          if (this.koboldProcess && !this.koboldProcess.killed) {
-            this.koboldProcess.kill('SIGKILL');
+        try {
+          // For detached processes, we need to handle cleanup differently
+          if (process.platform !== 'win32') {
+            // On Unix-like systems, kill the process group
+            process.kill(-this.koboldProcess.pid!, 'SIGTERM');
+          } else {
+            // On Windows, just kill the process
+            this.koboldProcess.kill('SIGTERM');
           }
+
+          setTimeout(() => {
+            if (this.koboldProcess && !this.koboldProcess.killed) {
+              try {
+                if (process.platform !== 'win32') {
+                  process.kill(-this.koboldProcess.pid!, 'SIGKILL');
+                } else {
+                  this.koboldProcess.kill('SIGKILL');
+                }
+              } catch {
+                // Ignore errors on force kill
+              }
+            }
+            cleanup();
+          }, 3000);
+        } catch (error) {
+          console.warn('Error during cleanup:', error);
           cleanup();
-        }, 3000);
+        }
       });
     }
   }

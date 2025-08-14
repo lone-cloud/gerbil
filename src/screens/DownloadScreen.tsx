@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card, Text, Title, Loader, Stack, Container } from '@mantine/core';
-import { useNotifications } from '@/hooks/useNotifications';
 import { DownloadOptionCard } from '@/components/DownloadOptionCard';
 import {
   getPlatformDisplayName,
@@ -20,7 +19,6 @@ interface DownloadScreenProps {
 }
 
 export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
-  const notify = useNotifications();
   const [latestRelease, setLatestRelease] = useState<GitHubRelease | null>(
     null
   );
@@ -74,18 +72,16 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
         );
         setFilteredAssets(filtered);
       } else {
-        notify.error(
-          'Error',
+        console.error(
           'GitHub API is currently unavailable. Please try again later.'
         );
       }
     } catch (err) {
-      notify.error('Error', 'Failed to load release information');
-      console.error('Error loading release:', err);
+      console.error('Failed to load release information:', err);
     } finally {
       setLoading(false);
     }
-  }, [notify]);
+  }, []);
 
   useEffect(() => {
     loadLatestReleaseAndPlatform();
@@ -97,7 +93,8 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
     return () => {
       window.electronAPI.kobold.removeAllListeners('download-progress');
     };
-  }, [loadLatestReleaseAndPlatform]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDownload = async (type: 'asset' | 'rocm' = 'asset') => {
     if (type === 'asset' && !selectedAsset) return;
@@ -115,16 +112,12 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
       if (result.success) {
         onDownloadComplete();
       } else {
-        notify.error(
+        console.error(
           'Download Failed',
           result.error || `${type === 'rocm' ? 'ROCm' : ''} Download failed`
         );
       }
     } catch (err) {
-      notify.error(
-        'Download Failed',
-        `${type === 'rocm' ? 'ROCm' : ''} Download failed`
-      );
       console.error(`${type === 'rocm' ? 'ROCm' : ''} Download error:`, err);
     } finally {
       setDownloading(false);
@@ -160,7 +153,7 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
   };
 
   return (
-    <Container size="sm" py="xl">
+    <Container size="sm">
       <Stack gap="xl">
         <Card withBorder radius="md" shadow="sm">
           <Stack gap="lg">

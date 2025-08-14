@@ -1,73 +1,28 @@
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect } from 'react';
 import {
   AppShell,
   Group,
   ActionIcon,
   Tooltip,
   rem,
-  Transition,
   Loader,
   Center,
   Stack,
   Text,
   Button,
+  Select,
   useMantineColorScheme,
 } from '@mantine/core';
-import { Notifications } from '@mantine/notifications';
 import { Settings, ArrowLeft } from 'lucide-react';
 import { DownloadScreen } from '@/screens/DownloadScreen';
 import { LaunchScreen } from '@/screens/LaunchScreen';
-import { TerminalScreen } from '@/screens/TerminalScreen';
+import { InterfaceScreen } from '@/screens/InterfaceScreen';
 import { UpdateDialog } from '@/components/UpdateDialog';
 import { SettingsModal } from '@/components/SettingsModal';
-import { useNotifications } from '@/hooks/useNotifications';
+import { ScreenTransition } from '@/components/ScreenTransition';
 import type { UpdateInfo } from '@/types';
 
-type Screen = 'download' | 'launch' | 'terminal';
-
-interface ScreenTransitionProps {
-  isActive: boolean;
-  shouldAnimate: boolean;
-  children: ReactNode;
-}
-
-const ScreenTransition = ({
-  isActive,
-  shouldAnimate,
-  children,
-}: ScreenTransitionProps) => {
-  const getTransform = () => {
-    if (!shouldAnimate) return undefined;
-    const scale = isActive ? 1 : 0.98;
-    return `scale(${scale})`;
-  };
-
-  return (
-    <Transition
-      mounted={isActive}
-      transition="fade"
-      duration={shouldAnimate ? 350 : 0}
-      timingFunction="ease-out"
-    >
-      {(styles) => (
-        <div
-          style={{
-            ...styles,
-            position: isActive ? 'static' : 'absolute',
-            width: '100%',
-            top: 0,
-            left: 0,
-            zIndex: isActive ? 1 : 0,
-            transform: `${styles.transform || ''} ${getTransform() || ''}`,
-            transition: shouldAnimate ? 'all 350ms ease-out' : undefined,
-          }}
-        >
-          {children}
-        </div>
-      )}
-    </Transition>
-  );
-};
+type Screen = 'download' | 'launch' | 'interface';
 
 export const App = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen | null>(null);
@@ -75,14 +30,27 @@ export const App = () => {
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [settingsOpened, setSettingsOpened] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [activeInterfaceTab, setActiveInterfaceTab] = useState<string | null>(
+    'terminal'
+  );
   const { colorScheme } = useMantineColorScheme();
-  const notify = useNotifications();
 
   useEffect(() => {
     const checkInstallation = async () => {
       try {
-        const installed = await window.electronAPI.kobold.isInstalled();
-        setCurrentScreen(installed ? 'launch' : 'download');
+        const startTime = Date.now();
+        const installedVersions =
+          await window.electronAPI.kobold.getInstalledVersions(false);
+
+        const elapsed = Date.now() - startTime;
+        const minDelay = 500;
+        if (elapsed < minDelay) {
+          await new Promise((resolve) =>
+            setTimeout(resolve, minDelay - elapsed)
+          );
+        }
+
+        setCurrentScreen(installedVersions.length > 0 ? 'launch' : 'download');
         setHasInitialized(true);
       } catch (error) {
         console.error('Error checking installation:', error);
@@ -109,18 +77,13 @@ export const App = () => {
   }, []);
 
   const handleDownloadComplete = () => {
-    notify.success(
-      'Download Complete',
-      'KoboldCpp has been successfully installed'
-    );
     setTimeout(() => {
       setCurrentScreen('launch');
     }, 100);
   };
 
   const handleLaunch = () => {
-    setCurrentScreen('terminal');
-    notify.success('Launch Started', 'KoboldCpp is starting up...');
+    setCurrentScreen('interface');
   };
 
   const handleBackToLaunch = () => {
@@ -142,7 +105,6 @@ export const App = () => {
       await window.electronAPI.kobold.stopKoboldCpp();
     } catch (error) {
       console.error('Error stopping KoboldCpp:', error);
-      notify.error('Stop Failed', 'Failed to stop KoboldCpp process');
     }
 
     handleBackToLaunch();
@@ -159,36 +121,62 @@ export const App = () => {
 
   return (
     <>
-      <Notifications
-        position="bottom-right"
-        zIndex={1000}
-        containerWidth={320}
-      />
       <AppShell header={{ height: 60 }} padding="md">
         <AppShell.Header
           style={{
             borderBottom: `1px solid var(--mantine-color-${colorScheme === 'dark' ? 'dark-4' : 'gray-3'})`,
-            backdropFilter: 'blur(10px)',
             background:
               colorScheme === 'dark'
-                ? 'rgba(26, 27, 30, 0.8)'
-                : 'rgba(255, 255, 255, 0.8)',
+                ? 'var(--mantine-color-dark-7)'
+                : 'var(--mantine-color-white)',
             transition: 'all 200ms ease',
           }}
         >
-          <Group h="100%" px="md" justify="space-between">
-            {currentScreen === 'terminal' && (
-              <Button
-                variant="light"
-                color="red"
-                leftSection={<ArrowLeft size={16} />}
-                onClick={handleEject}
-              >
-                Eject
-              </Button>
+          <Group h="100%" px="md" justify="space-between" align="center">
+            <div style={{ minWidth: '100px' }}>
+              {currentScreen === 'interface' && (
+                <Button
+                  variant="light"
+                  color="red"
+                  leftSection={<ArrowLeft size={16} />}
+                  onClick={handleEject}
+                >
+                  Eject
+                </Button>
+              )}
+            </div>
+
+            {currentScreen === 'interface' && (
+              <Select
+                value={activeInterfaceTab}
+                onChange={setActiveInterfaceTab}
+                data={[
+                  { value: 'chat', label: 'KoboldAI Lite' },
+                  { value: 'terminal', label: 'Terminal' },
+                ]}
+                placeholder="Select view"
+                styles={{
+                  input: {
+                    minWidth: '150px',
+                    textAlign: 'center',
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    fontWeight: 500,
+                  },
+                  dropdown: {
+                    minWidth: '150px',
+                  },
+                }}
+              />
             )}
 
-            <Group ml="auto">
+            <div
+              style={{
+                minWidth: '100px',
+                display: 'flex',
+                justifyContent: 'flex-end',
+              }}
+            >
               <Tooltip label="Settings" position="bottom">
                 <ActionIcon
                   variant="subtle"
@@ -203,7 +191,7 @@ export const App = () => {
                   <Settings style={{ width: rem(20), height: rem(20) }} />
                 </ActionIcon>
               </Tooltip>
-            </Group>
+            </div>
           </Group>
         </AppShell.Header>
         <AppShell.Main
@@ -239,10 +227,13 @@ export const App = () => {
               </ScreenTransition>
 
               <ScreenTransition
-                isActive={currentScreen === 'terminal'}
+                isActive={currentScreen === 'interface'}
                 shouldAnimate={hasInitialized}
               >
-                <TerminalScreen />
+                <InterfaceScreen
+                  activeTab={activeInterfaceTab}
+                  onTabChange={setActiveInterfaceTab}
+                />
               </ScreenTransition>
             </>
           )}

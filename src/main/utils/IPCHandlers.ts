@@ -70,12 +70,10 @@ export class IPCHandlers {
       }
     });
 
-    ipcMain.handle('kobold:getInstalledVersions', () =>
-      this.koboldManager.getInstalledVersions()
-    );
-
-    ipcMain.handle('kobold:isInstalled', () =>
-      this.koboldManager.isInstalled()
+    ipcMain.handle(
+      'kobold:getInstalledVersions',
+      (_, includeVersions?: boolean) =>
+        this.koboldManager.getInstalledVersions(includeVersions)
     );
 
     ipcMain.handle('kobold:getConfigFiles', () =>
@@ -160,15 +158,15 @@ export class IPCHandlers {
       const result = await dialog.showMessageBox(mainWindow, {
         type: 'warning',
         title: 'Confirm Eject',
-        message: 'Are you sure you want to stop KoboldCpp?',
+        message: 'Are you sure you want to eject KoboldCpp?',
         detail:
           'This will terminate the running process and return to the launch screen.',
-        buttons: ['Cancel', 'Stop KoboldCpp'],
+        buttons: ['Cancel', 'Eject'],
         defaultId: 0,
         cancelId: 0,
       });
 
-      return result.response === 1; // Returns true if user clicked "Stop KoboldCpp"
+      return result.response === 1;
     });
 
     ipcMain.handle('kobold:parseConfigFile', (_event, filePath) =>

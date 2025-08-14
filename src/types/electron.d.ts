@@ -44,9 +44,10 @@ interface ROCmDownload {
 }
 
 export interface KoboldAPI {
-  isInstalled: () => Promise<boolean>;
   getInstalledVersion: () => Promise<string | undefined>;
-  getInstalledVersions: () => Promise<InstalledVersion[]>;
+  getInstalledVersions: (
+    includeVersions?: boolean
+  ) => Promise<InstalledVersion[]>;
   getCurrentVersion: () => Promise<InstalledVersion | null>;
   setCurrentVersion: (version: string) => Promise<boolean>;
   getVersionFromBinary: (binaryPath: string) => Promise<string | null>;
