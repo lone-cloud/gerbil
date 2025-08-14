@@ -21,6 +21,8 @@ class FriendlyKoboldApp {
 
   constructor() {
     this.configManager = new ConfigManager(this.getConfigPath());
+    this.ensureInstallDirectory();
+
     this.windowManager = new WindowManager(this.configManager);
     this.githubService = new GitHubService();
     this.gpuService = new GPUService();
@@ -35,8 +37,6 @@ class FriendlyKoboldApp {
       this.githubService,
       this.gpuService
     );
-
-    this.ensureInstallDirectory();
   }
 
   private getConfigPath() {
@@ -71,6 +71,13 @@ class FriendlyKoboldApp {
   }
 
   async initialize(): Promise<void> {
+    if (process.platform === 'linux') {
+      if (process.env.ELECTRON_OZONE_PLATFORM_HINT === 'wayland') {
+        app.commandLine.appendSwitch('enable-features', 'UseOzonePlatform');
+        app.commandLine.appendSwitch('ozone-platform', 'wayland');
+      }
+    }
+
     await app.whenReady();
 
     this.windowManager.setupApplicationMenu();
@@ -81,21 +88,17 @@ class FriendlyKoboldApp {
       if (process.platform === 'darwin') {
         return;
       }
-      // On non-macOS platforms, quit the app when all windows are closed
+
       app.quit();
     });
 
     app.on('before-quit', async (event) => {
-      // Prevent immediate quit to allow cleanup
       event.preventDefault();
 
-      // Clean up KoboldCpp process
       await this.koboldManager.cleanup();
 
-      // Clean up window manager
       this.windowManager.cleanup();
 
-      // Now actually quit
       app.exit(0);
     });
 

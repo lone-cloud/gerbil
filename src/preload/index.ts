@@ -7,9 +7,9 @@ import type {
 } from '@/types/electron';
 
 const koboldAPI: KoboldAPI = {
-  isInstalled: () => ipcRenderer.invoke('kobold:isInstalled'),
   getInstalledVersion: () => ipcRenderer.invoke('kobold:getInstalledVersion'),
-  getInstalledVersions: () => ipcRenderer.invoke('kobold:getInstalledVersions'),
+  getInstalledVersions: (includeVersions?: boolean) =>
+    ipcRenderer.invoke('kobold:getInstalledVersions', includeVersions),
   getCurrentVersion: () => ipcRenderer.invoke('kobold:getCurrentVersion'),
   setCurrentVersion: (version: string) =>
     ipcRenderer.invoke('kobold:setCurrentVersion', version),

@@ -12,7 +12,7 @@ import { Folder, FolderOpen } from 'lucide-react';
 
 export const GeneralTab = () => {
   const [installDir, setInstallDir] = useState<string>('');
-  const [minimizeToTray, setMinimizeToTray] = useState<boolean>(true);
+  const [minimizeToTray, setMinimizeToTray] = useState<boolean | null>(null);
 
   useEffect(() => {
     loadCurrentInstallDir();
@@ -33,13 +33,16 @@ export const GeneralTab = () => {
       const trayEnabled = (await window.electronAPI.config.get(
         'minimizeToTray'
       )) as boolean;
-      setMinimizeToTray(trayEnabled !== false);
+      setMinimizeToTray(trayEnabled === true);
     } catch (error) {
       console.error('Failed to load tray settings:', error);
+      setMinimizeToTray(false);
     }
   };
 
   const handleTraySettingChange = async (enabled: boolean) => {
+    if (minimizeToTray === null) return;
+
     try {
       setMinimizeToTray(enabled);
       await window.electronAPI.config.set('minimizeToTray', enabled);
@@ -98,11 +101,12 @@ export const GeneralTab = () => {
           Choose what happens when you close or minimize the window
         </Text>
         <Switch
-          checked={minimizeToTray}
+          checked={minimizeToTray ?? false}
           onChange={(event) =>
             handleTraySettingChange(event.currentTarget.checked)
           }
           label="Minimize to system tray"
+          disabled={minimizeToTray === null}
         />
       </div>
     </Stack>

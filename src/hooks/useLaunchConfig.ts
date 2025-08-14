@@ -8,6 +8,8 @@ export const useLaunchConfig = () => {
   const [contextSize, setContextSize] = useState<number>(2048);
   const [modelPath, setModelPath] = useState<string>('');
   const [additionalArguments, setAdditionalArguments] = useState<string>('');
+  const [port, setPort] = useState<number>(5001);
+  const [host, setHost] = useState<string>('localhost');
 
   const parseAndApplyConfigFile = useCallback(async (configPath: string) => {
     const configData =
@@ -28,9 +30,23 @@ export const useLaunchConfig = () => {
       if (typeof configData.model_param === 'string') {
         setModelPath(configData.model_param);
       }
+
+      if (typeof configData.port === 'number') {
+        setPort(configData.port);
+      } else {
+        setPort(5001);
+      }
+
+      if (typeof configData.host === 'string') {
+        setHost(configData.host);
+      } else {
+        setHost('localhost');
+      }
     } else {
       setGpuLayers(0);
       setContextSize(2048);
+      setPort(5001);
+      setHost('localhost');
     }
   }, []);
 
@@ -41,6 +57,8 @@ export const useLaunchConfig = () => {
     setModelPath(''); // Model path comes from config file, not saved settings
     setGpuLayers(0);
     setContextSize(2048);
+    setPort(5001);
+    setHost('localhost');
   }, []);
 
   const loadConfigFromFile = useCallback(
@@ -110,6 +128,14 @@ export const useLaunchConfig = () => {
     setAutoGpuLayers(checked);
   }, []);
 
+  const handlePortChange = useCallback((value: number) => {
+    setPort(value);
+  }, []);
+
+  const handleHostChange = useCallback((value: string) => {
+    setHost(value);
+  }, []);
+
   return {
     serverOnly,
     gpuLayers,
@@ -117,6 +143,8 @@ export const useLaunchConfig = () => {
     contextSize,
     modelPath,
     additionalArguments,
+    port,
+    host,
 
     parseAndApplyConfigFile,
     loadSavedSettings,
@@ -128,5 +156,7 @@ export const useLaunchConfig = () => {
     handleModelPathChange,
     handleSelectModelFile,
     handleAdditionalArgumentsChange,
+    handlePortChange,
+    handleHostChange,
   };
 };

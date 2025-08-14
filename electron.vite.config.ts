@@ -32,6 +32,7 @@ export default defineConfig({
       rollupOptions: {
         input: './index.html',
       },
+      chunkSizeWarningLimit: 1000,
     },
     resolve: {
       alias: {

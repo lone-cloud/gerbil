@@ -16,4 +16,4 @@
 - Use proper TypeScript types (avoid `any` when possible)
 - Follow the ESLint configuration (includes SonarJS and security rules)
 - Never create tests, docs or github workflows
-- don't log anything to console
+- Stop asking me to run the "dev" script to test changes
