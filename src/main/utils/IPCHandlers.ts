@@ -3,24 +3,24 @@ import { shell, app } from 'electron';
 import { KoboldCppManager } from '@/main/managers/KoboldCppManager';
 import { ConfigManager } from '@/main/managers/ConfigManager';
 import { GitHubService } from '@/main/services/GitHubService';
-import { GPUService } from '@/main/services/GPUService';
+import { HardwareService } from '@/main/services/HardwareService';
 
 export class IPCHandlers {
   private koboldManager: KoboldCppManager;
   private configManager: ConfigManager;
   private githubService: GitHubService;
-  private gpuService: GPUService;
+  private hardwareService: HardwareService;
 
   constructor(
     koboldManager: KoboldCppManager,
     configManager: ConfigManager,
     githubService: GitHubService,
-    gpuService: GPUService
+    hardwareService: HardwareService
   ) {
     this.koboldManager = koboldManager;
     this.configManager = configManager;
     this.githubService = githubService;
-    this.gpuService = gpuService;
+    this.hardwareService = hardwareService;
   }
 
   setupHandlers() {
@@ -104,7 +104,21 @@ export class IPCHandlers {
       this.koboldManager.selectInstallDirectory()
     );
 
-    ipcMain.handle('kobold:detectGPU', () => this.gpuService.detectGPU());
+    ipcMain.handle('kobold:detectGPU', () => this.hardwareService.detectGPU());
+
+    ipcMain.handle('kobold:detectCPU', () => this.hardwareService.detectCPU());
+
+    ipcMain.handle('kobold:detectGPUCapabilities', () =>
+      this.hardwareService.detectGPUCapabilities()
+    );
+
+    ipcMain.handle('kobold:detectHardware', () =>
+      this.hardwareService.detectAll()
+    );
+
+    ipcMain.handle('kobold:detectAllCapabilities', () =>
+      this.hardwareService.detectAllWithCapabilities()
+    );
 
     ipcMain.handle('kobold:getPlatform', () => ({
       platform: process.platform,

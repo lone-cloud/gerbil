@@ -7,16 +7,16 @@ import { WindowManager } from '@/main/managers/WindowManager';
 import { ConfigManager } from '@/main/managers/ConfigManager';
 import { KoboldCppManager } from '@/main/managers/KoboldCppManager';
 import { GitHubService } from '@/main/services/GitHubService';
-import { GPUService } from '@/main/services/GPUService';
+import { HardwareService } from '@/main/services/HardwareService';
 import { IPCHandlers } from '@/main/utils/IPCHandlers';
-import { APP_NAME, CONFIG_FILE_NAME } from '@/constants/app';
+import { APP_NAME, CONFIG_FILE_NAME } from '@/constants';
 
 class FriendlyKoboldApp {
   private windowManager: WindowManager;
   private configManager: ConfigManager;
   private koboldManager: KoboldCppManager;
   private githubService: GitHubService;
-  private gpuService: GPUService;
+  private hardwareService: HardwareService;
   private ipcHandlers: IPCHandlers;
 
   constructor() {
@@ -25,7 +25,7 @@ class FriendlyKoboldApp {
 
     this.windowManager = new WindowManager(this.configManager);
     this.githubService = new GitHubService();
-    this.gpuService = new GPUService();
+    this.hardwareService = new HardwareService();
     this.koboldManager = new KoboldCppManager(
       this.configManager,
       this.githubService,
@@ -35,7 +35,7 @@ class FriendlyKoboldApp {
       this.koboldManager,
       this.configManager,
       this.githubService,
-      this.gpuService
+      this.hardwareService
     );
   }
 

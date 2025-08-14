@@ -39,6 +39,11 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     additionalArguments,
     port,
     host,
+    multiuser,
+    multiplayer,
+    remotetunnel,
+    nocertify,
+    websearch,
     parseAndApplyConfigFile,
     loadSavedSettings,
     loadConfigFromFile,
@@ -51,6 +56,11 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     handleAdditionalArgumentsChange,
     handlePortChange,
     handleHostChange,
+    handleMultiuserChange,
+    handleMultiplayerChange,
+    handleRemotetunnelChange,
+    handleNocertifyChange,
+    handleWebsearchChange,
   } = useLaunchConfig();
 
   const loadConfigFiles = useCallback(async () => {
@@ -131,6 +141,31 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     setHasUnsavedChanges(true);
   };
 
+  const handleMultiuserChangeWithTracking = (multiuser: boolean) => {
+    handleMultiuserChange(multiuser);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleMultiplayerChangeWithTracking = (multiplayer: boolean) => {
+    handleMultiplayerChange(multiplayer);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleRemotetunnelChangeWithTracking = (remotetunnel: boolean) => {
+    handleRemotetunnelChange(remotetunnel);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleNocertifyChangeWithTracking = (nocertify: boolean) => {
+    handleNocertifyChange(nocertify);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleWebsearchChangeWithTracking = (websearch: boolean) => {
+    handleWebsearchChange(websearch);
+    setHasUnsavedChanges(true);
+  };
+
   useEffect(() => {
     void loadConfigFiles();
 
@@ -177,6 +212,26 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
 
       if (host !== 'localhost') {
         args.push('--host', host);
+      }
+
+      if (multiuser) {
+        args.push('--multiuser', '1');
+      }
+
+      if (multiplayer) {
+        args.push('--multiplayer');
+      }
+
+      if (remotetunnel) {
+        args.push('--remotetunnel');
+      }
+
+      if (nocertify) {
+        args.push('--nocertify');
+      }
+
+      if (websearch) {
+        args.push('--websearch');
       }
 
       if (additionalArguments.trim()) {
@@ -256,55 +311,65 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
           <Tabs value={activeTab} onChange={setActiveTab}>
             <Tabs.List>
               <Tabs.Tab value="general">General</Tabs.Tab>
-              <Tabs.Tab value="advanced">Advanced</Tabs.Tab>
+              <Tabs.Tab value="image">Image Generation</Tabs.Tab>
               <Tabs.Tab value="network">Network</Tabs.Tab>
-              <Tabs.Tab value="image" disabled>
-                Image Generation
-              </Tabs.Tab>
+              <Tabs.Tab value="advanced">Advanced</Tabs.Tab>
             </Tabs.List>
 
-            <Tabs.Panel value="general" pt="md">
-              <GeneralTab
-                modelPath={modelPath}
-                gpuLayers={gpuLayers}
-                autoGpuLayers={autoGpuLayers}
-                contextSize={contextSize}
-                onModelPathChange={handleModelPathChangeWithTracking}
-                onSelectModelFile={handleSelectModelFile}
-                onGpuLayersChange={handleGpuLayersChangeWithTracking}
-                onAutoGpuLayersChange={handleAutoGpuLayersChangeWithTracking}
-                onContextSizeChange={handleContextSizeChangeWithTracking}
-              />
-            </Tabs.Panel>
+            <div style={{ minHeight: '300px' }}>
+              <Tabs.Panel value="general" pt="md">
+                <GeneralTab
+                  modelPath={modelPath}
+                  gpuLayers={gpuLayers}
+                  autoGpuLayers={autoGpuLayers}
+                  contextSize={contextSize}
+                  onModelPathChange={handleModelPathChangeWithTracking}
+                  onSelectModelFile={handleSelectModelFile}
+                  onGpuLayersChange={handleGpuLayersChangeWithTracking}
+                  onAutoGpuLayersChange={handleAutoGpuLayersChangeWithTracking}
+                  onContextSizeChange={handleContextSizeChangeWithTracking}
+                />
+              </Tabs.Panel>
 
-            <Tabs.Panel value="advanced" pt="md">
-              <AdvancedTab
-                additionalArguments={additionalArguments}
-                serverOnly={serverOnly}
-                onAdditionalArgumentsChange={
-                  handleAdditionalArgumentsChangeWithTracking
-                }
-                onServerOnlyChange={handleServerOnlyChangeWithTracking}
-              />
-            </Tabs.Panel>
+              <Tabs.Panel value="advanced" pt="md">
+                <AdvancedTab
+                  additionalArguments={additionalArguments}
+                  serverOnly={serverOnly}
+                  onAdditionalArgumentsChange={
+                    handleAdditionalArgumentsChangeWithTracking
+                  }
+                  onServerOnlyChange={handleServerOnlyChangeWithTracking}
+                />
+              </Tabs.Panel>
 
-            <Tabs.Panel value="network" pt="md">
-              <NetworkTab
-                port={port}
-                host={host}
-                onPortChange={handlePortChangeWithTracking}
-                onHostChange={handleHostChangeWithTracking}
-              />
-            </Tabs.Panel>
+              <Tabs.Panel value="network" pt="md">
+                <NetworkTab
+                  port={port}
+                  host={host}
+                  multiuser={multiuser}
+                  multiplayer={multiplayer}
+                  remotetunnel={remotetunnel}
+                  nocertify={nocertify}
+                  websearch={websearch}
+                  onPortChange={handlePortChangeWithTracking}
+                  onHostChange={handleHostChangeWithTracking}
+                  onMultiuserChange={handleMultiuserChangeWithTracking}
+                  onMultiplayerChange={handleMultiplayerChangeWithTracking}
+                  onRemotetunnelChange={handleRemotetunnelChangeWithTracking}
+                  onNocertifyChange={handleNocertifyChangeWithTracking}
+                  onWebsearchChange={handleWebsearchChangeWithTracking}
+                />
+              </Tabs.Panel>
 
-            <Tabs.Panel value="image" pt="md">
-              <Stack gap="lg" align="center" py="xl">
-                <Text c="dimmed" ta="center">
-                  Image generation configuration will be available in a future
-                  update.
-                </Text>
-              </Stack>
-            </Tabs.Panel>
+              <Tabs.Panel value="image" pt="md">
+                <Stack gap="lg" align="center" py="xl">
+                  <Text c="dimmed" ta="center">
+                    Image generation configuration will be available in a future
+                    update.
+                  </Text>
+                </Stack>
+              </Tabs.Panel>
+            </div>
           </Tabs>
         </Card>
 

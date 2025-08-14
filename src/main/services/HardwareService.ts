@@ -1,30 +1,46 @@
 import si from 'systeminformation';
+import type {
+  CPUCapabilities,
+  GPUCapabilities,
+  BasicGPUInfo,
+  HardwareInfo,
+} from '@/types/hardware';
 
-export interface GPUCapabilities {
-  cuda: {
-    supported: boolean;
-    devices: string[];
-  };
-  rocm: {
-    supported: boolean;
-    devices: string[];
-  };
-  vulkan: {
-    supported: boolean;
-    devices: string[];
-  };
-  clblast: {
-    supported: boolean;
-    devices: string[];
-  };
-}
+export class HardwareService {
+  async detectCPU(): Promise<CPUCapabilities> {
+    try {
+      const [cpu, flags] = await Promise.all([si.cpu(), si.cpuFlags()]);
 
-export class GPUService {
-  async detectGPU(): Promise<{
-    hasAMD: boolean;
-    hasNVIDIA: boolean;
-    gpuInfo: string[];
-  }> {
+      const cpuInfo: string[] = [];
+      if (cpu.brand) {
+        cpuInfo.push(cpu.brand);
+      }
+      if (cpu.cores) {
+        cpuInfo.push(`${cpu.cores} cores`);
+      }
+      if (cpu.speed) {
+        cpuInfo.push(`${cpu.speed}GHz`);
+      }
+
+      const avx = flags.includes('avx') || flags.includes('AVX');
+      const avx2 = flags.includes('avx2') || flags.includes('AVX2');
+
+      return {
+        avx,
+        avx2,
+        cpuInfo: cpuInfo.length > 0 ? cpuInfo : ['CPU information unavailable'],
+      };
+    } catch (error) {
+      console.warn('CPU detection failed:', error);
+      return {
+        avx: false,
+        avx2: false,
+        cpuInfo: ['CPU detection failed'],
+      };
+    }
+  }
+
+  async detectGPU(): Promise<BasicGPUInfo> {
     try {
       const graphics = await si.graphics();
 
@@ -85,6 +101,22 @@ export class GPUService {
     ]);
 
     return { cuda, rocm, vulkan, clblast };
+  }
+
+  async detectAll(): Promise<HardwareInfo> {
+    const [cpu, gpu] = await Promise.all([this.detectCPU(), this.detectGPU()]);
+
+    return { cpu, gpu };
+  }
+
+  async detectAllWithCapabilities(): Promise<HardwareInfo> {
+    const [cpu, gpu, gpuCapabilities] = await Promise.all([
+      this.detectCPU(),
+      this.detectGPU(),
+      this.detectGPUCapabilities(),
+    ]);
+
+    return { cpu, gpu, gpuCapabilities };
   }
 
   private async detectCUDA(): Promise<{
@@ -268,6 +300,7 @@ export class GPUService {
       });
 
       return new Promise((resolve) => {
+        // eslint-disable-next-line sonarjs/cognitive-complexity
         clinfo.on('close', (code) => {
           if (code === 0 && output.trim()) {
             try {
@@ -291,8 +324,7 @@ export class GPUService {
                 devices,
               });
             } catch {
-              // Failed to parse JSON, but clinfo ran successfully
-              // Try to extract device names from text output
+              // Failed to parse JSON, try text parsing
               const lines = output.split('\n');
               const devices: string[] = [];
 

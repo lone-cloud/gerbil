@@ -1,3 +1,12 @@
+import type {
+  CPUCapabilities,
+  GPUCapabilities,
+  BasicGPUInfo,
+  HardwareInfo,
+  PlatformInfo,
+  SystemCapabilities,
+} from '@/types/hardware';
+
 interface GitHubAsset {
   name: string;
   browser_download_url: string;
@@ -53,12 +62,12 @@ export interface KoboldAPI {
   getVersionFromBinary: (binaryPath: string) => Promise<string | null>;
   getLatestRelease: () => Promise<GitHubRelease>;
   getAllReleases: () => Promise<GitHubRelease[]>;
-  getPlatform: () => Promise<{ platform: string; arch: string }>;
-  detectGPU: () => Promise<{
-    hasAMD: boolean;
-    hasNVIDIA: boolean;
-    gpuInfo: string[];
-  }>;
+  getPlatform: () => Promise<PlatformInfo>;
+  detectGPU: () => Promise<BasicGPUInfo>;
+  detectCPU: () => Promise<CPUCapabilities>;
+  detectGPUCapabilities: () => Promise<GPUCapabilities>;
+  detectHardware: () => Promise<HardwareInfo>;
+  detectAllCapabilities: () => Promise<HardwareInfo>;
   getCurrentInstallDir: () => Promise<string>;
   selectInstallDirectory: () => Promise<string | null>;
   downloadRelease: (

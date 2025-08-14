@@ -1,4 +1,4 @@
-import { ASSET_SUFFIXES } from '@/constants/app';
+import { ASSET_SUFFIXES } from '@/constants';
 
 export const getAssetDescription = (assetName: string): string => {
   const name = assetName.toLowerCase();

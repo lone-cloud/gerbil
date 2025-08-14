@@ -1,11 +1,6 @@
 # Prettier-specific ignores (beyond .gitignore)
 # Keep files that should be tracked by git but not formatted by prettier
 
-# IDE/Editor config files that should exist in repo but not be formatted
 .vscode/settings.json
-
-# Coverage reports (if kept in repo for CI)
 coverage/
-
-# Auto-generated files that might be committed
 package-lock.json

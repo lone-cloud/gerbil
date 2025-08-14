@@ -51,6 +51,7 @@
     "@types/node": "^24.2.1",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
+    "@types/systeminformation": "^3.23.1",
     "@typescript-eslint/eslint-plugin": "^8.39.1",
     "@typescript-eslint/parser": "^8.39.1",
     "@vitejs/plugin-react": "^5.0.0",
@@ -80,7 +81,8 @@
     "jiti": "^2.5.1",
     "lucide-react": "^0.539.0",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "systeminformation": "^5.27.7"
   },
   "build": {
     "appId": "com.friendly-kobold.app",

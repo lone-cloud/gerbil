@@ -1,5 +1,5 @@
 import type { GitHubRelease } from '@/types/electron';
-import { GITHUB_API } from '@/constants/app';
+import { GITHUB_API } from '@/constants';
 
 export class GitHubService {
   private lastApiCall = 0;

@@ -23,6 +23,12 @@ const koboldAPI: KoboldAPI = {
   getAllReleases: () => ipcRenderer.invoke('kobold:getAllReleases'),
   getPlatform: () => ipcRenderer.invoke('kobold:getPlatform'),
   detectGPU: () => ipcRenderer.invoke('kobold:detectGPU'),
+  detectCPU: () => ipcRenderer.invoke('kobold:detectCPU'),
+  detectGPUCapabilities: () =>
+    ipcRenderer.invoke('kobold:detectGPUCapabilities'),
+  detectHardware: () => ipcRenderer.invoke('kobold:detectHardware'),
+  detectAllCapabilities: () =>
+    ipcRenderer.invoke('kobold:detectAllCapabilities'),
   getCurrentInstallDir: () => ipcRenderer.invoke('kobold:getCurrentInstallDir'),
   selectInstallDirectory: () =>
     ipcRenderer.invoke('kobold:selectInstallDirectory'),

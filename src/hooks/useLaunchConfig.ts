@@ -10,7 +10,13 @@ export const useLaunchConfig = () => {
   const [additionalArguments, setAdditionalArguments] = useState<string>('');
   const [port, setPort] = useState<number>(5001);
   const [host, setHost] = useState<string>('localhost');
+  const [multiuser, setMultiuser] = useState<boolean>(false);
+  const [multiplayer, setMultiplayer] = useState<boolean>(false);
+  const [remotetunnel, setRemotetunnel] = useState<boolean>(false);
+  const [nocertify, setNocertify] = useState<boolean>(false);
+  const [websearch, setWebsearch] = useState<boolean>(false);
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   const parseAndApplyConfigFile = useCallback(async (configPath: string) => {
     const configData =
       await window.electronAPI.kobold.parseConfigFile(configPath);
@@ -42,11 +48,46 @@ export const useLaunchConfig = () => {
       } else {
         setHost('localhost');
       }
+
+      if (typeof configData.multiuser === 'number') {
+        setMultiuser(configData.multiuser === 1);
+      } else {
+        setMultiuser(false);
+      }
+
+      if (typeof configData.multiplayer === 'boolean') {
+        setMultiplayer(configData.multiplayer);
+      } else {
+        setMultiplayer(false);
+      }
+
+      if (typeof configData.remotetunnel === 'boolean') {
+        setRemotetunnel(configData.remotetunnel);
+      } else {
+        setRemotetunnel(false);
+      }
+
+      if (typeof configData.nocertify === 'boolean') {
+        setNocertify(configData.nocertify);
+      } else {
+        setNocertify(false);
+      }
+
+      if (typeof configData.websearch === 'boolean') {
+        setWebsearch(configData.websearch);
+      } else {
+        setWebsearch(false);
+      }
     } else {
       setGpuLayers(0);
       setContextSize(2048);
       setPort(5001);
       setHost('localhost');
+      setMultiuser(false);
+      setMultiplayer(false);
+      setRemotetunnel(false);
+      setNocertify(false);
+      setWebsearch(false);
     }
   }, []);
 
@@ -59,6 +100,11 @@ export const useLaunchConfig = () => {
     setContextSize(2048);
     setPort(5001);
     setHost('localhost');
+    setMultiuser(false);
+    setMultiplayer(false);
+    setRemotetunnel(false);
+    setNocertify(false);
+    setWebsearch(false);
   }, []);
 
   const loadConfigFromFile = useCallback(
@@ -136,6 +182,26 @@ export const useLaunchConfig = () => {
     setHost(value);
   }, []);
 
+  const handleMultiuserChange = useCallback((checked: boolean) => {
+    setMultiuser(checked);
+  }, []);
+
+  const handleMultiplayerChange = useCallback((checked: boolean) => {
+    setMultiplayer(checked);
+  }, []);
+
+  const handleRemotetunnelChange = useCallback((checked: boolean) => {
+    setRemotetunnel(checked);
+  }, []);
+
+  const handleNocertifyChange = useCallback((checked: boolean) => {
+    setNocertify(checked);
+  }, []);
+
+  const handleWebsearchChange = useCallback((checked: boolean) => {
+    setWebsearch(checked);
+  }, []);
+
   return {
     serverOnly,
     gpuLayers,
@@ -145,6 +211,11 @@ export const useLaunchConfig = () => {
     additionalArguments,
     port,
     host,
+    multiuser,
+    multiplayer,
+    remotetunnel,
+    nocertify,
+    websearch,
 
     parseAndApplyConfigFile,
     loadSavedSettings,
@@ -158,5 +229,10 @@ export const useLaunchConfig = () => {
     handleAdditionalArgumentsChange,
     handlePortChange,
     handleHostChange,
+    handleMultiuserChange,
+    handleMultiplayerChange,
+    handleRemotetunnelChange,
+    handleNocertifyChange,
+    handleWebsearchChange,
   };
 };

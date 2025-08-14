@@ -14,9 +14,9 @@ import {
   useMantineColorScheme,
 } from '@mantine/core';
 import { Settings, ArrowLeft } from 'lucide-react';
-import { DownloadScreen } from '@/screens/DownloadScreen';
-import { LaunchScreen } from '@/screens/LaunchScreen';
-import { InterfaceScreen } from '@/screens/InterfaceScreen';
+import { DownloadScreen } from '@/components/screens/DownloadScreen';
+import { LaunchScreen } from '@/components/screens/LaunchScreen';
+import { InterfaceScreen } from '@/components/screens/InterfaceScreen';
 import { UpdateDialog } from '@/components/UpdateDialog';
 import { SettingsModal } from '@/components/SettingsModal';
 import { ScreenTransition } from '@/components/ScreenTransition';
