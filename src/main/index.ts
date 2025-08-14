@@ -20,8 +20,8 @@ class FriendlyKoboldApp {
   private ipcHandlers: IPCHandlers;
 
   constructor() {
-    this.windowManager = new WindowManager();
     this.configManager = new ConfigManager(this.getConfigPath());
+    this.windowManager = new WindowManager(this.configManager);
     this.githubService = new GitHubService();
     this.gpuService = new GPUService();
     this.koboldManager = new KoboldCppManager(
@@ -81,6 +81,8 @@ class FriendlyKoboldApp {
       if (process.platform === 'darwin') {
         return;
       }
+      // On non-macOS platforms, quit the app when all windows are closed
+      app.quit();
     });
 
     app.on('before-quit', async (event) => {

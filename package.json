@@ -29,11 +29,11 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "eslint --fix",
-      "cspell --no-progress",
+      "cspell \"**/*.{ts,tsx,js,jsx,md,json}\" --no-progress",
       "prettier --write --ignore-path .gitignore"
     ],
     "*.{json,css,md}": [
-      "cspell --no-progress",
+      "cspell \"**/*.{ts,tsx,js,jsx,md,json}\" --no-progress",
       "prettier --write --ignore-path .gitignore"
     ]
   },

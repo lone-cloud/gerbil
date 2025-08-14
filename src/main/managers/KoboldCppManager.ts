@@ -135,38 +135,44 @@ export class KoboldCppManager {
   }
 
   async getInstalledVersions(): Promise<InstalledVersion[]> {
-    const scannedVersions: InstalledVersion[] = [];
-
     try {
-      if (existsSync(this.installDir)) {
-        const files = readdirSync(this.installDir);
-
-        for (const file of files) {
-          const filePath = join(this.installDir, file);
-
-          if (statSync(filePath).isFile() && file.startsWith('koboldcpp')) {
-            try {
-              const detectedVersion = await this.getVersionFromBinary(filePath);
-              const version = detectedVersion || 'unknown';
-
-              const newVersion: InstalledVersion = {
-                version,
-                path: filePath,
-                filename: file,
-              };
-
-              scannedVersions.push(newVersion);
-            } catch (error) {
-              console.warn(`Could not detect version for ${file}:`, error);
-            }
-          }
-        }
+      if (!existsSync(this.installDir)) {
+        return [];
       }
+
+      const files = readdirSync(this.installDir);
+      const koboldFiles = files.filter(
+        (file) =>
+          statSync(join(this.installDir, file)).isFile() &&
+          file.startsWith('koboldcpp')
+      );
+
+      const versionPromises = koboldFiles.map(async (file) => {
+        const filePath = join(this.installDir, file);
+
+        try {
+          const detectedVersion = await this.getVersionFromBinary(filePath);
+          const version = detectedVersion || 'unknown';
+
+          return {
+            version,
+            path: filePath,
+            filename: file,
+          } as InstalledVersion;
+        } catch (error) {
+          console.warn(`Could not detect version for ${file}:`, error);
+          return null;
+        }
+      });
+
+      const results = await Promise.all(versionPromises);
+      return results.filter(
+        (version): version is InstalledVersion => version !== null
+      );
     } catch (error) {
       console.warn('Error scanning install directory:', error);
+      return [];
     }
-
-    return scannedVersions;
   }
 
   async isInstalled(): Promise<boolean> {
@@ -292,19 +298,36 @@ export class KoboldCppManager {
   }
 
   async getCurrentVersion(): Promise<InstalledVersion | null> {
-    const versions = await this.getInstalledVersions();
     const currentBinaryPath = this.configManager.getCurrentKoboldBinary();
 
-    if (currentBinaryPath) {
-      const found = versions.find((v) => v.path === currentBinaryPath);
-      if (found && existsSync(found.path)) {
-        return found;
-      }
+    if (currentBinaryPath && existsSync(currentBinaryPath)) {
+      try {
+        const filename = currentBinaryPath.split(/[/\\]/).pop() || '';
+        const version =
+          (await this.getVersionFromBinary(currentBinaryPath)) || 'unknown';
 
-      this.configManager.setCurrentKoboldBinary('');
+        return {
+          version,
+          path: currentBinaryPath,
+          filename,
+        };
+      } catch (error) {
+        console.warn('Failed to get current version info:', error);
+        // Clear invalid binary path
+        this.configManager.setCurrentKoboldBinary('');
+      }
     }
 
-    return versions[0] || null;
+    // If no current binary is set or it's invalid, try to find the first available one
+    const versions = await this.getInstalledVersions();
+    const firstVersion = versions[0];
+
+    if (firstVersion) {
+      this.configManager.setCurrentKoboldBinary(firstVersion.path);
+      return firstVersion;
+    }
+
+    return null;
   }
 
   async setCurrentVersion(version: string): Promise<boolean> {
