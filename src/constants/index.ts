@@ -2,10 +2,6 @@ export const APP_NAME = 'friendly-kobold';
 
 export const CONFIG_FILE_NAME = 'config.json';
 
-export const DIALOG_TITLES = {
-  SELECT_INSTALL_DIR: 'Select the Friendly Kobold Installation Directory',
-} as const;
-
 export const GITHUB_API = {
   BASE_URL: 'https://api.github.com',
   KOBOLDCPP_REPO: 'LostRuins/koboldcpp',

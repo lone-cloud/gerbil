@@ -1,5 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Box, ScrollArea, Text, ActionIcon } from '@mantine/core';
+import {
+  Box,
+  ScrollArea,
+  Text,
+  ActionIcon,
+  useMantineColorScheme,
+} from '@mantine/core';
 import { ChevronDown } from 'lucide-react';
 
 interface TerminalTabProps {
@@ -11,6 +17,7 @@ export const TerminalTab = ({
   onServerReady,
   serverOnly,
 }: TerminalTabProps) => {
+  const { colorScheme } = useMantineColorScheme();
   const [terminalContent, setTerminalContent] = useState<string>('');
   const [isUserScrolling, setIsUserScrolling] = useState<boolean>(false);
   const [shouldAutoScroll, setShouldAutoScroll] = useState<boolean>(true);
@@ -105,7 +112,10 @@ export const TerminalTab = ({
         height: '80vh',
         display: 'flex',
         flexDirection: 'column',
-        backgroundColor: 'var(--mantine-color-dark-8)',
+        backgroundColor:
+          colorScheme === 'dark'
+            ? 'var(--mantine-color-dark-8)'
+            : 'var(--mantine-color-gray-0)',
         borderRadius: 'inherit',
         position: 'relative',
       }}
@@ -137,7 +147,10 @@ export const TerminalTab = ({
                   fontFamily: 'inherit',
                   fontSize: 'inherit',
                   lineHeight: 'inherit',
-                  color: 'var(--mantine-color-gray-0)',
+                  color:
+                    colorScheme === 'dark'
+                      ? 'var(--mantine-color-gray-0)'
+                      : 'var(--mantine-color-dark-9)',
                   whiteSpace: 'pre-wrap',
                   wordBreak: 'break-word',
                 }}

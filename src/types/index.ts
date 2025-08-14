@@ -46,3 +46,12 @@ export interface ROCmDownload {
   url: string;
   size: number;
 }
+
+export type {
+  CPUCapabilities,
+  GPUCapabilities,
+  BasicGPUInfo,
+  HardwareInfo,
+  PlatformInfo,
+  SystemCapabilities,
+} from './hardware';

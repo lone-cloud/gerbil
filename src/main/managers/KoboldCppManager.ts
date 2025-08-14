@@ -12,7 +12,7 @@ import { dialog } from 'electron';
 import { GitHubService } from '@/main/services/GitHubService';
 import { ConfigManager } from '@/main/managers/ConfigManager';
 import { WindowManager } from '@/main/managers/WindowManager';
-import { DIALOG_TITLES, ROCM } from '@/constants/app';
+import { ROCM } from '@/constants';
 
 interface GitHubAsset {
   name: string;
@@ -397,7 +397,7 @@ export class KoboldCppManager {
   async selectInstallDirectory(): Promise<string | null> {
     const result = await dialog.showOpenDialog({
       properties: ['openDirectory', 'createDirectory'],
-      title: DIALOG_TITLES.SELECT_INSTALL_DIR,
+      title: 'Select the Friendly Kobold Installation Directory',
       defaultPath: this.installDir,
       buttonLabel: 'Select Directory',
     });

@@ -11,7 +11,7 @@ import {
   isAssetRecommended,
   sortAssetsByRecommendation,
 } from '@/utils/assets';
-import { ROCM } from '@/constants/app';
+import { ROCM } from '@/constants';
 import type { GitHubAsset, GitHubRelease } from '@/types';
 
 interface DownloadScreenProps {

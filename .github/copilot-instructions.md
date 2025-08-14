@@ -17,3 +17,4 @@
 - Follow the ESLint configuration (includes SonarJS and security rules)
 - Never create tests, docs or github workflows
 - Stop asking me to run the "dev" script to test changes
+- Try to move helper functions from component code to their own separate files to help minimize clutter
