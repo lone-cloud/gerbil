@@ -1,10 +1,16 @@
 import { BrowserWindow, app, Menu, shell, Tray, nativeImage } from 'electron';
 import { join } from 'path';
+import { ConfigManager } from './ConfigManager';
 
 export class WindowManager {
   private mainWindow: BrowserWindow | null = null;
   private tray: Tray | null = null;
   private isQuitting = false;
+  private configManager: ConfigManager;
+
+  constructor(configManager: ConfigManager) {
+    this.configManager = configManager;
+  }
 
   createMainWindow(): BrowserWindow {
     this.mainWindow = new BrowserWindow({
@@ -30,14 +36,34 @@ export class WindowManager {
       this.mainWindow = null;
     });
 
-    this.mainWindow.on('close', (event) => {
-      if (this.tray && !this.isQuitting) {
-        event.preventDefault();
-        this.mainWindow?.hide();
+    this.mainWindow.on('close', async (event) => {
+      if (!this.isQuitting) {
+        const minimizeToTray =
+          this.configManager.get('minimizeToTray') !== false;
+
+        if (minimizeToTray) {
+          event.preventDefault();
+          this.mainWindow?.hide();
+
+          if (!this.tray) {
+            this.createSystemTray();
+          }
+        }
       }
     });
 
-    this.createSystemTray();
+    this.mainWindow.on('minimize', () => {
+      const minimizeToTray = this.configManager.get('minimizeToTray') !== false;
+
+      if (minimizeToTray) {
+        this.mainWindow?.hide();
+
+        if (!this.tray) {
+          this.createSystemTray();
+        }
+      }
+    });
+
     this.setupContextMenu();
     return this.mainWindow;
   }
@@ -47,24 +73,16 @@ export class WindowManager {
   }
 
   private createSystemTray() {
-    // Create system tray icon
     const iconPath = join(process.cwd(), 'assets', 'icon.png');
     this.tray = new Tray(nativeImage.createFromPath(iconPath));
 
     this.tray.setToolTip('Friendly Kobold');
 
-    // Create context menu for tray
     const trayMenu = Menu.buildFromTemplate([
       {
         label: 'Show',
         click: () => {
           this.mainWindow?.show();
-        },
-      },
-      {
-        label: 'Hide',
-        click: () => {
-          this.mainWindow?.hide();
         },
       },
       { type: 'separator' },
@@ -79,7 +97,10 @@ export class WindowManager {
 
     this.tray.setContextMenu(trayMenu);
 
-    // Double-click to show/hide window
+    this.tray.on('click', () => {
+      this.mainWindow?.show();
+    });
+
     this.tray.on('double-click', () => {
       if (this.mainWindow?.isVisible()) {
         this.mainWindow.hide();
