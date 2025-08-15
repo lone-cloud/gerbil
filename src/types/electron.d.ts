@@ -43,6 +43,7 @@ interface InstalledVersion {
   path: string;
   type: 'github' | 'rocm';
   filename: string;
+  size?: number;
 }
 
 interface ROCmDownload {
@@ -66,6 +67,7 @@ export interface KoboldAPI {
   detectGPU: () => Promise<BasicGPUInfo>;
   detectCPU: () => Promise<CPUCapabilities>;
   detectGPUCapabilities: () => Promise<GPUCapabilities>;
+  detectROCm: () => Promise<{ supported: boolean; devices: string[] }>;
   detectHardware: () => Promise<HardwareInfo>;
   detectAllCapabilities: () => Promise<HardwareInfo>;
   getCurrentInstallDir: () => Promise<string>;

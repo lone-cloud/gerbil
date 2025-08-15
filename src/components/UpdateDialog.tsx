@@ -17,7 +17,7 @@ export const UpdateDialog = ({
   onAccept,
 }: UpdateDialogProps) => (
   <Modal
-    opened={true}
+    opened
     onClose={onIgnore}
     title="Update Available"
     centered

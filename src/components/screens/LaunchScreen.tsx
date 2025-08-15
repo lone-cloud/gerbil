@@ -44,6 +44,9 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     remotetunnel,
     nocertify,
     websearch,
+    noshift,
+    flashattention,
+    backend,
     parseAndApplyConfigFile,
     loadSavedSettings,
     loadConfigFromFile,
@@ -61,6 +64,9 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     handleRemotetunnelChange,
     handleNocertifyChange,
     handleWebsearchChange,
+    handleNoshiftChange,
+    handleFlashattentionChange,
+    handleBackendChange,
   } = useLaunchConfig();
 
   const loadConfigFiles = useCallback(async () => {
@@ -96,11 +102,9 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
       await parseAndApplyConfigFile(selectedConfig.path);
     }
 
-    // Reset unsaved changes when loading a new config
     setHasUnsavedChanges(false);
   };
 
-  // Wrapper functions to track changes
   const handleModelPathChangeWithTracking = (path: string) => {
     handleModelPathChange(path);
     setHasUnsavedChanges(true);
@@ -141,6 +145,16 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     setHasUnsavedChanges(true);
   };
 
+  const handleNoshiftChangeWithTracking = (noshift: boolean) => {
+    handleNoshiftChange(noshift);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleFlashattentionChangeWithTracking = (flashattention: boolean) => {
+    handleFlashattentionChange(flashattention);
+    setHasUnsavedChanges(true);
+  };
+
   const handleMultiuserChangeWithTracking = (multiuser: boolean) => {
     handleMultiuserChange(multiuser);
     setHasUnsavedChanges(true);
@@ -166,6 +180,11 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     setHasUnsavedChanges(true);
   };
 
+  const handleBackendChangeWithTracking = (backend: string) => {
+    handleBackendChange(backend);
+    setHasUnsavedChanges(true);
+  };
+
   useEffect(() => {
     void loadConfigFiles();
 
@@ -180,6 +199,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     return cleanup;
   }, [loadConfigFiles]);
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   const handleLaunch = async () => {
     if (isLaunching || !modelPath) {
       return;
@@ -234,6 +254,28 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
         args.push('--websearch');
       }
 
+      if (noshift) {
+        args.push('--noshift');
+      }
+
+      if (flashattention) {
+        args.push('--flashattention');
+      }
+
+      if (backend && backend !== 'cpu') {
+        if (backend === 'cuda') {
+          args.push('--usecuda');
+        } else if (backend === 'rocm') {
+          args.push('--usecuda');
+        } else if (backend === 'vulkan') {
+          args.push('--usevulkan');
+        } else if (backend === 'clblast') {
+          args.push('--useclblast');
+        } else if (backend === 'failsafe') {
+          args.push('--failsafe');
+        }
+      }
+
       if (additionalArguments.trim()) {
         const additionalArgs = additionalArguments.trim().split(/\s+/);
         args.push(...additionalArgs);
@@ -285,11 +327,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
               size="lg"
               variant="filled"
             >
-              {isLaunching
-                ? 'Launching...'
-                : modelPath
-                  ? 'Launch KoboldCpp'
-                  : 'Select a model file to launch'}
+              {isLaunching ? 'Launching...' : 'Launch'}
             </Button>
           </Group>
         </Card>
@@ -301,9 +339,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
             onFileSelection={handleFileSelection}
             onRefresh={loadConfigFiles}
             onSaveAsNew={() => setSaveModalOpened(true)}
-            onUpdateCurrent={() => {
-              // TODO: Implement update current configuration
-            }}
+            onUpdateCurrent={() => {}}
           />
         </Card>
 
@@ -323,11 +359,13 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
                   gpuLayers={gpuLayers}
                   autoGpuLayers={autoGpuLayers}
                   contextSize={contextSize}
+                  backend={backend}
                   onModelPathChange={handleModelPathChangeWithTracking}
                   onSelectModelFile={handleSelectModelFile}
                   onGpuLayersChange={handleGpuLayersChangeWithTracking}
                   onAutoGpuLayersChange={handleAutoGpuLayersChangeWithTracking}
                   onContextSizeChange={handleContextSizeChangeWithTracking}
+                  onBackendChange={handleBackendChangeWithTracking}
                 />
               </Tabs.Panel>
 
@@ -335,10 +373,16 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
                 <AdvancedTab
                   additionalArguments={additionalArguments}
                   serverOnly={serverOnly}
+                  noshift={noshift}
+                  flashattention={flashattention}
                   onAdditionalArgumentsChange={
                     handleAdditionalArgumentsChangeWithTracking
                   }
                   onServerOnlyChange={handleServerOnlyChangeWithTracking}
+                  onNoshiftChange={handleNoshiftChangeWithTracking}
+                  onFlashattentionChange={
+                    handleFlashattentionChangeWithTracking
+                  }
                 />
               </Tabs.Panel>
 
@@ -379,7 +423,6 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
           configName={newConfigName}
           onConfigNameChange={setNewConfigName}
           onSave={() => {
-            // TODO: Implement save configuration
             setSaveModalOpened(false);
             setNewConfigName('');
           }}

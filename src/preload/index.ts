@@ -26,6 +26,7 @@ const koboldAPI: KoboldAPI = {
   detectCPU: () => ipcRenderer.invoke('kobold:detectCPU'),
   detectGPUCapabilities: () =>
     ipcRenderer.invoke('kobold:detectGPUCapabilities'),
+  detectROCm: () => ipcRenderer.invoke('kobold:detectROCm'),
   detectHardware: () => ipcRenderer.invoke('kobold:detectHardware'),
   detectAllCapabilities: () =>
     ipcRenderer.invoke('kobold:detectAllCapabilities'),

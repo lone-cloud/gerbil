@@ -39,6 +39,7 @@ export interface InstalledVersion {
   version: string;
   path: string;
   filename: string;
+  size?: number;
 }
 
 export interface ROCmDownload {

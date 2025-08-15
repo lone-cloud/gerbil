@@ -3,7 +3,7 @@ import { GITHUB_API } from '@/constants';
 
 export class GitHubService {
   private lastApiCall = 0;
-  private apiCooldown = 60000; // 1 minute cooldown
+  private apiCooldown = 60000;
   private cachedRelease: GitHubRelease | null = null;
   private cachedReleases: GitHubRelease[] = [];
 

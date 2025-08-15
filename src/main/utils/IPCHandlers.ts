@@ -112,6 +112,10 @@ export class IPCHandlers {
       this.hardwareService.detectGPUCapabilities()
     );
 
+    ipcMain.handle('kobold:detectROCm', () =>
+      this.hardwareService.detectROCm()
+    );
+
     ipcMain.handle('kobold:detectHardware', () =>
       this.hardwareService.detectAll()
     );

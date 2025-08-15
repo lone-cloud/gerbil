@@ -12,7 +12,7 @@ import { dialog } from 'electron';
 import { GitHubService } from '@/main/services/GitHubService';
 import { ConfigManager } from '@/main/managers/ConfigManager';
 import { WindowManager } from '@/main/managers/WindowManager';
-import { ROCM } from '@/constants';
+import { ROCM, GITHUB_API } from '@/constants';
 
 interface GitHubAsset {
   name: string;
@@ -49,6 +49,7 @@ export interface InstalledVersion {
   version: string;
   path: string;
   filename: string;
+  size?: number;
 }
 
 export class KoboldCppManager {
@@ -161,17 +162,23 @@ export class KoboldCppManager {
       });
 
       if (!includeVersions) {
-        return koboldFiles.map((file) => ({
-          version: 'unknown',
-          path: join(this.installDir, file),
-          filename: file,
-        }));
+        return koboldFiles.map((file) => {
+          const filePath = join(this.installDir, file);
+          const stats = statSync(filePath);
+          return {
+            version: 'unknown',
+            path: filePath,
+            filename: file,
+            size: stats.size,
+          };
+        });
       }
 
       const versionPromises = koboldFiles.map(async (file) => {
         const filePath = join(this.installDir, file);
 
         try {
+          const stats = statSync(filePath);
           const detectedVersion = await this.getVersionFromBinary(filePath);
           const version = detectedVersion || 'unknown';
 
@@ -179,6 +186,7 @@ export class KoboldCppManager {
             version,
             path: filePath,
             filename: file,
+            size: stats.size,
           } as InstalledVersion;
         } catch (error) {
           console.warn(`Could not detect version for ${file}:`, error);
@@ -195,6 +203,7 @@ export class KoboldCppManager {
       return [];
     }
   }
+
   async getConfigFiles(): Promise<
     Array<{ name: string; path: string; size: number }>
   > {
@@ -306,12 +315,9 @@ export class KoboldCppManager {
     return null;
   }
 
-  async setCurrentVersion(version: string): Promise<boolean> {
-    const versions = await this.getInstalledVersions();
-    const targetVersion = versions.find((v) => v.version === version);
-
-    if (targetVersion && existsSync(targetVersion.path)) {
-      this.configManager.setCurrentKoboldBinary(targetVersion.path);
+  async setCurrentVersion(binaryPath: string): Promise<boolean> {
+    if (existsSync(binaryPath)) {
+      this.configManager.setCurrentKoboldBinary(binaryPath);
       return true;
     }
 
@@ -376,7 +382,7 @@ export class KoboldCppManager {
           try {
             process.kill('SIGTERM');
           } catch {
-            // ignore
+            void 0;
           }
           resolve(null);
         }, 10000);
@@ -479,19 +485,45 @@ export class KoboldCppManager {
     version?: string;
   } | null> {
     const platform = process.platform;
-    if (platform !== 'linux') {
-      return null;
+
+    if (platform === 'linux') {
+      const latestRelease = await this.githubService.getLatestRelease();
+      const version = latestRelease?.tag_name?.replace(/^v/, '') || 'unknown';
+
+      return {
+        name: ROCM.BINARY_NAME,
+        url: ROCM.DOWNLOAD_URL,
+        size: ROCM.SIZE_BYTES,
+        version,
+      };
+    } else if (platform === 'win32') {
+      try {
+        const response = await fetch(GITHUB_API.ROCM_LATEST_RELEASE_URL);
+        if (!response.ok) {
+          return null;
+        }
+
+        const release = await response.json();
+        const rocmAsset = release.assets?.find(
+          (asset: GitHubAsset) =>
+            asset.name.endsWith('rocm.exe') &&
+            !asset.name.includes('rocm_b2.exe')
+        );
+
+        if (rocmAsset) {
+          return {
+            name: rocmAsset.name,
+            url: rocmAsset.browser_download_url,
+            size: rocmAsset.size,
+            version: release.tag_name?.replace(/^v/, '') || 'unknown',
+          };
+        }
+      } catch (error) {
+        console.warn('Failed to fetch Windows ROCm release:', error);
+      }
     }
 
-    const latestRelease = await this.githubService.getLatestRelease();
-    const version = latestRelease?.tag_name?.replace(/^v/, '') || 'unknown';
-
-    return {
-      name: ROCM.BINARY_NAME,
-      url: ROCM.DOWNLOAD_URL,
-      size: ROCM.SIZE_BYTES,
-      version,
-    };
+    return null;
   }
 
   async downloadROCm(onProgress?: (progress: number) => void): Promise<{
@@ -500,15 +532,15 @@ export class KoboldCppManager {
     error?: string;
   }> {
     try {
-      const platform = process.platform;
-      if (platform !== 'linux') {
+      const rocmInfo = await this.getROCmDownload();
+      if (!rocmInfo) {
         return {
           success: false,
-          error: ROCM.ERROR_MESSAGE,
+          error: 'ROCm version not available for this platform',
         };
       }
 
-      const response = await fetch(ROCM.DOWNLOAD_URL);
+      const response = await fetch(rocmInfo.url);
       if (!response.ok) {
         return {
           success: false,
@@ -516,7 +548,7 @@ export class KoboldCppManager {
         };
       }
 
-      const totalBytes = ROCM.SIZE_BYTES;
+      const totalBytes = rocmInfo.size;
       let downloadedBytes = 0;
 
       const reader = response.body?.getReader();
@@ -527,7 +559,7 @@ export class KoboldCppManager {
         };
       }
 
-      const filePath = join(this.installDir, ROCM.BINARY_NAME);
+      const filePath = join(this.installDir, rocmInfo.name);
       const writer = createWriteStream(filePath);
 
       try {
@@ -676,12 +708,10 @@ export class KoboldCppManager {
 
       const child = spawn(currentVersion.path, finalArgs, {
         stdio: ['pipe', 'pipe', 'pipe'],
-        detached: true,
+        detached: false,
       });
 
       this.koboldProcess = child;
-
-      child.unref();
 
       const mainWindow = this.windowManager.getMainWindow();
       if (mainWindow && !mainWindow.isDestroyed()) {
@@ -737,23 +767,12 @@ export class KoboldCppManager {
   stopKoboldCpp(): void {
     if (this.koboldProcess) {
       try {
-        // For detached processes, we need to kill the process group
-        if (process.platform !== 'win32') {
-          // On Unix-like systems, kill the process group
-          process.kill(-this.koboldProcess.pid!, 'SIGTERM');
-        } else {
-          // On Windows, just kill the process
-          this.koboldProcess.kill('SIGTERM');
-        }
+        this.koboldProcess.kill('SIGTERM');
 
         setTimeout(() => {
           if (this.koboldProcess && !this.koboldProcess.killed) {
             try {
-              if (process.platform !== 'win32') {
-                process.kill(-this.koboldProcess.pid!, 'SIGKILL');
-              } else {
-                this.koboldProcess.kill('SIGKILL');
-              }
+              this.koboldProcess.kill('SIGKILL');
             } catch (error) {
               console.warn('Error force-killing KoboldCpp process:', error);
             }
@@ -785,25 +804,14 @@ export class KoboldCppManager {
         this.koboldProcess.once('error', cleanup);
 
         try {
-          // For detached processes, we need to handle cleanup differently
-          if (process.platform !== 'win32') {
-            // On Unix-like systems, kill the process group
-            process.kill(-this.koboldProcess.pid!, 'SIGTERM');
-          } else {
-            // On Windows, just kill the process
-            this.koboldProcess.kill('SIGTERM');
-          }
+          this.koboldProcess.kill('SIGTERM');
 
           setTimeout(() => {
             if (this.koboldProcess && !this.koboldProcess.killed) {
               try {
-                if (process.platform !== 'win32') {
-                  process.kill(-this.koboldProcess.pid!, 'SIGKILL');
-                } else {
-                  this.koboldProcess.kill('SIGKILL');
-                }
+                this.koboldProcess.kill('SIGKILL');
               } catch {
-                // Ignore errors on force kill
+                void 0;
               }
             }
             cleanup();
