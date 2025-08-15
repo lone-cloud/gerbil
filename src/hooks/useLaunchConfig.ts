@@ -15,6 +15,9 @@ export const useLaunchConfig = () => {
   const [remotetunnel, setRemotetunnel] = useState<boolean>(false);
   const [nocertify, setNocertify] = useState<boolean>(false);
   const [websearch, setWebsearch] = useState<boolean>(false);
+  const [noshift, setNoshift] = useState<boolean>(false);
+  const [flashattention, setFlashattention] = useState<boolean>(false);
+  const [backend, setBackend] = useState<string>('');
 
   // eslint-disable-next-line sonarjs/cognitive-complexity
   const parseAndApplyConfigFile = useCallback(async (configPath: string) => {
@@ -78,6 +81,24 @@ export const useLaunchConfig = () => {
       } else {
         setWebsearch(false);
       }
+
+      if (typeof configData.noshift === 'boolean') {
+        setNoshift(configData.noshift);
+      } else {
+        setNoshift(false);
+      }
+
+      if (typeof configData.flashattention === 'boolean') {
+        setFlashattention(configData.flashattention);
+      } else {
+        setFlashattention(false);
+      }
+
+      if (typeof configData.backend === 'string') {
+        setBackend(configData.backend);
+      } else {
+        setBackend('');
+      }
     } else {
       setGpuLayers(0);
       setContextSize(2048);
@@ -88,6 +109,9 @@ export const useLaunchConfig = () => {
       setRemotetunnel(false);
       setNocertify(false);
       setWebsearch(false);
+      setNoshift(false);
+      setFlashattention(false);
+      setBackend('');
     }
   }, []);
 
@@ -95,7 +119,7 @@ export const useLaunchConfig = () => {
     const savedServerOnly = await window.electronAPI.config.getServerOnly();
 
     setServerOnly(savedServerOnly);
-    setModelPath(''); // Model path comes from config file, not saved settings
+    setModelPath('');
     setGpuLayers(0);
     setContextSize(2048);
     setPort(5001);
@@ -105,6 +129,9 @@ export const useLaunchConfig = () => {
     setRemotetunnel(false);
     setNocertify(false);
     setWebsearch(false);
+    setNoshift(false);
+    setFlashattention(false);
+    setBackend('');
   }, []);
 
   const loadConfigFromFile = useCallback(
@@ -202,6 +229,18 @@ export const useLaunchConfig = () => {
     setWebsearch(checked);
   }, []);
 
+  const handleNoshiftChange = useCallback((checked: boolean) => {
+    setNoshift(checked);
+  }, []);
+
+  const handleFlashattentionChange = useCallback((checked: boolean) => {
+    setFlashattention(checked);
+  }, []);
+
+  const handleBackendChange = useCallback((backend: string) => {
+    setBackend(backend);
+  }, []);
+
   return {
     serverOnly,
     gpuLayers,
@@ -216,6 +255,9 @@ export const useLaunchConfig = () => {
     remotetunnel,
     nocertify,
     websearch,
+    noshift,
+    flashattention,
+    backend,
 
     parseAndApplyConfigFile,
     loadSavedSettings,
@@ -234,5 +276,8 @@ export const useLaunchConfig = () => {
     handleRemotetunnelChange,
     handleNocertifyChange,
     handleWebsearchChange,
+    handleNoshiftChange,
+    handleFlashattentionChange,
+    handleBackendChange,
   };
 };

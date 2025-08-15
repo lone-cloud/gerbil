@@ -15,7 +15,6 @@ import { ConfigManager } from './ConfigManager';
 export class WindowManager {
   private mainWindow: BrowserWindow | null = null;
   private tray: Tray | null = null;
-  private isQuitting = false;
   private configManager: ConfigManager;
 
   constructor(configManager: ConfigManager) {
@@ -46,10 +45,13 @@ export class WindowManager {
       this.mainWindow = null;
     });
 
-    // Allow navigation to localhost URLs for iframe content
+    const minimizeToTray = this.configManager.get('minimizeToTray') === true;
+    if (minimizeToTray && !this.tray) {
+      this.createSystemTray();
+    }
+
     this.mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
       const url = new URL(navigationUrl);
-      // Only allow navigation to localhost or the app's origin
       if (
         url.hostname !== 'localhost' &&
         url.hostname !== '127.0.0.1' &&
@@ -59,45 +61,38 @@ export class WindowManager {
       }
     });
 
-    // Handle iframe navigation permissions
     this.mainWindow.webContents.setWindowOpenHandler(({ url }) => {
       const parsedUrl = new URL(url);
-      // Allow localhost URLs to open in the same window/iframe
+
       if (
         parsedUrl.hostname === 'localhost' ||
         parsedUrl.hostname === '127.0.0.1'
       ) {
         return { action: 'allow' };
       }
-      // For other URLs, open in external browser
+
       shell.openExternal(url);
+
       return { action: 'deny' };
     });
 
-    this.mainWindow.on('close', async (event) => {
-      if (!this.isQuitting) {
-        const minimizeToTray =
-          this.configManager.get('minimizeToTray') === true;
-
-        if (minimizeToTray) {
-          event.preventDefault();
-          this.mainWindow?.hide();
-
-          if (!this.tray) {
-            this.createSystemTray();
-          }
-        }
-      }
+    this.mainWindow.on('close', () => {
+      app.quit();
     });
 
     this.mainWindow.on('minimize', () => {
       const minimizeToTray = this.configManager.get('minimizeToTray') === true;
 
       if (minimizeToTray) {
-        this.mainWindow?.hide();
-
         if (!this.tray) {
           this.createSystemTray();
+        }
+
+        if (this.tray) {
+          setTimeout(() => {
+            this.mainWindow?.setSkipTaskbar(true);
+            this.mainWindow?.hide();
+          }, 100);
         }
       }
     });
@@ -111,41 +106,59 @@ export class WindowManager {
   }
 
   private createSystemTray() {
-    const iconPath = join(app.getAppPath(), 'assets', 'icon.png');
-    this.tray = new Tray(nativeImage.createFromPath(iconPath));
+    try {
+      const iconPath = join(app.getAppPath(), 'assets', 'icon.png');
 
-    this.tray.setToolTip('Friendly Kobold');
-
-    const trayMenu = Menu.buildFromTemplate([
-      {
-        label: 'Show',
-        click: () => {
-          this.mainWindow?.show();
-        },
-      },
-      { type: 'separator' },
-      {
-        label: 'Quit',
-        click: () => {
-          this.isQuitting = true;
-          app.quit();
-        },
-      },
-    ]);
-
-    this.tray.setContextMenu(trayMenu);
-
-    this.tray.on('click', () => {
-      this.mainWindow?.show();
-    });
-
-    this.tray.on('double-click', () => {
-      if (this.mainWindow?.isVisible()) {
-        this.mainWindow.hide();
+      const image = nativeImage.createFromPath(iconPath);
+      if (!image.isEmpty()) {
+        const resizedImage = image.resize({ width: 16, height: 16 });
+        this.tray = new Tray(resizedImage);
       } else {
-        this.mainWindow?.show();
+        this.tray = new Tray(image);
       }
-    });
+
+      this.tray.setToolTip('Friendly Kobold');
+
+      const trayMenu = Menu.buildFromTemplate([
+        {
+          label: 'Show',
+          click: () => {
+            this.mainWindow?.setSkipTaskbar(false);
+            this.mainWindow?.show();
+            this.mainWindow?.focus();
+          },
+        },
+        { type: 'separator' },
+        {
+          label: 'Quit',
+          click: () => {
+            app.quit();
+          },
+        },
+      ]);
+
+      this.tray.setContextMenu(trayMenu);
+
+      this.tray.on('click', () => {
+        this.mainWindow?.setSkipTaskbar(false);
+        this.mainWindow?.show();
+        this.mainWindow?.focus();
+      });
+
+      this.tray.on('double-click', () => {
+        if (this.mainWindow?.isVisible()) {
+          this.mainWindow.setSkipTaskbar(true);
+          this.mainWindow.hide();
+        } else {
+          this.mainWindow?.setSkipTaskbar(false);
+          this.mainWindow?.show();
+          this.mainWindow?.focus();
+        }
+      });
+    } catch (error) {
+      console.warn('Failed to create system tray:', error);
+      this.tray = null;
+    }
   }
 
   public cleanup() {
@@ -157,6 +170,17 @@ export class WindowManager {
 
     if (this.mainWindow) {
       this.mainWindow.removeAllListeners();
+    }
+  }
+
+  public ensureTrayExists() {
+    const minimizeToTray = this.configManager.get('minimizeToTray') === true;
+    if (minimizeToTray && !this.tray) {
+      this.createSystemTray();
+    } else if (!minimizeToTray && this.tray) {
+      this.tray.removeAllListeners();
+      this.tray.destroy();
+      this.tray = null;
     }
   }
 
@@ -204,7 +228,6 @@ export class WindowManager {
             label: 'Quit',
             accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
             click: () => {
-              this.isQuitting = true;
               app.quit();
             },
           },
@@ -266,15 +289,24 @@ export class WindowManager {
         label: 'Help',
         submenu: [
           {
-            label: 'About',
-            click: async () => {
-              await this.showAboutDialog();
-            },
-          },
-          {
             label: 'KoboldCpp Wiki',
             click: () => {
               shell.openExternal('https://github.com/LostRuins/koboldcpp/wiki');
+            },
+          },
+          { type: 'separator' },
+          {
+            label: 'View on GitHub',
+            click: () => {
+              shell.openExternal(
+                'https://github.com/lone-cloud/friendly-kobold'
+              );
+            },
+          },
+          {
+            label: 'About',
+            click: async () => {
+              await this.showAboutDialog();
             },
           },
         ],

@@ -4,15 +4,23 @@ import { InfoTooltip } from '@/components/InfoTooltip';
 interface AdvancedTabProps {
   additionalArguments: string;
   serverOnly: boolean;
+  noshift: boolean;
+  flashattention: boolean;
   onAdditionalArgumentsChange: (args: string) => void;
   onServerOnlyChange: (serverOnly: boolean) => void;
+  onNoshiftChange: (noshift: boolean) => void;
+  onFlashattentionChange: (flashattention: boolean) => void;
 }
 
 export const AdvancedTab = ({
   additionalArguments,
   serverOnly,
+  noshift,
+  flashattention,
   onAdditionalArgumentsChange,
   onServerOnlyChange,
+  onNoshiftChange,
+  onFlashattentionChange,
 }: AdvancedTabProps) => (
   <Stack gap="lg">
     <div>
@@ -39,6 +47,30 @@ export const AdvancedTab = ({
           label="Server-only mode"
         />
         <InfoTooltip label="In server-only mode, the KoboldAI Lite web UI won't be displayed. Use this if you'll be using your own frontend." />
+      </Group>
+    </div>
+
+    <div>
+      <Group gap="xs" align="center">
+        <Checkbox
+          checked={!noshift}
+          onChange={(event) => onNoshiftChange(!event.currentTarget.checked)}
+          label="Use ContextShift"
+        />
+        <InfoTooltip label="Use Context Shifting to reduce reprocessing. Recommended" />
+      </Group>
+    </div>
+
+    <div>
+      <Group gap="xs" align="center">
+        <Checkbox
+          checked={flashattention}
+          onChange={(event) =>
+            onFlashattentionChange(event.currentTarget.checked)
+          }
+          label="Use FlashAttention"
+        />
+        <InfoTooltip label="Enable flash attention for GGUF models." />
       </Group>
     </div>
   </Stack>

@@ -154,7 +154,7 @@ export const VersionsTab = () => {
           installedVersion?.version ||
           latestRelease?.tag_name.replace(/^v/, '') ||
           'unknown',
-        size: asset.size,
+        size: installedVersion?.size || asset.size,
         isInstalled: Boolean(installedVersion),
         isCurrent,
         downloadUrl: asset.browser_download_url,
@@ -175,6 +175,7 @@ export const VersionsTab = () => {
         versions.push({
           name: installed.filename,
           version: installed.version,
+          size: installed.size,
           isInstalled: true,
           isCurrent,
           installedPath: installed.path,
@@ -207,21 +208,26 @@ export const VersionsTab = () => {
     }
   };
 
-  const handleVersionSelect = async (version: VersionInfo) => {
+  const makeCurrent = async (version: VersionInfo) => {
     if (!version.installedPath) return;
 
     try {
-      const filename = version.installedPath.split('/').pop() || '';
-      const success =
-        await window.electronAPI.kobold.setCurrentVersion(filename);
+      const success = await window.electronAPI.kobold.setCurrentVersion(
+        version.installedPath
+      );
 
       if (success) {
-        await window.electronAPI.config.set('currentKoboldBinary', filename);
         await window.electronAPI.config.set(
-          'currentKoboldVersion',
-          version.version
+          'currentKoboldBinary',
+          version.installedPath
         );
-        await loadInstalledVersions();
+
+        const newCurrentVersion = installedVersions.find(
+          (v) => v.path === version.installedPath
+        );
+        if (newCurrentVersion) {
+          setCurrentVersion(newCurrentVersion);
+        }
       }
     } catch (error) {
       console.error('Failed to set current version:', error);
@@ -299,11 +305,6 @@ export const VersionsTab = () => {
                         Current
                       </Badge>
                     )}
-                    {version.isInstalled && (
-                      <Badge variant="light" color="green" size="sm">
-                        Installed
-                      </Badge>
-                    )}
                   </Group>
                   <Text size="xs" c="dimmed">
                     Version {version.version}
@@ -339,10 +340,7 @@ export const VersionsTab = () => {
                   <Button
                     variant="light"
                     size="xs"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleVersionSelect(version);
-                    }}
+                    onClick={() => makeCurrent(version)}
                   >
                     Make Current
                   </Button>

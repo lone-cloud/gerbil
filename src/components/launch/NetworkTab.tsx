@@ -73,11 +73,7 @@ export const NetworkTab = ({
     </Group>
 
     <div>
-      <Text size="sm" fw={500} mb="md">
-        Network Options
-      </Text>
       <Stack gap="md">
-        {/* First row: Multiuser and Multiplayer */}
         <Group gap="lg" align="flex-start" wrap="nowrap">
           <div style={{ minWidth: '250px' }}>
             <Group gap="xs" align="center">
@@ -106,7 +102,6 @@ export const NetworkTab = ({
           </div>
         </Group>
 
-        {/* Second row: Remote Tunnel and No Certify */}
         <Group gap="lg" align="flex-start" wrap="nowrap">
           <div style={{ minWidth: '250px' }}>
             <Group gap="xs" align="center">
@@ -135,7 +130,6 @@ export const NetworkTab = ({
           </div>
         </Group>
 
-        {/* Third row: WebSearch (single item) */}
         <Group gap="xs" align="center">
           <Checkbox
             checked={websearch}

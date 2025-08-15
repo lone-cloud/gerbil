@@ -165,7 +165,7 @@ export class HardwareService {
           try {
             nvidia.kill('SIGTERM');
           } catch {
-            // Process already terminated
+            void 0;
           }
           resolve({ supported: false, devices: [] });
         }, 5000);
@@ -175,7 +175,7 @@ export class HardwareService {
     }
   }
 
-  private async detectROCm(): Promise<{
+  async detectROCm(): Promise<{
     supported: boolean;
     devices: string[];
   }> {
@@ -189,6 +189,7 @@ export class HardwareService {
       });
 
       return new Promise((resolve) => {
+        // eslint-disable-next-line sonarjs/cognitive-complexity
         rocminfo.on('close', (code) => {
           if (code === 0 && output.trim()) {
             const devices: string[] = [];
@@ -196,10 +197,27 @@ export class HardwareService {
 
             for (let i = 0; i < lines.length; i++) {
               const line = lines[i];
+
               if (line.includes('Marketing Name:')) {
                 const name = line.split('Marketing Name:')[1]?.trim();
-                if (name && !name.includes('CPU')) {
-                  devices.push(name);
+                if (name) {
+                  let deviceType = '';
+
+                  for (
+                    let j = Math.max(0, i - 10);
+                    j < Math.min(lines.length, i + 10);
+                    j++
+                  ) {
+                    if (lines[j].includes('Device Type:')) {
+                      deviceType =
+                        lines[j].split('Device Type:')[1]?.trim() || '';
+                      break;
+                    }
+                  }
+
+                  if (deviceType !== 'CPU') {
+                    devices.push(name);
+                  }
                 }
               }
             }
@@ -221,7 +239,7 @@ export class HardwareService {
           try {
             rocminfo.kill('SIGTERM');
           } catch {
-            // Process already terminated
+            void 0;
           }
           resolve({ supported: false, devices: [] });
         }, 5000);
@@ -276,7 +294,7 @@ export class HardwareService {
           try {
             vulkaninfo.kill('SIGTERM');
           } catch {
-            // Process already terminated
+            void 0;
           }
           resolve({ supported: false, devices: [] });
         }, 5000);
@@ -324,7 +342,6 @@ export class HardwareService {
                 devices,
               });
             } catch {
-              // Failed to parse JSON, try text parsing
               const lines = output.split('\n');
               const devices: string[] = [];
 
@@ -355,7 +372,7 @@ export class HardwareService {
           try {
             clinfo.kill('SIGTERM');
           } catch {
-            // Process already terminated
+            void 0;
           }
           resolve({ supported: false, devices: [] });
         }, 5000);

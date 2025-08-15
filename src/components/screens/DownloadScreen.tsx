@@ -1,5 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Card, Text, Title, Loader, Stack, Container } from '@mantine/core';
+import {
+  Card,
+  Text,
+  Title,
+  Loader,
+  Stack,
+  Container,
+  Badge,
+  Tooltip,
+} from '@mantine/core';
 import { DownloadOptionCard } from '@/components/DownloadOptionCard';
 import {
   getPlatformDisplayName,
@@ -27,6 +36,7 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
   const [selectedROCm, setSelectedROCm] = useState<boolean>(false);
   const [userPlatform, setUserPlatform] = useState<string>('');
   const [hasAMDGPU, setHasAMDGPU] = useState<boolean>(false);
+  const [hasROCm, setHasROCm] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -57,12 +67,18 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
       try {
         const gpuInfo = await window.electronAPI.kobold.detectGPU();
         setHasAMDGPU(gpuInfo.hasAMD);
+
+        if (gpuInfo.hasAMD) {
+          const rocmInfo = await window.electronAPI.kobold.detectROCm();
+          setHasROCm(rocmInfo.supported);
+        }
       } catch (gpuError) {
         console.warn(
           'GPU detection failed, proceeding without GPU info:',
           gpuError
         );
         setHasAMDGPU(false);
+        setHasROCm(false);
       }
 
       if (releaseData) {
@@ -196,6 +212,41 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
 
                     {filteredAssets.length > 0 || rocmDownload ? (
                       <Stack gap="sm">
+                        {hasAMDGPU && !hasROCm && (
+                          <Card withBorder p="md" bg="orange.0">
+                            <Stack gap="xs">
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '8px',
+                                }}
+                              >
+                                <Text fw={600} c="orange.9">
+                                  AMD GPU Detected
+                                </Text>
+                                <Tooltip
+                                  label="ROCm is not installed. Install ROCm for optimal AMD GPU performance with KoboldCpp."
+                                  multiline
+                                  w={220}
+                                >
+                                  <Badge
+                                    size="sm"
+                                    color="orange"
+                                    variant="filled"
+                                  >
+                                    ROCm Not Found
+                                  </Badge>
+                                </Tooltip>
+                              </div>
+                              <Text size="sm" c="orange.8">
+                                For best performance with your AMD GPU, consider
+                                installing ROCm support.
+                              </Text>
+                            </Stack>
+                          </Card>
+                        )}
+
                         {rocmDownload && hasAMDGPU && renderROCmCard()}
 
                         {sortAssetsByRecommendation(

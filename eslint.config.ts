@@ -8,6 +8,7 @@ import react from 'eslint-plugin-react';
 import importPlugin from 'eslint-plugin-import';
 import sonarjs from 'eslint-plugin-sonarjs';
 import cspell from '@cspell/eslint-plugin';
+import noComments from 'eslint-plugin-no-comments';
 
 const config = [
   js.configs.recommended,
@@ -39,6 +40,7 @@ const config = [
       import: importPlugin,
       sonarjs: sonarjs,
       '@cspell': cspell,
+      'no-comments': noComments,
     },
     settings: {
       react: {
@@ -46,11 +48,9 @@ const config = [
       },
     },
     rules: {
-      // Use recommended rules from plugins
       ...reactHooks.configs.recommended.rules,
       ...react.configs.recommended.rules,
 
-      // Essential TypeScript rules
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -59,10 +59,9 @@ const config = [
           ignoreRestSiblings: true,
         },
       ],
-      'no-unused-vars': 'off', // Turn off base rule to use TypeScript version
+      'no-unused-vars': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
 
-      // React-specific rules you wanted
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
@@ -74,9 +73,13 @@ const config = [
           unnamedComponents: 'arrow-function',
         },
       ],
-      'react/react-in-jsx-scope': 'off', // Not needed with new JSX transform
+      'react/react-in-jsx-scope': 'off',
+      'react/jsx-boolean-value': ['error', 'never'],
+      'react/jsx-curly-brace-presence': [
+        'error',
+        { props: 'never', children: 'never' },
+      ],
 
-      // No default React imports - force specific imports
       'no-restricted-imports': [
         'error',
         {
@@ -91,41 +94,33 @@ const config = [
         },
       ],
 
-      // Import rules - enforce named exports
       'import/no-default-export': 'error',
       'import/prefer-default-export': 'off',
 
-      // Enforce arrow function shorthand when possible
       'arrow-body-style': ['error', 'as-needed'],
       'prefer-arrow-callback': ['error', { allowNamedFunctions: false }],
 
-      // Forbid console.log usage
       'no-console': ['error', { allow: ['warn', 'error'] }],
 
-      // TypeScript rules
       '@typescript-eslint/no-inferrable-types': 'warn',
       '@typescript-eslint/explicit-function-return-type': 'off',
 
-      // SonarJS rules - keep cognitive complexity reasonable
       'sonarjs/cognitive-complexity': ['warn', 25],
 
-      // Spell checking for code
       '@cspell/spellchecker': ['warn'],
+
+      'no-comments/disallowComments': 'error',
     },
   },
   {
-    // TypeScript definition files should have relaxed rules
     files: ['**/*.d.ts'],
     rules: {
-      // Allow unused variables in type definitions
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
-      // Allow any types in definitions
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
   {
-    // Allow default exports for config files
     files: [
       '*.config.*',
       'vite.config.*',
