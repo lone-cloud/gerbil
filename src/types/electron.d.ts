@@ -55,10 +55,12 @@ interface ROCmDownload {
 
 export interface KoboldAPI {
   getInstalledVersion: () => Promise<string | undefined>;
-  getInstalledVersions: (
-    includeVersions?: boolean
-  ) => Promise<InstalledVersion[]>;
+  getInstalledVersions: () => Promise<InstalledVersion[]>;
   getCurrentVersion: () => Promise<InstalledVersion | null>;
+  getCurrentBinaryInfo: () => Promise<{
+    path: string;
+    filename: string;
+  } | null>;
   setCurrentVersion: (version: string) => Promise<boolean>;
   getVersionFromBinary: (binaryPath: string) => Promise<string | null>;
   getLatestRelease: () => Promise<GitHubRelease>;
@@ -105,6 +107,7 @@ export interface KoboldAPI {
   onDownloadProgress: (callback: (progress: number) => void) => void;
   onUpdateAvailable: (callback: (updateInfo: UpdateInfo) => void) => void;
   onInstallDirChanged: (callback: (newPath: string) => void) => () => void;
+  onVersionsUpdated: (callback: () => void) => () => void;
   onKoboldOutput: (callback: (data: string) => void) => () => void;
   removeAllListeners: (channel: string) => void;
 }

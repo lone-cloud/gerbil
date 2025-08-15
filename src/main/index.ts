@@ -95,10 +95,26 @@ class FriendlyKoboldApp {
     app.on('before-quit', async (event) => {
       event.preventDefault();
 
-      await this.koboldManager.cleanup();
+      try {
+        const cleanupPromise = this.koboldManager.cleanup();
+        const timeoutPromise = new Promise<void>((resolve) => {
+          setTimeout(() => {
+            resolve();
+          }, 10000);
+        });
+
+        await Promise.race([cleanupPromise, timeoutPromise]);
+      } catch (error) {
+        console.error('Error during KoboldCpp cleanup:', error);
+      }
 
       this.windowManager.cleanup();
 
+      app.exit(0);
+    });
+
+    app.on('will-quit', async (event) => {
+      event.preventDefault();
       app.exit(0);
     });
 

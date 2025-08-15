@@ -11,6 +11,7 @@ import {
   Text,
   Button,
   Select,
+  Badge,
   useMantineColorScheme,
 } from '@mantine/core';
 import { Settings, ArrowLeft } from 'lucide-react';
@@ -20,7 +21,7 @@ import { InterfaceScreen } from '@/components/screens/InterfaceScreen';
 import { UpdateDialog } from '@/components/UpdateDialog';
 import { SettingsModal } from '@/components/SettingsModal';
 import { ScreenTransition } from '@/components/ScreenTransition';
-import type { UpdateInfo } from '@/types';
+import type { UpdateInfo, InstalledVersion } from '@/types';
 
 type Screen = 'download' | 'launch' | 'interface';
 
@@ -33,24 +34,64 @@ export const App = () => {
   const [activeInterfaceTab, setActiveInterfaceTab] = useState<string | null>(
     'terminal'
   );
+  const [currentVersion, setCurrentVersion] = useState<InstalledVersion | null>(
+    null
+  );
+  const [installedVersions, setInstalledVersions] = useState<
+    InstalledVersion[]
+  >([]);
   const { colorScheme } = useMantineColorScheme();
+
+  const getDisplayNameFromPath = (
+    installedVersion: InstalledVersion
+  ): string => {
+    const pathParts = installedVersion.path.split(/[/\\]/);
+    const launcherIndex = pathParts.findIndex(
+      (part) =>
+        part === 'koboldcpp-launcher' ||
+        part === 'koboldcpp.exe' ||
+        part === 'koboldcpp'
+    );
+
+    if (launcherIndex > 0) {
+      return pathParts[launcherIndex - 1];
+    }
+
+    return installedVersion.filename;
+  };
 
   useEffect(() => {
     const checkInstallation = async () => {
       try {
-        const startTime = Date.now();
-        const installedVersions =
-          await window.electronAPI.kobold.getInstalledVersions(false);
+        const [versions, currentBinaryPath] = await Promise.all([
+          window.electronAPI.kobold.getInstalledVersions(),
+          window.electronAPI.config.get(
+            'currentKoboldBinary'
+          ) as Promise<string>,
+        ]);
 
-        const elapsed = Date.now() - startTime;
-        const minDelay = 500;
-        if (elapsed < minDelay) {
-          await new Promise((resolve) =>
-            setTimeout(resolve, minDelay - elapsed)
-          );
+        setInstalledVersions(versions);
+
+        if (versions.length > 0) {
+          let current = null;
+          if (currentBinaryPath) {
+            current = versions.find((v) => v.path === currentBinaryPath);
+          }
+          if (!current) {
+            current = versions[0];
+            if (current) {
+              await window.electronAPI.config.set(
+                'currentKoboldBinary',
+                current.path
+              );
+            }
+          }
+          setCurrentVersion(current);
+          setCurrentScreen('launch');
+        } else {
+          setCurrentScreen('download');
         }
 
-        setCurrentScreen(installedVersions.length > 0 ? 'launch' : 'download');
         setHasInitialized(true);
       } catch (error) {
         console.error('Error checking installation:', error);
@@ -70,16 +111,71 @@ export const App = () => {
         checkInstallation();
       });
 
+    const cleanupVersionsListener = window.electronAPI.kobold.onVersionsUpdated(
+      () => {
+        checkInstallation();
+      }
+    );
+
     return () => {
       window.electronAPI.kobold.removeAllListeners('update-available');
       cleanupInstallDirListener();
+      cleanupVersionsListener();
     };
   }, []);
 
-  const handleDownloadComplete = () => {
+  const handleDownloadComplete = async () => {
+    try {
+      const [versions, currentBinaryPath] = await Promise.all([
+        window.electronAPI.kobold.getInstalledVersions(),
+        window.electronAPI.config.get('currentKoboldBinary') as Promise<string>,
+      ]);
+
+      setInstalledVersions(versions);
+
+      if (versions.length > 0) {
+        let current = null;
+        if (currentBinaryPath) {
+          current = versions.find((v) => v.path === currentBinaryPath);
+        }
+        if (!current) {
+          current = versions[0];
+          if (current) {
+            await window.electronAPI.config.set(
+              'currentKoboldBinary',
+              current.path
+            );
+          }
+        }
+        setCurrentVersion(current);
+      }
+    } catch (error) {
+      console.error('Error refreshing versions after download:', error);
+    }
+
     setTimeout(() => {
       setCurrentScreen('launch');
     }, 100);
+  };
+
+  const handleVersionChange = async (versionPath: string | null) => {
+    if (!versionPath) return;
+
+    try {
+      const success =
+        await window.electronAPI.kobold.setCurrentVersion(versionPath);
+      if (success) {
+        await window.electronAPI.config.set('currentKoboldBinary', versionPath);
+        const newCurrent = installedVersions.find(
+          (v) => v.path === versionPath
+        );
+        if (newCurrent) {
+          setCurrentVersion(newCurrent);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to change version:', error);
+    }
   };
 
   const handleLaunch = () => {
@@ -170,6 +266,49 @@ export const App = () => {
               />
             )}
 
+            {currentScreen === 'launch' && currentVersion && (
+              <Group gap="xs" align="center">
+                <Select
+                  value={currentVersion.path}
+                  onChange={handleVersionChange}
+                  data={installedVersions.map((version) => ({
+                    value: version.path,
+                    label: getDisplayNameFromPath(version),
+                  }))}
+                  placeholder="Select version"
+                  variant="unstyled"
+                  styles={{
+                    input: {
+                      minWidth: '225px',
+                      textAlign: 'center',
+                      border: `1px solid var(--mantine-color-${colorScheme === 'dark' ? 'dark-4' : 'gray-4'})`,
+                      borderRadius: 'var(--mantine-radius-sm)',
+                      backgroundColor:
+                        colorScheme === 'dark'
+                          ? 'var(--mantine-color-dark-6)'
+                          : 'var(--mantine-color-gray-0)',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      padding: '6px 12px',
+                      transition: 'all 200ms ease',
+                      '&:hover': {
+                        backgroundColor:
+                          colorScheme === 'dark'
+                            ? 'var(--mantine-color-dark-5)'
+                            : 'var(--mantine-color-gray-1)',
+                      },
+                    },
+                    dropdown: {
+                      minWidth: '200px',
+                    },
+                  }}
+                />
+                <Badge variant="light" color="blue" size="sm">
+                  v{currentVersion.version}
+                </Badge>
+              </Group>
+            )}
+
             <div
               style={{
                 minWidth: '100px',
@@ -206,7 +345,7 @@ export const App = () => {
               <Stack align="center" gap="lg">
                 <Loader size="xl" type="dots" />
                 <Text c="dimmed" size="lg">
-                  Initializing...
+                  Loading...
                 </Text>
               </Stack>
             </Center>
@@ -249,6 +388,7 @@ export const App = () => {
         <SettingsModal
           opened={settingsOpened}
           onClose={() => setSettingsOpened(false)}
+          currentScreen={currentScreen || undefined}
         />
       </AppShell>
     </>

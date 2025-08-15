@@ -5,14 +5,14 @@ import {
   Group,
   Button,
   Card,
-  Badge,
-  Progress,
   Loader,
   rem,
   Center,
 } from '@mantine/core';
-import { RotateCcw, Download } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
+import { DownloadCard } from '@/components/DownloadCard';
 import { isAssetCompatibleWithPlatform } from '@/utils/platform';
+import { getAssetDescription } from '@/utils/assets';
 import type {
   InstalledVersion,
   GitHubAsset,
@@ -27,6 +27,7 @@ interface VersionInfo {
   isCurrent: boolean;
   downloadUrl?: string;
   installedPath?: string;
+  isROCm?: boolean;
 }
 
 export const VersionsTab = () => {
@@ -37,6 +38,12 @@ export const VersionsTab = () => {
     null
   );
   const [availableAssets, setAvailableAssets] = useState<GitHubAsset[]>([]);
+  const [rocmDownload, setRocmDownload] = useState<{
+    name: string;
+    url: string;
+    size: number;
+    version?: string;
+  } | null>(null);
   const [latestRelease, setLatestRelease] = useState<GitHubRelease | null>(
     null
   );
@@ -60,14 +67,28 @@ export const VersionsTab = () => {
 
       setInstalledVersions(versions);
 
-      if (currentBinaryPath) {
-        const current = versions.find(
-          (v) =>
-            v.path === currentBinaryPath || v.filename === currentBinaryPath
+      if (currentBinaryPath && versions.length > 0) {
+        const current = versions.find((v) => v.path === currentBinaryPath);
+        if (current) {
+          setCurrentVersion(current);
+        } else {
+          setCurrentVersion(versions[0]);
+          await window.electronAPI.config.set(
+            'currentKoboldBinary',
+            versions[0].path
+          );
+        }
+      } else if (versions.length > 0) {
+        setCurrentVersion(versions[0]);
+        await window.electronAPI.config.set(
+          'currentKoboldBinary',
+          versions[0].path
         );
-        setCurrentVersion(current || null);
       } else {
-        setCurrentVersion(versions[0] || null);
+        setCurrentVersion(null);
+        if (currentBinaryPath) {
+          await window.electronAPI.config.set('currentKoboldBinary', '');
+        }
       }
     } catch (error) {
       console.error('Failed to load installed versions:', error);
@@ -81,7 +102,10 @@ export const VersionsTab = () => {
     setLoadingRemote(true);
 
     try {
-      const release = await window.electronAPI.kobold.getLatestRelease();
+      const [release, rocm] = await Promise.all([
+        window.electronAPI.kobold.getLatestRelease(),
+        window.electronAPI.kobold.getROCmDownload(),
+      ]);
 
       if (release) {
         setLatestRelease(release);
@@ -90,6 +114,8 @@ export const VersionsTab = () => {
         );
         setAvailableAssets(compatibleAssets);
       }
+
+      setRocmDownload(rocm);
     } catch (error) {
       console.error('Failed to load remote versions:', error);
     } finally {
@@ -134,13 +160,32 @@ export const VersionsTab = () => {
     };
   }, [downloading]);
 
+  const getDisplayNameFromPath = (
+    installedVersion: InstalledVersion
+  ): string => {
+    const pathParts = installedVersion.path.split(/[/\\]/);
+    const launcherIndex = pathParts.findIndex(
+      (part) =>
+        part === 'koboldcpp-launcher' ||
+        part === 'koboldcpp.exe' ||
+        part === 'koboldcpp'
+    );
+
+    if (launcherIndex > 0) {
+      return pathParts[launcherIndex - 1];
+    }
+
+    return installedVersion.filename;
+  };
+
   const getAllVersions = (): VersionInfo[] => {
     const versions: VersionInfo[] = [];
 
     availableAssets.forEach((asset) => {
-      const installedVersion = installedVersions.find(
-        (v) => v.filename === asset.name
-      );
+      const installedVersion = installedVersions.find((v) => {
+        const displayName = getDisplayNameFromPath(v);
+        return displayName === asset.name;
+      });
 
       const isCurrent = Boolean(
         installedVersion &&
@@ -154,18 +199,49 @@ export const VersionsTab = () => {
           installedVersion?.version ||
           latestRelease?.tag_name.replace(/^v/, '') ||
           'unknown',
-        size: installedVersion?.size || asset.size,
+        size: installedVersion ? undefined : asset.size,
         isInstalled: Boolean(installedVersion),
         isCurrent,
         downloadUrl: asset.browser_download_url,
         installedPath: installedVersion?.path,
+        isROCm: false,
       });
     });
 
-    installedVersions.forEach((installed) => {
-      const existsInRemote = versions.some(
-        (v) => v.name === installed.filename
+    if (rocmDownload) {
+      const installedVersion = installedVersions.find((v) => {
+        const displayName = getDisplayNameFromPath(v);
+        return displayName === rocmDownload.name;
+      });
+
+      const isCurrent = Boolean(
+        installedVersion &&
+          currentVersion &&
+          currentVersion.path === installedVersion.path
       );
+
+      const existsInVersions = versions.some(
+        (v) => v.name === rocmDownload.name
+      );
+
+      if (!existsInVersions) {
+        versions.push({
+          name: rocmDownload.name,
+          version:
+            installedVersion?.version || rocmDownload.version || 'unknown',
+          size: installedVersion ? undefined : rocmDownload.size,
+          isInstalled: Boolean(installedVersion),
+          isCurrent,
+          downloadUrl: rocmDownload.url,
+          installedPath: installedVersion?.path,
+          isROCm: true,
+        });
+      }
+    }
+
+    installedVersions.forEach((installed) => {
+      const displayName = getDisplayNameFromPath(installed);
+      const existsInRemote = versions.some((v) => v.name === displayName);
 
       if (!existsInRemote) {
         const isCurrent = Boolean(
@@ -173,12 +249,13 @@ export const VersionsTab = () => {
         );
 
         versions.push({
-          name: installed.filename,
+          name: displayName,
           version: installed.version,
-          size: installed.size,
+          size: undefined,
           isInstalled: true,
           isCurrent,
           installedPath: installed.path,
+          isROCm: false,
         });
       }
     });
@@ -186,12 +263,22 @@ export const VersionsTab = () => {
     return versions;
   };
 
-  const handleDownload = async (asset: GitHubAsset) => {
-    setDownloading(asset.name);
-    setDownloadProgress((prev) => ({ ...prev, [asset.name]: 0 }));
+  const handleDownload = async (version: VersionInfo) => {
+    setDownloading(version.name);
+    setDownloadProgress((prev) => ({ ...prev, [version.name]: 0 }));
 
     try {
-      const result = await window.electronAPI.kobold.downloadRelease(asset);
+      let result;
+
+      if (version.isROCm) {
+        result = await window.electronAPI.kobold.downloadROCm();
+      } else {
+        const asset = availableAssets.find((a) => a.name === version.name);
+        if (!asset) {
+          throw new Error('Asset not found');
+        }
+        result = await window.electronAPI.kobold.downloadRelease(asset);
+      }
 
       if (result.success) {
         await loadInstalledVersions();
@@ -202,7 +289,7 @@ export const VersionsTab = () => {
       setDownloading(null);
       setDownloadProgress((prev) => {
         const newProgress = { ...prev };
-        delete newProgress[asset.name];
+        delete newProgress[version.name];
         return newProgress;
       });
     }
@@ -275,92 +362,37 @@ export const VersionsTab = () => {
       <Stack gap="xs">
         {getAllVersions().map((version, index) => {
           const isDownloading = downloading === version.name;
-          const asset = availableAssets.find((a) => a.name === version.name);
 
           return (
-            <Card
+            <DownloadCard
               key={`${version.name}-${version.version}-${index}`}
-              withBorder
-              radius="sm"
-              padding="sm"
-              bd={
-                version.isCurrent
-                  ? '2px solid var(--mantine-color-blue-filled)'
-                  : undefined
+              name={version.name}
+              size={
+                version.size
+                  ? `${(version.size / 1024 / 1024).toFixed(1)} MB`
+                  : ''
               }
-              bg={
-                version.isCurrent
-                  ? 'var(--mantine-color-blue-light)'
-                  : undefined
-              }
-            >
-              <Group justify="space-between" align="center">
-                <div style={{ flex: 1 }}>
-                  <Group gap="xs" align="center" mb="xs">
-                    <Text fw={500} size="sm">
-                      {version.name}
-                    </Text>
-                    {version.isCurrent && (
-                      <Badge variant="light" color="blue" size="sm">
-                        Current
-                      </Badge>
-                    )}
-                  </Group>
-                  <Text size="xs" c="dimmed">
-                    Version {version.version}
-                    {version.size && (
-                      <> • {(version.size / 1024 / 1024).toFixed(1)} MB</>
-                    )}
-                  </Text>
-                </div>
-
-                {!version.isInstalled && asset && (
-                  <Button
-                    variant="filled"
-                    size="xs"
-                    onClick={(e) => {
+              version={version.version}
+              description={getAssetDescription(version.name)}
+              isCurrent={version.isCurrent}
+              isInstalled={version.isInstalled}
+              isDownloading={isDownloading}
+              downloadProgress={downloadProgress[version.name]}
+              disabled={downloading !== null}
+              onDownload={
+                !version.isInstalled
+                  ? (e) => {
                       e.stopPropagation();
-                      handleDownload(asset);
-                    }}
-                    loading={isDownloading}
-                    disabled={downloading !== null}
-                    leftSection={
-                      isDownloading ? (
-                        <Loader size="1rem" />
-                      ) : (
-                        <Download style={{ width: rem(14), height: rem(14) }} />
-                      )
+                      handleDownload(version);
                     }
-                  >
-                    {isDownloading ? 'Downloading...' : 'Download'}
-                  </Button>
-                )}
-
-                {version.isInstalled && !version.isCurrent && (
-                  <Button
-                    variant="light"
-                    size="xs"
-                    onClick={() => makeCurrent(version)}
-                  >
-                    Make Current
-                  </Button>
-                )}
-              </Group>
-
-              {isDownloading &&
-                downloadProgress[version.name] !== undefined && (
-                  <Stack gap="xs" mt="sm">
-                    <Progress
-                      value={downloadProgress[version.name]}
-                      color="blue"
-                      radius="xl"
-                    />
-                    <Text size="xs" c="dimmed" ta="center">
-                      {downloadProgress[version.name].toFixed(1)}% complete
-                    </Text>
-                  </Stack>
-                )}
-            </Card>
+                  : undefined
+              }
+              onMakeCurrent={
+                version.isInstalled && !version.isCurrent
+                  ? () => makeCurrent(version)
+                  : undefined
+              }
+            />
           );
         })}
 

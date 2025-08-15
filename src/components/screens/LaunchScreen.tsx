@@ -46,6 +46,8 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     websearch,
     noshift,
     flashattention,
+    noavx2,
+    failsafe,
     backend,
     parseAndApplyConfigFile,
     loadSavedSettings,
@@ -66,6 +68,8 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     handleWebsearchChange,
     handleNoshiftChange,
     handleFlashattentionChange,
+    handleNoavx2Change,
+    handleFailsafeChange,
     handleBackendChange,
   } = useLaunchConfig();
 
@@ -155,6 +159,16 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     setHasUnsavedChanges(true);
   };
 
+  const handleNoavx2ChangeWithTracking = (noavx2: boolean) => {
+    handleNoavx2Change(noavx2);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleFailsafeChangeWithTracking = (failsafe: boolean) => {
+    handleFailsafeChange(failsafe);
+    setHasUnsavedChanges(true);
+  };
+
   const handleMultiuserChangeWithTracking = (multiuser: boolean) => {
     handleMultiuserChange(multiuser);
     setHasUnsavedChanges(true);
@@ -199,7 +213,6 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     return cleanup;
   }, [loadConfigFiles]);
 
-  // eslint-disable-next-line sonarjs/cognitive-complexity
   const handleLaunch = async () => {
     if (isLaunching || !modelPath) {
       return;
@@ -271,8 +284,6 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
           args.push('--usevulkan');
         } else if (backend === 'clblast') {
           args.push('--useclblast');
-        } else if (backend === 'failsafe') {
-          args.push('--failsafe');
         }
       }
 
@@ -375,6 +386,8 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
                   serverOnly={serverOnly}
                   noshift={noshift}
                   flashattention={flashattention}
+                  noavx2={noavx2}
+                  failsafe={failsafe}
                   onAdditionalArgumentsChange={
                     handleAdditionalArgumentsChangeWithTracking
                   }
@@ -383,6 +396,8 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
                   onFlashattentionChange={
                     handleFlashattentionChangeWithTracking
                   }
+                  onNoavx2Change={handleNoavx2ChangeWithTracking}
+                  onFailsafeChange={handleFailsafeChangeWithTracking}
                 />
               </Tabs.Panel>
 

@@ -8,9 +8,9 @@ import type {
 
 const koboldAPI: KoboldAPI = {
   getInstalledVersion: () => ipcRenderer.invoke('kobold:getInstalledVersion'),
-  getInstalledVersions: (includeVersions?: boolean) =>
-    ipcRenderer.invoke('kobold:getInstalledVersions', includeVersions),
+  getInstalledVersions: () => ipcRenderer.invoke('kobold:getInstalledVersions'),
   getCurrentVersion: () => ipcRenderer.invoke('kobold:getCurrentVersion'),
+  getCurrentBinaryInfo: () => ipcRenderer.invoke('kobold:getCurrentBinaryInfo'),
   setCurrentVersion: (version: string) =>
     ipcRenderer.invoke('kobold:setCurrentVersion', version),
   getVersionFromBinary: (binaryPath: string) =>
@@ -66,6 +66,14 @@ const koboldAPI: KoboldAPI = {
 
     return () => {
       ipcRenderer.removeListener('install-dir-changed', handler);
+    };
+  },
+  onVersionsUpdated: (callback: () => void) => {
+    const handler = () => callback();
+    ipcRenderer.on('versions-updated', handler);
+
+    return () => {
+      ipcRenderer.removeListener('versions-updated', handler);
     };
   },
   onKoboldOutput: (callback: (data: string) => void) => {

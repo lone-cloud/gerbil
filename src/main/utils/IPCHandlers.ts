@@ -70,10 +70,8 @@ export class IPCHandlers {
       }
     });
 
-    ipcMain.handle(
-      'kobold:getInstalledVersions',
-      (_, includeVersions?: boolean) =>
-        this.koboldManager.getInstalledVersions(includeVersions)
+    ipcMain.handle('kobold:getInstalledVersions', () =>
+      this.koboldManager.getInstalledVersions()
     );
 
     ipcMain.handle('kobold:getConfigFiles', () =>
@@ -90,6 +88,10 @@ export class IPCHandlers {
 
     ipcMain.handle('kobold:getCurrentVersion', () =>
       this.koboldManager.getCurrentVersion()
+    );
+
+    ipcMain.handle('kobold:getCurrentBinaryInfo', () =>
+      this.koboldManager.getCurrentBinaryInfo()
     );
 
     ipcMain.handle('kobold:setCurrentVersion', (_event, version) =>
