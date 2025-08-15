@@ -9,16 +9,16 @@ import {
   Badge,
   Tooltip,
 } from '@mantine/core';
-import { DownloadOptionCard } from '@/components/DownloadOptionCard';
+import { DownloadCard } from '@/components/DownloadCard';
 import {
   getPlatformDisplayName,
   filterAssetsByPlatform,
 } from '@/utils/platform';
 import { formatFileSize } from '@/utils/fileSize';
 import {
-  getAssetDescription,
   isAssetRecommended,
   sortAssetsByRecommendation,
+  getAssetDescription,
 } from '@/utils/assets';
 import { ROCM } from '@/constants';
 import type { GitHubAsset, GitHubRelease } from '@/types';
@@ -32,8 +32,6 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
     null
   );
   const [filteredAssets, setFilteredAssets] = useState<GitHubAsset[]>([]);
-  const [selectedAsset, setSelectedAsset] = useState<GitHubAsset | null>(null);
-  const [selectedROCm, setSelectedROCm] = useState<boolean>(false);
   const [userPlatform, setUserPlatform] = useState<string>('');
   const [hasAMDGPU, setHasAMDGPU] = useState<boolean>(false);
   const [hasROCm, setHasROCm] = useState<boolean>(false);
@@ -43,6 +41,7 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
   const [downloadingType, setDownloadingType] = useState<
     'asset' | 'rocm' | null
   >(null);
+  const [downloadingAsset, setDownloadingAsset] = useState<string | null>(null);
   const [rocmDownload, setRocmDownload] = useState<{
     name: string;
     url: string;
@@ -112,54 +111,51 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleDownload = async (type: 'asset' | 'rocm' = 'asset') => {
-    if (type === 'asset' && !selectedAsset) return;
+  const handleDownload = useCallback(
+    async (type: 'asset' | 'rocm', asset?: GitHubAsset) => {
+      if (type === 'asset' && !asset) return;
 
-    try {
       setDownloading(true);
-      setDownloadProgress(0);
       setDownloadingType(type);
-
-      const result =
-        type === 'rocm'
-          ? await window.electronAPI.kobold.downloadROCm()
-          : await window.electronAPI.kobold.downloadRelease(selectedAsset!);
-
-      if (result.success) {
-        onDownloadComplete();
-      } else {
-        console.error(
-          'Download Failed',
-          result.error || `${type === 'rocm' ? 'ROCm' : ''} Download failed`
-        );
-      }
-    } catch (err) {
-      console.error(`${type === 'rocm' ? 'ROCm' : ''} Download error:`, err);
-    } finally {
-      setDownloading(false);
+      setDownloadingAsset(type === 'asset' ? asset!.name : null);
       setDownloadProgress(0);
-      setDownloadingType(null);
-    }
-  };
+
+      try {
+        await (type === 'rocm'
+          ? window.electronAPI.kobold.downloadROCm()
+          : await window.electronAPI.kobold.downloadRelease(asset!));
+
+        onDownloadComplete();
+
+        setTimeout(() => {
+          setDownloading(false);
+          setDownloadingType(null);
+          setDownloadingAsset(null);
+          setDownloadProgress(0);
+        }, 200);
+      } catch (error) {
+        console.error(`Failed to download ${type}:`, error);
+        setDownloading(false);
+        setDownloadingType(null);
+        setDownloadingAsset(null);
+        setDownloadProgress(0);
+      }
+    },
+    [onDownloadComplete]
+  );
 
   const renderROCmCard = () => {
     if (!rocmDownload) return null;
 
     return (
-      <DownloadOptionCard
+      <DownloadCard
         name={ROCM.BINARY_NAME}
-        description={getAssetDescription(ROCM.BINARY_NAME)}
         size={formatFileSize(ROCM.SIZE_BYTES)}
-        isSelected={selectedROCm}
+        description={getAssetDescription(ROCM.BINARY_NAME)}
         isRecommended={isAssetRecommended(ROCM.BINARY_NAME, hasAMDGPU)}
         isDownloading={downloading && downloadingType === 'rocm'}
         downloadProgress={downloadingType === 'rocm' ? downloadProgress : 0}
-        onClick={() => {
-          if (!selectedROCm) {
-            setSelectedROCm(true);
-            setSelectedAsset(null);
-          }
-        }}
+        disabled={downloading && downloadingType !== 'rocm'}
         onDownload={(e) => {
           e.stopPropagation();
           handleDownload('rocm');
@@ -178,7 +174,7 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
             {loading ? (
               <Stack align="center" gap="md" py="xl">
                 <Loader color="blue" />
-                <Text c="dimmed">Loading latest release...</Text>
+                <Text c="dimmed">Preparing download options...</Text>
               </Stack>
             ) : (
               <>
@@ -253,12 +249,11 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
                           filteredAssets,
                           hasAMDGPU
                         ).map((asset) => (
-                          <DownloadOptionCard
+                          <DownloadCard
                             key={asset.name}
                             name={asset.name}
-                            description={getAssetDescription(asset.name)}
                             size={formatFileSize(asset.size)}
-                            isSelected={selectedAsset?.name === asset.name}
+                            description={getAssetDescription(asset.name)}
                             isRecommended={isAssetRecommended(
                               asset.name,
                               hasAMDGPU
@@ -266,24 +261,21 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
                             isDownloading={
                               downloading &&
                               downloadingType === 'asset' &&
-                              selectedAsset?.name === asset.name
+                              downloadingAsset === asset.name
                             }
                             downloadProgress={
                               downloading &&
                               downloadingType === 'asset' &&
-                              selectedAsset?.name === asset.name
+                              downloadingAsset === asset.name
                                 ? downloadProgress
                                 : 0
                             }
-                            onClick={() => {
-                              if (selectedAsset?.name !== asset.name) {
-                                setSelectedAsset(asset);
-                                setSelectedROCm(false);
-                              }
-                            }}
+                            disabled={
+                              downloading && downloadingAsset !== asset.name
+                            }
                             onDownload={(e) => {
                               e.stopPropagation();
-                              handleDownload();
+                              handleDownload('asset', asset);
                             }}
                           />
                         ))}

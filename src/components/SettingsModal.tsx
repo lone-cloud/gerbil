@@ -8,10 +8,23 @@ import { AppearanceTab } from './settings/AppearanceTab';
 interface SettingsModalProps {
   opened: boolean;
   onClose: () => void;
+  currentScreen?: 'download' | 'launch' | 'interface';
 }
 
-export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
+export const SettingsModal = ({
+  opened,
+  onClose,
+  currentScreen,
+}: SettingsModalProps) => {
   const [activeTab, setActiveTab] = useState('general');
+
+  const showVersionsTab = currentScreen !== 'download';
+
+  useEffect(() => {
+    if (!showVersionsTab && activeTab === 'versions') {
+      setActiveTab('general');
+    }
+  }, [showVersionsTab, activeTab]);
 
   useEffect(() => {
     if (opened) {
@@ -39,7 +52,7 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
           <Text fw={500}>Settings</Text>
         </Group>
       }
-      size="lg"
+      size="xl"
       centered
       lockScroll={false}
       styles={{
@@ -81,14 +94,16 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
           >
             General
           </Tabs.Tab>
-          <Tabs.Tab
-            value="versions"
-            leftSection={
-              <GitBranch style={{ width: rem(16), height: rem(16) }} />
-            }
-          >
-            Versions
-          </Tabs.Tab>
+          {showVersionsTab && (
+            <Tabs.Tab
+              value="versions"
+              leftSection={
+                <GitBranch style={{ width: rem(16), height: rem(16) }} />
+              }
+            >
+              Versions
+            </Tabs.Tab>
+          )}
           <Tabs.Tab
             value="appearance"
             leftSection={
@@ -103,9 +118,11 @@ export const SettingsModal = ({ opened, onClose }: SettingsModalProps) => {
           <GeneralTab />
         </Tabs.Panel>
 
-        <Tabs.Panel value="versions">
-          <VersionsTab />
-        </Tabs.Panel>
+        {showVersionsTab && (
+          <Tabs.Panel value="versions">
+            <VersionsTab />
+          </Tabs.Panel>
+        )}
 
         <Tabs.Panel value="appearance">
           <AppearanceTab />

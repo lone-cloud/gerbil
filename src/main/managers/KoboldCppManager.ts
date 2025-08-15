@@ -7,6 +7,7 @@ import {
   createWriteStream,
   chmodSync,
   readFileSync,
+  unlinkSync,
 } from 'fs';
 import { dialog } from 'electron';
 import { GitHubService } from '@/main/services/GitHubService';
@@ -74,7 +75,9 @@ export class KoboldCppManager {
     asset: GitHubAsset,
     onProgress?: (progress: number) => void
   ): Promise<string> {
-    const filePath = join(this.installDir, asset.name);
+    const tempPackedFilePath = join(this.installDir, `${asset.name}.packed`);
+    const baseFilename = asset.name.replace(/\.exe$/, '');
+    const unpackedDirPath = join(this.installDir, baseFilename);
 
     const response = await fetch(asset.browser_download_url);
 
@@ -90,7 +93,7 @@ export class KoboldCppManager {
       throw new Error('Failed to get response reader');
     }
 
-    const writer = createWriteStream(filePath);
+    const writer = createWriteStream(tempPackedFilePath);
 
     try {
       while (true) {
@@ -119,77 +122,151 @@ export class KoboldCppManager {
 
     if (process.platform !== 'win32') {
       try {
-        chmodSync(filePath, 0o755);
+        chmodSync(tempPackedFilePath, 0o755);
       } catch (error) {
-        console.warn('Failed to make binary executable:', error);
+        console.error('Failed to make binary executable:', error);
       }
     }
 
-    const currentBinary = this.configManager.getCurrentKoboldBinary();
-    if (!currentBinary) {
-      this.configManager.setCurrentKoboldBinary(filePath);
-    }
+    try {
+      await this.unpackKoboldCpp(tempPackedFilePath, unpackedDirPath);
 
-    return filePath;
+      try {
+        unlinkSync(tempPackedFilePath);
+      } catch (error) {
+        console.warn('Failed to cleanup packed file:', error);
+      }
+
+      const launcherPath = this.getLauncherPath(unpackedDirPath);
+      if (launcherPath && existsSync(launcherPath)) {
+        const currentBinary = this.configManager.getCurrentKoboldBinary();
+        if (!currentBinary) {
+          this.configManager.setCurrentKoboldBinary(launcherPath);
+        }
+
+        const mainWindow = this.windowManager.getMainWindow();
+        if (mainWindow) {
+          mainWindow.webContents.send('versions-updated');
+        }
+
+        return launcherPath;
+      } else {
+        throw new Error('Failed to find koboldcpp-launcher after unpacking');
+      }
+    } catch (error) {
+      console.error('Failed to unpack KoboldCpp:', error);
+      throw error;
+    }
   }
 
-  async getInstalledVersions(
-    includeVersions = true
-  ): Promise<InstalledVersion[]> {
+  private async unpackKoboldCpp(
+    packedPath: string,
+    unpackDir: string
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const unpackProcess = spawn(packedPath, ['--unpack', unpackDir], {
+        stdio: ['ignore', 'pipe', 'pipe'],
+        timeout: 30000,
+      });
+
+      let output = '';
+      let errorOutput = '';
+
+      unpackProcess.stdout?.on('data', (data) => {
+        output += data.toString();
+      });
+
+      unpackProcess.stderr?.on('data', (data) => {
+        errorOutput += data.toString();
+      });
+
+      unpackProcess.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(
+            new Error(
+              `Unpack failed with code ${code}: ${errorOutput || output}`
+            )
+          );
+        }
+      });
+
+      unpackProcess.on('error', (error) => {
+        reject(error);
+      });
+
+      setTimeout(() => {
+        try {
+          unpackProcess.kill('SIGTERM');
+        } catch {
+          void 0;
+        }
+        reject(new Error('Unpack process timed out'));
+      }, 30000);
+    });
+  }
+
+  private getLauncherPath(unpackedDir: string): string | null {
+    const extensions =
+      process.platform === 'win32' ? ['.exe', ''] : ['', '.exe'];
+
+    for (const ext of extensions) {
+      const launcherPath = join(unpackedDir, `koboldcpp-launcher${ext}`);
+      if (existsSync(launcherPath)) {
+        return launcherPath;
+      }
+    }
+
+    return null;
+  }
+
+  async getInstalledVersions(): Promise<InstalledVersion[]> {
     try {
       if (!existsSync(this.installDir)) {
         return [];
       }
 
-      const files = readdirSync(this.installDir);
-      const koboldFiles = files.filter((file) => {
-        const filePath = join(this.installDir, file);
-        try {
-          const stats = statSync(filePath);
+      const items = readdirSync(this.installDir);
+      const launchers: Array<{ path: string; filename: string; size: number }> =
+        [];
 
-          if (stats.isFile() && file.startsWith('koboldcpp')) {
-            if (process.platform !== 'win32') {
-              const isExecutable = (stats.mode & parseInt('111', 8)) !== 0;
-              return isExecutable;
-            } else {
-              return true;
-            }
+      for (const item of items) {
+        const itemPath = join(this.installDir, item);
+        const stats = statSync(itemPath);
+
+        if (stats.isDirectory()) {
+          const launcherPath = this.getLauncherPath(itemPath);
+          if (launcherPath && existsSync(launcherPath)) {
+            const launcherStats = statSync(launcherPath);
+            const launcherFilename = launcherPath.split(/[/\\]/).pop() || '';
+            launchers.push({
+              path: launcherPath,
+              filename: launcherFilename,
+              size: launcherStats.size,
+            });
           }
-          return false;
-        } catch {
-          return false;
         }
-      });
-
-      if (!includeVersions) {
-        return koboldFiles.map((file) => {
-          const filePath = join(this.installDir, file);
-          const stats = statSync(filePath);
-          return {
-            version: 'unknown',
-            path: filePath,
-            filename: file,
-            size: stats.size,
-          };
-        });
       }
 
-      const versionPromises = koboldFiles.map(async (file) => {
-        const filePath = join(this.installDir, file);
-
+      const versionPromises = launchers.map(async (launcher) => {
         try {
-          const stats = statSync(filePath);
-          const detectedVersion = await this.getVersionFromBinary(filePath);
+          const detectedVersion = await this.getVersionFromBinary(
+            launcher.path
+          );
           const version = detectedVersion || 'unknown';
 
           return {
             version,
-            path: filePath,
-            filename: file,
-            size: stats.size,
+            path: launcher.path,
+            filename: launcher.filename,
+            size: launcher.size,
           } as InstalledVersion;
         } catch (error) {
-          console.warn(`Could not detect version for ${file}:`, error);
+          console.error(
+            `Could not detect version for ${launcher.filename}:`,
+            error
+          );
           return null;
         }
       });
@@ -199,7 +276,7 @@ export class KoboldCppManager {
         (version): version is InstalledVersion => version !== null
       );
     } catch (error) {
-      console.warn('Error scanning install directory:', error);
+      console.error('Error scanning install directory:', error);
       return [];
     }
   }
@@ -230,7 +307,7 @@ export class KoboldCppManager {
         }
       }
     } catch (error) {
-      console.warn('Error scanning for config files:', error);
+      console.error('Error scanning for config files:', error);
     }
 
     return configFiles.sort((a, b) => a.name.localeCompare(b.name));
@@ -252,7 +329,7 @@ export class KoboldCppManager {
 
       return config;
     } catch (error) {
-      console.warn('Error parsing config file:', error);
+      console.error('Error parsing config file:', error);
       return null;
     }
   }
@@ -279,37 +356,50 @@ export class KoboldCppManager {
 
       return result.filePaths[0];
     } catch (error) {
-      console.warn('Error selecting model file:', error);
+      console.error('Error selecting model file:', error);
       return null;
     }
   }
 
   async getCurrentVersion(): Promise<InstalledVersion | null> {
     const currentBinaryPath = this.configManager.getCurrentKoboldBinary();
+    const versions = await this.getInstalledVersions();
 
     if (currentBinaryPath && existsSync(currentBinaryPath)) {
-      try {
-        const filename = currentBinaryPath.split(/[/\\]/).pop() || '';
-        const version =
-          (await this.getVersionFromBinary(currentBinaryPath)) || 'unknown';
-
-        return {
-          version,
-          path: currentBinaryPath,
-          filename,
-        };
-      } catch (error) {
-        console.warn('Failed to get current version info:', error);
-        this.configManager.setCurrentKoboldBinary('');
+      const currentVersion = versions.find((v) => v.path === currentBinaryPath);
+      if (currentVersion) {
+        return currentVersion;
       }
     }
 
-    const versions = await this.getInstalledVersions();
     const firstVersion = versions[0];
-
     if (firstVersion) {
       this.configManager.setCurrentKoboldBinary(firstVersion.path);
       return firstVersion;
+    }
+
+    if (currentBinaryPath) {
+      this.configManager.setCurrentKoboldBinary('');
+    }
+
+    return null;
+  }
+
+  async getCurrentBinaryInfo(): Promise<{
+    path: string;
+    filename: string;
+  } | null> {
+    const currentVersion = await this.getCurrentVersion();
+
+    if (currentVersion) {
+      const pathParts = currentVersion.path.split(/[/\\]/);
+      const filename =
+        pathParts[pathParts.length - 2] || currentVersion.filename;
+
+      return {
+        path: currentVersion.path,
+        filename,
+      };
     }
 
     return null;
@@ -318,6 +408,12 @@ export class KoboldCppManager {
   async setCurrentVersion(binaryPath: string): Promise<boolean> {
     if (existsSync(binaryPath)) {
       this.configManager.setCurrentKoboldBinary(binaryPath);
+
+      const mainWindow = this.windowManager.getMainWindow();
+      if (mainWindow) {
+        mainWindow.webContents.send('versions-updated');
+      }
+
       return true;
     }
 
@@ -335,6 +431,7 @@ export class KoboldCppManager {
         const process = spawn(binaryPath, ['--version'], {
           stdio: ['ignore', 'pipe', 'pipe'],
           timeout: 10000,
+          detached: false,
         });
 
         let output = '';
@@ -519,7 +616,7 @@ export class KoboldCppManager {
           };
         }
       } catch (error) {
-        console.warn('Failed to fetch Windows ROCm release:', error);
+        console.error('Failed to fetch Windows ROCm release:', error);
       }
     }
 
@@ -540,6 +637,13 @@ export class KoboldCppManager {
         };
       }
 
+      const tempPackedFilePath = join(
+        this.installDir,
+        `${rocmInfo.name}.packed`
+      );
+      const baseFilename = rocmInfo.name.replace(/\.exe$/, '');
+      const unpackedDirPath = join(this.installDir, baseFilename);
+
       const response = await fetch(rocmInfo.url);
       if (!response.ok) {
         return {
@@ -559,8 +663,7 @@ export class KoboldCppManager {
         };
       }
 
-      const filePath = join(this.installDir, rocmInfo.name);
-      const writer = createWriteStream(filePath);
+      const writer = createWriteStream(tempPackedFilePath);
 
       try {
         while (true) {
@@ -588,16 +691,50 @@ export class KoboldCppManager {
 
       if (process.platform !== 'win32') {
         try {
-          chmodSync(filePath, 0o755);
+          chmodSync(tempPackedFilePath, 0o755);
         } catch (error) {
-          console.warn('Failed to make ROCm binary executable:', error);
+          console.error('Failed to make ROCm binary executable:', error);
         }
       }
 
-      return {
-        success: true,
-        path: filePath,
-      };
+      try {
+        await this.unpackKoboldCpp(tempPackedFilePath, unpackedDirPath);
+
+        try {
+          unlinkSync(tempPackedFilePath);
+        } catch (error) {
+          console.warn('Failed to cleanup packed ROCm file:', error);
+        }
+
+        const launcherPath = this.getLauncherPath(unpackedDirPath);
+        if (launcherPath && existsSync(launcherPath)) {
+          const currentBinary = this.configManager.getCurrentKoboldBinary();
+          if (!currentBinary) {
+            this.configManager.setCurrentKoboldBinary(launcherPath);
+          }
+
+          const mainWindow = this.windowManager.getMainWindow();
+          if (mainWindow) {
+            mainWindow.webContents.send('versions-updated');
+          }
+
+          return {
+            success: true,
+            path: launcherPath,
+          };
+        } else {
+          return {
+            success: false,
+            error: 'Failed to find koboldcpp-launcher after unpacking ROCm',
+          };
+        }
+      } catch (error) {
+        console.error('Failed to unpack ROCm:', error);
+        return {
+          success: false,
+          error: `Failed to unpack ROCm: ${(error as Error).message}`,
+        };
+      }
     } catch (error) {
       return {
         success: false,
@@ -663,8 +800,20 @@ export class KoboldCppManager {
 
       const availableAssets = latestRelease.assets.map((asset: GitHubAsset) => {
         const installedVersion = installedVersions.find((v) => {
-          const filename = v.filename || v.path.split(/[/\\]/).pop() || '';
-          return filename === asset.name;
+          const pathParts = v.path.split(/[/\\]/);
+          const launcherIndex = pathParts.findIndex(
+            (part) =>
+              part === 'koboldcpp-launcher' ||
+              part === 'koboldcpp.exe' ||
+              part === 'koboldcpp'
+          );
+
+          if (launcherIndex > 0) {
+            const directoryName = pathParts[launcherIndex - 1];
+            return directoryName === asset.name;
+          }
+
+          return false;
         });
 
         return {
@@ -709,6 +858,11 @@ export class KoboldCppManager {
       const child = spawn(currentVersion.path, finalArgs, {
         stdio: ['pipe', 'pipe', 'pipe'],
         detached: false,
+        env: {
+          ...process.env,
+          PYTHONDONTWRITEBYTECODE: '1',
+          PYTHONUNBUFFERED: '1',
+        },
       });
 
       this.koboldProcess = child;
@@ -774,14 +928,14 @@ export class KoboldCppManager {
             try {
               this.koboldProcess.kill('SIGKILL');
             } catch (error) {
-              console.warn('Error force-killing KoboldCpp process:', error);
+              console.error('Error force-killing KoboldCpp process:', error);
             }
           }
         }, 5000);
 
         this.koboldProcess = null;
       } catch (error) {
-        console.warn('Error stopping KoboldCpp process:', error);
+        console.error('Error stopping KoboldCpp process:', error);
         this.koboldProcess = null;
       }
     }
@@ -789,7 +943,7 @@ export class KoboldCppManager {
 
   async cleanup(): Promise<void> {
     if (this.koboldProcess) {
-      return new Promise((resolve) => {
+      await new Promise<void>((resolve) => {
         if (!this.koboldProcess) {
           resolve();
           return;
@@ -817,7 +971,7 @@ export class KoboldCppManager {
             cleanup();
           }, 3000);
         } catch (error) {
-          console.warn('Error during cleanup:', error);
+          console.error('Error during cleanup:', error);
           cleanup();
         }
       });

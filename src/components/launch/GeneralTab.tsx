@@ -9,16 +9,13 @@ import {
   Select,
   Badge,
   Card,
+  useMantineColorScheme,
 } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { File, Search } from 'lucide-react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { getInputValidationState } from '@/utils/validation';
-import {
-  isOldPcBinary,
-  isNoCudaBinary,
-  isRocmBinary,
-} from '@/utils/binaryUtils';
+import { isNoCudaBinary, isRocmBinary } from '@/utils/binaryUtils';
 
 interface GeneralTabProps {
   modelPath: string;
@@ -47,6 +44,9 @@ export const GeneralTab = ({
   onContextSizeChange,
   onBackendChange,
 }: GeneralTabProps) => {
+  const { colorScheme } = useMantineColorScheme();
+  const isDark = colorScheme === 'dark';
+
   const [availableBackends, setAvailableBackends] = useState<
     Array<{ value: string; label: string; devices?: string[] }>
   >([]);
@@ -57,9 +57,9 @@ export const GeneralTab = ({
       setIsLoadingBackends(true);
 
       try {
-        const [currentVersion, cpuCapabilities, gpuCapabilities] =
+        const [currentBinaryInfo, _cpuCapabilities, gpuCapabilities] =
           await Promise.all([
-            window.electronAPI.kobold.getCurrentVersion(),
+            window.electronAPI.kobold.getCurrentBinaryInfo(),
             window.electronAPI.kobold.detectCPU(),
             window.electronAPI.kobold.detectGPUCapabilities(),
           ]);
@@ -70,12 +70,10 @@ export const GeneralTab = ({
           devices?: string[];
         }> = [];
 
-        if (currentVersion?.filename) {
-          const filename = currentVersion.filename;
+        if (currentBinaryInfo?.filename) {
+          const filename = currentBinaryInfo.filename;
 
-          if (!isOldPcBinary(filename) && cpuCapabilities.avx2) {
-            backends.push({ value: 'cpu', label: 'CPU' });
-          }
+          backends.push({ value: 'cpu', label: 'CPU' });
 
           if (!isNoCudaBinary(filename) && gpuCapabilities.cuda.supported) {
             backends.push({
@@ -109,8 +107,6 @@ export const GeneralTab = ({
             });
           }
         }
-
-        backends.push({ value: 'failsafe', label: 'Failsafe' });
 
         setAvailableBackends(backends);
 
@@ -231,8 +227,8 @@ export const GeneralTab = ({
             </Group>
           )}
         {backend === 'cpu' && (
-          <Card withBorder p="sm" mt="xs" bg="blue.0">
-            <Text size="sm" c="blue.8">
+          <Card withBorder p="sm" mt="xs" bg={isDark ? 'blue.9' : 'blue.0'}>
+            <Text size="sm" c={isDark ? 'blue.2' : 'blue.8'}>
               <Text component="span" fw={600}>
                 Performance Note:
               </Text>{' '}

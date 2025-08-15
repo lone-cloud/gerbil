@@ -8,6 +8,7 @@ A koboldcpp manager.
 - download and keep up-to-date your [koboldcpp](https://github.com/LostRuins/koboldcpp/releases) binary
 - better surface the ROCm-specific builds of koboldcpp from YellowRoseCx and from [koboldai.org](https://koboldai.org/cpplinuxrocm)
 - manage the koboldcpp binary to prevent it from running in the background indefinitely
+- automatically unpack all downloaded koboldcpp binaries for significantly faster operations
 
 ### Prerequisites
 

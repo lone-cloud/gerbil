@@ -75,7 +75,7 @@ export const NetworkTab = ({
     <div>
       <Stack gap="md">
         <Group gap="lg" align="flex-start" wrap="nowrap">
-          <div style={{ minWidth: '250px' }}>
+          <div style={{ minWidth: '200px' }}>
             <Group gap="xs" align="center">
               <Checkbox
                 checked={multiuser}
@@ -88,7 +88,7 @@ export const NetworkTab = ({
             </Group>
           </div>
 
-          <div style={{ minWidth: '250px' }}>
+          <div style={{ minWidth: '200px' }}>
             <Group gap="xs" align="center">
               <Checkbox
                 checked={multiplayer}
@@ -103,7 +103,7 @@ export const NetworkTab = ({
         </Group>
 
         <Group gap="lg" align="flex-start" wrap="nowrap">
-          <div style={{ minWidth: '250px' }}>
+          <div style={{ minWidth: '200px' }}>
             <Group gap="xs" align="center">
               <Checkbox
                 checked={remotetunnel}
@@ -116,7 +116,7 @@ export const NetworkTab = ({
             </Group>
           </div>
 
-          <div style={{ minWidth: '250px' }}>
+          <div style={{ minWidth: '200px' }}>
             <Group gap="xs" align="center">
               <Checkbox
                 checked={nocertify}

@@ -17,7 +17,9 @@ export const useLaunchConfig = () => {
   const [websearch, setWebsearch] = useState<boolean>(false);
   const [noshift, setNoshift] = useState<boolean>(false);
   const [flashattention, setFlashattention] = useState<boolean>(false);
-  const [backend, setBackend] = useState<string>('');
+  const [noavx2, setNoavx2] = useState<boolean>(false);
+  const [failsafe, setFailsafe] = useState<boolean>(false);
+  const [backend, setBackend] = useState<string>('cpu');
 
   // eslint-disable-next-line sonarjs/cognitive-complexity
   const parseAndApplyConfigFile = useCallback(async (configPath: string) => {
@@ -94,10 +96,33 @@ export const useLaunchConfig = () => {
         setFlashattention(false);
       }
 
-      if (typeof configData.backend === 'string') {
-        setBackend(configData.backend);
+      if (typeof configData.noavx2 === 'boolean') {
+        setNoavx2(configData.noavx2);
       } else {
-        setBackend('');
+        setNoavx2(false);
+      }
+
+      if (typeof configData.failsafe === 'boolean') {
+        setFailsafe(configData.failsafe);
+      } else {
+        setFailsafe(false);
+      }
+
+      if (configData.usecuda !== null && configData.usecuda !== undefined) {
+        const gpuInfo = await window.electronAPI.kobold.detectGPU();
+        setBackend(gpuInfo.hasNVIDIA ? 'cuda' : 'rocm');
+      } else if (
+        configData.usevulkan !== null &&
+        configData.usevulkan !== undefined
+      ) {
+        setBackend('vulkan');
+      } else if (
+        configData.useclblast !== null &&
+        configData.useclblast !== undefined
+      ) {
+        setBackend('clblast');
+      } else {
+        setBackend('cpu');
       }
     } else {
       setGpuLayers(0);
@@ -111,7 +136,9 @@ export const useLaunchConfig = () => {
       setWebsearch(false);
       setNoshift(false);
       setFlashattention(false);
-      setBackend('');
+      setNoavx2(false);
+      setFailsafe(false);
+      setBackend('cpu');
     }
   }, []);
 
@@ -131,7 +158,9 @@ export const useLaunchConfig = () => {
     setWebsearch(false);
     setNoshift(false);
     setFlashattention(false);
-    setBackend('');
+    setNoavx2(false);
+    setFailsafe(false);
+    setBackend('cpu');
   }, []);
 
   const loadConfigFromFile = useCallback(
@@ -237,6 +266,14 @@ export const useLaunchConfig = () => {
     setFlashattention(checked);
   }, []);
 
+  const handleNoavx2Change = useCallback((checked: boolean) => {
+    setNoavx2(checked);
+  }, []);
+
+  const handleFailsafeChange = useCallback((checked: boolean) => {
+    setFailsafe(checked);
+  }, []);
+
   const handleBackendChange = useCallback((backend: string) => {
     setBackend(backend);
   }, []);
@@ -257,6 +294,8 @@ export const useLaunchConfig = () => {
     websearch,
     noshift,
     flashattention,
+    noavx2,
+    failsafe,
     backend,
 
     parseAndApplyConfigFile,
@@ -278,6 +317,8 @@ export const useLaunchConfig = () => {
     handleWebsearchChange,
     handleNoshiftChange,
     handleFlashattentionChange,
+    handleNoavx2Change,
+    handleFailsafeChange,
     handleBackendChange,
   };
 };

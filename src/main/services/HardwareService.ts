@@ -203,14 +203,22 @@ export class HardwareService {
                 if (name) {
                   let deviceType = '';
 
+                  const searchRangeLines = 20;
+                  const searchStartIndex = Math.max(0, i - searchRangeLines);
+                  const searchEndIndex = Math.min(
+                    lines.length,
+                    i + searchRangeLines
+                  );
+
                   for (
-                    let j = Math.max(0, i - 10);
-                    j < Math.min(lines.length, i + 10);
-                    j++
+                    let searchIndex = searchStartIndex;
+                    searchIndex < searchEndIndex;
+                    searchIndex++
                   ) {
-                    if (lines[j].includes('Device Type:')) {
+                    if (lines[searchIndex].includes('Device Type:')) {
                       deviceType =
-                        lines[j].split('Device Type:')[1]?.trim() || '';
+                        lines[searchIndex].split('Device Type:')[1]?.trim() ||
+                        '';
                       break;
                     }
                   }
