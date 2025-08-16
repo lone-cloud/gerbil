@@ -72,6 +72,19 @@ export interface KoboldAPI {
   detectROCm: () => Promise<{ supported: boolean; devices: string[] }>;
   detectHardware: () => Promise<HardwareInfo>;
   detectAllCapabilities: () => Promise<HardwareInfo>;
+  detectBackendSupport: (binaryPath: string) => Promise<{
+    rocm: boolean;
+    vulkan: boolean;
+    clblast: boolean;
+    noavx2: boolean;
+    failsafe: boolean;
+    cuda: boolean;
+  }>;
+  getAvailableBackends: (
+    binaryPath: string,
+    hardwareCapabilities: GPUCapabilities
+  ) => Promise<Array<{ value: string; label: string; devices?: string[] }>>;
+  clearBinaryCache: () => Promise<void>;
   getCurrentInstallDir: () => Promise<string>;
   selectInstallDirectory: () => Promise<string | null>;
   downloadRelease: (

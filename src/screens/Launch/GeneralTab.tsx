@@ -18,6 +18,7 @@ interface GeneralTabProps {
   autoGpuLayers: boolean;
   contextSize: number;
   backend: string;
+  gpuDevice?: number;
   noavx2: boolean;
   failsafe: boolean;
   onModelPathChange: (path: string) => void;
@@ -26,6 +27,7 @@ interface GeneralTabProps {
   onAutoGpuLayersChange: (auto: boolean) => void;
   onContextSizeChange: (size: number) => void;
   onBackendChange: (backend: string) => void;
+  onGpuDeviceChange?: (device: number) => void;
 }
 
 export const GeneralTab = ({
@@ -34,6 +36,7 @@ export const GeneralTab = ({
   autoGpuLayers,
   contextSize,
   backend,
+  gpuDevice,
   noavx2,
   failsafe,
   onModelPathChange,
@@ -42,6 +45,7 @@ export const GeneralTab = ({
   onAutoGpuLayersChange,
   onContextSizeChange,
   onBackendChange,
+  onGpuDeviceChange,
 }: GeneralTabProps) => {
   const validationState = getInputValidationState(modelPath);
 
@@ -68,6 +72,15 @@ export const GeneralTab = ({
 
   return (
     <Stack gap="lg">
+      <BackendSelector
+        backend={backend}
+        onBackendChange={onBackendChange}
+        gpuDevice={gpuDevice}
+        onGpuDeviceChange={onGpuDeviceChange}
+        noavx2={noavx2}
+        failsafe={failsafe}
+      />
+
       <div>
         <Text size="sm" fw={500} mb="xs">
           Text Model File
@@ -104,13 +117,6 @@ export const GeneralTab = ({
           </Button>
         </Group>
       </div>
-
-      <BackendSelector
-        backend={backend}
-        onBackendChange={onBackendChange}
-        noavx2={noavx2}
-        failsafe={failsafe}
-      />
 
       <div>
         <Group justify="space-between" align="center" mb="xs">

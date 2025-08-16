@@ -54,7 +54,7 @@ If the build fails:
 
 To customize the app icon:
 
-1. Replace `assets/icon_512.png` with your custom 512x512 PNG icon
+1. Replace `assets/icon.png` with your custom 512x512 PNG icon
 2. Electron Builder automatically converts this single PNG to the appropriate format for each platform:
    - macOS: Converts to `.icns` format
    - Windows: Converts to `.ico` format

@@ -11,11 +11,12 @@ import {
 import { useState, useEffect } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { InfoTooltip } from '@/components/InfoTooltip';
-import { isNoCudaBinary, isRocmBinary } from '@/utils/binaryUtils';
 
 interface BackendSelectorProps {
   backend: string;
   onBackendChange: (backend: string) => void;
+  gpuDevice?: number;
+  onGpuDeviceChange?: (device: number) => void;
   noavx2?: boolean;
   failsafe?: boolean;
 }
@@ -23,6 +24,8 @@ interface BackendSelectorProps {
 export const BackendSelector = ({
   backend,
   onBackendChange,
+  gpuDevice = 0,
+  onGpuDeviceChange,
   noavx2 = false,
   failsafe = false,
 }: BackendSelectorProps) => {
@@ -55,52 +58,22 @@ export const BackendSelector = ({
           avx2: cpuCapabilitiesResult.avx2,
         });
 
-        const backends: Array<{
+        let backends: Array<{
           value: string;
           label: string;
           devices?: string[];
         }> = [];
 
-        if (currentBinaryInfo?.filename) {
-          const filename = currentBinaryInfo.filename;
+        if (currentBinaryInfo?.path) {
+          backends = await window.electronAPI.kobold.getAvailableBackends(
+            currentBinaryInfo.path,
+            gpuCapabilities
+          );
 
-          if (!isNoCudaBinary(filename) && gpuCapabilities.cuda.supported) {
-            backends.push({
-              value: 'cuda',
-              label: 'CUDA',
-              devices: gpuCapabilities.cuda.devices,
-            });
+          const cpuBackend = backends.find((b) => b.value === 'cpu');
+          if (cpuBackend) {
+            cpuBackend.devices = cpuCapabilitiesResult.devices;
           }
-
-          if (isRocmBinary(filename) && gpuCapabilities.rocm.supported) {
-            backends.push({
-              value: 'rocm',
-              label: 'ROCm',
-              devices: gpuCapabilities.rocm.devices,
-            });
-          }
-
-          if (gpuCapabilities.vulkan.supported) {
-            backends.push({
-              value: 'vulkan',
-              label: 'Vulkan',
-              devices: gpuCapabilities.vulkan.devices,
-            });
-          }
-
-          if (gpuCapabilities.clblast.supported) {
-            backends.push({
-              value: 'clblast',
-              label: 'CLBlast',
-              devices: gpuCapabilities.clblast.devices,
-            });
-          }
-
-          backends.push({
-            value: 'cpu',
-            label: 'CPU',
-            devices: cpuCapabilitiesResult.cpuInfo,
-          });
         }
 
         setAvailableBackends(backends);
@@ -174,18 +147,48 @@ export const BackendSelector = ({
             : 'Select backend'
         }
         value={backend}
-        onChange={(value) => value && onBackendChange(value)}
+        onChange={(value) => {
+          if (value) {
+            onBackendChange(value);
+          }
+        }}
         data={availableBackends.map((b) => ({
           value: b.value,
           label: b.label,
         }))}
         disabled={isLoadingBackends || availableBackends.length === 0}
       />
+
+      {(backend === 'cuda' || backend === 'rocm') &&
+        onGpuDeviceChange &&
+        availableBackends.find((b) => b.value === backend)?.devices &&
+        availableBackends.find((b) => b.value === backend)!.devices!.length >
+          1 && (
+          <Select
+            label="GPU Device"
+            placeholder="Select GPU device"
+            value={gpuDevice.toString()}
+            onChange={(value) =>
+              value && onGpuDeviceChange(parseInt(value, 10))
+            }
+            data={availableBackends
+              .find((b) => b.value === backend)!
+              .devices!.map((device, index) => ({
+                value: index.toString(),
+                label: `GPU ${index}: ${device}`,
+              }))}
+            mt="xs"
+          />
+        )}
+
       {backend &&
         availableBackends.find((b) => b.value === backend)?.devices && (
           <Group gap="xs" mt="xs">
             <Text size="xs" c="dimmed">
-              Devices:
+              {availableBackends.find((b) => b.value === backend)?.devices
+                ?.length === 1
+                ? 'Device:'
+                : 'Devices:'}
             </Text>
             {availableBackends
               .find((b) => b.value === backend)
