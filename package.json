@@ -48,7 +48,7 @@
   "devDependencies": {
     "@cspell/eslint-plugin": "^9.2.0",
     "@eslint/js": "^9.33.0",
-    "@types/node": "^24.2.1",
+    "@types/node": "^24.3.0",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@types/systeminformation": "^3.54.1",
@@ -69,6 +69,7 @@
     "eslint-plugin-sonarjs": "^3.0.4",
     "globals": "^16.3.0",
     "husky": "^9.1.7",
+    "jiti": "^2.5.1",
     "lint-staged": "^16.1.5",
     "prettier": "^3.6.2",
     "rollup-plugin-visualizer": "^6.0.3",
@@ -79,7 +80,6 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@mantine/core": "^8.2.4",
-    "jiti": "^2.5.1",
     "lucide-react": "^0.539.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

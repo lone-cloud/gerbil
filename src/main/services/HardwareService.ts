@@ -1,3 +1,4 @@
+/* eslint-disable no-comments/disallowComments */
 import si from 'systeminformation';
 import type {
   CPUCapabilities,
@@ -7,7 +8,15 @@ import type {
 } from '@/types/hardware';
 
 export class HardwareService {
+  private cpuCapabilitiesCache: CPUCapabilities | null = null;
+  private basicGPUInfoCache: BasicGPUInfo | null = null;
+  private gpuCapabilitiesCache: GPUCapabilities | null = null;
+
   async detectCPU(): Promise<CPUCapabilities> {
+    if (this.cpuCapabilitiesCache) {
+      return this.cpuCapabilitiesCache;
+    }
+
     try {
       const [cpu, flags] = await Promise.all([si.cpu(), si.cpuFlags()]);
 
@@ -25,22 +34,30 @@ export class HardwareService {
       const avx = flags.includes('avx') || flags.includes('AVX');
       const avx2 = flags.includes('avx2') || flags.includes('AVX2');
 
-      return {
+      this.cpuCapabilitiesCache = {
         avx,
         avx2,
         cpuInfo: cpuInfo.length > 0 ? cpuInfo : ['CPU information unavailable'],
       };
+
+      return this.cpuCapabilitiesCache;
     } catch (error) {
       console.warn('CPU detection failed:', error);
-      return {
+      const fallbackCapabilities = {
         avx: false,
         avx2: false,
         cpuInfo: ['CPU detection failed'],
       };
+      this.cpuCapabilitiesCache = fallbackCapabilities;
+      return fallbackCapabilities;
     }
   }
 
   async detectGPU(): Promise<BasicGPUInfo> {
+    if (this.basicGPUInfoCache) {
+      return this.basicGPUInfoCache;
+    }
+
     try {
       const graphics = await si.graphics();
 
@@ -76,23 +93,33 @@ export class HardwareService {
         }
       }
 
-      return {
+      this.basicGPUInfoCache = {
         hasAMD,
         hasNVIDIA,
         gpuInfo:
           gpuInfo.length > 0 ? gpuInfo : ['No GPU information available'],
       };
+
+      return this.basicGPUInfoCache;
     } catch (error) {
       console.warn('GPU detection failed:', error);
-      return {
+      const fallbackGPUInfo = {
         hasAMD: false,
         hasNVIDIA: false,
         gpuInfo: ['GPU detection failed'],
       };
+      this.basicGPUInfoCache = fallbackGPUInfo;
+      return fallbackGPUInfo;
     }
   }
 
   async detectGPUCapabilities(): Promise<GPUCapabilities> {
+    // WARNING: we're not worrying about the users that update their system
+    // during runtime and not restart. Should we be though?
+    if (this.gpuCapabilitiesCache) {
+      return this.gpuCapabilitiesCache;
+    }
+
     const [cuda, rocm, vulkan, clblast] = await Promise.all([
       this.detectCUDA(),
       this.detectROCm(),
@@ -100,7 +127,8 @@ export class HardwareService {
       this.detectCLBlast(),
     ]);
 
-    return { cuda, rocm, vulkan, clblast };
+    this.gpuCapabilitiesCache = { cuda, rocm, vulkan, clblast };
+    return this.gpuCapabilitiesCache;
   }
 
   async detectAll(): Promise<HardwareInfo> {

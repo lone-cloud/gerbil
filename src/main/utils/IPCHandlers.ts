@@ -78,6 +78,12 @@ export class IPCHandlers {
       this.koboldManager.getConfigFiles()
     );
 
+    ipcMain.handle(
+      'kobold:saveConfigFile',
+      async (_event, configName, configData) =>
+        this.koboldManager.saveConfigFile(configName, configData)
+    );
+
     ipcMain.handle('kobold:getSelectedConfig', () =>
       this.configManager.getSelectedConfig()
     );

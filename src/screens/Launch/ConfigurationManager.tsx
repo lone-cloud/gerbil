@@ -1,14 +1,5 @@
-import {
-  Stack,
-  Text,
-  Group,
-  Button,
-  ActionIcon,
-  Menu,
-  Select,
-  Badge,
-} from '@mantine/core';
-import { RotateCcw, Save, Settings2, File } from 'lucide-react';
+import { Stack, Text, Group, Button, Menu, Select, Badge } from '@mantine/core';
+import { Save, Settings2, File } from 'lucide-react';
 import { forwardRef, type ComponentPropsWithoutRef } from 'react';
 import type { ConfigFile } from '@/types';
 
@@ -16,7 +7,6 @@ interface ConfigurationManagerProps {
   configFiles: ConfigFile[];
   selectedFile: string | null;
   onFileSelection: (fileName: string) => void;
-  onRefresh: () => void;
   onSaveAsNew: () => void;
   onUpdateCurrent: () => void;
 }
@@ -58,43 +48,31 @@ export const ConfigurationManager = ({
   configFiles,
   selectedFile,
   onFileSelection,
-  onRefresh,
   onSaveAsNew,
   onUpdateCurrent,
 }: ConfigurationManagerProps) => (
   <Stack gap="md">
     <Group justify="space-between" align="center">
       <Text fw={500}>Configuration File</Text>
-      <Group gap="xs">
-        <Menu>
-          <Menu.Target>
-            <Button variant="light" leftSection={<Save size={16} />}>
-              Save
-            </Button>
-          </Menu.Target>
-          <Menu.Dropdown>
-            <Menu.Item leftSection={<Save size={16} />} onClick={onSaveAsNew}>
-              Save as new configuration
-            </Menu.Item>
-            <Menu.Item
-              leftSection={<Settings2 size={16} />}
-              disabled={!selectedFile}
-              onClick={onUpdateCurrent}
-            >
-              Update current configuration
-            </Menu.Item>
-          </Menu.Dropdown>
-        </Menu>
-        <ActionIcon
-          variant="light"
-          onClick={onRefresh}
-          size="lg"
-          aria-label="Refresh configuration files"
-          title="Refresh configuration files"
-        >
-          <RotateCcw size={16} />
-        </ActionIcon>
-      </Group>
+      <Menu>
+        <Menu.Target>
+          <Button variant="light" leftSection={<Save size={16} />}>
+            Save
+          </Button>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Item leftSection={<Save size={16} />} onClick={onSaveAsNew}>
+            Save as new configuration
+          </Menu.Item>
+          <Menu.Item
+            leftSection={<Settings2 size={16} />}
+            disabled={!selectedFile}
+            onClick={onUpdateCurrent}
+          >
+            Update current configuration
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
     </Group>
 
     {configFiles.length === 0 ? (

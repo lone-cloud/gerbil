@@ -1,5 +1,9 @@
 import { useState, useCallback } from 'react';
 import type { ConfigFile } from '@/types';
+import {
+  getPresetByName,
+  type ImageModelPreset,
+} from '@/utils/imageModelPresets';
 
 export const useLaunchConfig = () => {
   const [serverOnly, setServerOnly] = useState<boolean>(false);
@@ -21,10 +25,24 @@ export const useLaunchConfig = () => {
   const [failsafe, setFailsafe] = useState<boolean>(false);
   const [backend, setBackend] = useState<string>('cpu');
 
+  const [sdmodel, setSdmodel] = useState<string>('');
+  const [sdt5xxl, setSdt5xxl] = useState<string>(
+    'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/t5xxl_fp8_e4m3fn.safetensors?download=true'
+  );
+  const [sdclipl, setSdclipl] = useState<string>(
+    'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/clip_l.safetensors?download=true'
+  );
+  const [sdclipg, setSdclipg] = useState<string>('');
+  const [sdphotomaker, setSdphotomaker] = useState<string>('');
+  const [sdvae, setSdvae] = useState<string>(
+    'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/ae.safetensors?download=true'
+  );
+
   // eslint-disable-next-line sonarjs/cognitive-complexity
   const parseAndApplyConfigFile = useCallback(async (configPath: string) => {
     const configData =
       await window.electronAPI.kobold.parseConfigFile(configPath);
+
     if (configData) {
       if (typeof configData.gpulayers === 'number') {
         setGpuLayers(configData.gpulayers);
@@ -124,7 +142,32 @@ export const useLaunchConfig = () => {
       } else {
         setBackend('cpu');
       }
+
+      if (typeof configData.sdmodel === 'string') {
+        setSdmodel(configData.sdmodel);
+      }
+
+      if (typeof configData.sdt5xxl === 'string') {
+        setSdt5xxl(configData.sdt5xxl);
+      }
+
+      if (typeof configData.sdclipl === 'string') {
+        setSdclipl(configData.sdclipl);
+      }
+
+      if (typeof configData.sdclipg === 'string') {
+        setSdclipg(configData.sdclipg);
+      }
+
+      if (typeof configData.sdphotomaker === 'string') {
+        setSdphotomaker(configData.sdphotomaker);
+      }
+
+      if (typeof configData.sdvae === 'string') {
+        setSdvae(configData.sdvae);
+      }
     } else {
+      const cpuCapabilities = await window.electronAPI.kobold.detectCPU();
       setGpuLayers(0);
       setContextSize(2048);
       setPort(5001);
@@ -136,14 +179,30 @@ export const useLaunchConfig = () => {
       setWebsearch(false);
       setNoshift(false);
       setFlashattention(false);
-      setNoavx2(false);
-      setFailsafe(false);
+      setNoavx2(!cpuCapabilities.avx2);
+      setFailsafe(!cpuCapabilities.avx && !cpuCapabilities.avx2);
       setBackend('cpu');
+
+      setSdmodel('');
+      setSdt5xxl(
+        'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/t5xxl_fp8_e4m3fn.safetensors?download=true'
+      );
+      setSdclipl(
+        'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/clip_l.safetensors?download=true'
+      );
+      setSdclipg('');
+      setSdphotomaker('');
+      setSdvae(
+        'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/ae.safetensors?download=true'
+      );
     }
   }, []);
 
   const loadSavedSettings = useCallback(async () => {
-    const savedServerOnly = await window.electronAPI.config.getServerOnly();
+    const [savedServerOnly, cpuCapabilities] = await Promise.all([
+      window.electronAPI.config.getServerOnly(),
+      window.electronAPI.kobold.detectCPU(),
+    ]);
 
     setServerOnly(savedServerOnly);
     setModelPath('');
@@ -158,9 +217,22 @@ export const useLaunchConfig = () => {
     setWebsearch(false);
     setNoshift(false);
     setFlashattention(false);
-    setNoavx2(false);
-    setFailsafe(false);
+    setNoavx2(!cpuCapabilities.avx2);
+    setFailsafe(!cpuCapabilities.avx && !cpuCapabilities.avx2);
     setBackend('cpu');
+
+    setSdmodel('');
+    setSdt5xxl(
+      'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/t5xxl_fp8_e4m3fn.safetensors?download=true'
+    );
+    setSdclipl(
+      'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/clip_l.safetensors?download=true'
+    );
+    setSdclipg('');
+    setSdphotomaker('');
+    setSdvae(
+      'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/ae.safetensors?download=true'
+    );
   }, []);
 
   const loadConfigFromFile = useCallback(
@@ -278,6 +350,91 @@ export const useLaunchConfig = () => {
     setBackend(backend);
   }, []);
 
+  const handleSdmodelChange = useCallback((path: string) => {
+    setSdmodel(path);
+  }, []);
+
+  const handleSelectSdmodelFile = useCallback(async () => {
+    const filePath = await window.electronAPI.kobold.selectModelFile();
+    if (filePath) {
+      setSdmodel(filePath);
+    }
+  }, []);
+
+  const handleSdt5xxlChange = useCallback((path: string) => {
+    setSdt5xxl(path);
+  }, []);
+
+  const handleSelectSdt5xxlFile = useCallback(async () => {
+    const filePath = await window.electronAPI.kobold.selectModelFile();
+    if (filePath) {
+      setSdt5xxl(filePath);
+    }
+  }, []);
+
+  const handleSdcliplChange = useCallback((path: string) => {
+    setSdclipl(path);
+  }, []);
+
+  const handleSelectSdcliplFile = useCallback(async () => {
+    const filePath = await window.electronAPI.kobold.selectModelFile();
+    if (filePath) {
+      setSdclipl(filePath);
+    }
+  }, []);
+
+  const handleSdclipgChange = useCallback((path: string) => {
+    setSdclipg(path);
+  }, []);
+
+  const handleSelectSdclipgFile = useCallback(async () => {
+    const filePath = await window.electronAPI.kobold.selectModelFile();
+    if (filePath) {
+      setSdclipg(filePath);
+    }
+  }, []);
+
+  const handleSdphotomakerChange = useCallback((path: string) => {
+    setSdphotomaker(path);
+  }, []);
+
+  const handleSelectSdphotomakerFile = useCallback(async () => {
+    const filePath = await window.electronAPI.kobold.selectModelFile();
+    if (filePath) {
+      setSdphotomaker(filePath);
+    }
+  }, []);
+
+  const handleSdvaeChange = useCallback((path: string) => {
+    setSdvae(path);
+  }, []);
+
+  const handleSelectSdvaeFile = useCallback(async () => {
+    const filePath = await window.electronAPI.kobold.selectModelFile();
+    if (filePath) {
+      setSdvae(filePath);
+    }
+  }, []);
+
+  const applyImageModelPreset = useCallback((preset: ImageModelPreset) => {
+    setSdmodel(preset.sdmodel);
+    setSdt5xxl(preset.sdt5xxl);
+    setSdclipl(preset.sdclipl);
+    setSdclipg(preset.sdclipg);
+    setSdphotomaker(preset.sdphotomaker);
+    setSdvae(preset.sdvae);
+  }, []);
+
+  const handleApplyPreset = useCallback(
+    (presetName: string) => {
+      const preset = getPresetByName(presetName);
+      if (preset) {
+        applyImageModelPreset(preset);
+      }
+    },
+    [applyImageModelPreset]
+  );
+
   return {
     serverOnly,
     gpuLayers,
@@ -297,6 +454,12 @@ export const useLaunchConfig = () => {
     noavx2,
     failsafe,
     backend,
+    sdmodel,
+    sdt5xxl,
+    sdclipl,
+    sdclipg,
+    sdphotomaker,
+    sdvae,
 
     parseAndApplyConfigFile,
     loadSavedSettings,
@@ -320,5 +483,19 @@ export const useLaunchConfig = () => {
     handleNoavx2Change,
     handleFailsafeChange,
     handleBackendChange,
+    handleSdmodelChange,
+    handleSelectSdmodelFile,
+    handleSdt5xxlChange,
+    handleSelectSdt5xxlFile,
+    handleSdcliplChange,
+    handleSelectSdcliplFile,
+    handleSdclipgChange,
+    handleSelectSdclipgFile,
+    handleSdphotomakerChange,
+    handleSelectSdphotomakerFile,
+    handleSdvaeChange,
+    handleSelectSdvaeFile,
+    applyImageModelPreset,
+    handleApplyPreset,
   };
 };

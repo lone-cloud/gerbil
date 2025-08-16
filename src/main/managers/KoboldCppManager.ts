@@ -7,6 +7,7 @@ import {
   createWriteStream,
   chmodSync,
   readFileSync,
+  writeFileSync,
   unlinkSync,
 } from 'fs';
 import { dialog } from 'electron';
@@ -331,6 +332,52 @@ export class KoboldCppManager {
     } catch (error) {
       console.error('Error parsing config file:', error);
       return null;
+    }
+  }
+
+  async saveConfigFile(
+    configName: string,
+    configData: {
+      gpulayers?: number;
+      contextsize?: number;
+      model_param?: string;
+      port?: number;
+      host?: string;
+      multiuser?: number;
+      multiplayer?: boolean;
+      remotetunnel?: boolean;
+      nocertify?: boolean;
+      websearch?: boolean;
+      noshift?: boolean;
+      flashattention?: boolean;
+      noavx2?: boolean;
+      failsafe?: boolean;
+      usecuda?: boolean;
+      usevulkan?: boolean;
+      useclblast?: boolean;
+      sdmodel?: string;
+      sdt5xxl?: string;
+      sdclipl?: string;
+      sdclipg?: string;
+      sdphotomaker?: string;
+      sdvae?: string;
+      [key: string]: unknown;
+    }
+  ): Promise<boolean> {
+    try {
+      if (!this.installDir) {
+        console.error('No install directory found');
+        return false;
+      }
+
+      const configFileName = `${configName}.json`;
+      const configPath = join(this.installDir, configFileName);
+
+      writeFileSync(configPath, JSON.stringify(configData, null, 2), 'utf-8');
+      return true;
+    } catch (error) {
+      console.error('Error saving config file:', error);
+      return false;
     }
   }
 

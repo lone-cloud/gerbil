@@ -11,13 +11,13 @@ import {
 } from '@mantine/core';
 import { RotateCcw } from 'lucide-react';
 import { DownloadCard } from '@/components/DownloadCard';
-import { isAssetCompatibleWithPlatform } from '@/utils/platform';
-import { getAssetDescription } from '@/utils/assets';
-import type {
-  InstalledVersion,
-  GitHubAsset,
-  GitHubRelease,
-} from '@/types/electron';
+import {
+  getAssetDescription,
+  sortAssetsByRecommendation,
+  isAssetRecommended,
+} from '@/utils/assets';
+import { useKoboldVersions } from '@/hooks/useKoboldVersions';
+import type { InstalledVersion } from '@/types/electron';
 
 interface VersionInfo {
   name: string;
@@ -31,30 +31,26 @@ interface VersionInfo {
 }
 
 export const VersionsTab = () => {
+  const {
+    platformInfo,
+    latestRelease,
+    filteredAssets,
+    rocmDownload,
+    loadingPlatform,
+    loadingRemote,
+    downloading,
+    downloadProgress,
+    loadRemoteVersions,
+    handleDownload: sharedHandleDownload,
+  } = useKoboldVersions();
+
   const [installedVersions, setInstalledVersions] = useState<
     InstalledVersion[]
   >([]);
   const [currentVersion, setCurrentVersion] = useState<InstalledVersion | null>(
     null
   );
-  const [availableAssets, setAvailableAssets] = useState<GitHubAsset[]>([]);
-  const [rocmDownload, setRocmDownload] = useState<{
-    name: string;
-    url: string;
-    size: number;
-    version?: string;
-  } | null>(null);
-  const [latestRelease, setLatestRelease] = useState<GitHubRelease | null>(
-    null
-  );
-  const [userPlatform, setUserPlatform] = useState<string>('');
-
   const [loadingInstalled, setLoadingInstalled] = useState(true);
-  const [loadingRemote, setLoadingRemote] = useState(true);
-  const [downloading, setDownloading] = useState<string | null>(null);
-  const [downloadProgress, setDownloadProgress] = useState<{
-    [key: string]: number;
-  }>({});
 
   const loadInstalledVersions = useCallback(async () => {
     setLoadingInstalled(true);
@@ -97,68 +93,9 @@ export const VersionsTab = () => {
     }
   }, []);
 
-  const loadRemoteVersions = useCallback(async () => {
-    if (!userPlatform) return;
-    setLoadingRemote(true);
-
-    try {
-      const [release, rocm] = await Promise.all([
-        window.electronAPI.kobold.getLatestRelease(),
-        window.electronAPI.kobold.getROCmDownload(),
-      ]);
-
-      if (release) {
-        setLatestRelease(release);
-        const compatibleAssets = release.assets.filter((asset) =>
-          isAssetCompatibleWithPlatform(asset.name, userPlatform)
-        );
-        setAvailableAssets(compatibleAssets);
-      }
-
-      setRocmDownload(rocm);
-    } catch (error) {
-      console.error('Failed to load remote versions:', error);
-    } finally {
-      setLoadingRemote(false);
-    }
-  }, [userPlatform]);
-
-  useEffect(() => {
-    const loadPlatform = async () => {
-      try {
-        const platform = await window.electronAPI.kobold.getPlatform();
-        setUserPlatform(platform.platform);
-      } catch (error) {
-        console.error('Failed to load platform:', error);
-      }
-    };
-
-    loadPlatform();
-  }, []);
-
   useEffect(() => {
     loadInstalledVersions();
-    if (userPlatform) {
-      loadRemoteVersions();
-    }
-  }, [userPlatform, loadInstalledVersions, loadRemoteVersions]);
-
-  useEffect(() => {
-    const handleProgress = (progress: number) => {
-      if (downloading) {
-        setDownloadProgress((prev) => ({
-          ...prev,
-          [downloading]: progress,
-        }));
-      }
-    };
-
-    window.electronAPI.kobold.onDownloadProgress?.(handleProgress);
-
-    return () => {
-      window.electronAPI.kobold.removeAllListeners?.('download-progress');
-    };
-  }, [downloading]);
+  }, [loadInstalledVersions]);
 
   const getDisplayNameFromPath = (
     installedVersion: InstalledVersion
@@ -181,7 +118,7 @@ export const VersionsTab = () => {
   const getAllVersions = (): VersionInfo[] => {
     const versions: VersionInfo[] = [];
 
-    availableAssets.forEach((asset) => {
+    filteredAssets.forEach((asset) => {
       const installedVersion = installedVersions.find((v) => {
         const displayName = getDisplayNameFromPath(v);
         return displayName === asset.name;
@@ -260,38 +197,28 @@ export const VersionsTab = () => {
       }
     });
 
-    return versions;
+    return sortAssetsByRecommendation(versions, platformInfo.hasAMDGPU);
   };
 
   const handleDownload = async (version: VersionInfo) => {
-    setDownloading(version.name);
-    setDownloadProgress((prev) => ({ ...prev, [version.name]: 0 }));
-
     try {
-      let result;
+      let success;
 
       if (version.isROCm) {
-        result = await window.electronAPI.kobold.downloadROCm();
+        success = await sharedHandleDownload('rocm');
       } else {
-        const asset = availableAssets.find((a) => a.name === version.name);
+        const asset = filteredAssets.find((a) => a.name === version.name);
         if (!asset) {
           throw new Error('Asset not found');
         }
-        result = await window.electronAPI.kobold.downloadRelease(asset);
+        success = await sharedHandleDownload('asset', asset);
       }
 
-      if (result.success) {
+      if (success) {
         await loadInstalledVersions();
       }
     } catch (error) {
       console.error('Failed to download:', error);
-    } finally {
-      setDownloading(null);
-      setDownloadProgress((prev) => {
-        const newProgress = { ...prev };
-        delete newProgress[version.name];
-        return newProgress;
-      });
     }
   };
 
@@ -321,7 +248,7 @@ export const VersionsTab = () => {
     }
   };
 
-  const isLoading = loadingInstalled || loadingRemote;
+  const isLoading = loadingInstalled || loadingPlatform || loadingRemote;
 
   if (isLoading) {
     return (
@@ -329,7 +256,7 @@ export const VersionsTab = () => {
         <Stack align="center" gap="md">
           <Loader size="lg" />
           <Text c="dimmed">
-            {loadingInstalled && loadingRemote
+            {loadingInstalled && (loadingPlatform || loadingRemote)
               ? 'Loading versions...'
               : loadingInstalled
                 ? 'Scanning installed versions...'
@@ -374,6 +301,10 @@ export const VersionsTab = () => {
               }
               version={version.version}
               description={getAssetDescription(version.name)}
+              isRecommended={isAssetRecommended(
+                version.name,
+                platformInfo.hasAMDGPU
+              )}
               isCurrent={version.isCurrent}
               isInstalled={version.isInstalled}
               isDownloading={isDownloading}

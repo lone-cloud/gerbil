@@ -1,16 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card, Container } from '@mantine/core';
-import { ChatTab } from '@/components/interface/ChatTab';
-import { TerminalTab } from '@/components/interface/TerminalTab';
+import { ServerTab } from '@/screens/Interface/ServerTab';
+import { TerminalTab } from '@/screens/Interface/TerminalTab';
 
 interface InterfaceScreenProps {
   activeTab?: string | null;
   onTabChange?: (tab: string | null) => void;
+  isImageGenerationMode?: boolean;
 }
 
 export const InterfaceScreen = ({
   activeTab,
   onTabChange,
+  isImageGenerationMode = false,
 }: InterfaceScreenProps) => {
   const [serverOnly, setServerOnly] = useState<boolean>(false);
   const [serverUrl, setServerUrl] = useState<string>('');
@@ -22,10 +24,10 @@ export const InterfaceScreen = ({
       setIsServerReady(true);
 
       if (!serverOnly && onTabChange) {
-        onTabChange('chat');
+        onTabChange(isImageGenerationMode ? 'image' : 'chat');
       }
     },
-    [serverOnly, onTabChange]
+    [serverOnly, onTabChange, isImageGenerationMode]
   );
 
   useEffect(() => {
@@ -66,7 +68,23 @@ export const InterfaceScreen = ({
                 display: activeTab === 'chat' ? 'block' : 'none',
               }}
             >
-              <ChatTab serverUrl={serverUrl} isServerReady={isServerReady} />
+              <ServerTab
+                serverUrl={serverUrl}
+                isServerReady={isServerReady}
+                mode={isImageGenerationMode ? 'image-generation' : 'chat'}
+              />
+            </div>
+            <div
+              style={{
+                height: '100%',
+                display: activeTab === 'image' ? 'block' : 'none',
+              }}
+            >
+              <ServerTab
+                serverUrl={serverUrl}
+                isServerReady={isServerReady}
+                mode="image-generation"
+              />
             </div>
             <div
               style={{

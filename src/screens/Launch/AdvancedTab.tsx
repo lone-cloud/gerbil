@@ -32,22 +32,6 @@ export const AdvancedTab = ({
 }: AdvancedTabProps) => (
   <Stack gap="lg">
     <div>
-      <Group gap="xs" align="center" mb="xs">
-        <Text size="sm" fw={500}>
-          Additional arguments
-        </Text>
-        <InfoTooltip label="Additional command line arguments to pass to the KoboldCPP binary. Leave this empty if you don't know what they are." />
-      </Group>
-      <TextInput
-        placeholder="Additional command line arguments"
-        value={additionalArguments}
-        onChange={(event) =>
-          onAdditionalArgumentsChange(event.currentTarget.value)
-        }
-      />
-    </div>
-
-    <div>
       <Stack gap="md">
         <Group gap="lg" align="flex-start" wrap="nowrap">
           <div style={{ minWidth: '200px' }}>
@@ -114,6 +98,21 @@ export const AdvancedTab = ({
           <InfoTooltip label="Use failsafe mode, extremely slow CPU only compatibility mode that should work on all devices. Can be combined with useclblast if your device supports OpenCL." />
         </Group>
       </Stack>
+    </div>
+    <div>
+      <Group gap="xs" align="center" mb="xs">
+        <Text size="sm" fw={500}>
+          Additional arguments
+        </Text>
+        <InfoTooltip label="Additional command line arguments to pass to the KoboldCPP binary. Leave this empty if you don't know what they are." />
+      </Group>
+      <TextInput
+        placeholder="Additional command line arguments"
+        value={additionalArguments}
+        onChange={(event) =>
+          onAdditionalArgumentsChange(event.currentTarget.value)
+        }
+      />
     </div>
   </Stack>
 );

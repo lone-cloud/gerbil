@@ -6,16 +6,11 @@ import {
   Button,
   Checkbox,
   Slider,
-  Select,
-  Badge,
-  Card,
-  useMantineColorScheme,
 } from '@mantine/core';
-import { useState, useEffect } from 'react';
 import { File, Search } from 'lucide-react';
 import { InfoTooltip } from '@/components/InfoTooltip';
+import { BackendSelector } from '@/screens/Launch/BackendSelector';
 import { getInputValidationState } from '@/utils/validation';
-import { isNoCudaBinary, isRocmBinary } from '@/utils/binaryUtils';
 
 interface GeneralTabProps {
   modelPath: string;
@@ -23,6 +18,8 @@ interface GeneralTabProps {
   autoGpuLayers: boolean;
   contextSize: number;
   backend: string;
+  noavx2: boolean;
+  failsafe: boolean;
   onModelPathChange: (path: string) => void;
   onSelectModelFile: () => void;
   onGpuLayersChange: (layers: number) => void;
@@ -37,6 +34,8 @@ export const GeneralTab = ({
   autoGpuLayers,
   contextSize,
   backend,
+  noavx2,
+  failsafe,
   onModelPathChange,
   onSelectModelFile,
   onGpuLayersChange,
@@ -44,89 +43,6 @@ export const GeneralTab = ({
   onContextSizeChange,
   onBackendChange,
 }: GeneralTabProps) => {
-  const { colorScheme } = useMantineColorScheme();
-  const isDark = colorScheme === 'dark';
-
-  const [availableBackends, setAvailableBackends] = useState<
-    Array<{ value: string; label: string; devices?: string[] }>
-  >([]);
-  const [isLoadingBackends, setIsLoadingBackends] = useState(true);
-
-  useEffect(() => {
-    const detectAvailableBackends = async () => {
-      setIsLoadingBackends(true);
-
-      try {
-        const [currentBinaryInfo, _cpuCapabilities, gpuCapabilities] =
-          await Promise.all([
-            window.electronAPI.kobold.getCurrentBinaryInfo(),
-            window.electronAPI.kobold.detectCPU(),
-            window.electronAPI.kobold.detectGPUCapabilities(),
-          ]);
-
-        const backends: Array<{
-          value: string;
-          label: string;
-          devices?: string[];
-        }> = [];
-
-        if (currentBinaryInfo?.filename) {
-          const filename = currentBinaryInfo.filename;
-
-          backends.push({ value: 'cpu', label: 'CPU' });
-
-          if (!isNoCudaBinary(filename) && gpuCapabilities.cuda.supported) {
-            backends.push({
-              value: 'cuda',
-              label: 'CUDA',
-              devices: gpuCapabilities.cuda.devices,
-            });
-          }
-
-          if (isRocmBinary(filename) && gpuCapabilities.rocm.supported) {
-            backends.push({
-              value: 'rocm',
-              label: 'ROCm',
-              devices: gpuCapabilities.rocm.devices,
-            });
-          }
-
-          if (gpuCapabilities.vulkan.supported) {
-            backends.push({
-              value: 'vulkan',
-              label: 'Vulkan',
-              devices: gpuCapabilities.vulkan.devices,
-            });
-          }
-
-          if (gpuCapabilities.clblast.supported) {
-            backends.push({
-              value: 'clblast',
-              label: 'CLBlast',
-              devices: gpuCapabilities.clblast.devices,
-            });
-          }
-        }
-
-        setAvailableBackends(backends);
-
-        if (
-          backends.length > 0 &&
-          (!backend || !backends.some((b) => b.value === backend))
-        ) {
-          onBackendChange(backends[0].value);
-        }
-      } catch (error) {
-        console.warn('Failed to detect available backends:', error);
-        setAvailableBackends([]);
-      } finally {
-        setIsLoadingBackends(false);
-      }
-    };
-
-    void detectAvailableBackends();
-  }, [backend, onBackendChange]);
-
   const validationState = getInputValidationState(modelPath);
 
   const getInputColor = () => {
@@ -154,7 +70,7 @@ export const GeneralTab = ({
     <Stack gap="lg">
       <div>
         <Text size="sm" fw={500} mb="xs">
-          Text Model File *
+          Text Model File
         </Text>
         <Group gap="xs" align="flex-start">
           <div style={{ flex: 1 }}>
@@ -162,7 +78,6 @@ export const GeneralTab = ({
               placeholder="Select a .gguf model file or enter a direct URL to file"
               value={modelPath}
               onChange={(event) => onModelPathChange(event.currentTarget.value)}
-              required
               color={getInputColor()}
               error={
                 validationState === 'invalid' ? getHelperText() : undefined
@@ -190,55 +105,12 @@ export const GeneralTab = ({
         </Group>
       </div>
 
-      <div>
-        <Group gap="xs" align="center" mb="xs">
-          <Text size="sm" fw={500}>
-            Backend
-          </Text>
-          <InfoTooltip label="Select a backend to use. CUDA runs on Nvidia GPUs, and is much faster. ROCm is the AMD equivalent. Vulkan and CLBlast works on all GPUs but are somewhat slower." />
-        </Group>
-        <Select
-          placeholder={
-            isLoadingBackends
-              ? 'Detecting available backends...'
-              : 'Select backend'
-          }
-          value={backend}
-          onChange={(value) => value && onBackendChange(value)}
-          data={availableBackends.map((b) => ({
-            value: b.value,
-            label: b.label,
-          }))}
-          disabled={isLoadingBackends || availableBackends.length === 0}
-        />
-        {backend &&
-          availableBackends.find((b) => b.value === backend)?.devices && (
-            <Group gap="xs" mt="xs">
-              <Text size="xs" c="dimmed">
-                Devices:
-              </Text>
-              {availableBackends
-                .find((b) => b.value === backend)
-                ?.devices?.map((device, index) => (
-                  <Badge key={index} variant="light" size="sm">
-                    {device}
-                  </Badge>
-                ))}
-            </Group>
-          )}
-        {backend === 'cpu' && (
-          <Card withBorder p="sm" mt="xs" bg={isDark ? 'blue.9' : 'blue.0'}>
-            <Text size="sm" c={isDark ? 'blue.2' : 'blue.8'}>
-              <Text component="span" fw={600}>
-                Performance Note:
-              </Text>{' '}
-              LLMs run significantly faster on GPU-accelerated systems. Consider
-              using NVIDIA&apos;s CUDA or AMD&apos;s ROCm backends for optimal
-              performance.
-            </Text>
-          </Card>
-        )}
-      </div>
+      <BackendSelector
+        backend={backend}
+        onBackendChange={onBackendChange}
+        noavx2={noavx2}
+        failsafe={failsafe}
+      />
 
       <div>
         <Group justify="space-between" align="center" mb="xs">
