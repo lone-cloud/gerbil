@@ -9,9 +9,11 @@ export const useLaunchConfig = () => {
   const [gpuLayers, setGpuLayers] = useState<number>(0);
   const [autoGpuLayers, setAutoGpuLayers] = useState<boolean>(false);
   const [contextSize, setContextSize] = useState<number>(2048);
-  const [modelPath, setModelPath] = useState<string>('');
+  const [modelPath, setModelPath] = useState<string>(
+    'https://huggingface.co/MaziyarPanahi/gemma-3-4b-it-GGUF/resolve/main/gemma-3-4b-it.Q8_0.gguf?download=true'
+  );
   const [additionalArguments, setAdditionalArguments] = useState<string>('');
-  const [port, setPort] = useState<number>(5001);
+  const [port, setPort] = useState<number | undefined>(undefined);
   const [host, setHost] = useState<string>('localhost');
   const [multiuser, setMultiuser] = useState<boolean>(false);
   const [multiplayer, setMultiplayer] = useState<boolean>(false);
@@ -22,20 +24,18 @@ export const useLaunchConfig = () => {
   const [flashattention, setFlashattention] = useState<boolean>(false);
   const [noavx2, setNoavx2] = useState<boolean>(false);
   const [failsafe, setFailsafe] = useState<boolean>(false);
+  const [lowvram, setLowvram] = useState<boolean>(false);
+  const [quantmatmul, setQuantmatmul] = useState<boolean>(false);
   const [backend, setBackend] = useState<string>('cpu');
+  const [gpuDevice, setGpuDevice] = useState<number>(0);
 
   const [sdmodel, setSdmodel] = useState<string>('');
-  const [sdt5xxl, setSdt5xxl] = useState<string>(
-    'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/t5xxl_fp8_e4m3fn.safetensors?download=true'
-  );
-  const [sdclipl, setSdclipl] = useState<string>(
-    'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/clip_l.safetensors?download=true'
-  );
+  const [sdt5xxl, setSdt5xxl] = useState<string>('');
+  const [sdclipl, setSdclipl] = useState<string>('');
   const [sdclipg, setSdclipg] = useState<string>('');
   const [sdphotomaker, setSdphotomaker] = useState<string>('');
-  const [sdvae, setSdvae] = useState<string>(
-    'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/ae.safetensors?download=true'
-  );
+  const [sdvae, setSdvae] = useState<string>('');
+  const [sdlora, setSdlora] = useState<string>('');
 
   // eslint-disable-next-line sonarjs/cognitive-complexity
   const parseAndApplyConfigFile = useCallback(async (configPath: string) => {
@@ -62,7 +62,7 @@ export const useLaunchConfig = () => {
       if (typeof configData.port === 'number') {
         setPort(configData.port);
       } else {
-        setPort(5001);
+        setPort(undefined);
       }
 
       if (typeof configData.host === 'string') {
@@ -125,9 +125,27 @@ export const useLaunchConfig = () => {
         setFailsafe(false);
       }
 
+      if (typeof configData.lowvram === 'boolean') {
+        setLowvram(configData.lowvram);
+      }
+
+      if (typeof configData.quantmatmul === 'boolean') {
+        setQuantmatmul(configData.quantmatmul);
+      }
+
       if (configData.usecuda !== null && configData.usecuda !== undefined) {
         const gpuInfo = await window.electronAPI.kobold.detectGPU();
         setBackend(gpuInfo.hasNVIDIA ? 'cuda' : 'rocm');
+
+        if (
+          Array.isArray(configData.usecuda) &&
+          configData.usecuda.length >= 3
+        ) {
+          const [vramMode, deviceId, mmqMode] = configData.usecuda;
+          setLowvram(vramMode === 'lowvram');
+          setGpuDevice(parseInt(deviceId, 10) || 0);
+          setQuantmatmul(mmqMode === 'mmq');
+        }
       } else if (
         configData.usevulkan !== null &&
         configData.usevulkan !== undefined
@@ -165,11 +183,15 @@ export const useLaunchConfig = () => {
       if (typeof configData.sdvae === 'string') {
         setSdvae(configData.sdvae);
       }
+
+      if (typeof configData.sdlora === 'string') {
+        setSdlora(configData.sdlora);
+      }
     } else {
       const cpuCapabilities = await window.electronAPI.kobold.detectCPU();
       setGpuLayers(0);
       setContextSize(2048);
-      setPort(5001);
+      setPort(undefined);
       setHost('localhost');
       setMultiuser(false);
       setMultiplayer(false);
@@ -203,7 +225,7 @@ export const useLaunchConfig = () => {
     setModelPath('');
     setGpuLayers(0);
     setContextSize(2048);
-    setPort(5001);
+    setPort(undefined);
     setHost('localhost');
     setMultiuser(false);
     setMultiplayer(false);
@@ -292,7 +314,7 @@ export const useLaunchConfig = () => {
     setAutoGpuLayers(checked);
   }, []);
 
-  const handlePortChange = useCallback((value: number) => {
+  const handlePortChange = useCallback((value: number | undefined) => {
     setPort(value);
   }, []);
 
@@ -336,8 +358,20 @@ export const useLaunchConfig = () => {
     setFailsafe(checked);
   }, []);
 
+  const handleLowvramChange = useCallback((checked: boolean) => {
+    setLowvram(checked);
+  }, []);
+
+  const handleQuantmatmulChange = useCallback((checked: boolean) => {
+    setQuantmatmul(checked);
+  }, []);
+
   const handleBackendChange = useCallback((backend: string) => {
     setBackend(backend);
+  }, []);
+
+  const handleGpuDeviceChange = useCallback((device: number) => {
+    setGpuDevice(device);
   }, []);
 
   const handleSdmodelChange = useCallback((path: string) => {
@@ -406,6 +440,17 @@ export const useLaunchConfig = () => {
     }
   }, []);
 
+  const handleSdloraChange = useCallback((path: string) => {
+    setSdlora(path);
+  }, []);
+
+  const handleSelectSdloraFile = useCallback(async () => {
+    const filePath = await window.electronAPI.kobold.selectModelFile();
+    if (filePath) {
+      setSdlora(filePath);
+    }
+  }, []);
+
   const applyImageModelPreset = useCallback((preset: ImageModelPreset) => {
     setSdmodel(preset.sdmodel);
     setSdt5xxl(preset.sdt5xxl);
@@ -442,13 +487,17 @@ export const useLaunchConfig = () => {
     flashattention,
     noavx2,
     failsafe,
+    lowvram,
+    quantmatmul,
     backend,
+    gpuDevice,
     sdmodel,
     sdt5xxl,
     sdclipl,
     sdclipg,
     sdphotomaker,
     sdvae,
+    sdlora,
 
     parseAndApplyConfigFile,
     loadSavedSettings,
@@ -470,7 +519,10 @@ export const useLaunchConfig = () => {
     handleFlashattentionChange,
     handleNoavx2Change,
     handleFailsafeChange,
+    handleLowvramChange,
+    handleQuantmatmulChange,
     handleBackendChange,
+    handleGpuDeviceChange,
     handleSdmodelChange,
     handleSelectSdmodelFile,
     handleSdt5xxlChange,
@@ -483,6 +535,8 @@ export const useLaunchConfig = () => {
     handleSelectSdphotomakerFile,
     handleSdvaeChange,
     handleSelectSdvaeFile,
+    handleSdloraChange,
+    handleSelectSdloraFile,
     applyImageModelPreset,
     handleApplyPreset,
   };

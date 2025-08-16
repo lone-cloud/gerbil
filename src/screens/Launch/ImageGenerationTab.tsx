@@ -19,6 +19,7 @@ interface ImageGenerationTabProps {
   sdclipg: string;
   sdphotomaker: string;
   sdvae: string;
+  sdlora: string;
   textModelPath?: string;
   onSdmodelChange: (path: string) => void;
   onSelectSdmodelFile: () => void;
@@ -32,6 +33,8 @@ interface ImageGenerationTabProps {
   onSelectSdphotomakerFile: () => void;
   onSdvaeChange: (path: string) => void;
   onSelectSdvaeFile: () => void;
+  onSdloraChange: (path: string) => void;
+  onSelectSdloraFile: () => void;
   onApplyPreset: (presetName: string) => void;
 }
 
@@ -125,6 +128,7 @@ export const ImageGenerationTab = ({
   sdclipg,
   sdphotomaker,
   sdvae,
+  sdlora,
   textModelPath,
   onSdmodelChange,
   onSelectSdmodelFile,
@@ -138,6 +142,8 @@ export const ImageGenerationTab = ({
   onSelectSdphotomakerFile,
   onSdvaeChange,
   onSelectSdvaeFile,
+  onSdloraChange,
+  onSelectSdloraFile,
   onApplyPreset,
 }: ImageGenerationTabProps) => {
   const hasTextModel = textModelPath?.trim() !== '';
@@ -227,6 +233,15 @@ export const ImageGenerationTab = ({
         placeholder="Select a VAE file or enter a direct URL"
         onChange={onSdvaeChange}
         onSelectFile={onSelectSdvaeFile}
+      />
+
+      <ModelField
+        label="Image LoRa"
+        value={sdlora}
+        placeholder="Select a LoRa file or enter a direct URL"
+        tooltip="LoRa (Low-Rank Adaptation) file for customizing image generation. Select a .safetensors or .gguf LoRa file to be loaded. Should be unquantized."
+        onChange={onSdloraChange}
+        onSelectFile={onSelectSdloraFile}
       />
     </Stack>
   );

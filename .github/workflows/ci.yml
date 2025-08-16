@@ -26,14 +26,8 @@ jobs:
       - name: Install dependencies
         run: yarn
 
-      - name: Run type check
-        run: yarn compile
-
-      - name: Run linter
-        run: yarn lint
-
-      - name: Run spell check
-        run: yarn spell-check
+      - name: Run checks (lint, type check, spell check)
+        run: yarn check-all
 
       - name: Test build
-        run: yarn build:electron
+        run: yarn build

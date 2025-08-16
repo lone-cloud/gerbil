@@ -42,7 +42,7 @@ jobs:
         run: yarn lint
 
       - name: Build Electron app
-        run: yarn build
+        run: yarn package
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

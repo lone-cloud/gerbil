@@ -4,23 +4,28 @@ import { KoboldCppManager } from '@/main/managers/KoboldCppManager';
 import { ConfigManager } from '@/main/managers/ConfigManager';
 import { GitHubService } from '@/main/services/GitHubService';
 import { HardwareService } from '@/main/services/HardwareService';
+import { BinaryService } from '@/main/services/BinaryService';
+import type { GPUCapabilities } from '@/types/hardware';
 
 export class IPCHandlers {
   private koboldManager: KoboldCppManager;
   private configManager: ConfigManager;
   private githubService: GitHubService;
   private hardwareService: HardwareService;
+  private binaryService: BinaryService;
 
   constructor(
     koboldManager: KoboldCppManager,
     configManager: ConfigManager,
     githubService: GitHubService,
-    hardwareService: HardwareService
+    hardwareService: HardwareService,
+    binaryService: BinaryService
   ) {
     this.koboldManager = koboldManager;
     this.configManager = configManager;
     this.githubService = githubService;
     this.hardwareService = hardwareService;
+    this.binaryService = binaryService;
   }
 
   setupHandlers() {
@@ -130,6 +135,23 @@ export class IPCHandlers {
 
     ipcMain.handle('kobold:detectAllCapabilities', () =>
       this.hardwareService.detectAllWithCapabilities()
+    );
+
+    ipcMain.handle('kobold:detectBackendSupport', (_, binaryPath: string) =>
+      this.binaryService.detectBackendSupport(binaryPath)
+    );
+
+    ipcMain.handle(
+      'kobold:getAvailableBackends',
+      (_, binaryPath: string, hardwareCapabilities: GPUCapabilities) =>
+        this.binaryService.getAvailableBackends(
+          binaryPath,
+          hardwareCapabilities
+        )
+    );
+
+    ipcMain.handle('kobold:clearBinaryCache', () =>
+      this.binaryService.clearCache()
     );
 
     ipcMain.handle('kobold:getPlatform', () => ({

@@ -8,6 +8,7 @@ import { ConfigManager } from '@/main/managers/ConfigManager';
 import { KoboldCppManager } from '@/main/managers/KoboldCppManager';
 import { GitHubService } from '@/main/services/GitHubService';
 import { HardwareService } from '@/main/services/HardwareService';
+import { BinaryService } from '@/main/services/BinaryService';
 import { IPCHandlers } from '@/main/utils/IPCHandlers';
 import { APP_NAME, CONFIG_FILE_NAME } from '@/constants';
 
@@ -17,6 +18,7 @@ class FriendlyKoboldApp {
   private koboldManager: KoboldCppManager;
   private githubService: GitHubService;
   private hardwareService: HardwareService;
+  private binaryService: BinaryService;
   private ipcHandlers: IPCHandlers;
 
   constructor() {
@@ -26,6 +28,7 @@ class FriendlyKoboldApp {
     this.windowManager = new WindowManager(this.configManager);
     this.githubService = new GitHubService();
     this.hardwareService = new HardwareService();
+    this.binaryService = new BinaryService();
     this.koboldManager = new KoboldCppManager(
       this.configManager,
       this.githubService,
@@ -35,7 +38,8 @@ class FriendlyKoboldApp {
       this.koboldManager,
       this.configManager,
       this.githubService,
-      this.hardwareService
+      this.hardwareService,
+      this.binaryService
     );
   }
 

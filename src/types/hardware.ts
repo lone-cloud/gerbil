@@ -1,7 +1,7 @@
 export interface CPUCapabilities {
   avx: boolean;
   avx2: boolean;
-  cpuInfo: string[];
+  devices: string[];
 }
 
 export interface GPUCapabilities {

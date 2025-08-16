@@ -20,15 +20,9 @@ export class HardwareService {
     try {
       const [cpu, flags] = await Promise.all([si.cpu(), si.cpuFlags()]);
 
-      const cpuInfo: string[] = [];
+      const devices: string[] = [];
       if (cpu.brand) {
-        cpuInfo.push(cpu.brand);
-      }
-      if (cpu.cores) {
-        cpuInfo.push(`${cpu.cores} cores`);
-      }
-      if (cpu.speed) {
-        cpuInfo.push(`${cpu.speed}GHz`);
+        devices.push(cpu.brand);
       }
 
       const avx = flags.includes('avx') || flags.includes('AVX');
@@ -37,7 +31,7 @@ export class HardwareService {
       this.cpuCapabilitiesCache = {
         avx,
         avx2,
-        cpuInfo: cpuInfo.length > 0 ? cpuInfo : ['CPU information unavailable'],
+        devices,
       };
 
       return this.cpuCapabilitiesCache;
@@ -46,7 +40,7 @@ export class HardwareService {
       const fallbackCapabilities = {
         avx: false,
         avx2: false,
-        cpuInfo: ['CPU detection failed'],
+        devices: [],
       };
       this.cpuCapabilitiesCache = fallbackCapabilities;
       return fallbackCapabilities;
