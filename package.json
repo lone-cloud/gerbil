@@ -5,13 +5,21 @@
   "description": "A modern Electron shell for KoboldCpp",
   "main": "out/main/index.js",
   "homepage": "./",
+  "engines": {
+    "node": ">=22.0.0",
+    "yarn": "^4.0.0"
+  },
+  "volta": {
+    "node": "22.18.0",
+    "yarn": "4.9.2"
+  },
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build && electron-builder",
-    "build:analyze": "cross-env ANALYZE=true electron-vite build && npx open-cli dist/stats.html",
+    "build:analyze": "cross-env ANALYZE=true electron-vite build && yarn exec open-cli dist/stats.html",
     "build:electron": "electron-vite build",
-    "analyze": "npm run build:analyze",
-    "analyze:server": "cross-env ANALYZE=server electron-vite build && npx open-cli dist/stats.html",
+    "analyze": "yarn run build:analyze",
+    "analyze:server": "cross-env ANALYZE=server electron-vite build && yarn exec open-cli dist/stats.html",
     "preview": "electron-vite preview",
     "preb": "electron-vite build",
     "start": "electron .",
@@ -23,7 +31,7 @@
     "compile": "tsc --noEmit",
     "spell-check": "cspell \"**/*.{ts,tsx,js,jsx,md,json}\" --no-progress",
     "spell-check:fix": "cspell \"**/*.{ts,tsx,js,jsx,md,json}\" --no-progress --show-suggestions",
-    "check-all": "npm run lint && npm run compile && npm run spell-check",
+    "check-all": "yarn lint && yarn compile && yarn spell-check",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -51,7 +59,6 @@
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
-    "@types/systeminformation": "^3.54.1",
     "@typescript-eslint/eslint-plugin": "^8.39.1",
     "@typescript-eslint/parser": "^8.39.1",
     "@vitejs/plugin-react": "^5.0.0",
@@ -79,7 +86,8 @@
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
-    "@mantine/core": "^8.2.4",
+    "@mantine/core": "^8.2.5",
+    "@mantine/hooks": "^8.2.5",
     "lucide-react": "^0.539.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
@@ -157,5 +165,6 @@
     "nsis": {
       "differentialPackage": true
     }
-  }
+  },
+  "packageManager": "yarn@4.9.2"
 }

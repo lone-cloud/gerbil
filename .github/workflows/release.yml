@@ -23,23 +23,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: '22'
+          cache: 'yarn'
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn
 
       - name: Run type check
-        run: npm run compile
+        run: yarn compile
 
       - name: Run linter
-        run: npm run lint
+        run: yarn lint
 
       - name: Build Electron app
-        run: npm run build
+        run: yarn build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

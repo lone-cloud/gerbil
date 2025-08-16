@@ -4,7 +4,7 @@
     {
       "label": "Start Development Server",
       "type": "shell",
-      "command": "npm run dev",
+      "command": "yarn dev",
       "isBackground": true,
       "problemMatcher": [],
       "group": "build"
@@ -12,7 +12,7 @@
     {
       "label": "Build for Production",
       "type": "shell",
-      "command": "npm run build",
+      "command": "yarn build",
       "group": "build",
       "presentation": {
         "echo": true,
@@ -24,7 +24,7 @@
     {
       "label": "Lint and Fix",
       "type": "shell",
-      "command": "npm run lint:fix",
+      "command": "yarn lint:fix",
       "group": "test",
       "presentation": {
         "echo": true,
@@ -36,7 +36,7 @@
     {
       "label": "Type Check",
       "type": "shell",
-      "command": "npm run compile",
+      "command": "yarn compile",
       "group": "test",
       "presentation": {
         "echo": true,
@@ -48,7 +48,7 @@
     {
       "label": "Spell Check",
       "type": "shell",
-      "command": "npm run spell-check",
+      "command": "yarn spell-check",
       "group": "test",
       "presentation": {
         "echo": true,
@@ -60,7 +60,7 @@
     {
       "label": "Check All (Lint + Type + Spell)",
       "type": "shell",
-      "command": "npm run check-all",
+      "command": "yarn check-all",
       "group": "test",
       "presentation": {
         "echo": true,
