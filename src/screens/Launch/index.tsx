@@ -436,7 +436,6 @@ export const LaunchScreen = ({
             configFiles={configFiles}
             selectedFile={selectedFile}
             onFileSelection={handleFileSelection}
-            onRefresh={loadConfigFiles}
             onSaveAsNew={() => setSaveModalOpened(true)}
             onUpdateCurrent={() => {}}
           />
