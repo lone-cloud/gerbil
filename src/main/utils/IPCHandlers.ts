@@ -184,7 +184,7 @@ export class IPCHandlers {
       const result = await dialog.showMessageBox(mainWindow, {
         type: 'warning',
         title: 'Confirm Eject',
-        message: 'Are you sure you want to eject KoboldCpp?',
+        message: 'Are you sure you want to eject?',
         detail:
           'This will terminate the running process and return to the launch screen.',
         buttons: ['Cancel', 'Eject'],
@@ -201,14 +201,6 @@ export class IPCHandlers {
 
     ipcMain.handle('kobold:selectModelFile', () =>
       this.koboldManager.selectModelFile()
-    );
-
-    ipcMain.handle('config:getServerOnly', () =>
-      this.configManager.getServerOnly()
-    );
-
-    ipcMain.handle('config:setServerOnly', (_event, serverOnly) =>
-      this.configManager.setServerOnly(serverOnly)
     );
 
     ipcMain.handle('config:get', (_event, key) => this.configManager.get(key));

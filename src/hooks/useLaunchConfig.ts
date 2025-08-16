@@ -6,7 +6,6 @@ import {
 } from '@/utils/imageModelPresets';
 
 export const useLaunchConfig = () => {
-  const [serverOnly, setServerOnly] = useState<boolean>(false);
   const [gpuLayers, setGpuLayers] = useState<number>(0);
   const [autoGpuLayers, setAutoGpuLayers] = useState<boolean>(false);
   const [contextSize, setContextSize] = useState<number>(2048);
@@ -199,12 +198,8 @@ export const useLaunchConfig = () => {
   }, []);
 
   const loadSavedSettings = useCallback(async () => {
-    const [savedServerOnly, cpuCapabilities] = await Promise.all([
-      window.electronAPI.config.getServerOnly(),
-      window.electronAPI.kobold.detectCPU(),
-    ]);
+    const cpuCapabilities = await window.electronAPI.kobold.detectCPU();
 
-    setServerOnly(savedServerOnly);
     setModelPath('');
     setGpuLayers(0);
     setContextSize(2048);
@@ -258,11 +253,6 @@ export const useLaunchConfig = () => {
     },
     [parseAndApplyConfigFile]
   );
-
-  const handleServerOnlyChange = useCallback(async (checked: boolean) => {
-    setServerOnly(checked);
-    await window.electronAPI.config.setServerOnly(checked);
-  }, []);
 
   const handleGpuLayersChange = useCallback(async (value: number) => {
     setGpuLayers(value);
@@ -436,7 +426,6 @@ export const useLaunchConfig = () => {
   );
 
   return {
-    serverOnly,
     gpuLayers,
     autoGpuLayers,
     contextSize,
@@ -464,7 +453,6 @@ export const useLaunchConfig = () => {
     parseAndApplyConfigFile,
     loadSavedSettings,
     loadConfigFromFile,
-    handleServerOnlyChange,
     handleGpuLayersChange,
     handleAutoGpuLayersChange,
     handleContextSizeChangeWithStep,

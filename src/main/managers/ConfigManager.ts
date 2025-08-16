@@ -6,7 +6,6 @@ interface AppConfig {
   installDir?: string;
   currentKoboldBinary?: string;
   selectedConfig?: string;
-  serverOnly?: boolean;
   [key: string]: ConfigValue;
 }
 
@@ -71,15 +70,6 @@ export class ConfigManager {
 
   setSelectedConfig(configName: string) {
     this.config.selectedConfig = configName;
-    this.saveConfig();
-  }
-
-  getServerOnly(): boolean {
-    return this.config.serverOnly || false;
-  }
-
-  setServerOnly(serverOnly: boolean) {
-    this.config.serverOnly = serverOnly;
     this.saveConfig();
   }
 }
