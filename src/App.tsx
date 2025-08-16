@@ -3,7 +3,6 @@ import {
   AppShell,
   Group,
   ActionIcon,
-  Tooltip,
   rem,
   Loader,
   Center,
@@ -15,12 +14,13 @@ import {
   useMantineColorScheme,
 } from '@mantine/core';
 import { Settings, ArrowLeft } from 'lucide-react';
-import { DownloadScreen } from '@/components/screens/DownloadScreen';
-import { LaunchScreen } from '@/components/screens/LaunchScreen';
-import { InterfaceScreen } from '@/components/screens/InterfaceScreen';
+import { DownloadScreen } from '@/screens/Download';
+import { LaunchScreen } from '@/screens/Launch';
+import { InterfaceScreen } from '@/screens/Interface';
 import { UpdateDialog } from '@/components/UpdateDialog';
-import { SettingsModal } from '@/components/SettingsModal';
+import { SettingsModal } from '@/components/settings/SettingsModal';
 import { ScreenTransition } from '@/components/ScreenTransition';
+import { StyledTooltip } from '@/components/StyledTooltip';
 import type { UpdateInfo, InstalledVersion } from '@/types';
 
 type Screen = 'download' | 'launch' | 'interface';
@@ -34,6 +34,8 @@ export const App = () => {
   const [activeInterfaceTab, setActiveInterfaceTab] = useState<string | null>(
     'terminal'
   );
+  const [isImageGenerationMode, setIsImageGenerationMode] =
+    useState<boolean>(false);
   const [currentVersion, setCurrentVersion] = useState<InstalledVersion | null>(
     null
   );
@@ -316,7 +318,7 @@ export const App = () => {
                 justifyContent: 'flex-end',
               }}
             >
-              <Tooltip label="Settings" position="bottom">
+              <StyledTooltip label="Settings" position="bottom">
                 <ActionIcon
                   variant="subtle"
                   color="gray"
@@ -329,7 +331,7 @@ export const App = () => {
                 >
                   <Settings style={{ width: rem(20), height: rem(20) }} />
                 </ActionIcon>
-              </Tooltip>
+              </StyledTooltip>
             </div>
           </Group>
         </AppShell.Header>
@@ -362,7 +364,10 @@ export const App = () => {
                 isActive={currentScreen === 'launch'}
                 shouldAnimate={hasInitialized}
               >
-                <LaunchScreen onLaunch={handleLaunch} />
+                <LaunchScreen
+                  onLaunch={handleLaunch}
+                  onLaunchModeChange={setIsImageGenerationMode}
+                />
               </ScreenTransition>
 
               <ScreenTransition
@@ -372,6 +377,7 @@ export const App = () => {
                 <InterfaceScreen
                   activeTab={activeInterfaceTab}
                   onTabChange={setActiveInterfaceTab}
+                  isImageGenerationMode={isImageGenerationMode}
                 />
               </ScreenTransition>
             </>

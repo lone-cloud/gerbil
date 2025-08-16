@@ -8,7 +8,7 @@ A koboldcpp manager.
 - download and keep up-to-date your [koboldcpp](https://github.com/LostRuins/koboldcpp/releases) binary
 - better surface the ROCm-specific builds of koboldcpp from YellowRoseCx and from [koboldai.org](https://koboldai.org/cpplinuxrocm)
 - manage the koboldcpp binary to prevent it from running in the background indefinitely
-- automatically unpack all downloaded koboldcpp binaries for significantly faster operations
+- automatically unpack all downloaded koboldcpp binaries for significantly faster operation and reduced RAM+HDD utilization (up to ~4GB less RAM usage for ROCm)
 
 ### Prerequisites
 
@@ -33,6 +33,10 @@ A koboldcpp manager.
 ### Linux Wayland support
 
 Additional configurations have been written to help with ideal Wayland support, but as per current Electron guidelines, the user should set `ELECTRON_OZONE_PLATFORM_HINT` to `wayland` in their environment variable according to the [Electron Environment Variables documentation](https://www.electronjs.org/docs/latest/api/environment-variables#electron_ozone_platform_hint-linux).
+
+### Future features
+
+Not all koboldcpp features have currently been ported over the UI. As a workaround one may use the "Additional arguments" on the "Advanced" tab of the launcher to provide additional command line arguments if you know them.
 
 ### Future considerations
 

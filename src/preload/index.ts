@@ -40,6 +40,35 @@ const koboldAPI: KoboldAPI = {
   openInstallDialog: () => ipcRenderer.invoke('kobold:openInstallDialog'),
   checkForUpdates: () => ipcRenderer.invoke('kobold:checkForUpdates'),
   getConfigFiles: () => ipcRenderer.invoke('kobold:getConfigFiles'),
+  saveConfigFile: (
+    configName: string,
+    configData: {
+      gpulayers?: number;
+      contextsize?: number;
+      model_param?: string;
+      port?: number;
+      host?: string;
+      multiuser?: number;
+      multiplayer?: boolean;
+      remotetunnel?: boolean;
+      nocertify?: boolean;
+      websearch?: boolean;
+      noshift?: boolean;
+      flashattention?: boolean;
+      noavx2?: boolean;
+      failsafe?: boolean;
+      usecuda?: boolean;
+      usevulkan?: boolean;
+      useclblast?: boolean;
+      sdmodel?: string;
+      sdt5xxl?: string;
+      sdclipl?: string;
+      sdclipg?: string;
+      sdphotomaker?: string;
+      sdvae?: string;
+      [key: string]: unknown;
+    }
+  ) => ipcRenderer.invoke('kobold:saveConfigFile', configName, configData),
   getSelectedConfig: () => ipcRenderer.invoke('kobold:getSelectedConfig'),
   setSelectedConfig: (configName: string) =>
     ipcRenderer.invoke('kobold:setSelectedConfig', configName),

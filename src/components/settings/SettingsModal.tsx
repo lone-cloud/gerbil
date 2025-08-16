@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Modal, Tabs, Text, Group, rem } from '@mantine/core';
 import { Settings, Palette, SlidersHorizontal, GitBranch } from 'lucide-react';
-import { GeneralTab } from './settings/GeneralTab';
-import { VersionsTab } from './settings/VersionsTab';
-import { AppearanceTab } from './settings/AppearanceTab';
+import { GeneralTab } from './GeneralTab';
+import { VersionsTab } from './VersionsTab';
+import { AppearanceTab } from './AppearanceTab';
 
 interface SettingsModalProps {
   opened: boolean;
@@ -28,6 +28,8 @@ export const SettingsModal = ({
 
   useEffect(() => {
     if (opened) {
+      setActiveTab('general');
+
       const originalOverflow = document.body.style.overflow;
       const scrollbarWidth =
         window.innerWidth - document.documentElement.clientWidth;

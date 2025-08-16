@@ -10,18 +10,23 @@ import {
 } from '@mantine/core';
 import { useState, useEffect, useCallback } from 'react';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
-import { ConfigurationManager } from '@/components/launch/ConfigurationManager';
-import { GeneralTab } from '@/components/launch/GeneralTab';
-import { AdvancedTab } from '@/components/launch/AdvancedTab';
-import { NetworkTab } from '@/components/launch/NetworkTab';
-import { SaveConfigModal } from '@/components/launch/SaveConfigModal';
+import { ConfigurationManager } from '@/screens/Launch/ConfigurationManager';
+import { GeneralTab } from '@/screens/Launch/GeneralTab';
+import { AdvancedTab } from '@/screens/Launch/AdvancedTab';
+import { NetworkTab } from '@/screens/Launch/NetworkTab';
+import { ImageGenerationTab } from '@/screens/Launch/ImageGenerationTab';
+import { SaveConfigModal } from '@/screens/Launch/SaveConfigModal';
 import type { ConfigFile } from '@/types';
 
 interface LaunchScreenProps {
   onLaunch: () => void;
+  onLaunchModeChange?: (isImageMode: boolean) => void;
 }
 
-export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
+export const LaunchScreen = ({
+  onLaunch,
+  onLaunchModeChange,
+}: LaunchScreenProps) => {
   const [configFiles, setConfigFiles] = useState<ConfigFile[]>([]);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [, setInstallDir] = useState<string>('');
@@ -49,6 +54,12 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     noavx2,
     failsafe,
     backend,
+    sdmodel,
+    sdt5xxl,
+    sdclipl,
+    sdclipg,
+    sdphotomaker,
+    sdvae,
     parseAndApplyConfigFile,
     loadSavedSettings,
     loadConfigFromFile,
@@ -71,6 +82,19 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     handleNoavx2Change,
     handleFailsafeChange,
     handleBackendChange,
+    handleSdmodelChange,
+    handleSelectSdmodelFile,
+    handleSdt5xxlChange,
+    handleSelectSdt5xxlFile,
+    handleSdcliplChange,
+    handleSelectSdcliplFile,
+    handleSdclipgChange,
+    handleSelectSdclipgFile,
+    handleSdphotomakerChange,
+    handleSelectSdphotomakerFile,
+    handleSdvaeChange,
+    handleSelectSdvaeFile,
+    handleApplyPreset,
   } = useLaunchConfig();
 
   const loadConfigFiles = useCallback(async () => {
@@ -199,6 +223,36 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     setHasUnsavedChanges(true);
   };
 
+  const handleSdmodelChangeWithTracking = (path: string) => {
+    handleSdmodelChange(path);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleSdt5xxlChangeWithTracking = (path: string) => {
+    handleSdt5xxlChange(path);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleSdcliplChangeWithTracking = (path: string) => {
+    handleSdcliplChange(path);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleSdclipgChangeWithTracking = (path: string) => {
+    handleSdclipgChange(path);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleSdphotomakerChangeWithTracking = (path: string) => {
+    handleSdphotomakerChange(path);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleSdvaeChangeWithTracking = (path: string) => {
+    handleSdvaeChange(path);
+    setHasUnsavedChanges(true);
+  };
+
   useEffect(() => {
     void loadConfigFiles();
 
@@ -213,8 +267,12 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     return cleanup;
   }, [loadConfigFiles]);
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   const handleLaunch = async () => {
-    if (isLaunching || !modelPath) {
+    const isImageMode = sdmodel.trim() !== '';
+    const isTextMode = modelPath.trim() !== '';
+
+    if (isLaunching || (!isImageMode && !isTextMode)) {
       return;
     }
 
@@ -227,7 +285,33 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
 
       const args: string[] = [];
 
-      args.push('--model', modelPath);
+      if (isImageMode && isTextMode) {
+        args.push('--sdmodel', sdmodel);
+      } else if (isImageMode) {
+        args.push('--sdmodel', sdmodel);
+
+        if (sdt5xxl.trim()) {
+          args.push('--sdt5xxl', sdt5xxl);
+        }
+
+        if (sdclipl.trim()) {
+          args.push('--sdclipl', sdclipl);
+        }
+
+        if (sdclipg.trim()) {
+          args.push('--sdclipg', sdclipg);
+        }
+
+        if (sdphotomaker.trim()) {
+          args.push('--sdphotomaker', sdphotomaker);
+        }
+
+        if (sdvae.trim()) {
+          args.push('--sdvae', sdvae);
+        }
+      } else {
+        args.push('--model', modelPath);
+      }
 
       if (autoGpuLayers) {
         args.push('--gpulayers', '-1');
@@ -298,6 +382,10 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
       );
 
       if (result.success) {
+        if (onLaunchModeChange) {
+          onLaunchModeChange(isImageMode);
+        }
+
         setTimeout(() => {
           onLaunch();
         }, 100);
@@ -332,7 +420,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
             </div>
             <Button
               radius="md"
-              disabled={!modelPath || isLaunching}
+              disabled={(!modelPath && !sdmodel) || isLaunching}
               onClick={handleLaunch}
               loading={isLaunching}
               size="lg"
@@ -371,6 +459,8 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
                   autoGpuLayers={autoGpuLayers}
                   contextSize={contextSize}
                   backend={backend}
+                  noavx2={noavx2}
+                  failsafe={failsafe}
                   onModelPathChange={handleModelPathChangeWithTracking}
                   onSelectModelFile={handleSelectModelFile}
                   onGpuLayersChange={handleGpuLayersChangeWithTracking}
@@ -421,12 +511,28 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
               </Tabs.Panel>
 
               <Tabs.Panel value="image" pt="md">
-                <Stack gap="lg" align="center" py="xl">
-                  <Text c="dimmed" ta="center">
-                    Image generation configuration will be available in a future
-                    update.
-                  </Text>
-                </Stack>
+                <ImageGenerationTab
+                  sdmodel={sdmodel}
+                  sdt5xxl={sdt5xxl}
+                  sdclipl={sdclipl}
+                  sdclipg={sdclipg}
+                  sdphotomaker={sdphotomaker}
+                  sdvae={sdvae}
+                  textModelPath={modelPath}
+                  onSdmodelChange={handleSdmodelChangeWithTracking}
+                  onSelectSdmodelFile={handleSelectSdmodelFile}
+                  onSdt5xxlChange={handleSdt5xxlChangeWithTracking}
+                  onSelectSdt5xxlFile={handleSelectSdt5xxlFile}
+                  onSdcliplChange={handleSdcliplChangeWithTracking}
+                  onSelectSdcliplFile={handleSelectSdcliplFile}
+                  onSdclipgChange={handleSdclipgChangeWithTracking}
+                  onSelectSdclipgFile={handleSelectSdclipgFile}
+                  onSdphotomakerChange={handleSdphotomakerChangeWithTracking}
+                  onSelectSdphotomakerFile={handleSelectSdphotomakerFile}
+                  onSdvaeChange={handleSdvaeChangeWithTracking}
+                  onSelectSdvaeFile={handleSelectSdvaeFile}
+                  onApplyPreset={handleApplyPreset}
+                />
               </Tabs.Panel>
             </div>
           </Tabs>

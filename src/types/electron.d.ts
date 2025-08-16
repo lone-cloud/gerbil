@@ -93,6 +93,35 @@ export interface KoboldAPI {
   getConfigFiles: () => Promise<
     Array<{ name: string; path: string; size: number }>
   >;
+  saveConfigFile: (
+    configName: string,
+    configData: {
+      gpulayers?: number;
+      contextsize?: number;
+      model_param?: string;
+      port?: number;
+      host?: string;
+      multiuser?: number;
+      multiplayer?: boolean;
+      remotetunnel?: boolean;
+      nocertify?: boolean;
+      websearch?: boolean;
+      noshift?: boolean;
+      flashattention?: boolean;
+      noavx2?: boolean;
+      failsafe?: boolean;
+      usecuda?: boolean;
+      usevulkan?: boolean;
+      useclblast?: boolean;
+      sdmodel?: string;
+      sdt5xxl?: string;
+      sdclipl?: string;
+      sdclipg?: string;
+      sdphotomaker?: string;
+      sdvae?: string;
+      [key: string]: unknown;
+    }
+  ) => Promise<boolean>;
   getSelectedConfig: () => Promise<string | null>;
   setSelectedConfig: (configName: string) => Promise<boolean>;
   parseConfigFile: (filePath: string) => Promise<{

@@ -1,14 +1,5 @@
 # Copilot Instructions for FriendlyKobold
 
-## Code Style Preferences
-
-### Comments
-
-- Minimize comments in code - only add them when the code logic is genuinely confusing or complex
-- Remove obvious/redundant comments that just describe what the code does
-- Prefer self-documenting code with clear variable and function names
-- Focus on "why" not "what" when comments are necessary
-
 ### General Coding
 
 - Follow existing TypeScript/React patterns in the codebase
@@ -18,3 +9,7 @@
 - Never create tests, docs or github workflows
 - Stop asking me to run the "dev" script to test changes
 - Try to move helper functions from component code to their own separate files to help minimize clutter
+
+### Scripting
+
+- when debugging: try to run script commands that will work for both bash and fish shells
