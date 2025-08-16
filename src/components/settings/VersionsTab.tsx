@@ -16,6 +16,7 @@ import {
   sortAssetsByRecommendation,
   isAssetRecommended,
 } from '@/utils/assets';
+import { getDisplayNameFromPath } from '@/utils/versionUtils';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import type { InstalledVersion } from '@/types/electron';
 
@@ -96,24 +97,6 @@ export const VersionsTab = () => {
   useEffect(() => {
     loadInstalledVersions();
   }, [loadInstalledVersions]);
-
-  const getDisplayNameFromPath = (
-    installedVersion: InstalledVersion
-  ): string => {
-    const pathParts = installedVersion.path.split(/[/\\]/);
-    const launcherIndex = pathParts.findIndex(
-      (part) =>
-        part === 'koboldcpp-launcher' ||
-        part === 'koboldcpp.exe' ||
-        part === 'koboldcpp'
-    );
-
-    if (launcherIndex > 0) {
-      return pathParts[launcherIndex - 1];
-    }
-
-    return installedVersion.filename;
-  };
 
   const getAllVersions = (): VersionInfo[] => {
     const versions: VersionInfo[] = [];

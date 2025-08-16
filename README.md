@@ -12,22 +12,27 @@ A koboldcpp manager.
 
 ### Prerequisites
 
-- Node.js 18+
-- npm
+- **[Volta](https://volta.sh/)** - JavaScript tool manager (installs correct Node.js + Yarn versions automatically)
 
 ### Setup
 
-1. Clone the repository
-2. Install dependencies:
+1. **Install Volta** (if not already installed):
 
    ```bash
-   npm install
+   curl https://get.volta.sh | bash
    ```
 
-3. Start the development server:
+2. Clone the repository
+3. Install dependencies (Volta will auto-install the correct Node.js and Yarn versions):
 
    ```bash
-   npm run dev
+   yarn
+   ```
+
+4. Start the development server:
+
+   ```bash
+   yarn dev
    ```
 
 ### Linux Wayland support

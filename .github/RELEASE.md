@@ -38,7 +38,7 @@ The workflow creates the following files:
 ## Requirements
 
 - The repository must have a `GITHUB_TOKEN` (automatically provided by GitHub)
-- Node.js 20 and npm for building
+- Node.js 22 and Yarn for building
 - All dependencies must be properly defined in `package.json`
 
 ## Troubleshooting
@@ -46,20 +46,21 @@ The workflow creates the following files:
 If the build fails:
 
 1. Check that all dependencies are installed correctly
-2. Ensure the build script works locally: `npm run build`
+2. Ensure the build script works locally: `yarn build`
 3. Check the workflow logs for specific error messages
 4. Verify that the version tag follows semantic versioning (e.g., `v1.0.0`)
 
 ## Adding Icons
 
-To add custom icons for your releases:
+To customize the app icon:
 
-1. Create an `assets` folder in the project root
-2. Add the following icon files:
-   - `icon.icns` for macOS
-   - `icon.ico` for Windows
-   - `icon.png` for Linux
-3. Update the `build` section in `package.json` to reference these icons
+1. Replace `assets/icon_512.png` with your custom 512x512 PNG icon
+2. Electron Builder automatically converts this single PNG to the appropriate format for each platform:
+   - macOS: Converts to `.icns` format
+   - Windows: Converts to `.ico` format
+   - Linux: Uses PNG directly
+
+The icon is already configured in `package.json` under the `build.icon` property.
 
 ## Customizing the Release
 

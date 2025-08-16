@@ -21,6 +21,7 @@ import { UpdateDialog } from '@/components/UpdateDialog';
 import { SettingsModal } from '@/components/settings/SettingsModal';
 import { ScreenTransition } from '@/components/ScreenTransition';
 import { StyledTooltip } from '@/components/StyledTooltip';
+import { getDisplayNameFromPath } from '@/utils/versionUtils';
 import type { UpdateInfo, InstalledVersion } from '@/types';
 
 type Screen = 'download' | 'launch' | 'interface';
@@ -43,24 +44,6 @@ export const App = () => {
     InstalledVersion[]
   >([]);
   const { colorScheme } = useMantineColorScheme();
-
-  const getDisplayNameFromPath = (
-    installedVersion: InstalledVersion
-  ): string => {
-    const pathParts = installedVersion.path.split(/[/\\]/);
-    const launcherIndex = pathParts.findIndex(
-      (part) =>
-        part === 'koboldcpp-launcher' ||
-        part === 'koboldcpp.exe' ||
-        part === 'koboldcpp'
-    );
-
-    if (launcherIndex > 0) {
-      return pathParts[launcherIndex - 1];
-    }
-
-    return installedVersion.filename;
-  };
 
   useEffect(() => {
     const checkInstallation = async () => {

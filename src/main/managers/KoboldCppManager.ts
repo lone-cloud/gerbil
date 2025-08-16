@@ -648,10 +648,8 @@ export class KoboldCppManager {
         }
 
         const release = await response.json();
-        const rocmAsset = release.assets?.find(
-          (asset: GitHubAsset) =>
-            asset.name.endsWith('rocm.exe') &&
-            !asset.name.includes('rocm_b2.exe')
+        const rocmAsset = release.assets?.find((asset: GitHubAsset) =>
+          asset.name.endsWith('rocm.exe')
         );
 
         if (rocmAsset) {
@@ -850,9 +848,7 @@ export class KoboldCppManager {
           const pathParts = v.path.split(/[/\\]/);
           const launcherIndex = pathParts.findIndex(
             (part) =>
-              part === 'koboldcpp-launcher' ||
-              part === 'koboldcpp.exe' ||
-              part === 'koboldcpp'
+              part === 'koboldcpp-launcher' || part === 'koboldcpp-launcher.exe'
           );
 
           if (launcherIndex > 0) {
