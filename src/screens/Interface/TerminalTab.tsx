@@ -10,13 +10,9 @@ import { ChevronDown } from 'lucide-react';
 
 interface TerminalTabProps {
   onServerReady?: (serverUrl: string) => void;
-  serverOnly?: boolean;
 }
 
-export const TerminalTab = ({
-  onServerReady,
-  serverOnly,
-}: TerminalTabProps) => {
+export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
   const { colorScheme } = useMantineColorScheme();
   const [terminalContent, setTerminalContent] = useState<string>('');
   const [isUserScrolling, setIsUserScrolling] = useState<boolean>(false);
@@ -56,7 +52,6 @@ export const TerminalTab = ({
         const newData = data.toString();
 
         if (
-          !serverOnly &&
           onServerReady &&
           newData.includes('Please connect to custom endpoint at ')
         ) {
@@ -95,7 +90,7 @@ export const TerminalTab = ({
     });
 
     return cleanup;
-  }, [onServerReady, serverOnly]);
+  }, [onServerReady]);
 
   const scrollToBottom = () => {
     if (viewportRef.current) {

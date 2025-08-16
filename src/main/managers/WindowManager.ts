@@ -337,6 +337,7 @@ OS: ${osInfo}`;
 
     const response = await dialog.showMessageBox(this.mainWindow!, {
       type: 'info',
+      title: 'Friendly Kobold',
       message: 'Friendly Kobold',
       detail: aboutText,
       buttons: ['Copy', 'OK'],

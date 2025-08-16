@@ -249,7 +249,12 @@ export const App = () => {
                 value={activeInterfaceTab}
                 onChange={setActiveInterfaceTab}
                 data={[
-                  { value: 'chat', label: 'KoboldAI Lite' },
+                  {
+                    value: 'chat',
+                    label: isImageGenerationMode
+                      ? 'Stable UI'
+                      : 'KoboldAI Lite',
+                  },
                   { value: 'terminal', label: 'Terminal' },
                 ]}
                 placeholder="Select view"

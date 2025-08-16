@@ -36,7 +36,6 @@ export const LaunchScreen = ({
   const [newConfigName, setNewConfigName] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const {
-    serverOnly,
     gpuLayers,
     autoGpuLayers,
     contextSize,
@@ -63,7 +62,6 @@ export const LaunchScreen = ({
     parseAndApplyConfigFile,
     loadSavedSettings,
     loadConfigFromFile,
-    handleServerOnlyChange,
     handleGpuLayersChange,
     handleAutoGpuLayersChange,
     handleContextSizeChangeWithStep,
@@ -155,11 +153,6 @@ export const LaunchScreen = ({
 
   const handleAdditionalArgumentsChangeWithTracking = (args: string) => {
     handleAdditionalArgumentsChange(args);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleServerOnlyChangeWithTracking = (serverOnly: boolean) => {
-    handleServerOnlyChange(serverOnly);
     setHasUnsavedChanges(true);
   };
 
@@ -472,7 +465,6 @@ export const LaunchScreen = ({
               <Tabs.Panel value="advanced" pt="md">
                 <AdvancedTab
                   additionalArguments={additionalArguments}
-                  serverOnly={serverOnly}
                   noshift={noshift}
                   flashattention={flashattention}
                   noavx2={noavx2}
@@ -480,7 +472,6 @@ export const LaunchScreen = ({
                   onAdditionalArgumentsChange={
                     handleAdditionalArgumentsChangeWithTracking
                   }
-                  onServerOnlyChange={handleServerOnlyChangeWithTracking}
                   onNoshiftChange={handleNoshiftChangeWithTracking}
                   onFlashattentionChange={
                     handleFlashattentionChangeWithTracking

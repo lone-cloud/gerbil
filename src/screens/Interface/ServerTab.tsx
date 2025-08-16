@@ -39,10 +39,10 @@ export const ServerTab = ({
   }
 
   const iframeUrl =
-    mode === 'image-generation' ? `${serverUrl}/sdapi/v1` : serverUrl;
+    mode === 'image-generation' ? `${serverUrl}/sdui` : serverUrl;
   const title =
     mode === 'image-generation'
-      ? 'KoboldCpp Image Generation Interface'
+      ? 'Stable UI Interface'
       : 'KoboldAI Lite Interface';
 
   return (

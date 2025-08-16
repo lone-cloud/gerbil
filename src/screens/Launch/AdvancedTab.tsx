@@ -3,13 +3,11 @@ import { InfoTooltip } from '@/components/InfoTooltip';
 
 interface AdvancedTabProps {
   additionalArguments: string;
-  serverOnly: boolean;
   noshift: boolean;
   flashattention: boolean;
   noavx2: boolean;
   failsafe: boolean;
   onAdditionalArgumentsChange: (args: string) => void;
-  onServerOnlyChange: (serverOnly: boolean) => void;
   onNoshiftChange: (noshift: boolean) => void;
   onFlashattentionChange: (flashattention: boolean) => void;
   onNoavx2Change: (noavx2: boolean) => void;
@@ -18,13 +16,11 @@ interface AdvancedTabProps {
 
 export const AdvancedTab = ({
   additionalArguments,
-  serverOnly,
   noshift,
   flashattention,
   noavx2,
   failsafe,
   onAdditionalArgumentsChange,
-  onServerOnlyChange,
   onNoshiftChange,
   onFlashattentionChange,
   onNoavx2Change,
@@ -37,19 +33,6 @@ export const AdvancedTab = ({
           <div style={{ minWidth: '200px' }}>
             <Group gap="xs" align="center">
               <Checkbox
-                checked={serverOnly}
-                onChange={(event) =>
-                  onServerOnlyChange(event.currentTarget.checked)
-                }
-                label="Server-only mode"
-              />
-              <InfoTooltip label="In server-only mode, the KoboldAI Lite web UI won't be displayed. Use this if you'll be using your own frontend." />
-            </Group>
-          </div>
-
-          <div style={{ minWidth: '200px' }}>
-            <Group gap="xs" align="center">
-              <Checkbox
                 checked={!noshift}
                 onChange={(event) =>
                   onNoshiftChange(!event.currentTarget.checked)
@@ -59,9 +42,7 @@ export const AdvancedTab = ({
               <InfoTooltip label="Use Context Shifting to reduce reprocessing. Recommended" />
             </Group>
           </div>
-        </Group>
 
-        <Group gap="lg" align="flex-start" wrap="nowrap">
           <div style={{ minWidth: '200px' }}>
             <Group gap="xs" align="center">
               <Checkbox
@@ -74,7 +55,9 @@ export const AdvancedTab = ({
               <InfoTooltip label="Enable flash attention for GGUF models." />
             </Group>
           </div>
+        </Group>
 
+        <Group gap="lg" align="flex-start" wrap="nowrap">
           <div style={{ minWidth: '200px' }}>
             <Group gap="xs" align="center">
               <Checkbox
@@ -87,15 +70,19 @@ export const AdvancedTab = ({
               <InfoTooltip label="Do not use AVX2 instructions, a slower compatibility mode for older devices." />
             </Group>
           </div>
-        </Group>
 
-        <Group gap="xs" align="center">
-          <Checkbox
-            checked={failsafe}
-            onChange={(event) => onFailsafeChange(event.currentTarget.checked)}
-            label="Failsafe"
-          />
-          <InfoTooltip label="Use failsafe mode, extremely slow CPU only compatibility mode that should work on all devices. Can be combined with useclblast if your device supports OpenCL." />
+          <div style={{ minWidth: '200px' }}>
+            <Group gap="xs" align="center">
+              <Checkbox
+                checked={failsafe}
+                onChange={(event) =>
+                  onFailsafeChange(event.currentTarget.checked)
+                }
+                label="Failsafe"
+              />
+              <InfoTooltip label="Use failsafe mode, extremely slow CPU only compatibility mode that should work on all devices. Can be combined with useclblast if your device supports OpenCL." />
+            </Group>
+          </div>
         </Group>
       </Stack>
     </div>

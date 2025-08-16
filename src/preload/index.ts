@@ -124,9 +124,6 @@ const appAPI: AppAPI = {
 };
 
 const configAPI: ConfigAPI = {
-  getServerOnly: () => ipcRenderer.invoke('config:getServerOnly'),
-  setServerOnly: (serverOnly: boolean) =>
-    ipcRenderer.invoke('config:setServerOnly', serverOnly),
   get: (key: string) => ipcRenderer.invoke('config:get', key),
   set: (key: string, value: unknown) =>
     ipcRenderer.invoke('config:set', key, value),
