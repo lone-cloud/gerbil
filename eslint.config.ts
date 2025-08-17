@@ -13,7 +13,15 @@ import noComments from 'eslint-plugin-no-comments';
 const config = [
   js.configs.recommended,
   {
-    ignores: ['dist', 'dist-electron', 'out', 'electron', 'scripts'],
+    ignores: [
+      'dist',
+      'dist-electron',
+      'out',
+      'electron',
+      'scripts',
+      'release',
+      'build',
+    ],
   },
   {
     files: ['**/*.{js,mjs,cjs,ts,tsx}'],
@@ -100,7 +108,7 @@ const config = [
       'arrow-body-style': ['error', 'as-needed'],
       'prefer-arrow-callback': ['error', { allowNamedFunctions: false }],
 
-      'no-console': ['error', { allow: ['warn', 'error'] }],
+      'no-console': 'error',
 
       '@typescript-eslint/no-inferrable-types': 'warn',
       '@typescript-eslint/explicit-function-return-type': 'off',

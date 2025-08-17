@@ -58,7 +58,10 @@ export const AdvancedTab = ({
           });
         }
       } catch (error) {
-        console.warn('Failed to detect backend support:', error);
+        window.electronAPI.logs.logError(
+          'Failed to detect backend support:',
+          error as Error
+        );
         setBackendSupport({ noavx2: false, failsafe: false });
       } finally {
         setIsLoading(false);

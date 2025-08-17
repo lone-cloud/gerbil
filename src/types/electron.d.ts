@@ -164,12 +164,22 @@ export interface ConfigAPI {
   set: (key: string, value: unknown) => Promise<void>;
 }
 
+export interface LogsAPI {
+  logError: (message: string, error?: Error) => Promise<void>;
+}
+
+interface SystemAPI {
+  installIcon: () => Promise<{ success: boolean; error?: string }>;
+}
+
 declare global {
   interface Window {
     electronAPI: {
       kobold: KoboldAPI;
       app: AppAPI;
       config: ConfigAPI;
+      logs: LogsAPI;
+      system: SystemAPI;
     };
   }
 }

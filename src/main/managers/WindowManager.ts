@@ -1,36 +1,61 @@
-import {
-  BrowserWindow,
-  app,
-  Menu,
-  shell,
-  Tray,
-  nativeImage,
-  dialog,
-  clipboard,
-} from 'electron';
+import { BrowserWindow, app, Menu, shell, ipcMain } from 'electron';
 import * as os from 'os';
 import { join } from 'path';
-import { ConfigManager } from './ConfigManager';
 
 export class WindowManager {
   private mainWindow: BrowserWindow | null = null;
-  private tray: Tray | null = null;
-  private configManager: ConfigManager;
 
-  constructor(configManager: ConfigManager) {
-    this.configManager = configManager;
+  constructor() {}
+
+  private getIconPath(): string {
+    if (process.env.NODE_ENV === 'development') {
+      return join(__dirname, '../../assets/icon.png');
+    }
+    return join(process.resourcesPath, 'assets/icon.png');
+  }
+
+  private isDevelopment(): boolean {
+    return process.env.NODE_ENV === 'development' || !app.isPackaged;
   }
 
   createMainWindow(): BrowserWindow {
+    const iconPath = this.getIconPath();
+
     this.mainWindow = new BrowserWindow({
       width: 1000,
       height: 600,
-      icon: join(app.getAppPath(), 'assets', 'icon.png'),
+      icon: iconPath,
+      title: 'Friendly Kobold',
+      show: false,
+      backgroundColor: '#ffffff',
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
         preload: join(__dirname, '../preload/index.js'),
+        backgroundThrottling: false,
+        offscreen: false,
+        spellcheck: false,
       },
+    });
+
+    if (process.platform === 'linux') {
+      this.mainWindow.setIcon(iconPath);
+
+      if (
+        process.env.WAYLAND_DISPLAY ||
+        process.env.XDG_SESSION_TYPE === 'wayland'
+      ) {
+        this.mainWindow.setRepresentedFilename('');
+        setTimeout(() => {
+          if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+            this.mainWindow.setIcon(iconPath);
+          }
+        }, 100);
+      }
+    }
+
+    this.mainWindow.once('ready-to-show', () => {
+      this.mainWindow?.show();
     });
 
     if (process.env.VITE_DEV_SERVER_URL) {
@@ -38,17 +63,12 @@ export class WindowManager {
     } else if (process.env.NODE_ENV === 'development') {
       this.mainWindow.loadURL('http://localhost:5173');
     } else {
-      this.mainWindow.loadFile(join(__dirname, '../dist/index.html'));
+      this.mainWindow.loadFile(join(__dirname, '../../dist/index.html'));
     }
 
     this.mainWindow.on('closed', () => {
       this.mainWindow = null;
     });
-
-    const minimizeToTray = this.configManager.get('minimizeToTray') === true;
-    if (minimizeToTray && !this.tray) {
-      this.createSystemTray();
-    }
 
     this.mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
       const url = new URL(navigationUrl);
@@ -80,23 +100,6 @@ export class WindowManager {
       app.quit();
     });
 
-    this.mainWindow.on('minimize', () => {
-      const minimizeToTray = this.configManager.get('minimizeToTray') === true;
-
-      if (minimizeToTray) {
-        if (!this.tray) {
-          this.createSystemTray();
-        }
-
-        if (this.tray) {
-          setTimeout(() => {
-            this.mainWindow?.setSkipTaskbar(true);
-            this.mainWindow?.hide();
-          }, 100);
-        }
-      }
-    });
-
     this.setupContextMenu();
     return this.mainWindow;
   }
@@ -105,82 +108,9 @@ export class WindowManager {
     return this.mainWindow;
   }
 
-  private createSystemTray() {
-    try {
-      const iconPath = join(app.getAppPath(), 'assets', 'icon.png');
-
-      const image = nativeImage.createFromPath(iconPath);
-      if (!image.isEmpty()) {
-        const resizedImage = image.resize({ width: 16, height: 16 });
-        this.tray = new Tray(resizedImage);
-      } else {
-        this.tray = new Tray(image);
-      }
-
-      this.tray.setToolTip('Friendly Kobold');
-
-      const trayMenu = Menu.buildFromTemplate([
-        {
-          label: 'Show',
-          click: () => {
-            this.mainWindow?.setSkipTaskbar(false);
-            this.mainWindow?.show();
-            this.mainWindow?.focus();
-          },
-        },
-        { type: 'separator' },
-        {
-          label: 'Quit',
-          click: () => {
-            app.quit();
-          },
-        },
-      ]);
-
-      this.tray.setContextMenu(trayMenu);
-
-      this.tray.on('click', () => {
-        this.mainWindow?.setSkipTaskbar(false);
-        this.mainWindow?.show();
-        this.mainWindow?.focus();
-      });
-
-      this.tray.on('double-click', () => {
-        if (this.mainWindow?.isVisible()) {
-          this.mainWindow.setSkipTaskbar(true);
-          this.mainWindow.hide();
-        } else {
-          this.mainWindow?.setSkipTaskbar(false);
-          this.mainWindow?.show();
-          this.mainWindow?.focus();
-        }
-      });
-    } catch (error) {
-      console.warn('Failed to create system tray:', error);
-      this.tray = null;
-    }
-  }
-
   public cleanup() {
-    if (this.tray) {
-      this.tray.removeAllListeners();
-      this.tray.destroy();
-      this.tray = null;
-    }
-
     if (this.mainWindow) {
       this.mainWindow.removeAllListeners();
-    }
-  }
-
-  public ensureTrayExists() {
-    const minimizeToTray = this.configManager.get('minimizeToTray') === true;
-    if (minimizeToTray && !this.tray) {
-      this.createSystemTray();
-    } else if (!minimizeToTray && this.tray) {
-      this.tray.removeAllListeners();
-      this.tray.destroy();
-      this.tray = null;
     }
   }
 
@@ -189,20 +119,28 @@ export class WindowManager {
 
     this.mainWindow.webContents.on('context-menu', (_event, params) => {
       const hasLinkURL = !!params.linkURL;
+      const isDev = this.isDevelopment();
 
-      const menu = Menu.buildFromTemplate([
-        {
-          label: 'Inspect Element',
-          click: () => {
-            this.mainWindow?.webContents.inspectElement(params.x, params.y);
-          },
-        },
-        { type: 'separator' },
-        { label: 'Cut', role: 'cut' },
-        { label: 'Copy', role: 'copy' },
-        { label: 'Paste', role: 'paste' },
-        { type: 'separator' },
-        { label: 'Select All', role: 'selectAll' },
+      const menuTemplate = [
+        ...(isDev
+          ? [
+              {
+                label: 'Inspect Element',
+                click: () => {
+                  this.mainWindow?.webContents.inspectElement(
+                    params.x,
+                    params.y
+                  );
+                },
+              },
+            ]
+          : []),
+        ...(isDev ? [{ type: 'separator' as const }] : []),
+        { label: 'Cut', role: 'cut' as const },
+        { label: 'Copy', role: 'copy' as const },
+        { label: 'Paste', role: 'paste' as const },
+        { type: 'separator' as const },
+        { label: 'Select All', role: 'selectAll' as const },
         ...(hasLinkURL ? [{ type: 'separator' as const }] : []),
         {
           label: 'Open Link in Browser',
@@ -213,13 +151,16 @@ export class WindowManager {
             }
           },
         },
-      ]);
+      ];
 
+      const menu = Menu.buildFromTemplate(menuTemplate);
       menu.popup({ window: this.mainWindow! });
     });
   }
 
   setupApplicationMenu() {
+    const isDev = this.isDevelopment();
+
     const template = [
       {
         label: 'File',
@@ -247,22 +188,30 @@ export class WindowManager {
       {
         label: 'View',
         submenu: [
-          { label: 'Reload', accelerator: 'CmdOrCtrl+R', role: 'reload' },
-          {
-            label: 'Force Reload',
-            accelerator: 'CmdOrCtrl+Shift+R',
-            role: 'forceReload',
-          },
-          {
-            label: 'Toggle Developer Tools',
-            accelerator: 'F12',
-            click: () => {
-              if (this.mainWindow) {
-                this.mainWindow.webContents.toggleDevTools();
-              }
-            },
-          },
-          { type: 'separator' },
+          ...(isDev
+            ? [
+                {
+                  label: 'Reload',
+                  accelerator: 'CmdOrCtrl+R',
+                  role: 'reload' as const,
+                },
+                {
+                  label: 'Force Reload',
+                  accelerator: 'CmdOrCtrl+Shift+R',
+                  role: 'forceReload' as const,
+                },
+                {
+                  label: 'Toggle Developer Tools',
+                  accelerator: 'F12',
+                  click: () => {
+                    if (this.mainWindow) {
+                      this.mainWindow.webContents.toggleDevTools();
+                    }
+                  },
+                },
+                { type: 'separator' as const },
+              ]
+            : []),
           {
             label: 'Actual Size',
             accelerator: 'CmdOrCtrl+0',
@@ -294,15 +243,14 @@ export class WindowManager {
               shell.openExternal('https://github.com/LostRuins/koboldcpp/wiki');
             },
           },
-          { type: 'separator' },
           {
-            label: 'View on GitHub',
+            label: 'Open Logs Directory',
             click: () => {
-              shell.openExternal(
-                'https://github.com/lone-cloud/friendly-kobold'
-              );
+              const logsDir = join(app.getPath('userData'), 'logs');
+              shell.openPath(logsDir);
             },
           },
+          { type: 'separator' },
           {
             label: 'About',
             click: async () => {
@@ -328,24 +276,59 @@ export class WindowManager {
     const v8Version = process.versions.v8;
     const osInfo = `${process.platform} ${process.arch} ${os.release()}`;
 
-    const aboutText = `Version: ${packageInfo.version}
+    const versionText = `Version: ${packageInfo.version}
 Electron: ${electronVersion}
 Chromium: ${chromeVersion}
 Node.js: ${nodeVersion}
 V8: ${v8Version}
 OS: ${osInfo}`;
 
-    const response = await dialog.showMessageBox(this.mainWindow!, {
-      type: 'info',
-      title: 'Friendly Kobold',
-      message: 'Friendly Kobold',
-      detail: aboutText,
-      buttons: ['Copy', 'OK'],
-      defaultId: 1,
+    const aboutWindow = new BrowserWindow({
+      width: 500,
+      height: 400,
+      modal: true,
+      parent: this.mainWindow!,
+      resizable: false,
+      minimizable: false,
+      maximizable: false,
+      show: false,
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: false,
+      },
     });
 
-    if (response.response === 0) {
-      clipboard.writeText(aboutText);
+    aboutWindow.setMenu(null);
+
+    const htmlPath = this.getTemplatePath('about-dialog.html');
+    await aboutWindow.loadFile(htmlPath);
+
+    aboutWindow.webContents.executeJavaScript(
+      `setVersionInfo(\`${versionText}\`)`
+    );
+
+    aboutWindow.once('ready-to-show', () => {
+      aboutWindow.show();
+    });
+
+    ipcMain.once('open-github', () => {
+      shell.openExternal('https://github.com/lone-cloud/friendly-kobold');
+    });
+
+    ipcMain.once('close-about-dialog', () => {
+      aboutWindow.close();
+    });
+
+    aboutWindow.on('closed', () => {
+      ipcMain.removeAllListeners('open-github');
+      ipcMain.removeAllListeners('close-about-dialog');
+    });
+  }
+
+  private getTemplatePath(filename: string): string {
+    if (process.env.NODE_ENV === 'development') {
+      return join(__dirname, '../../src/main/templates', filename);
     }
+    return join(process.resourcesPath, 'templates', filename);
   }
 }

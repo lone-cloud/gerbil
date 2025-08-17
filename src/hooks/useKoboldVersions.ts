@@ -76,7 +76,10 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
           hasROCm = rocmInfo.supported;
         }
       } catch (gpuError) {
-        console.warn('GPU detection failed:', gpuError);
+        window.electronAPI.logs.logError(
+          'GPU detection failed:',
+          gpuError as Error
+        );
       }
 
       setPlatformInfo({
@@ -85,7 +88,10 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
         hasROCm,
       });
     } catch (error) {
-      console.error('Failed to load platform info:', error);
+      window.electronAPI.logs.logError(
+        'Failed to load platform info:',
+        error as Error
+      );
     } finally {
       setLoadingPlatform(false);
     }
@@ -113,7 +119,10 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
         setFilteredAssets(filtered);
       }
     } catch (error) {
-      console.error('Failed to load remote versions:', error);
+      window.electronAPI.logs.logError(
+        'Failed to load remote versions:',
+        error as Error
+      );
     } finally {
       setLoadingRemote(false);
     }
@@ -137,7 +146,10 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
 
         return result.success !== false;
       } catch (error) {
-        console.error(`Failed to download ${type}:`, error);
+        window.electronAPI.logs.logError(
+          `Failed to download ${type}:`,
+          error as Error
+        );
         return false;
       } finally {
         setDownloading(null);

@@ -5,6 +5,7 @@ import { homedir } from 'os';
 
 import { WindowManager } from '@/main/managers/WindowManager';
 import { ConfigManager } from '@/main/managers/ConfigManager';
+import { LogManager } from '@/main/managers/LogManager';
 import { KoboldCppManager } from '@/main/managers/KoboldCppManager';
 import { GitHubService } from '@/main/services/GitHubService';
 import { HardwareService } from '@/main/services/HardwareService';
@@ -15,6 +16,7 @@ import { APP_NAME, CONFIG_FILE_NAME } from '@/constants';
 class FriendlyKoboldApp {
   private windowManager: WindowManager;
   private configManager: ConfigManager;
+  private logManager: LogManager;
   private koboldManager: KoboldCppManager;
   private githubService: GitHubService;
   private hardwareService: HardwareService;
@@ -22,24 +24,33 @@ class FriendlyKoboldApp {
   private ipcHandlers: IPCHandlers;
 
   constructor() {
-    this.configManager = new ConfigManager(this.getConfigPath());
-    this.ensureInstallDirectory();
+    this.logManager = new LogManager();
+    this.logManager.setupGlobalErrorHandlers();
 
-    this.windowManager = new WindowManager(this.configManager);
-    this.githubService = new GitHubService();
+    this.configManager = new ConfigManager(
+      this.getConfigPath(),
+      this.logManager
+    );
+    this.ensureInstallDirectory();
+    this.windowManager = new WindowManager();
+    this.githubService = new GitHubService(this.logManager);
     this.hardwareService = new HardwareService();
-    this.binaryService = new BinaryService();
+    this.binaryService = new BinaryService(this.logManager);
+
     this.koboldManager = new KoboldCppManager(
       this.configManager,
       this.githubService,
-      this.windowManager
+      this.windowManager,
+      this.logManager
     );
+
     this.ipcHandlers = new IPCHandlers(
       this.koboldManager,
       this.configManager,
       this.githubService,
       this.hardwareService,
-      this.binaryService
+      this.binaryService,
+      this.logManager
     );
   }
 
@@ -75,14 +86,11 @@ class FriendlyKoboldApp {
   }
 
   async initialize(): Promise<void> {
-    if (process.platform === 'linux') {
-      if (process.env.ELECTRON_OZONE_PLATFORM_HINT === 'wayland') {
-        app.commandLine.appendSwitch('enable-features', 'UseOzonePlatform');
-        app.commandLine.appendSwitch('ozone-platform', 'wayland');
-      }
-    }
-
     await app.whenReady();
+
+    if (process.platform === 'linux') {
+      app.setAppUserModelId('com.friendly-kobold.app');
+    }
 
     this.windowManager.setupApplicationMenu();
     this.windowManager.createMainWindow();
@@ -109,7 +117,10 @@ class FriendlyKoboldApp {
 
         await Promise.race([cleanupPromise, timeoutPromise]);
       } catch (error) {
-        console.error('Error during KoboldCpp cleanup:', error);
+        this.logManager.logError(
+          'Error during KoboldCpp cleanup:',
+          error as Error
+        );
       }
 
       this.windowManager.cleanup();
@@ -131,4 +142,7 @@ class FriendlyKoboldApp {
 }
 
 const friendlyKoboldApp = new FriendlyKoboldApp();
-friendlyKoboldApp.initialize().catch(console.error);
+friendlyKoboldApp.initialize().catch((error) => {
+  // eslint-disable-next-line no-console
+  console.error('Failed to initialize FriendlyKobold:', error);
+});

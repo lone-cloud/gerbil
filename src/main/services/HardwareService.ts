@@ -36,6 +36,7 @@ export class HardwareService {
 
       return this.cpuCapabilitiesCache;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('CPU detection failed:', error);
       const fallbackCapabilities = {
         avx: false,
@@ -96,6 +97,7 @@ export class HardwareService {
 
       return this.basicGPUInfoCache;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('GPU detection failed:', error);
       const fallbackGPUInfo = {
         hasAMD: false,

@@ -3,6 +3,8 @@ import type {
   KoboldAPI,
   AppAPI,
   ConfigAPI,
+  LogsAPI,
+  SystemAPI,
   UpdateInfo,
 } from '@/types/electron';
 import type { GPUCapabilities } from '@/types/hardware';
@@ -142,8 +144,19 @@ const configAPI: ConfigAPI = {
     ipcRenderer.invoke('config:set', key, value),
 };
 
+const logsAPI: LogsAPI = {
+  logError: (message: string, error?: Error) =>
+    ipcRenderer.invoke('logs:logError', message, error),
+};
+
+const systemAPI: SystemAPI = {
+  installIcon: () => ipcRenderer.invoke('system:installIcon'),
+};
+
 contextBridge.exposeInMainWorld('electronAPI', {
   kobold: koboldAPI,
   app: appAPI,
   config: configAPI,
+  logs: logsAPI,
+  system: systemAPI,
 });

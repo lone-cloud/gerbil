@@ -1,7 +1,7 @@
 {
   "name": "friendly-kobold",
   "productName": "Friendly Kobold",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A modern Electron shell for KoboldCpp",
   "main": "out/main/index.js",
   "homepage": "./",
@@ -92,7 +92,7 @@
   "build": {
     "appId": "com.friendly-kobold.app",
     "productName": "Friendly Kobold",
-    "compression": "maximum",
+    "compression": "normal",
     "icon": "assets/icon.png",
     "publish": null,
     "directories": {
@@ -100,22 +100,27 @@
     },
     "files": [
       "out/**/*",
-      "!**/node_modules/**/*",
-      "!out/renderer/node_modules/**/*",
-      "!**/*.map",
-      "!**/*.ts",
-      "!**/*.tsx",
-      "!**/test/**/*",
-      "!**/tests/**/*",
-      "!**/__tests__/**/*",
-      "!**/coverage/**/*",
-      "!**/.nyc_output/**/*",
-      "package.json"
+      "dist/**/*",
+      "assets/**/*"
     ],
-    "asarUnpack": [
-      "!**/node_modules/**/*"
+    "extraResources": [
+      {
+        "from": "assets",
+        "to": "assets",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "src/main/templates",
+        "to": "templates",
+        "filter": [
+          "**/*"
+        ]
+      }
     ],
     "mac": {
+      "compression": "maximum",
       "category": "public.app-category.productivity",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
@@ -131,6 +136,7 @@
       ]
     },
     "win": {
+      "compression": "maximum",
       "target": [
         {
           "target": "nsis",
@@ -141,6 +147,7 @@
       ]
     },
     "linux": {
+      "compression": "store",
       "category": "Development",
       "desktop": {
         "entry": {

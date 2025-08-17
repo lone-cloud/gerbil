@@ -64,7 +64,10 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
           }, 200);
         }
       } catch (error) {
-        console.error(`Failed to download ${type}:`, error);
+        window.electronAPI.logs.logError(
+          `Failed to download ${type}:`,
+          error as Error
+        );
       } finally {
         setDownloadingType(null);
         setDownloadingAsset(null);
