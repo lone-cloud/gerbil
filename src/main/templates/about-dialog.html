@@ -13,6 +13,7 @@
         color: #333;
         line-height: 1.6;
       }
+
       .container {
         max-width: 400px;
         margin: 0 auto;
@@ -63,12 +64,53 @@
         background: #f0f0f0;
       }
       .primary {
-        background: #0366d6;
+        background: #228be6;
         color: white;
-        border-color: #0366d6;
+        border-color: #228be6;
       }
       .primary:hover {
-        background: #0256c7;
+        background: #1c7ed6;
+      }
+
+      /* Dark mode styles - moved to end to ensure proper override */
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: #1a1a1a !important;
+          color: #e0e0e0 !important;
+        }
+        .container {
+          background: #2d2d2d !important;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
+        }
+        h1 {
+          color: #ffffff !important;
+        }
+        .version-info {
+          background: #3a3a3a !important;
+          color: #e0e0e0 !important;
+        }
+        .github-link {
+          color: #58a6ff !important;
+        }
+        .github-link:hover {
+          color: #79c0ff !important;
+        }
+        button {
+          background: #3a3a3a !important;
+          border-color: #555 !important;
+          color: #e0e0e0 !important;
+        }
+        button:hover {
+          background: #4a4a4a !important;
+        }
+        .primary {
+          background: #228be6 !important;
+          border-color: #228be6 !important;
+          color: white !important;
+        }
+        .primary:hover {
+          background: #1c7ed6 !important;
+        }
       }
     </style>
   </head>

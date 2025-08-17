@@ -926,11 +926,6 @@ export class KoboldCppManager {
       const child = spawn(currentVersion.path, finalArgs, {
         stdio: ['pipe', 'pipe', 'pipe'],
         detached: false,
-        env: {
-          ...process.env,
-          PYTHONDONTWRITEBYTECODE: '1',
-          PYTHONUNBUFFERED: '1',
-        },
       });
 
       this.koboldProcess = child;
@@ -962,8 +957,12 @@ export class KoboldCppManager {
         child.on('exit', (code, signal) => {
           if (mainWindow && !mainWindow.isDestroyed()) {
             const displayMessage = signal
-              ? `\nProcess terminated with signal ${signal}\n`
-              : `\nProcess exited with code ${code}\n`;
+              ? `\n[INFO] Process terminated with signal ${signal}\n`
+              : code === 0
+                ? `\n[INFO] Process exited successfully\n`
+                : code && (code > 1 || code < 0)
+                  ? `\n[ERROR] Process exited with code ${code}\n`
+                  : `\n[INFO] Process exited with code ${code}\n`;
             mainWindow.webContents.send('kobold-output', displayMessage);
           }
           this.koboldProcess = null;
@@ -978,7 +977,7 @@ export class KoboldCppManager {
           if (mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.webContents.send(
               'kobold-output',
-              `\nProcess error: ${error.message}\n`
+              `\n[ERROR] Process error: ${error.message}\n`
             );
           }
           this.koboldProcess = null;
