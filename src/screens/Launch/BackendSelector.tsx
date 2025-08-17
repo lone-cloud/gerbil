@@ -1,15 +1,6 @@
-import {
-  Text,
-  Group,
-  Select,
-  Badge,
-  Card,
-  useMantineColorScheme,
-  ActionIcon,
-  Tooltip,
-} from '@mantine/core';
+import { Text, Group, Select, Badge, ActionIcon, Tooltip } from '@mantine/core';
 import { useState, useEffect } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Info } from 'lucide-react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 
 interface BackendSelectorProps {
@@ -29,9 +20,6 @@ export const BackendSelector = ({
   noavx2 = false,
   failsafe = false,
 }: BackendSelectorProps) => {
-  const { colorScheme } = useMantineColorScheme();
-  const isDark = colorScheme === 'dark';
-
   const [availableBackends, setAvailableBackends] = useState<
     Array<{ value: string; label: string; devices?: string[] }>
   >([]);
@@ -120,6 +108,17 @@ export const BackendSelector = ({
       });
     }
 
+    if (
+      availableBackends.length > 0 &&
+      availableBackends.some((b) => b.value === 'cpu')
+    ) {
+      warnings.push({
+        type: 'info',
+        message:
+          "Performance Note: LLMs run significantly faster on GPU-accelerated systems. Consider using NVIDIA's CUDA or AMD's ROCm backends for optimal performance.",
+      });
+    }
+
     return warnings;
   };
 
@@ -131,6 +130,7 @@ export const BackendSelector = ({
         </Text>
         <InfoTooltip label="Select a backend to use. CUDA runs on Nvidia GPUs, and is much faster. ROCm is the AMD equivalent. Vulkan and CLBlast works on all GPUs but are somewhat slower." />
         {!isLoadingBackends &&
+          availableBackends.length > 0 &&
           getWarnings().map((warning, index) => (
             <Tooltip
               key={index}
@@ -139,8 +139,16 @@ export const BackendSelector = ({
               w={300}
               withArrow
             >
-              <ActionIcon size="sm" color="orange" variant="light">
-                <AlertTriangle size={14} />
+              <ActionIcon
+                size="sm"
+                color={warning.type === 'warning' ? 'orange' : 'blue'}
+                variant="light"
+              >
+                {warning.type === 'warning' ? (
+                  <AlertTriangle size={14} />
+                ) : (
+                  <Info size={14} />
+                )}
               </ActionIcon>
             </Tooltip>
           ))}
@@ -206,20 +214,6 @@ export const BackendSelector = ({
                 </Badge>
               ))}
           </Group>
-        )}
-      {!isLoadingBackends &&
-        backend === 'cpu' &&
-        availableBackends.length > 0 && (
-          <Card withBorder p="sm" mt="xs" bg={isDark ? 'blue.9' : 'blue.0'}>
-            <Text size="sm" c={isDark ? 'blue.2' : 'blue.8'}>
-              <Text component="span" fw={600}>
-                Performance Note:
-              </Text>{' '}
-              LLMs run significantly faster on GPU-accelerated systems. Consider
-              using NVIDIA&apos;s CUDA or AMD&apos;s ROCm backends for optimal
-              performance.
-            </Text>
-          </Card>
         )}
     </div>
   );

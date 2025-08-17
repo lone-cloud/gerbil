@@ -11,7 +11,8 @@ import {
   useMantineColorScheme,
 } from '@mantine/core';
 import { Settings, ArrowLeft } from 'lucide-react';
-import { StyledTooltip } from './StyledTooltip';
+import { StyledTooltip } from '../StyledTooltip';
+import { soundAssets, playSound } from '../../utils/sounds';
 import './AppHeader.css';
 
 type Screen = 'download' | 'launch' | 'interface';
@@ -44,21 +45,15 @@ export const AppHeader = ({
     try {
       if (logoClickCount >= 10 && Math.random() < 0.1) {
         setIsElephantMode(true);
-        const elephantAudio = new Audio('/assets/sounds/elephant-trunk.mp3');
-        elephantAudio.volume = 0.6;
-        elephantAudio.play().catch(() => {});
+        playSound(soundAssets.elephant, 0.6);
 
         setTimeout(() => {
           setIsElephantMode(false);
         }, 1500);
       } else {
         setIsMouseSqueaking(true);
-        const squeakNumber = Math.floor(Math.random() * 5) + 1;
-        const squeakAudio = new Audio(
-          `/assets/sounds/mouse-squeak${squeakNumber}.mp3`
-        );
-        squeakAudio.volume = 0.4;
-        squeakAudio.play().catch(() => {});
+        const squeakNumber = Math.floor(Math.random() * 5);
+        playSound(soundAssets.mouseSqueaks[squeakNumber], 0.4);
 
         setTimeout(() => {
           setIsMouseSqueaking(false);
@@ -94,7 +89,7 @@ export const AppHeader = ({
           ) : (
             <Group gap="xs" align="center">
               <Image
-                src="/assets/icon.png"
+                src="/icon.png"
                 alt="Friendly Kobold"
                 w={24}
                 h={24}

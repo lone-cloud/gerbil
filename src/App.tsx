@@ -122,6 +122,7 @@ export const App = () => {
   };
 
   const handleLaunch = () => {
+    setActiveInterfaceTab('terminal');
     setCurrentScreen('interface');
   };
 

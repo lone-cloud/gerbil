@@ -21,7 +21,6 @@ export const InterfaceScreen = ({
     (url: string) => {
       setServerUrl(url);
       setIsServerReady(true);
-
       if (onTabChange) {
         onTabChange(isImageGenerationMode ? 'image' : 'chat');
       }

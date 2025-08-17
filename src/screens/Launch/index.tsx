@@ -392,7 +392,7 @@ export const LaunchScreen = ({
         args.push('--port', actualPort.toString());
       }
 
-      if (host !== 'localhost') {
+      if (host !== 'localhost' && host !== '') {
         args.push('--host', host);
       }
 

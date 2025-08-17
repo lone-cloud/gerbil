@@ -139,6 +139,13 @@ const config = [
       'import/no-default-export': 'off',
     },
   },
+  {
+    files: ['**/*.d.ts'],
+    rules: {
+      'no-comments/disallowComments': 'off',
+      'import/no-default-export': 'off',
+    },
+  },
 ];
 
 export default config;

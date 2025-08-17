@@ -32,7 +32,7 @@ class FriendlyKoboldApp {
       this.logManager
     );
     this.ensureInstallDirectory();
-    this.windowManager = new WindowManager();
+    this.windowManager = new WindowManager(this.configManager);
     this.githubService = new GitHubService(this.logManager);
     this.hardwareService = new HardwareService();
     this.binaryService = new BinaryService(this.logManager);
