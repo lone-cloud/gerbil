@@ -1,6 +1,5 @@
-import { Text, Group, Select, Badge, ActionIcon, Tooltip } from '@mantine/core';
-import { useState, useEffect } from 'react';
-import { AlertTriangle, Info } from 'lucide-react';
+import { Text, Group, Select, Badge } from '@mantine/core';
+import { useState, useEffect, useRef } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 
 interface BackendSelectorProps {
@@ -10,6 +9,9 @@ interface BackendSelectorProps {
   onGpuDeviceChange?: (device: number) => void;
   noavx2?: boolean;
   failsafe?: boolean;
+  onWarningsChange?: (
+    warnings: Array<{ type: 'warning' | 'info'; message: string }>
+  ) => void;
 }
 
 export const BackendSelector = ({
@@ -19,20 +21,23 @@ export const BackendSelector = ({
   onGpuDeviceChange,
   noavx2 = false,
   failsafe = false,
+  onWarningsChange,
 }: BackendSelectorProps) => {
   const [availableBackends, setAvailableBackends] = useState<
     Array<{ value: string; label: string; devices?: string[] }>
   >([]);
-  const [isLoadingBackends, setIsLoadingBackends] = useState(true);
   const [cpuCapabilities, setCpuCapabilities] = useState<{
     avx: boolean;
     avx2: boolean;
   } | null>(null);
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
-    const detectAvailableBackends = async () => {
-      setIsLoadingBackends(true);
+    if (hasInitialized.current) return;
 
+    let timeoutId: number;
+
+    const loadBackends = async () => {
       try {
         const [currentBinaryInfo, cpuCapabilitiesResult, gpuCapabilities] =
           await Promise.all([
@@ -65,12 +70,12 @@ export const BackendSelector = ({
         }
 
         setAvailableBackends(backends);
+        hasInitialized.current = true;
 
-        if (
-          backends.length > 0 &&
-          (!backend || !backends.some((b) => b.value === backend))
-        ) {
-          onBackendChange(backends[0].value);
+        if (backends.length > 0 && !backend) {
+          timeoutId = window.setTimeout(() => {
+            onBackendChange(backends[0].value);
+          }, 10);
         }
       } catch (error) {
         window.electronAPI.logs.logError(
@@ -78,19 +83,27 @@ export const BackendSelector = ({
           error as Error
         );
         setAvailableBackends([]);
-      } finally {
-        setIsLoadingBackends(false);
       }
     };
 
-    void detectAvailableBackends();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [backend]);
+    loadBackends();
 
-  const getWarnings = () => {
-    if (backend !== 'cpu' || !cpuCapabilities) return [];
+    return () => {
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [backend, onBackendChange]);
 
-    const warnings = [];
+  useEffect(() => {
+    if (!onWarningsChange) return;
+
+    if (backend !== 'cpu' || !cpuCapabilities) {
+      onWarningsChange([]);
+      return;
+    }
+
+    const warnings: Array<{ type: 'warning' | 'info'; message: string }> = [];
 
     if (!cpuCapabilities.avx2 && !noavx2) {
       warnings.push({
@@ -119,8 +132,15 @@ export const BackendSelector = ({
       });
     }
 
-    return warnings;
-  };
+    onWarningsChange(warnings);
+  }, [
+    backend,
+    cpuCapabilities,
+    noavx2,
+    failsafe,
+    availableBackends,
+    onWarningsChange,
+  ]);
 
   return (
     <div style={{ minHeight: '120px' }}>
@@ -129,36 +149,9 @@ export const BackendSelector = ({
           Backend
         </Text>
         <InfoTooltip label="Select a backend to use. CUDA runs on Nvidia GPUs, and is much faster. ROCm is the AMD equivalent. Vulkan and CLBlast works on all GPUs but are somewhat slower." />
-        {!isLoadingBackends &&
-          availableBackends.length > 0 &&
-          getWarnings().map((warning, index) => (
-            <Tooltip
-              key={index}
-              label={warning.message}
-              multiline
-              w={300}
-              withArrow
-            >
-              <ActionIcon
-                size="sm"
-                color={warning.type === 'warning' ? 'orange' : 'blue'}
-                variant="light"
-              >
-                {warning.type === 'warning' ? (
-                  <AlertTriangle size={14} />
-                ) : (
-                  <Info size={14} />
-                )}
-              </ActionIcon>
-            </Tooltip>
-          ))}
       </Group>
       <Select
-        placeholder={
-          isLoadingBackends
-            ? 'Detecting available backends...'
-            : 'Select backend'
-        }
+        placeholder="Select backend"
         value={backend}
         onChange={(value) => {
           if (value) {
@@ -169,12 +162,15 @@ export const BackendSelector = ({
           value: b.value,
           label: b.label,
         }))}
-        disabled={isLoadingBackends || availableBackends.length === 0}
-        style={{ minHeight: '36px' }}
+        disabled={availableBackends.length === 0}
+        comboboxProps={{
+          middlewares: {
+            flip: false,
+          },
+        }}
       />
 
-      {!isLoadingBackends &&
-        (backend === 'cuda' || backend === 'rocm') &&
+      {(backend === 'cuda' || backend === 'rocm') &&
         onGpuDeviceChange &&
         availableBackends.find((b) => b.value === backend)?.devices &&
         availableBackends.find((b) => b.value === backend)!.devices!.length >
@@ -196,25 +192,23 @@ export const BackendSelector = ({
           />
         )}
 
-      {!isLoadingBackends &&
-        backend &&
-        availableBackends.find((b) => b.value === backend)?.devices && (
-          <Group gap="xs" mt="xs">
-            <Text size="xs" c="dimmed">
-              {availableBackends.find((b) => b.value === backend)?.devices
-                ?.length === 1
-                ? 'Device:'
-                : 'Devices:'}
-            </Text>
-            {availableBackends
-              .find((b) => b.value === backend)
-              ?.devices?.map((device, index) => (
-                <Badge key={index} variant="light" size="sm">
-                  {device}
-                </Badge>
-              ))}
-          </Group>
-        )}
+      {availableBackends.find((b) => b.value === backend)?.devices && (
+        <Group gap="xs" mt="xs">
+          <Text size="xs" c="dimmed">
+            {availableBackends.find((b) => b.value === backend)?.devices
+              ?.length === 1
+              ? 'Device:'
+              : 'Devices:'}
+          </Text>
+          {availableBackends
+            .find((b) => b.value === backend)
+            ?.devices?.map((device, index) => (
+              <Badge key={index} variant="light" size="sm">
+                {device}
+              </Badge>
+            ))}
+        </Group>
+      )}
     </div>
   );
 };

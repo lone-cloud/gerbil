@@ -37,25 +37,9 @@ export class IPCHandlers {
       this.githubService.getLatestRelease()
     );
 
-    ipcMain.handle('kobold:getAllReleases', () =>
-      this.githubService.getAllReleases()
-    );
-
     ipcMain.handle('kobold:checkForUpdates', async () => {
-      const latest = await this.githubService.getLatestRelease();
+      const latest = await this.githubService.getRawLatestRelease();
       return latest;
-    });
-
-    ipcMain.handle('kobold:openInstallDialog', async () => {
-      const result = await dialog.showOpenDialog({
-        properties: ['openDirectory'],
-        title: 'Select Installation Directory',
-      });
-
-      if (!result.canceled && result.filePaths.length > 0) {
-        return result.filePaths[0];
-      }
-      return null;
     });
 
     ipcMain.handle('kobold:downloadRelease', async (_event, asset) => {
@@ -133,10 +117,6 @@ export class IPCHandlers {
       this.hardwareService.detectROCm()
     );
 
-    ipcMain.handle('kobold:detectHardware', () =>
-      this.hardwareService.detectAll()
-    );
-
     ipcMain.handle('kobold:detectAllCapabilities', () =>
       this.hardwareService.detectAllWithCapabilities()
     );
@@ -152,10 +132,6 @@ export class IPCHandlers {
           binaryPath,
           hardwareCapabilities
         )
-    );
-
-    ipcMain.handle('kobold:clearBinaryCache', () =>
-      this.binaryService.clearCache()
     );
 
     ipcMain.handle('kobold:getPlatform', () => ({

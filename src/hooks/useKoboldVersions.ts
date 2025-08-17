@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { filterAssetsByPlatform } from '@/utils/platform';
-import type { GitHubAsset, GitHubRelease } from '@/types';
+import type { DownloadItem } from '@/types/electron';
 
 interface PlatformInfo {
   platform: string;
@@ -8,18 +7,9 @@ interface PlatformInfo {
   hasROCm: boolean;
 }
 
-interface ROCmDownload {
-  name: string;
-  url: string;
-  size: number;
-  version?: string;
-}
-
 interface UseKoboldVersionsReturn {
   platformInfo: PlatformInfo;
-  latestRelease: GitHubRelease | null;
-  filteredAssets: GitHubAsset[];
-  rocmDownload: ROCmDownload | null;
+  availableDownloads: DownloadItem[];
   loadingPlatform: boolean;
   loadingRemote: boolean;
   downloading: string | null;
@@ -27,7 +17,7 @@ interface UseKoboldVersionsReturn {
   loadRemoteVersions: () => Promise<void>;
   handleDownload: (
     type: 'asset' | 'rocm',
-    asset?: GitHubAsset
+    item?: DownloadItem
   ) => Promise<boolean>;
   setDownloading: (value: string | null) => void;
   setDownloadProgress: (
@@ -44,11 +34,9 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
     hasROCm: false,
   });
 
-  const [latestRelease, setLatestRelease] = useState<GitHubRelease | null>(
-    null
+  const [availableDownloads, setAvailableDownloads] = useState<DownloadItem[]>(
+    []
   );
-  const [filteredAssets, setFilteredAssets] = useState<GitHubAsset[]>([]);
-  const [rocmDownload, setRocmDownload] = useState<ROCmDownload | null>(null);
 
   const [loadingPlatform, setLoadingPlatform] = useState(true);
   const [loadingRemote, setLoadingRemote] = useState(true);
@@ -103,21 +91,17 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
     setLoadingRemote(true);
 
     try {
-      const [release, rocm] = await Promise.all([
+      const [releases, rocm] = await Promise.all([
         window.electronAPI.kobold.getLatestRelease(),
         window.electronAPI.kobold.getROCmDownload(),
       ]);
 
-      setLatestRelease(release);
-      setRocmDownload(rocm);
-
-      if (release) {
-        const filtered = filterAssetsByPlatform(
-          release.assets,
-          platformInfo.platform
-        );
-        setFilteredAssets(filtered);
+      const allDownloads: DownloadItem[] = [...releases];
+      if (rocm) {
+        allDownloads.push(rocm);
       }
+
+      setAvailableDownloads(allDownloads);
     } catch (error) {
       window.electronAPI.logs.logError(
         'Failed to load remote versions:',
@@ -129,11 +113,10 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
   }, [platformInfo.platform]);
 
   const handleDownload = useCallback(
-    async (type: 'asset' | 'rocm', asset?: GitHubAsset): Promise<boolean> => {
-      if (type === 'asset' && !asset) return false;
+    async (type: 'asset' | 'rocm', item?: DownloadItem): Promise<boolean> => {
+      if (type === 'asset' && !item) return false;
 
-      const downloadName =
-        type === 'asset' ? asset!.name : rocmDownload?.name || 'rocm';
+      const downloadName = item?.name || 'download';
 
       setDownloading(downloadName);
       setDownloadProgress((prev) => ({ ...prev, [downloadName]: 0 }));
@@ -142,7 +125,12 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
         const result =
           type === 'rocm'
             ? await window.electronAPI.kobold.downloadROCm()
-            : await window.electronAPI.kobold.downloadRelease(asset!);
+            : await window.electronAPI.kobold.downloadRelease({
+                name: item!.name,
+                browser_download_url: item!.url,
+                size: item!.size,
+                created_at: new Date().toISOString(),
+              });
 
         return result.success !== false;
       } catch (error) {
@@ -160,7 +148,7 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
         });
       }
     },
-    [rocmDownload?.name]
+    []
   );
 
   useEffect(() => {
@@ -192,9 +180,7 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
 
   return {
     platformInfo,
-    latestRelease,
-    filteredAssets,
-    rocmDownload,
+    availableDownloads,
     loadingPlatform,
     loadingRemote,
     downloading,

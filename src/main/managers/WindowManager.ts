@@ -235,14 +235,12 @@ export class WindowManager {
                   );
                 },
               },
+              { type: 'separator' as const },
             ]
           : []),
-        ...(isDev ? [{ type: 'separator' as const }] : []),
         { label: 'Cut', role: 'cut' as const },
         { label: 'Copy', role: 'copy' as const },
         { label: 'Paste', role: 'paste' as const },
-        { type: 'separator' as const },
-        { label: 'Select All', role: 'selectAll' as const },
         ...(hasLinkURL ? [{ type: 'separator' as const }] : []),
         {
           label: 'Open Link in Browser',
