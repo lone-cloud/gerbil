@@ -17,9 +17,8 @@ import {
   sortAssetsByRecommendation,
   getAssetDescription,
 } from '@/utils/assets';
-import { ROCM } from '@/constants';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
-import type { GitHubAsset } from '@/types';
+import type { DownloadItem } from '@/types/electron';
 
 interface DownloadScreenProps {
   onDownloadComplete: () => void;
@@ -28,9 +27,7 @@ interface DownloadScreenProps {
 export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
   const {
     platformInfo,
-    latestRelease,
-    filteredAssets,
-    rocmDownload,
+    availableDownloads,
     loadingPlatform,
     loadingRemote,
     downloading,
@@ -45,15 +42,19 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
 
   const loading = loadingPlatform || loadingRemote;
 
+  const regularDownloads = availableDownloads.filter((d) => d.type === 'asset');
+  const rocmDownload = availableDownloads.find((d) => d.type === 'rocm');
+  const latestVersion = availableDownloads[0]?.version || 'unknown';
+
   const handleDownload = useCallback(
-    async (type: 'asset' | 'rocm', asset?: GitHubAsset) => {
-      if (type === 'asset' && !asset) return;
+    async (type: 'asset' | 'rocm', download?: DownloadItem) => {
+      if (type === 'asset' && !download) return;
 
       setDownloadingType(type);
-      setDownloadingAsset(type === 'asset' ? asset!.name : null);
+      setDownloadingAsset(type === 'asset' ? download!.name : null);
 
       try {
-        const success = await sharedHandleDownload(type, asset);
+        const success = await sharedHandleDownload(type, download);
 
         if (success) {
           onDownloadComplete();
@@ -81,23 +82,24 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
 
     return (
       <DownloadCard
-        name={ROCM.BINARY_NAME}
-        size={formatFileSize(ROCM.SIZE_BYTES)}
-        description={getAssetDescription(ROCM.BINARY_NAME)}
+        name={rocmDownload.name}
+        size={formatFileSize(rocmDownload.size)}
+        description={getAssetDescription(rocmDownload.name)}
+        version={rocmDownload.version}
         isRecommended={isAssetRecommended(
-          ROCM.BINARY_NAME,
+          rocmDownload.name,
           platformInfo.hasAMDGPU
         )}
         isDownloading={Boolean(downloading) && downloadingType === 'rocm'}
         downloadProgress={
           downloadingType === 'rocm'
-            ? downloadProgress[ROCM.BINARY_NAME] || 0
+            ? downloadProgress[rocmDownload.name] || 0
             : 0
         }
         disabled={Boolean(downloading) && downloadingType !== 'rocm'}
         onDownload={(e) => {
           e.stopPropagation();
-          handleDownload('rocm');
+          handleDownload('rocm', rocmDownload);
         }}
       />
     );
@@ -117,7 +119,7 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
               </Stack>
             ) : (
               <>
-                {latestRelease && (
+                {availableDownloads.length > 0 && (
                   <>
                     <Stack gap="xs" py="md">
                       <div>
@@ -132,20 +134,12 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
                           Latest Version
                         </Text>
                         <Text fw={700} size="xl" mb={8} c="blue.6">
-                          {(latestRelease.tag_name || latestRelease.name)
-                            .replace(/^v/, '')
-                            .replace(/^koboldcpp-/, '')}
-                        </Text>
-                        <Text size="sm" c="dimmed" fs="italic">
-                          Released{' '}
-                          {new Date(
-                            latestRelease.published_at
-                          ).toLocaleDateString()}
+                          {latestVersion}
                         </Text>
                       </div>
                     </Stack>
 
-                    {filteredAssets.length > 0 || rocmDownload ? (
+                    {availableDownloads.length > 0 ? (
                       <Stack gap="sm">
                         {platformInfo.hasAMDGPU && !platformInfo.hasROCm && (
                           <Card withBorder p="md" bg="orange.0">
@@ -187,37 +181,38 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
                           renderROCmCard()}
 
                         {sortAssetsByRecommendation(
-                          filteredAssets,
+                          regularDownloads,
                           platformInfo.hasAMDGPU
-                        ).map((asset) => (
+                        ).map((download) => (
                           <DownloadCard
-                            key={asset.name}
-                            name={asset.name}
-                            size={formatFileSize(asset.size)}
-                            description={getAssetDescription(asset.name)}
+                            key={download.name}
+                            name={download.name}
+                            size={formatFileSize(download.size)}
+                            version={download.version}
+                            description={getAssetDescription(download.name)}
                             isRecommended={isAssetRecommended(
-                              asset.name,
+                              download.name,
                               platformInfo.hasAMDGPU
                             )}
                             isDownloading={
                               Boolean(downloading) &&
                               downloadingType === 'asset' &&
-                              downloadingAsset === asset.name
+                              downloadingAsset === download.name
                             }
                             downloadProgress={
                               Boolean(downloading) &&
                               downloadingType === 'asset' &&
-                              downloadingAsset === asset.name
-                                ? downloadProgress[asset.name] || 0
+                              downloadingAsset === download.name
+                                ? downloadProgress[download.name] || 0
                                 : 0
                             }
                             disabled={
                               Boolean(downloading) &&
-                              downloadingAsset !== asset.name
+                              downloadingAsset !== download.name
                             }
                             onDownload={(e) => {
                               e.stopPropagation();
-                              handleDownload('asset', asset);
+                              handleDownload('asset', download);
                             }}
                           />
                         ))}

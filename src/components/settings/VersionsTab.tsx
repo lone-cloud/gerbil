@@ -34,9 +34,7 @@ interface VersionInfo {
 export const VersionsTab = () => {
   const {
     platformInfo,
-    latestRelease,
-    filteredAssets,
-    rocmDownload,
+    availableDownloads,
     loadingPlatform,
     loadingRemote,
     downloading,
@@ -104,10 +102,10 @@ export const VersionsTab = () => {
   const getAllVersions = (): VersionInfo[] => {
     const versions: VersionInfo[] = [];
 
-    filteredAssets.forEach((asset) => {
+    availableDownloads.forEach((download) => {
       const installedVersion = installedVersions.find((v) => {
         const displayName = getDisplayNameFromPath(v);
-        return displayName === asset.name;
+        return displayName === download.name;
       });
 
       const isCurrent = Boolean(
@@ -117,50 +115,16 @@ export const VersionsTab = () => {
       );
 
       versions.push({
-        name: asset.name,
-        version:
-          installedVersion?.version ||
-          latestRelease?.tag_name.replace(/^v/, '') ||
-          'unknown',
-        size: installedVersion ? undefined : asset.size,
+        name: download.name,
+        version: installedVersion?.version || download.version || 'unknown',
+        size: installedVersion ? undefined : download.size,
         isInstalled: Boolean(installedVersion),
         isCurrent,
-        downloadUrl: asset.browser_download_url,
+        downloadUrl: download.url,
         installedPath: installedVersion?.path,
-        isROCm: false,
+        isROCm: download.type === 'rocm',
       });
     });
-
-    if (rocmDownload) {
-      const installedVersion = installedVersions.find((v) => {
-        const displayName = getDisplayNameFromPath(v);
-        return displayName === rocmDownload.name;
-      });
-
-      const isCurrent = Boolean(
-        installedVersion &&
-          currentVersion &&
-          currentVersion.path === installedVersion.path
-      );
-
-      const existsInVersions = versions.some(
-        (v) => v.name === rocmDownload.name
-      );
-
-      if (!existsInVersions) {
-        versions.push({
-          name: rocmDownload.name,
-          version:
-            installedVersion?.version || rocmDownload.version || 'unknown',
-          size: installedVersion ? undefined : rocmDownload.size,
-          isInstalled: Boolean(installedVersion),
-          isCurrent,
-          downloadUrl: rocmDownload.url,
-          installedPath: installedVersion?.path,
-          isROCm: true,
-        });
-      }
-    }
 
     installedVersions.forEach((installed) => {
       const displayName = getDisplayNameFromPath(installed);
@@ -188,17 +152,13 @@ export const VersionsTab = () => {
 
   const handleDownload = async (version: VersionInfo) => {
     try {
-      let success;
-
-      if (version.isROCm) {
-        success = await sharedHandleDownload('rocm');
-      } else {
-        const asset = filteredAssets.find((a) => a.name === version.name);
-        if (!asset) {
-          throw new Error('Asset not found');
-        }
-        success = await sharedHandleDownload('asset', asset);
+      const download = availableDownloads.find((d) => d.name === version.name);
+      if (!download) {
+        throw new Error('Download not found');
       }
+
+      const downloadType = download.type === 'rocm' ? 'rocm' : 'asset';
+      const success = await sharedHandleDownload(downloadType, download);
 
       if (success) {
         await loadInstalledVersions();

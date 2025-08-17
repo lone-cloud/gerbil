@@ -22,14 +22,12 @@ const koboldAPI: KoboldAPI = {
   getROCmDownload: () => ipcRenderer.invoke('kobold:getROCmDownload'),
   downloadROCm: () => ipcRenderer.invoke('kobold:downloadROCm'),
   getLatestRelease: () => ipcRenderer.invoke('kobold:getLatestRelease'),
-  getAllReleases: () => ipcRenderer.invoke('kobold:getAllReleases'),
   getPlatform: () => ipcRenderer.invoke('kobold:getPlatform'),
   detectGPU: () => ipcRenderer.invoke('kobold:detectGPU'),
   detectCPU: () => ipcRenderer.invoke('kobold:detectCPU'),
   detectGPUCapabilities: () =>
     ipcRenderer.invoke('kobold:detectGPUCapabilities'),
   detectROCm: () => ipcRenderer.invoke('kobold:detectROCm'),
-  detectHardware: () => ipcRenderer.invoke('kobold:detectHardware'),
   detectAllCapabilities: () =>
     ipcRenderer.invoke('kobold:detectAllCapabilities'),
   detectBackendSupport: (binaryPath: string) =>
@@ -43,7 +41,6 @@ const koboldAPI: KoboldAPI = {
       binaryPath,
       hardwareCapabilities
     ),
-  clearBinaryCache: () => ipcRenderer.invoke('kobold:clearBinaryCache'),
   getCurrentInstallDir: () => ipcRenderer.invoke('kobold:getCurrentInstallDir'),
   selectInstallDirectory: () =>
     ipcRenderer.invoke('kobold:selectInstallDirectory'),
@@ -51,7 +48,6 @@ const koboldAPI: KoboldAPI = {
     ipcRenderer.invoke('kobold:downloadRelease', asset),
   launchKoboldCpp: (args?: string[], configFilePath?: string) =>
     ipcRenderer.invoke('kobold:launchKoboldCpp', args, configFilePath),
-  openInstallDialog: () => ipcRenderer.invoke('kobold:openInstallDialog'),
   checkForUpdates: () => ipcRenderer.invoke('kobold:checkForUpdates'),
   getConfigFiles: () => ipcRenderer.invoke('kobold:getConfigFiles'),
   saveConfigFile: (

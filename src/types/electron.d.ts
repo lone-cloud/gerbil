@@ -45,11 +45,12 @@ export interface InstalledVersion {
   size?: number;
 }
 
-interface ROCmDownload {
+export interface DownloadItem {
   name: string;
   url: string;
   size: number;
-  type: 'rocm';
+  version?: string;
+  type: 'asset' | 'rocm';
 }
 
 export interface KoboldAPI {
@@ -62,14 +63,12 @@ export interface KoboldAPI {
   } | null>;
   setCurrentVersion: (version: string) => Promise<boolean>;
   getVersionFromBinary: (binaryPath: string) => Promise<string | null>;
-  getLatestRelease: () => Promise<GitHubRelease>;
-  getAllReleases: () => Promise<GitHubRelease[]>;
+  getLatestRelease: () => Promise<DownloadItem[]>;
   getPlatform: () => Promise<PlatformInfo>;
   detectGPU: () => Promise<BasicGPUInfo>;
   detectCPU: () => Promise<CPUCapabilities>;
   detectGPUCapabilities: () => Promise<GPUCapabilities>;
   detectROCm: () => Promise<{ supported: boolean; devices: string[] }>;
-  detectHardware: () => Promise<HardwareInfo>;
   detectAllCapabilities: () => Promise<HardwareInfo>;
   detectBackendSupport: (binaryPath: string) => Promise<{
     rocm: boolean;
@@ -83,7 +82,6 @@ export interface KoboldAPI {
     binaryPath: string,
     hardwareCapabilities: GPUCapabilities
   ) => Promise<Array<{ value: string; label: string; devices?: string[] }>>;
-  clearBinaryCache: () => Promise<void>;
   getCurrentInstallDir: () => Promise<string>;
   selectInstallDirectory: () => Promise<string | null>;
   downloadRelease: (
@@ -94,14 +92,13 @@ export interface KoboldAPI {
     path?: string;
     error?: string;
   }>;
-  getROCmDownload: () => Promise<ROCmDownload | null>;
+  getROCmDownload: () => Promise<DownloadItem | null>;
   checkForUpdates: () => Promise<UpdateInfo | null>;
   getLatestReleaseWithStatus: () => Promise<ReleaseWithStatus | null>;
   launchKoboldCpp: (
     args?: string[],
     configFilePath?: string
   ) => Promise<{ success: boolean; pid?: number; error?: string }>;
-  openInstallDialog: () => Promise<{ success: boolean; path?: string }>;
   getConfigFiles: () => Promise<
     Array<{ name: string; path: string; size: number }>
   >;

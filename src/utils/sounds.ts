@@ -1,11 +1,18 @@
+import elephantSound from '/sounds/elephant-trunk.mp3';
+import mouseSqueak1 from '/sounds/mouse-squeak1.mp3';
+import mouseSqueak2 from '/sounds/mouse-squeak2.mp3';
+import mouseSqueak3 from '/sounds/mouse-squeak3.mp3';
+import mouseSqueak4 from '/sounds/mouse-squeak4.mp3';
+import mouseSqueak5 from '/sounds/mouse-squeak5.mp3';
+
 export const soundAssets = {
-  elephant: '/sounds/elephant-trunk.mp3',
+  elephant: elephantSound,
   mouseSqueaks: [
-    '/sounds/mouse-squeak1.mp3',
-    '/sounds/mouse-squeak2.mp3',
-    '/sounds/mouse-squeak3.mp3',
-    '/sounds/mouse-squeak4.mp3',
-    '/sounds/mouse-squeak5.mp3',
+    mouseSqueak1,
+    mouseSqueak2,
+    mouseSqueak3,
+    mouseSqueak4,
+    mouseSqueak5,
   ],
 };
 

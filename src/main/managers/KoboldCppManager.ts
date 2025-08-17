@@ -16,6 +16,7 @@ import { ConfigManager } from '@/main/managers/ConfigManager';
 import { LogManager } from '@/main/managers/LogManager';
 import { WindowManager } from '@/main/managers/WindowManager';
 import { ROCM, GITHUB_API } from '@/constants';
+import type { DownloadItem } from '@/types/electron';
 
 interface GitHubAsset {
   name: string;
@@ -636,16 +637,11 @@ export class KoboldCppManager {
     return this.koboldProcess !== null && !this.koboldProcess.killed;
   }
 
-  async getROCmDownload(): Promise<{
-    name: string;
-    url: string;
-    size: number;
-    version?: string;
-  } | null> {
+  async getROCmDownload(): Promise<DownloadItem | null> {
     const platform = process.platform;
 
     if (platform === 'linux') {
-      const latestRelease = await this.githubService.getLatestRelease();
+      const latestRelease = await this.githubService.getRawLatestRelease();
       const version = latestRelease?.tag_name?.replace(/^v/, '') || 'unknown';
 
       return {
@@ -653,6 +649,7 @@ export class KoboldCppManager {
         url: ROCM.DOWNLOAD_URL,
         size: ROCM.SIZE_BYTES,
         version,
+        type: 'rocm',
       };
     } else if (platform === 'win32') {
       try {
@@ -672,6 +669,7 @@ export class KoboldCppManager {
             url: rocmAsset.browser_download_url,
             size: rocmAsset.size,
             version: release.tag_name?.replace(/^v/, '') || 'unknown',
+            type: 'rocm',
           };
         }
       } catch (error) {
@@ -821,7 +819,7 @@ export class KoboldCppManager {
         return null;
       }
 
-      const latestRelease = await this.githubService.getLatestRelease();
+      const latestRelease = await this.githubService.getRawLatestRelease();
       if (!latestRelease) {
         return null;
       }
@@ -859,7 +857,7 @@ export class KoboldCppManager {
 
   async getLatestReleaseWithDownloadStatus(): Promise<ReleaseWithStatus | null> {
     try {
-      const latestRelease = await this.githubService.getLatestRelease();
+      const latestRelease = await this.githubService.getRawLatestRelease();
       if (!latestRelease) return null;
 
       const installedVersions = await this.getInstalledVersions();

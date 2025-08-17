@@ -13,6 +13,7 @@ import {
 import { Settings, ArrowLeft } from 'lucide-react';
 import { StyledTooltip } from '../StyledTooltip';
 import { soundAssets, playSound } from '../../utils/sounds';
+import iconUrl from '/icon.png';
 import './AppHeader.css';
 
 type Screen = 'download' | 'launch' | 'interface';
@@ -89,7 +90,7 @@ export const AppHeader = ({
           ) : (
             <Group gap="xs" align="center">
               <Image
-                src="/icon.png"
+                src={iconUrl}
                 alt="Friendly Kobold"
                 w={24}
                 h={24}

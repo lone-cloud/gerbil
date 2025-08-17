@@ -19,13 +19,14 @@ import {
   forwardRef,
   type ComponentPropsWithoutRef,
 } from 'react';
-import { Save, File, Plus, AlertTriangle } from 'lucide-react';
+import { Save, File, Plus } from 'lucide-react';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
+import { useChangeTracker } from '@/hooks/useChangeTracker';
 import { GeneralTab } from '@/screens/Launch/GeneralTab';
 import { AdvancedTab } from '@/screens/Launch/AdvancedTab';
 import { NetworkTab } from '@/screens/Launch/NetworkTab';
 import { ImageGenerationTab } from '@/screens/Launch/ImageGenerationTab';
-import { StyledTooltip } from '@/components/StyledTooltip';
+import { WarningDisplay } from '@/components/WarningDisplay';
 import type { ConfigFile } from '@/types';
 
 interface LaunchScreenProps {
@@ -78,6 +79,9 @@ export const LaunchScreen = ({
   const [saveAsModalOpened, setSaveAsModalOpened] = useState(false);
   const [newConfigName, setNewConfigName] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [warnings, setWarnings] = useState<
+    Array<{ type: 'warning' | 'info'; message: string }>
+  >([]);
   const {
     gpuLayers,
     autoGpuLayers,
@@ -147,6 +151,113 @@ export const LaunchScreen = ({
     handleApplyPreset,
   } = useLaunchConfig();
 
+  const createChangeTracker = useChangeTracker;
+
+  const handleModelPathChangeWithTracking = createChangeTracker(
+    handleModelPathChange,
+    setHasUnsavedChanges
+  );
+  const handleGpuLayersChangeWithTracking = createChangeTracker(
+    handleGpuLayersChange,
+    setHasUnsavedChanges
+  );
+  const handleAutoGpuLayersChangeWithTracking = createChangeTracker(
+    handleAutoGpuLayersChange,
+    setHasUnsavedChanges
+  );
+  const handleContextSizeChangeWithTracking = createChangeTracker(
+    handleContextSizeChangeWithStep,
+    setHasUnsavedChanges
+  );
+  const handleAdditionalArgumentsChangeWithTracking = createChangeTracker(
+    handleAdditionalArgumentsChange,
+    setHasUnsavedChanges
+  );
+  const handlePortChangeWithTracking = createChangeTracker(
+    handlePortChange,
+    setHasUnsavedChanges
+  );
+  const handleHostChangeWithTracking = createChangeTracker(
+    handleHostChange,
+    setHasUnsavedChanges
+  );
+  const handleNoshiftChangeWithTracking = createChangeTracker(
+    handleNoshiftChange,
+    setHasUnsavedChanges
+  );
+  const handleFlashattentionChangeWithTracking = createChangeTracker(
+    handleFlashattentionChange,
+    setHasUnsavedChanges
+  );
+  const handleNoavx2ChangeWithTracking = createChangeTracker(
+    handleNoavx2Change,
+    setHasUnsavedChanges
+  );
+  const handleFailsafeChangeWithTracking = createChangeTracker(
+    handleFailsafeChange,
+    setHasUnsavedChanges
+  );
+  const handleLowvramChangeWithTracking = createChangeTracker(
+    handleLowvramChange,
+    setHasUnsavedChanges
+  );
+  const handleQuantmatmulChangeWithTracking = createChangeTracker(
+    handleQuantmatmulChange,
+    setHasUnsavedChanges
+  );
+  const handleMultiuserChangeWithTracking = createChangeTracker(
+    handleMultiuserChange,
+    setHasUnsavedChanges
+  );
+  const handleMultiplayerChangeWithTracking = createChangeTracker(
+    handleMultiplayerChange,
+    setHasUnsavedChanges
+  );
+  const handleRemotetunnelChangeWithTracking = createChangeTracker(
+    handleRemotetunnelChange,
+    setHasUnsavedChanges
+  );
+  const handleNocertifyChangeWithTracking = createChangeTracker(
+    handleNocertifyChange,
+    setHasUnsavedChanges
+  );
+  const handleWebsearchChangeWithTracking = createChangeTracker(
+    handleWebsearchChange,
+    setHasUnsavedChanges
+  );
+  const handleBackendChangeWithTracking = createChangeTracker(
+    handleBackendChange,
+    setHasUnsavedChanges
+  );
+  const handleSdmodelChangeWithTracking = createChangeTracker(
+    handleSdmodelChange,
+    setHasUnsavedChanges
+  );
+  const handleSdt5xxlChangeWithTracking = createChangeTracker(
+    handleSdt5xxlChange,
+    setHasUnsavedChanges
+  );
+  const handleSdcliplChangeWithTracking = createChangeTracker(
+    handleSdcliplChange,
+    setHasUnsavedChanges
+  );
+  const handleSdclipgChangeWithTracking = createChangeTracker(
+    handleSdclipgChange,
+    setHasUnsavedChanges
+  );
+  const handleSdphotomakerChangeWithTracking = createChangeTracker(
+    handleSdphotomakerChange,
+    setHasUnsavedChanges
+  );
+  const handleSdvaeChangeWithTracking = createChangeTracker(
+    handleSdvaeChange,
+    setHasUnsavedChanges
+  );
+  const handleSdloraChangeWithTracking = createChangeTracker(
+    handleSdloraChange,
+    setHasUnsavedChanges
+  );
+
   const loadConfigFiles = useCallback(async () => {
     const [files, currentDir, savedConfig] = await Promise.all([
       window.electronAPI.kobold.getConfigFiles(),
@@ -181,136 +292,6 @@ export const LaunchScreen = ({
     }
 
     setHasUnsavedChanges(false);
-  };
-
-  const handleModelPathChangeWithTracking = (path: string) => {
-    handleModelPathChange(path);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleGpuLayersChangeWithTracking = (layers: number) => {
-    handleGpuLayersChange(layers);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleAutoGpuLayersChangeWithTracking = (auto: boolean) => {
-    handleAutoGpuLayersChange(auto);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleContextSizeChangeWithTracking = (size: number) => {
-    handleContextSizeChangeWithStep(size);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleAdditionalArgumentsChangeWithTracking = (args: string) => {
-    handleAdditionalArgumentsChange(args);
-    setHasUnsavedChanges(true);
-  };
-
-  const handlePortChangeWithTracking = (port: number | undefined) => {
-    handlePortChange(port);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleHostChangeWithTracking = (host: string) => {
-    handleHostChange(host);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleNoshiftChangeWithTracking = (noshift: boolean) => {
-    handleNoshiftChange(noshift);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleFlashattentionChangeWithTracking = (flashattention: boolean) => {
-    handleFlashattentionChange(flashattention);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleNoavx2ChangeWithTracking = (noavx2: boolean) => {
-    handleNoavx2Change(noavx2);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleFailsafeChangeWithTracking = (failsafe: boolean) => {
-    handleFailsafeChange(failsafe);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleLowvramChangeWithTracking = (lowvram: boolean) => {
-    handleLowvramChange(lowvram);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleQuantmatmulChangeWithTracking = (quantmatmul: boolean) => {
-    handleQuantmatmulChange(quantmatmul);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleMultiuserChangeWithTracking = (multiuser: boolean) => {
-    handleMultiuserChange(multiuser);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleMultiplayerChangeWithTracking = (multiplayer: boolean) => {
-    handleMultiplayerChange(multiplayer);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleRemotetunnelChangeWithTracking = (remotetunnel: boolean) => {
-    handleRemotetunnelChange(remotetunnel);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleNocertifyChangeWithTracking = (nocertify: boolean) => {
-    handleNocertifyChange(nocertify);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleWebsearchChangeWithTracking = (websearch: boolean) => {
-    handleWebsearchChange(websearch);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleBackendChangeWithTracking = (backend: string) => {
-    handleBackendChange(backend);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleSdmodelChangeWithTracking = (path: string) => {
-    handleSdmodelChange(path);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleSdt5xxlChangeWithTracking = (path: string) => {
-    handleSdt5xxlChange(path);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleSdcliplChangeWithTracking = (path: string) => {
-    handleSdcliplChange(path);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleSdclipgChangeWithTracking = (path: string) => {
-    handleSdclipgChange(path);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleSdphotomakerChangeWithTracking = (path: string) => {
-    handleSdphotomakerChange(path);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleSdvaeChangeWithTracking = (path: string) => {
-    handleSdvaeChange(path);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleSdloraChangeWithTracking = (path: string) => {
-    handleSdloraChange(path);
-    setHasUnsavedChanges(true);
   };
 
   useEffect(() => {
@@ -387,12 +368,11 @@ export const LaunchScreen = ({
         args.push('--contextsize', contextSize.toString());
       }
 
-      const actualPort = port ?? 5001;
-      if (port !== undefined) {
-        args.push('--port', actualPort.toString());
+      if (port) {
+        args.push('--port', port.toString());
       }
 
-      if (host !== 'localhost' && host !== '') {
+      if (host !== 'localhost' && host) {
         args.push('--host', host);
       }
 
@@ -478,6 +458,19 @@ export const LaunchScreen = ({
   const hasImageModel = sdmodel.trim() !== '';
   const showModelPriorityWarning = hasTextModel && hasImageModel;
 
+  const combinedWarnings = [
+    ...warnings,
+    ...(showModelPriorityWarning
+      ? [
+          {
+            type: 'warning' as const,
+            message:
+              'Both text and image generation models are selected. The image generation model will take priority and be used for launch.',
+          },
+        ]
+      : []),
+  ];
+
   return (
     <Container size="sm">
       <Stack gap="md">
@@ -485,21 +478,11 @@ export const LaunchScreen = ({
           <Stack gap="lg">
             <Group justify="space-between" align="center">
               <Title order={3}>Launch Configuration</Title>
-              <Group gap="xs" align="center">
-                {showModelPriorityWarning && (
-                  <StyledTooltip
-                    label="Both text and image generation models are selected. The image generation model will take priority and be used for launch."
-                    multiline
-                    maw={280}
-                  >
-                    <AlertTriangle size={18} color="orange" />
-                  </StyledTooltip>
-                )}
+              <WarningDisplay warnings={combinedWarnings}>
                 <Button
                   radius="md"
                   disabled={(!modelPath && !sdmodel) || isLaunching}
                   onClick={handleLaunch}
-                  loading={isLaunching}
                   size="lg"
                   variant="filled"
                   color="blue"
@@ -512,9 +495,9 @@ export const LaunchScreen = ({
                     letterSpacing: '0.5px',
                   }}
                 >
-                  {isLaunching ? 'Launching...' : 'Launch'}
+                  Launch
                 </Button>
-              </Group>
+              </WarningDisplay>
             </Group>
 
             <Stack gap="xs">
@@ -629,6 +612,7 @@ export const LaunchScreen = ({
                     onContextSizeChange={handleContextSizeChangeWithTracking}
                     onBackendChange={handleBackendChangeWithTracking}
                     onGpuDeviceChange={handleGpuDeviceChange}
+                    onWarningsChange={setWarnings}
                   />
                 </Tabs.Panel>
 
