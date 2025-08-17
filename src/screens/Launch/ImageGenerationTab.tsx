@@ -1,13 +1,6 @@
-import {
-  Stack,
-  Text,
-  Group,
-  TextInput,
-  Button,
-  Select,
-  Alert,
-} from '@mantine/core';
-import { File, Search, AlertTriangle } from 'lucide-react';
+import { Stack, Text, Group, TextInput, Button, Select } from '@mantine/core';
+import { useState } from 'react';
+import { File, Search } from 'lucide-react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { getInputValidationState } from '@/utils/validation';
 import { IMAGE_MODEL_PRESETS } from '@/utils/imageModelPresets';
@@ -20,7 +13,6 @@ interface ImageGenerationTabProps {
   sdphotomaker: string;
   sdvae: string;
   sdlora: string;
-  textModelPath?: string;
   onSdmodelChange: (path: string) => void;
   onSelectSdmodelFile: () => void;
   onSdt5xxlChange: (path: string) => void;
@@ -129,7 +121,6 @@ export const ImageGenerationTab = ({
   sdphotomaker,
   sdvae,
   sdlora,
-  textModelPath,
   onSdmodelChange,
   onSelectSdmodelFile,
   onSdt5xxlChange,
@@ -146,8 +137,7 @@ export const ImageGenerationTab = ({
   onSelectSdloraFile,
   onApplyPreset,
 }: ImageGenerationTabProps) => {
-  const hasTextModel = textModelPath?.trim() !== '';
-  const hasImageModel = sdmodel.trim() !== '';
+  const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
 
   return (
     <Stack gap="lg">
@@ -164,8 +154,9 @@ export const ImageGenerationTab = ({
             value: preset.name,
             label: preset.name,
           }))}
-          value={null}
+          value={selectedPreset}
           onChange={(value) => {
+            setSelectedPreset(value);
             if (value) {
               onApplyPreset(value);
             }
@@ -173,17 +164,6 @@ export const ImageGenerationTab = ({
           clearable
         />
       </div>
-
-      {hasTextModel && hasImageModel && (
-        <Alert
-          color="orange"
-          title="Model Priority Notice"
-          icon={<AlertTriangle size={16} />}
-        >
-          Both text and image generation models are selected. The image
-          generation model will take priority and be used for launch.
-        </Alert>
-      )}
 
       <ModelField
         label="Image Gen. Model File"

@@ -1,9 +1,9 @@
 [Desktop Entry]
-Name=FriendlyKobold
-Comment=A modern Electron shell for KoboldCpp
+Name=Friendly Kobold
+Comment=A koboldcpp manager.
 Exec=friendly-kobold %U
-Icon=/home/eggy/Projects/friendly-kobold/assets/icon.png
+Icon=friendly-kobold
 Type=Application
 Categories=Development;TextEditor;
-StartupWMClass=FriendlyKobold
+StartupWMClass=friendly-kobold
 StartupNotify=true

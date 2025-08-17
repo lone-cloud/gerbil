@@ -19,12 +19,13 @@ import {
   forwardRef,
   type ComponentPropsWithoutRef,
 } from 'react';
-import { Save, File, Plus } from 'lucide-react';
+import { Save, File, Plus, AlertTriangle } from 'lucide-react';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 import { GeneralTab } from '@/screens/Launch/GeneralTab';
 import { AdvancedTab } from '@/screens/Launch/AdvancedTab';
 import { NetworkTab } from '@/screens/Launch/NetworkTab';
 import { ImageGenerationTab } from '@/screens/Launch/ImageGenerationTab';
+import { StyledTooltip } from '@/components/StyledTooltip';
 import type { ConfigFile } from '@/types';
 
 interface LaunchScreenProps {
@@ -458,14 +459,24 @@ export const LaunchScreen = ({
           onLaunch();
         }, 100);
       } else {
-        console.error('Launch failed:', result.error);
+        window.electronAPI.logs.logError(
+          'Launch failed:',
+          new Error(result.error)
+        );
       }
     } catch (error) {
-      console.error('Error launching KoboldCpp:', error);
+      window.electronAPI.logs.logError(
+        'Error launching KoboldCpp:',
+        error as Error
+      );
     } finally {
       setIsLaunching(false);
     }
   };
+
+  const hasTextModel = modelPath?.trim() !== '';
+  const hasImageModel = sdmodel.trim() !== '';
+  const showModelPriorityWarning = hasTextModel && hasImageModel;
 
   return (
     <Container size="sm">
@@ -474,25 +485,36 @@ export const LaunchScreen = ({
           <Stack gap="lg">
             <Group justify="space-between" align="center">
               <Title order={3}>Launch Configuration</Title>
-              <Button
-                radius="md"
-                disabled={(!modelPath && !sdmodel) || isLaunching}
-                onClick={handleLaunch}
-                loading={isLaunching}
-                size="lg"
-                variant="filled"
-                color="blue"
-                style={{
-                  fontWeight: 600,
-                  fontSize: '16px',
-                  padding: '12px 28px',
-                  minWidth: '120px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                }}
-              >
-                {isLaunching ? 'Launching...' : 'Launch'}
-              </Button>
+              <Group gap="xs" align="center">
+                {showModelPriorityWarning && (
+                  <StyledTooltip
+                    label="Both text and image generation models are selected. The image generation model will take priority and be used for launch."
+                    multiline
+                    maw={280}
+                  >
+                    <AlertTriangle size={18} color="orange" />
+                  </StyledTooltip>
+                )}
+                <Button
+                  radius="md"
+                  disabled={(!modelPath && !sdmodel) || isLaunching}
+                  onClick={handleLaunch}
+                  loading={isLaunching}
+                  size="lg"
+                  variant="filled"
+                  color="blue"
+                  style={{
+                    fontWeight: 600,
+                    fontSize: '16px',
+                    padding: '12px 28px',
+                    minWidth: '120px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  {isLaunching ? 'Launching...' : 'Launch'}
+                </Button>
+              </Group>
             </Group>
 
             <Stack gap="xs">
@@ -662,7 +684,6 @@ export const LaunchScreen = ({
                     sdphotomaker={sdphotomaker}
                     sdvae={sdvae}
                     sdlora={sdlora}
-                    textModelPath={modelPath}
                     onSdmodelChange={handleSdmodelChangeWithTracking}
                     onSelectSdmodelFile={handleSelectSdmodelFile}
                     onSdt5xxlChange={handleSdt5xxlChangeWithTracking}

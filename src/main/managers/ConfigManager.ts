@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { LogManager } from '@/main/managers/LogManager';
 
 type ConfigValue = string | number | boolean | unknown[] | undefined;
 
@@ -12,9 +13,11 @@ interface AppConfig {
 export class ConfigManager {
   private config: AppConfig = {};
   private configPath: string;
+  private logManager: LogManager;
 
-  constructor(configPath: string) {
+  constructor(configPath: string, logManager: LogManager) {
     this.configPath = configPath;
+    this.logManager = logManager;
     this.config = this.loadConfig();
   }
 
@@ -24,7 +27,7 @@ export class ConfigManager {
         return JSON.parse(readFileSync(this.configPath, 'utf8'));
       }
     } catch (error) {
-      console.error('Error loading config:', error);
+      this.logManager.logError('Error loading config:', error as Error);
     }
     return {};
   }
@@ -33,7 +36,7 @@ export class ConfigManager {
     try {
       writeFileSync(this.configPath, JSON.stringify(this.config, null, 2));
     } catch (error) {
-      console.error('Error saving config:', error);
+      this.logManager.logError('Error saving config:', error as Error);
     }
   }
 

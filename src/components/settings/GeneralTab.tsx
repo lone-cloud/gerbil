@@ -1,22 +1,12 @@
 import { useState, useEffect } from 'react';
-import {
-  Stack,
-  Text,
-  Group,
-  TextInput,
-  Button,
-  Switch,
-  rem,
-} from '@mantine/core';
+import { Stack, Text, Group, TextInput, Button, rem } from '@mantine/core';
 import { Folder, FolderOpen } from 'lucide-react';
 
 export const GeneralTab = () => {
   const [installDir, setInstallDir] = useState<string>('');
-  const [minimizeToTray, setMinimizeToTray] = useState<boolean | null>(null);
 
   useEffect(() => {
     loadCurrentInstallDir();
-    loadTraySettings();
   }, []);
 
   const loadCurrentInstallDir = async () => {
@@ -24,30 +14,10 @@ export const GeneralTab = () => {
       const currentDir = await window.electronAPI.kobold.getCurrentInstallDir();
       setInstallDir(currentDir);
     } catch (error) {
-      console.error('Failed to load install directory:', error);
-    }
-  };
-
-  const loadTraySettings = async () => {
-    try {
-      const trayEnabled = (await window.electronAPI.config.get(
-        'minimizeToTray'
-      )) as boolean;
-      setMinimizeToTray(trayEnabled === true);
-    } catch (error) {
-      console.error('Failed to load tray settings:', error);
-      setMinimizeToTray(false);
-    }
-  };
-
-  const handleTraySettingChange = async (enabled: boolean) => {
-    if (minimizeToTray === null) return;
-
-    try {
-      setMinimizeToTray(enabled);
-      await window.electronAPI.config.set('minimizeToTray', enabled);
-    } catch (error) {
-      console.error('Failed to save tray setting:', error);
+      window.electronAPI.logs.logError(
+        'Failed to load install directory:',
+        error as Error
+      );
     }
   };
 
@@ -60,7 +30,10 @@ export const GeneralTab = () => {
         setInstallDir(selectedDir);
       }
     } catch (error) {
-      console.error('Failed to select install directory:', error);
+      window.electronAPI.logs.logError(
+        'Failed to select install directory:',
+        error as Error
+      );
     }
   };
 
@@ -91,23 +64,6 @@ export const GeneralTab = () => {
             Browse
           </Button>
         </Group>
-      </div>
-
-      <div>
-        <Text fw={500} mb="sm">
-          Window Behavior
-        </Text>
-        <Text size="sm" c="dimmed" mb="md">
-          Choose what happens when you close or minimize the window
-        </Text>
-        <Switch
-          checked={minimizeToTray ?? false}
-          onChange={(event) =>
-            handleTraySettingChange(event.currentTarget.checked)
-          }
-          label="Minimize to system tray"
-          disabled={minimizeToTray === null}
-        />
       </div>
     </Stack>
   );

@@ -1,4 +1,5 @@
 import type { GitHubRelease } from '@/types/electron';
+import { LogManager } from '@/main/managers/LogManager';
 import { GITHUB_API } from '@/constants';
 
 export class GitHubService {
@@ -6,6 +7,11 @@ export class GitHubService {
   private apiCooldown = 60000;
   private cachedRelease: GitHubRelease | null = null;
   private cachedReleases: GitHubRelease[] = [];
+  private logManager: LogManager;
+
+  constructor(logManager: LogManager) {
+    this.logManager = logManager;
+  }
 
   async getLatestRelease(): Promise<GitHubRelease | null> {
     const now = Date.now();
@@ -18,6 +24,7 @@ export class GitHubService {
 
       if (!response.ok) {
         if (response.status === 403) {
+          // eslint-disable-next-line no-console
           console.warn(
             'GitHub API rate limit reached, using cached data if available'
           );
@@ -30,7 +37,10 @@ export class GitHubService {
       this.cachedRelease = (await response.json()) as GitHubRelease;
       return this.cachedRelease;
     } catch (error) {
-      console.error('Error fetching latest release:', error);
+      this.logManager.logError(
+        'Error fetching latest release:',
+        error as Error
+      );
       return this.cachedRelease;
     }
   }
@@ -50,6 +60,7 @@ export class GitHubService {
 
       if (!response.ok) {
         if (response.status === 403) {
+          // eslint-disable-next-line no-console
           console.warn(
             'GitHub API rate limit reached, using cached data if available'
           );
@@ -62,7 +73,7 @@ export class GitHubService {
       this.cachedReleases = (await response.json()) as GitHubRelease[];
       return this.cachedReleases;
     } catch (error) {
-      console.error('Error fetching releases:', error);
+      this.logManager.logError('Error fetching releases:', error as Error);
       return this.cachedReleases;
     }
   }

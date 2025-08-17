@@ -13,6 +13,7 @@ import {
 import { dialog } from 'electron';
 import { GitHubService } from '@/main/services/GitHubService';
 import { ConfigManager } from '@/main/managers/ConfigManager';
+import { LogManager } from '@/main/managers/LogManager';
 import { WindowManager } from '@/main/managers/WindowManager';
 import { ROCM, GITHUB_API } from '@/constants';
 
@@ -58,15 +59,18 @@ export class KoboldCppManager {
   private installDir: string;
   private koboldProcess: ChildProcess | null = null;
   private configManager: ConfigManager;
+  private logManager: LogManager;
   private githubService: GitHubService;
   private windowManager: WindowManager;
 
   constructor(
     configManager: ConfigManager,
     githubService: GitHubService,
-    windowManager: WindowManager
+    windowManager: WindowManager,
+    logManager: LogManager
   ) {
     this.configManager = configManager;
+    this.logManager = logManager;
     this.githubService = githubService;
     this.windowManager = windowManager;
     this.installDir = this.configManager.getInstallDir() || '';
@@ -125,7 +129,10 @@ export class KoboldCppManager {
       try {
         chmodSync(tempPackedFilePath, 0o755);
       } catch (error) {
-        console.error('Failed to make binary executable:', error);
+        this.logManager.logError(
+          'Failed to make binary executable:',
+          error as Error
+        );
       }
     }
 
@@ -135,6 +142,7 @@ export class KoboldCppManager {
       try {
         unlinkSync(tempPackedFilePath);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn('Failed to cleanup packed file:', error);
       }
 
@@ -155,7 +163,7 @@ export class KoboldCppManager {
         throw new Error('Failed to find koboldcpp-launcher after unpacking');
       }
     } catch (error) {
-      console.error('Failed to unpack KoboldCpp:', error);
+      this.logManager.logError('Failed to unpack KoboldCpp:', error as Error);
       throw error;
     }
   }
@@ -264,9 +272,9 @@ export class KoboldCppManager {
             size: launcher.size,
           } as InstalledVersion;
         } catch (error) {
-          console.error(
+          this.logManager.logError(
             `Could not detect version for ${launcher.filename}:`,
-            error
+            error as Error
           );
           return null;
         }
@@ -277,7 +285,10 @@ export class KoboldCppManager {
         (version): version is InstalledVersion => version !== null
       );
     } catch (error) {
-      console.error('Error scanning install directory:', error);
+      this.logManager.logError(
+        'Error scanning install directory:',
+        error as Error
+      );
       return [];
     }
   }
@@ -308,7 +319,10 @@ export class KoboldCppManager {
         }
       }
     } catch (error) {
-      console.error('Error scanning for config files:', error);
+      this.logManager.logError(
+        'Error scanning for config files:',
+        error as Error
+      );
     }
 
     return configFiles.sort((a, b) => a.name.localeCompare(b.name));
@@ -330,7 +344,7 @@ export class KoboldCppManager {
 
       return config;
     } catch (error) {
-      console.error('Error parsing config file:', error);
+      this.logManager.logError('Error parsing config file:', error as Error);
       return null;
     }
   }
@@ -366,7 +380,7 @@ export class KoboldCppManager {
   ): Promise<boolean> {
     try {
       if (!this.installDir) {
-        console.error('No install directory found');
+        this.logManager.logError('No install directory found');
         return false;
       }
 
@@ -376,7 +390,7 @@ export class KoboldCppManager {
       writeFileSync(configPath, JSON.stringify(configData, null, 2), 'utf-8');
       return true;
     } catch (error) {
-      console.error('Error saving config file:', error);
+      this.logManager.logError('Error saving config file:', error as Error);
       return false;
     }
   }
@@ -403,7 +417,7 @@ export class KoboldCppManager {
 
       return result.filePaths[0];
     } catch (error) {
-      console.error('Error selecting model file:', error);
+      this.logManager.logError('Error selecting model file:', error as Error);
       return null;
     }
   }
@@ -661,7 +675,10 @@ export class KoboldCppManager {
           };
         }
       } catch (error) {
-        console.error('Failed to fetch Windows ROCm release:', error);
+        this.logManager.logError(
+          'Failed to fetch Windows ROCm release:',
+          error as Error
+        );
       }
     }
 
@@ -738,7 +755,10 @@ export class KoboldCppManager {
         try {
           chmodSync(tempPackedFilePath, 0o755);
         } catch (error) {
-          console.error('Failed to make ROCm binary executable:', error);
+          this.logManager.logError(
+            'Failed to make ROCm binary executable:',
+            error as Error
+          );
         }
       }
 
@@ -748,6 +768,7 @@ export class KoboldCppManager {
         try {
           unlinkSync(tempPackedFilePath);
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.warn('Failed to cleanup packed ROCm file:', error);
         }
 
@@ -774,7 +795,7 @@ export class KoboldCppManager {
           };
         }
       } catch (error) {
-        console.error('Failed to unpack ROCm:', error);
+        this.logManager.logError('Failed to unpack ROCm:', error as Error);
         return {
           success: false,
           error: `Failed to unpack ROCm: ${(error as Error).message}`,
@@ -886,9 +907,13 @@ export class KoboldCppManager {
 
       const currentVersion = await this.getCurrentVersion();
       if (!currentVersion || !existsSync(currentVersion.path)) {
+        const error = 'KoboldCpp not found';
+        this.logManager.logError(
+          `Launch failed: ${error}. Current version: ${JSON.stringify(currentVersion)}`
+        );
         return {
           success: false,
-          error: 'KoboldCpp not found',
+          error,
         };
       }
 
@@ -936,15 +961,20 @@ export class KoboldCppManager {
 
         child.on('exit', (code, signal) => {
           if (mainWindow && !mainWindow.isDestroyed()) {
-            const exitMessage = signal
+            const displayMessage = signal
               ? `\nProcess terminated with signal ${signal}\n`
               : `\nProcess exited with code ${code}\n`;
-            mainWindow.webContents.send('kobold-output', exitMessage);
+            mainWindow.webContents.send('kobold-output', displayMessage);
           }
           this.koboldProcess = null;
         });
 
         child.on('error', (error) => {
+          this.logManager.logError(
+            `KoboldCpp process error: ${error.message}`,
+            error
+          );
+
           if (mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.webContents.send(
               'kobold-output',
@@ -957,12 +987,19 @@ export class KoboldCppManager {
 
       return { success: true, pid: child.pid };
     } catch (error) {
-      return { success: false, error: (error as Error).message };
+      const errorMessage = (error as Error).message;
+      this.logManager.logError(
+        `Failed to launch KoboldCpp: ${errorMessage}`,
+        error as Error
+      );
+      return { success: false, error: errorMessage };
     }
   }
 
   stopKoboldCpp(): void {
     if (this.koboldProcess) {
+      const pid = this.koboldProcess.pid;
+
       try {
         this.koboldProcess.kill('SIGTERM');
 
@@ -971,14 +1008,20 @@ export class KoboldCppManager {
             try {
               this.koboldProcess.kill('SIGKILL');
             } catch (error) {
-              console.error('Error force-killing KoboldCpp process:', error);
+              this.logManager.logError(
+                'Error force-killing KoboldCpp process:',
+                error as Error
+              );
             }
           }
         }, 5000);
 
         this.koboldProcess = null;
       } catch (error) {
-        console.error('Error stopping KoboldCpp process:', error);
+        this.logManager.logError(
+          `Error sending SIGTERM to KoboldCpp process (PID: ${pid}):`,
+          error as Error
+        );
         this.koboldProcess = null;
       }
     }
@@ -1014,7 +1057,7 @@ export class KoboldCppManager {
             cleanup();
           }, 3000);
         } catch (error) {
-          console.error('Error during cleanup:', error);
+          this.logManager.logError('Error during cleanup:', error as Error);
           cleanup();
         }
       });

@@ -1,5 +1,6 @@
 import { existsSync } from 'fs';
 import { join, dirname } from 'path';
+import { LogManager } from '@/main/managers/LogManager';
 
 export interface BackendSupport {
   rocm: boolean;
@@ -12,6 +13,11 @@ export interface BackendSupport {
 
 export class BinaryService {
   private backendSupportCache = new Map<string, BackendSupport>();
+  private logManager: LogManager;
+
+  constructor(logManager: LogManager) {
+    this.logManager = logManager;
+  }
 
   detectBackendSupport(koboldBinaryPath: string): BackendSupport {
     if (this.backendSupportCache.has(koboldBinaryPath)) {
@@ -32,6 +38,7 @@ export class BinaryService {
       const internalDir = join(binaryDir, '_internal');
 
       if (!existsSync(internalDir)) {
+        // eslint-disable-next-line no-console
         console.warn(
           '_internal directory not found, cannot detect backend support'
         );
@@ -55,7 +62,10 @@ export class BinaryService {
       support.failsafe = isDynamicLib('koboldcpp_failsafe');
       support.cuda = isDynamicLib('koboldcpp_cublas');
     } catch (error) {
-      console.error('Error detecting backend support:', error);
+      this.logManager.logError(
+        'Error detecting backend support:',
+        error as Error
+      );
     }
 
     this.backendSupportCache.set(koboldBinaryPath, support);

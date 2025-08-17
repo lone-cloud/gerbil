@@ -88,7 +88,10 @@ export const VersionsTab = () => {
         }
       }
     } catch (error) {
-      console.error('Failed to load installed versions:', error);
+      window.electronAPI.logs.logError(
+        'Failed to load installed versions:',
+        error as Error
+      );
     } finally {
       setLoadingInstalled(false);
     }
@@ -201,7 +204,7 @@ export const VersionsTab = () => {
         await loadInstalledVersions();
       }
     } catch (error) {
-      console.error('Failed to download:', error);
+      window.electronAPI.logs.logError('Failed to download:', error as Error);
     }
   };
 
@@ -227,7 +230,10 @@ export const VersionsTab = () => {
         }
       }
     } catch (error) {
-      console.error('Failed to set current version:', error);
+      window.electronAPI.logs.logError(
+        'Failed to set current version:',
+        error as Error
+      );
     }
   };
 

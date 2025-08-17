@@ -85,7 +85,10 @@ export const BackendSelector = ({
           onBackendChange(backends[0].value);
         }
       } catch (error) {
-        console.warn('Failed to detect available backends:', error);
+        window.electronAPI.logs.logError(
+          'Failed to detect available backends:',
+          error as Error
+        );
         setAvailableBackends([]);
       } finally {
         setIsLoadingBackends(false);
@@ -93,7 +96,8 @@ export const BackendSelector = ({
     };
 
     void detectAvailableBackends();
-  }, [backend, onBackendChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [backend]);
 
   const getWarnings = () => {
     if (backend !== 'cpu' || !cpuCapabilities) return [];
@@ -120,25 +124,26 @@ export const BackendSelector = ({
   };
 
   return (
-    <div>
+    <div style={{ minHeight: '120px' }}>
       <Group gap="xs" align="center" mb="xs">
         <Text size="sm" fw={500}>
           Backend
         </Text>
         <InfoTooltip label="Select a backend to use. CUDA runs on Nvidia GPUs, and is much faster. ROCm is the AMD equivalent. Vulkan and CLBlast works on all GPUs but are somewhat slower." />
-        {getWarnings().map((warning, index) => (
-          <Tooltip
-            key={index}
-            label={warning.message}
-            multiline
-            w={300}
-            withArrow
-          >
-            <ActionIcon size="sm" color="orange" variant="light">
-              <AlertTriangle size={14} />
-            </ActionIcon>
-          </Tooltip>
-        ))}
+        {!isLoadingBackends &&
+          getWarnings().map((warning, index) => (
+            <Tooltip
+              key={index}
+              label={warning.message}
+              multiline
+              w={300}
+              withArrow
+            >
+              <ActionIcon size="sm" color="orange" variant="light">
+                <AlertTriangle size={14} />
+              </ActionIcon>
+            </Tooltip>
+          ))}
       </Group>
       <Select
         placeholder={
@@ -157,9 +162,11 @@ export const BackendSelector = ({
           label: b.label,
         }))}
         disabled={isLoadingBackends || availableBackends.length === 0}
+        style={{ minHeight: '36px' }}
       />
 
-      {(backend === 'cuda' || backend === 'rocm') &&
+      {!isLoadingBackends &&
+        (backend === 'cuda' || backend === 'rocm') &&
         onGpuDeviceChange &&
         availableBackends.find((b) => b.value === backend)?.devices &&
         availableBackends.find((b) => b.value === backend)!.devices!.length >
@@ -181,7 +188,8 @@ export const BackendSelector = ({
           />
         )}
 
-      {backend &&
+      {!isLoadingBackends &&
+        backend &&
         availableBackends.find((b) => b.value === backend)?.devices && (
           <Group gap="xs" mt="xs">
             <Text size="xs" c="dimmed">
@@ -199,18 +207,20 @@ export const BackendSelector = ({
               ))}
           </Group>
         )}
-      {backend === 'cpu' && (
-        <Card withBorder p="sm" mt="xs" bg={isDark ? 'blue.9' : 'blue.0'}>
-          <Text size="sm" c={isDark ? 'blue.2' : 'blue.8'}>
-            <Text component="span" fw={600}>
-              Performance Note:
-            </Text>{' '}
-            LLMs run significantly faster on GPU-accelerated systems. Consider
-            using NVIDIA&apos;s CUDA or AMD&apos;s ROCm backends for optimal
-            performance.
-          </Text>
-        </Card>
-      )}
+      {!isLoadingBackends &&
+        backend === 'cpu' &&
+        availableBackends.length > 0 && (
+          <Card withBorder p="sm" mt="xs" bg={isDark ? 'blue.9' : 'blue.0'}>
+            <Text size="sm" c={isDark ? 'blue.2' : 'blue.8'}>
+              <Text component="span" fw={600}>
+                Performance Note:
+              </Text>{' '}
+              LLMs run significantly faster on GPU-accelerated systems. Consider
+              using NVIDIA&apos;s CUDA or AMD&apos;s ROCm backends for optimal
+              performance.
+            </Text>
+          </Card>
+        )}
     </div>
   );
 };

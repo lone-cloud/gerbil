@@ -1,10 +1,13 @@
-# FriendlyKobold
+# Friendly Kobold
 
-A koboldcpp manager.
+A koboldcpp manager. <!-- markdownlint-disable MD033 -->
+<img src="assets/icon.png" alt="FriendlyKobold Icon" width="32" height="32">
+
+<!-- markdownlint-enable MD033 -->
 
 ## Core Features
 
-- modern UI with full support for Linux Wayland
+- modern UI for [koboldcpp](https://github.com/LostRuins/koboldcpp) with full support for Linux Wayland
 - download and keep up-to-date your [koboldcpp](https://github.com/LostRuins/koboldcpp/releases) binary
 - better surface the ROCm-specific builds of koboldcpp from YellowRoseCx and from [koboldai.org](https://koboldai.org/cpplinuxrocm)
 - manage the koboldcpp binary to prevent it from running in the background indefinitely
@@ -47,6 +50,10 @@ Not all koboldcpp features have currently been ported over the UI. As a workarou
 ### Future considerations
 
 It would make a lot of sense to transition this project to Tauri from Electron. The app size should drop from ~80MB to ~10MB; however, users on obsolete OSes (with outdated WebViews) will very likely encounter issues. In addition, I would need to learn Rust to rewrite the BE (Electron main code), but at least we can re-use all the React code. The app would be much smaller, faster and memory efficient, but not work for some users. I think it's a worthy tradeoff.
+
+### Dev notes
+
+- Maximum compression doesn't work well on Linux and causes the app start time to be over 30 secs. Reducing compression for Linux's AppImage builds, which increases file size by ~20MB, but makes its start up time reasonable again.
 
 ## License
 
