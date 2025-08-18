@@ -11,8 +11,8 @@ import {
   useMantineColorScheme,
 } from '@mantine/core';
 import { Settings, ArrowLeft } from 'lucide-react';
-import { StyledTooltip } from '../StyledTooltip';
-import { soundAssets, playSound } from '../../utils/sounds';
+import { StyledTooltip } from '@/components/StyledTooltip';
+import { soundAssets, playSound } from '@/utils/sounds';
 import iconUrl from '/icon.png';
 import './AppHeader.css';
 
@@ -88,15 +88,15 @@ export const AppHeader = ({
               Eject
             </Button>
           ) : (
-            <Group gap="xs" align="center">
+            <Group gap="sm" align="center">
               <Image
                 src={iconUrl}
                 alt="Friendly Kobold"
-                w={24}
-                h={24}
+                w={28}
+                h={28}
                 style={{
-                  minWidth: 24,
-                  minHeight: 24,
+                  minWidth: 28,
+                  minHeight: 28,
                   cursor: 'pointer',
                   userSelect: 'none',
                   transition: 'transform 0.15s ease-in-out',

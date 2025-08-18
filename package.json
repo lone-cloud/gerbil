@@ -18,9 +18,6 @@
     "build": "electron-vite build",
     "package": "electron-vite build && electron-builder",
     "analyze": "cross-env ANALYZE=true electron-vite build && yarn dlx open-cli dist/stats.html",
-    "preview": "electron-vite preview",
-    "start": "electron .",
-    "electron": "wait-on tcp:5173 && electron .",
     "format": "prettier --write . --ignore-path .gitignore",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -95,6 +92,9 @@
     "compression": "normal",
     "icon": "assets/icon.png",
     "publish": null,
+    "electronLanguages": [
+      "en-US"
+    ],
     "directories": {
       "output": "release"
     },
@@ -139,7 +139,7 @@
       "compression": "maximum",
       "target": [
         {
-          "target": "nsis",
+          "target": "portable",
           "arch": [
             "x64"
           ]
@@ -165,10 +165,6 @@
           ]
         }
       ]
-    },
-    "nsis": {
-      "differentialPackage": true
     }
-  },
-  "packageManager": "yarn@4.9.2"
+  }
 }

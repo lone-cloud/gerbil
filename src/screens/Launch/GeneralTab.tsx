@@ -31,6 +31,7 @@ interface GeneralTabProps {
   onWarningsChange?: (
     warnings: Array<{ type: 'warning' | 'info'; message: string }>
   ) => void;
+  onBackendsReady?: () => void;
 }
 
 export const GeneralTab = ({
@@ -50,6 +51,7 @@ export const GeneralTab = ({
   onBackendChange,
   onGpuDeviceChange,
   onWarningsChange,
+  onBackendsReady,
 }: GeneralTabProps) => {
   const validationState = getInputValidationState(modelPath);
 
@@ -84,6 +86,7 @@ export const GeneralTab = ({
         noavx2={noavx2}
         failsafe={failsafe}
         onWarningsChange={onWarningsChange}
+        onBackendsReady={onBackendsReady}
       />
 
       <div>

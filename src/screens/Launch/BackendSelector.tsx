@@ -12,6 +12,7 @@ interface BackendSelectorProps {
   onWarningsChange?: (
     warnings: Array<{ type: 'warning' | 'info'; message: string }>
   ) => void;
+  onBackendsReady?: () => void;
 }
 
 export const BackendSelector = ({
@@ -22,6 +23,7 @@ export const BackendSelector = ({
   noavx2 = false,
   failsafe = false,
   onWarningsChange,
+  onBackendsReady,
 }: BackendSelectorProps) => {
   const [availableBackends, setAvailableBackends] = useState<
     Array<{ value: string; label: string; devices?: string[] }>
@@ -77,12 +79,22 @@ export const BackendSelector = ({
             onBackendChange(backends[0].value);
           }, 10);
         }
+
+        if (onBackendsReady) {
+          window.setTimeout(() => {
+            onBackendsReady();
+          }, 100);
+        }
       } catch (error) {
         window.electronAPI.logs.logError(
           'Failed to detect available backends:',
           error as Error
         );
         setAvailableBackends([]);
+
+        if (onBackendsReady) {
+          onBackendsReady();
+        }
       }
     };
 
@@ -93,7 +105,7 @@ export const BackendSelector = ({
         window.clearTimeout(timeoutId);
       }
     };
-  }, [backend, onBackendChange]);
+  }, [backend, onBackendChange, onBackendsReady]);
 
   useEffect(() => {
     if (!onWarningsChange) return;

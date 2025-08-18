@@ -9,7 +9,7 @@ import {
 } from 'electron';
 import * as os from 'os';
 import { join } from 'path';
-import { ConfigManager } from './ConfigManager';
+import { ConfigManager } from '@/main/managers/ConfigManager';
 
 export class WindowManager {
   private mainWindow: BrowserWindow | null = null;
