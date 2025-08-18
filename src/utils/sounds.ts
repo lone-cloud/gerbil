@@ -1,26 +1,73 @@
-import elephantSound from '/sounds/elephant-trunk.mp3';
-import mouseSqueak1 from '/sounds/mouse-squeak1.mp3';
-import mouseSqueak2 from '/sounds/mouse-squeak2.mp3';
-import mouseSqueak3 from '/sounds/mouse-squeak3.mp3';
-import mouseSqueak4 from '/sounds/mouse-squeak4.mp3';
-import mouseSqueak5 from '/sounds/mouse-squeak5.mp3';
+import elephantSoundUrl from '@/assets/sounds/elephant-trunk.mp3';
+import mouseSqueak1Url from '@/assets/sounds/mouse-squeak1.mp3';
+import mouseSqueak2Url from '@/assets/sounds/mouse-squeak2.mp3';
+import mouseSqueak3Url from '@/assets/sounds/mouse-squeak3.mp3';
+import mouseSqueak4Url from '@/assets/sounds/mouse-squeak4.mp3';
+import mouseSqueak5Url from '@/assets/sounds/mouse-squeak5.mp3';
 
 export const soundAssets = {
-  elephant: elephantSound,
+  elephant: elephantSoundUrl,
   mouseSqueaks: [
-    mouseSqueak1,
-    mouseSqueak2,
-    mouseSqueak3,
-    mouseSqueak4,
-    mouseSqueak5,
+    mouseSqueak1Url,
+    mouseSqueak2Url,
+    mouseSqueak3Url,
+    mouseSqueak4Url,
+    mouseSqueak5Url,
   ],
 };
 
-export const playSound = (soundUrl: string, volume = 0.5): void => {
+const audioCache = new Map<string, HTMLAudioElement>();
+let audioInitialized = false;
+
+export const initializeAudio = async (): Promise<void> => {
+  if (audioInitialized) return;
+
   try {
-    const audio = new Audio(soundUrl);
+    const allSounds = [soundAssets.elephant, ...soundAssets.mouseSqueaks];
+
+    const initPromises = allSounds.map(async (soundUrl) => {
+      const audio = new Audio(soundUrl);
+      audio.preload = 'auto';
+
+      audio.volume = 0.01;
+
+      try {
+        await audio.play();
+        audio.pause();
+        audio.currentTime = 0;
+        audio.volume = 0.5;
+      } catch {
+        void 0;
+      }
+
+      audioCache.set(soundUrl, audio);
+    });
+
+    await Promise.allSettled(initPromises);
+    audioInitialized = true;
+  } catch {
+    void 0;
+  }
+};
+
+export const playSound = async (
+  soundUrl: string,
+  volume = 0.5
+): Promise<void> => {
+  try {
+    if (!audioInitialized) {
+      await initializeAudio();
+    }
+
+    let audio = audioCache.get(soundUrl);
+    if (!audio) {
+      audio = new Audio(soundUrl);
+      audioCache.set(soundUrl, audio);
+    }
+
     audio.volume = volume;
-    audio.play().catch(() => {});
+    audio.currentTime = 0;
+    await audio.play();
   } catch {
     void 0;
   }

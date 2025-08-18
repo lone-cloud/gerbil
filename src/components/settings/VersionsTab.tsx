@@ -16,7 +16,7 @@ import {
   sortAssetsByRecommendation,
   isAssetRecommended,
 } from '@/utils/assets';
-import { getDisplayNameFromPath } from '@/utils/versionUtils';
+import { getDisplayNameFromPath } from '@/utils';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import type { InstalledVersion } from '@/types/electron';
 

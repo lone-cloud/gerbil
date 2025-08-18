@@ -2,6 +2,8 @@ export const APP_NAME = 'friendly-kobold';
 
 export const CONFIG_FILE_NAME = 'config.json';
 
+export * from './defaults';
+
 export const GITHUB_API = {
   BASE_URL: 'https://api.github.com',
   KOBOLDCPP_REPO: 'LostRuins/koboldcpp',

@@ -4,29 +4,34 @@ import {
   getPresetByName,
   type ImageModelPreset,
 } from '@/utils/imageModelPresets';
+import {
+  DEFAULT_CONTEXT_SIZE,
+  DEFAULT_MODEL_URL,
+  DEFAULT_HOST,
+  DEFAULT_FLUX_MODELS,
+} from '@/constants';
+import { isNotNullish } from '@/utils';
 
 export const useLaunchConfig = () => {
   const [gpuLayers, setGpuLayers] = useState<number>(0);
   const [autoGpuLayers, setAutoGpuLayers] = useState<boolean>(false);
-  const [contextSize, setContextSize] = useState<number>(2048);
-  const [modelPath, setModelPath] = useState<string>(
-    'https://huggingface.co/MaziyarPanahi/gemma-3-4b-it-GGUF/resolve/main/gemma-3-4b-it.Q8_0.gguf?download=true'
-  );
+  const [contextSize, setContextSize] = useState<number>(DEFAULT_CONTEXT_SIZE);
+  const [modelPath, setModelPath] = useState<string>(DEFAULT_MODEL_URL);
   const [additionalArguments, setAdditionalArguments] = useState<string>('');
   const [port, setPort] = useState<number | undefined>(undefined);
-  const [host, setHost] = useState<string>('localhost');
+  const [host, setHost] = useState<string>(DEFAULT_HOST);
   const [multiuser, setMultiuser] = useState<boolean>(false);
   const [multiplayer, setMultiplayer] = useState<boolean>(false);
   const [remotetunnel, setRemotetunnel] = useState<boolean>(false);
   const [nocertify, setNocertify] = useState<boolean>(false);
   const [websearch, setWebsearch] = useState<boolean>(false);
   const [noshift, setNoshift] = useState<boolean>(false);
-  const [flashattention, setFlashattention] = useState<boolean>(false);
+  const [flashattention, setFlashattention] = useState<boolean>(true);
   const [noavx2, setNoavx2] = useState<boolean>(false);
   const [failsafe, setFailsafe] = useState<boolean>(false);
   const [lowvram, setLowvram] = useState<boolean>(false);
-  const [quantmatmul, setQuantmatmul] = useState<boolean>(false);
-  const [backend, setBackend] = useState<string>('cpu');
+  const [quantmatmul, setQuantmatmul] = useState<boolean>(true);
+  const [backend, setBackend] = useState<string>('');
   const [gpuDevice, setGpuDevice] = useState<number>(0);
 
   const [sdmodel, setSdmodel] = useState<string>('');
@@ -52,7 +57,7 @@ export const useLaunchConfig = () => {
       if (typeof configData.contextsize === 'number') {
         setContextSize(configData.contextsize);
       } else {
-        setContextSize(2048);
+        setContextSize(DEFAULT_CONTEXT_SIZE);
       }
 
       if (typeof configData.model_param === 'string') {
@@ -68,7 +73,7 @@ export const useLaunchConfig = () => {
       if (typeof configData.host === 'string') {
         setHost(configData.host);
       } else {
-        setHost('localhost');
+        setHost(DEFAULT_HOST);
       }
 
       if (typeof configData.multiuser === 'number') {
@@ -110,7 +115,7 @@ export const useLaunchConfig = () => {
       if (typeof configData.flashattention === 'boolean') {
         setFlashattention(configData.flashattention);
       } else {
-        setFlashattention(false);
+        setFlashattention(true);
       }
 
       if (typeof configData.noavx2 === 'boolean') {
@@ -133,7 +138,7 @@ export const useLaunchConfig = () => {
         setQuantmatmul(configData.quantmatmul);
       }
 
-      if (configData.usecuda !== null && configData.usecuda !== undefined) {
+      if (isNotNullish(configData.usecuda)) {
         const gpuInfo = await window.electronAPI.kobold.detectGPU();
         setBackend(gpuInfo.hasNVIDIA ? 'cuda' : 'rocm');
 
@@ -146,15 +151,9 @@ export const useLaunchConfig = () => {
           setGpuDevice(parseInt(deviceId, 10) || 0);
           setQuantmatmul(mmqMode === 'mmq');
         }
-      } else if (
-        configData.usevulkan !== null &&
-        configData.usevulkan !== undefined
-      ) {
+      } else if (isNotNullish(configData.usevulkan)) {
         setBackend('vulkan');
-      } else if (
-        configData.useclblast !== null &&
-        configData.useclblast !== undefined
-      ) {
+      } else if (isNotNullish(configData.useclblast)) {
         setBackend('clblast');
       } else {
         setBackend('cpu');
@@ -190,19 +189,19 @@ export const useLaunchConfig = () => {
     } else {
       const cpuCapabilities = await window.electronAPI.kobold.detectCPU();
       setGpuLayers(0);
-      setContextSize(2048);
+      setContextSize(DEFAULT_CONTEXT_SIZE);
       setPort(undefined);
-      setHost('localhost');
+      setHost(DEFAULT_HOST);
       setMultiuser(false);
       setMultiplayer(false);
       setRemotetunnel(false);
       setNocertify(false);
       setWebsearch(false);
       setNoshift(false);
-      setFlashattention(false);
+      setFlashattention(true);
       setNoavx2(!cpuCapabilities.avx2);
       setFailsafe(!cpuCapabilities.avx && !cpuCapabilities.avx2);
-      setBackend('cpu');
+      setBackend('');
 
       setSdmodel('');
       setSdt5xxl(
@@ -222,34 +221,28 @@ export const useLaunchConfig = () => {
   const loadSavedSettings = useCallback(async () => {
     const cpuCapabilities = await window.electronAPI.kobold.detectCPU();
 
-    setModelPath('');
+    setModelPath(DEFAULT_MODEL_URL);
     setGpuLayers(0);
-    setContextSize(2048);
+    setContextSize(DEFAULT_CONTEXT_SIZE);
     setPort(undefined);
-    setHost('localhost');
+    setHost(DEFAULT_HOST);
     setMultiuser(false);
     setMultiplayer(false);
     setRemotetunnel(false);
     setNocertify(false);
     setWebsearch(false);
     setNoshift(false);
-    setFlashattention(false);
+    setFlashattention(true);
     setNoavx2(!cpuCapabilities.avx2);
     setFailsafe(!cpuCapabilities.avx && !cpuCapabilities.avx2);
-    setBackend('cpu');
+    setBackend('');
 
     setSdmodel('');
-    setSdt5xxl(
-      'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/t5xxl_fp8_e4m3fn.safetensors?download=true'
-    );
-    setSdclipl(
-      'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/clip_l.safetensors?download=true'
-    );
+    setSdt5xxl('');
+    setSdclipl('');
     setSdclipg('');
     setSdphotomaker('');
-    setSdvae(
-      'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/ae.safetensors?download=true'
-    );
+    setSdvae(DEFAULT_FLUX_MODELS.VAE);
   }, []);
 
   const loadConfigFromFile = useCallback(

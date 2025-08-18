@@ -4,14 +4,12 @@ import {
   Stack,
   Tabs,
   Text,
-  Title,
   Group,
   Button,
   Select,
   Modal,
   TextInput,
   Badge,
-  LoadingOverlay,
 } from '@mantine/core';
 import {
   useState,
@@ -84,12 +82,6 @@ export const LaunchScreen = ({
     Array<{ type: 'warning' | 'info'; message: string }>
   >([]);
 
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [initializationSteps, setInitializationSteps] = useState({
-    configLoaded: false,
-    settingsLoaded: false,
-    backendsReady: false,
-  });
   const {
     gpuLayers,
     autoGpuLayers,
@@ -282,17 +274,13 @@ export const LaunchScreen = ({
       setSelectedFile(files[0].name);
     }
 
-    setInitializationSteps((prev) => ({ ...prev, configLoaded: true }));
-
     await loadSavedSettings();
-    setInitializationSteps((prev) => ({ ...prev, settingsLoaded: true }));
 
     const currentSelectedFile = await loadConfigFromFile(files, savedConfig);
     if (currentSelectedFile && !selectedFile) {
       setSelectedFile(currentSelectedFile);
     }
   }, [selectedFile, loadSavedSettings, loadConfigFromFile]);
-
   const handleFileSelection = async (fileName: string) => {
     setSelectedFile(fileName);
     await window.electronAPI.kobold.setSelectedConfig(fileName);
@@ -304,17 +292,6 @@ export const LaunchScreen = ({
 
     setHasUnsavedChanges(false);
   };
-
-  const handleBackendsReady = useCallback(() => {
-    setInitializationSteps((prev) => ({ ...prev, backendsReady: true }));
-  }, []);
-
-  useEffect(() => {
-    const { configLoaded, settingsLoaded, backendsReady } = initializationSteps;
-    if (configLoaded && settingsLoaded && backendsReady && isInitializing) {
-      setIsInitializing(false);
-    }
-  }, [initializationSteps, isInitializing]);
 
   useEffect(() => {
     void loadConfigFiles();
@@ -479,6 +456,7 @@ export const LaunchScreen = ({
   const hasTextModel = modelPath?.trim() !== '';
   const hasImageModel = sdmodel.trim() !== '';
   const showModelPriorityWarning = hasTextModel && hasImageModel;
+  const showNoModelWarning = !hasTextModel && !hasImageModel;
 
   const combinedWarnings = [
     ...warnings,
@@ -488,6 +466,15 @@ export const LaunchScreen = ({
             type: 'warning' as const,
             message:
               'Both text and image generation models are selected. The image generation model will take priority and be used for launch.',
+          },
+        ]
+      : []),
+    ...(showNoModelWarning
+      ? [
+          {
+            type: 'info' as const,
+            message:
+              'Select a model in the General or Image Generation tab to enable launch.',
           },
         ]
       : []),
@@ -503,46 +490,32 @@ export const LaunchScreen = ({
           p="lg"
           style={{ position: 'relative' }}
         >
-          <LoadingOverlay
-            visible={isInitializing}
-            overlayProps={{ radius: 'md', blur: 2 }}
-            loaderProps={{ size: 'lg', type: 'dots' }}
-          />
           <Stack gap="lg">
-            <Group justify="space-between" align="center">
-              <Title order={3}>Launch Configuration</Title>
-              <WarningDisplay warnings={combinedWarnings}>
-                <Button
-                  radius="md"
-                  disabled={
-                    (!modelPath && !sdmodel && !isInitializing) || isLaunching
-                  }
-                  onClick={handleLaunch}
-                  size="lg"
-                  variant="filled"
-                  color="blue"
-                  style={{
-                    fontWeight: 600,
-                    fontSize: '16px',
-                    padding: '12px 28px',
-                    minWidth: '120px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                  }}
-                >
-                  Launch
-                </Button>
-              </WarningDisplay>
-            </Group>
-
             <Stack gap="xs">
               <Text fw={500} size="sm">
                 Configuration File
               </Text>
               {configFiles.length === 0 ? (
-                <Text c="dimmed" size="sm">
-                  No configuration files found in the installation directory.
-                </Text>
+                <Group gap="xs" align="flex-end">
+                  <div style={{ flex: 1 }}>
+                    <Text c="dimmed" size="sm">
+                      No saved configurations. Create your first configuration
+                      by clicking &ldquo;New&rdquo; then &ldquo;Save&rdquo;.
+                    </Text>
+                  </div>
+                  <Button
+                    variant="light"
+                    leftSection={<Plus size={14} />}
+                    size="sm"
+                    onClick={async () => {
+                      setSelectedFile(null);
+                      await loadSavedSettings();
+                      setHasUnsavedChanges(true);
+                    }}
+                  >
+                    New
+                  </Button>
+                </Group>
               ) : (
                 (() => {
                   const selectData = configFiles.map((file) => {
@@ -559,15 +532,32 @@ export const LaunchScreen = ({
                     };
                   });
 
+                  if (selectedFile === null && hasUnsavedChanges) {
+                    selectData.unshift({
+                      value: '__new__',
+                      label: 'New Configuration (unsaved)',
+                      extension: '.kcpps',
+                    });
+                  }
+
                   return (
                     <Group gap="xs" align="flex-end">
                       <div style={{ flex: 1 }}>
                         <Select
                           placeholder="Select a configuration file"
-                          value={selectedFile}
-                          onChange={(value: string | null) =>
-                            value && handleFileSelection(value)
+                          value={
+                            selectedFile === null && hasUnsavedChanges
+                              ? '__new__'
+                              : selectedFile
                           }
+                          onChange={(value: string | null) => {
+                            if (value === '__new__') {
+                              return;
+                            }
+                            if (value) {
+                              handleFileSelection(value);
+                            }
+                          }}
                           data={selectData}
                           leftSection={<File size={16} />}
                           searchable
@@ -587,15 +577,23 @@ export const LaunchScreen = ({
                         />
                       </div>
                       <Button
-                        variant="light"
+                        variant={
+                          selectedFile === null && hasUnsavedChanges
+                            ? 'filled'
+                            : 'light'
+                        }
                         leftSection={<Plus size={14} />}
                         size="sm"
-                        onClick={() => {
+                        disabled={selectedFile === null && hasUnsavedChanges}
+                        onClick={async () => {
                           setSelectedFile(null);
+                          await loadSavedSettings();
                           setHasUnsavedChanges(true);
                         }}
                       >
-                        New
+                        {selectedFile === null && hasUnsavedChanges
+                          ? 'Creating New...'
+                          : 'New'}
                       </Button>
 
                       <Button
@@ -648,7 +646,6 @@ export const LaunchScreen = ({
                     onBackendChange={handleBackendChangeWithTracking}
                     onGpuDeviceChange={handleGpuDeviceChange}
                     onWarningsChange={setWarnings}
-                    onBackendsReady={handleBackendsReady}
                   />
                 </Tabs.Panel>
 
@@ -723,6 +720,29 @@ export const LaunchScreen = ({
                 </Tabs.Panel>
               </div>
             </Tabs>
+
+            <Group justify="flex-end" pt="md">
+              <WarningDisplay warnings={combinedWarnings}>
+                <Button
+                  radius="md"
+                  disabled={(!modelPath && !sdmodel) || isLaunching}
+                  onClick={handleLaunch}
+                  size="lg"
+                  variant="filled"
+                  color="blue"
+                  style={{
+                    fontWeight: 600,
+                    fontSize: '16px',
+                    padding: '12px 28px',
+                    minWidth: '120px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  Launch
+                </Button>
+              </WarningDisplay>
+            </Group>
           </Stack>
         </Card>
 
