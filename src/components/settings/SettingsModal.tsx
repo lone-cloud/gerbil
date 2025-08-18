@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Modal, Tabs, Text, Group, rem } from '@mantine/core';
 import { Settings, Palette, SlidersHorizontal, GitBranch } from 'lucide-react';
-import { GeneralTab } from './GeneralTab';
-import { VersionsTab } from './VersionsTab';
-import { AppearanceTab } from './AppearanceTab';
+import { GeneralTab } from '@/components/settings/GeneralTab';
+import { VersionsTab } from '@/components/settings/VersionsTab';
+import { AppearanceTab } from '@/components/settings/AppearanceTab';
 
 interface SettingsModalProps {
   opened: boolean;

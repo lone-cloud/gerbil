@@ -55,4 +55,4 @@ export type {
   HardwareInfo,
   PlatformInfo,
   SystemCapabilities,
-} from './hardware';
+} from '@/types/hardware';

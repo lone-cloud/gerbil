@@ -1,6 +1,6 @@
 import { ActionIcon } from '@mantine/core';
 import { Info } from 'lucide-react';
-import { StyledTooltip } from './StyledTooltip';
+import { StyledTooltip } from '@/components/StyledTooltip';
 
 interface InfoTooltipProps {
   label: string;

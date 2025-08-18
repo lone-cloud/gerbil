@@ -112,7 +112,6 @@ export const GeneralTab = () => {
               handleMinimizeToTrayChange(event.currentTarget.checked)
             }
             label="Minimize to system tray"
-            description="When enabled, minimizing the window will hide it to the system tray instead of the taskbar"
           />
         </div>
       )}

@@ -11,6 +11,7 @@ import {
   Modal,
   TextInput,
   Badge,
+  LoadingOverlay,
 } from '@mantine/core';
 import {
   useState,
@@ -82,6 +83,13 @@ export const LaunchScreen = ({
   const [warnings, setWarnings] = useState<
     Array<{ type: 'warning' | 'info'; message: string }>
   >([]);
+
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [initializationSteps, setInitializationSteps] = useState({
+    configLoaded: false,
+    settingsLoaded: false,
+    backendsReady: false,
+  });
   const {
     gpuLayers,
     autoGpuLayers,
@@ -274,7 +282,10 @@ export const LaunchScreen = ({
       setSelectedFile(files[0].name);
     }
 
+    setInitializationSteps((prev) => ({ ...prev, configLoaded: true }));
+
     await loadSavedSettings();
+    setInitializationSteps((prev) => ({ ...prev, settingsLoaded: true }));
 
     const currentSelectedFile = await loadConfigFromFile(files, savedConfig);
     if (currentSelectedFile && !selectedFile) {
@@ -293,6 +304,17 @@ export const LaunchScreen = ({
 
     setHasUnsavedChanges(false);
   };
+
+  const handleBackendsReady = useCallback(() => {
+    setInitializationSteps((prev) => ({ ...prev, backendsReady: true }));
+  }, []);
+
+  useEffect(() => {
+    const { configLoaded, settingsLoaded, backendsReady } = initializationSteps;
+    if (configLoaded && settingsLoaded && backendsReady && isInitializing) {
+      setIsInitializing(false);
+    }
+  }, [initializationSteps, isInitializing]);
 
   useEffect(() => {
     void loadConfigFiles();
@@ -474,14 +496,27 @@ export const LaunchScreen = ({
   return (
     <Container size="sm">
       <Stack gap="md">
-        <Card withBorder radius="md" shadow="sm" p="lg">
+        <Card
+          withBorder
+          radius="md"
+          shadow="sm"
+          p="lg"
+          style={{ position: 'relative' }}
+        >
+          <LoadingOverlay
+            visible={isInitializing}
+            overlayProps={{ radius: 'md', blur: 2 }}
+            loaderProps={{ size: 'lg', type: 'dots' }}
+          />
           <Stack gap="lg">
             <Group justify="space-between" align="center">
               <Title order={3}>Launch Configuration</Title>
               <WarningDisplay warnings={combinedWarnings}>
                 <Button
                   radius="md"
-                  disabled={(!modelPath && !sdmodel) || isLaunching}
+                  disabled={
+                    (!modelPath && !sdmodel && !isInitializing) || isLaunching
+                  }
                   onClick={handleLaunch}
                   size="lg"
                   variant="filled"
@@ -613,6 +648,7 @@ export const LaunchScreen = ({
                     onBackendChange={handleBackendChangeWithTracking}
                     onGpuDeviceChange={handleGpuDeviceChange}
                     onWarningsChange={setWarnings}
+                    onBackendsReady={handleBackendsReady}
                   />
                 </Tabs.Panel>
 
