@@ -155,7 +155,7 @@ export const BackendSelector = ({
   ]);
 
   return (
-    <div style={{ minHeight: '120px' }}>
+    <div>
       <Group gap="xs" align="center" mb="xs">
         <Text size="sm" fw={500}>
           Backend

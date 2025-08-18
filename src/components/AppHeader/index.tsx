@@ -12,7 +12,7 @@ import {
 } from '@mantine/core';
 import { Settings, ArrowLeft } from 'lucide-react';
 import { StyledTooltip } from '@/components/StyledTooltip';
-import { soundAssets, playSound } from '@/utils/sounds';
+import { soundAssets, playSound, initializeAudio } from '@/utils';
 import iconUrl from '/icon.png';
 import './AppHeader.css';
 
@@ -40,13 +40,14 @@ export const AppHeader = ({
   const [isMouseSqueaking, setIsMouseSqueaking] = useState(false);
   const { colorScheme } = useMantineColorScheme();
 
-  const handleLogoClick = () => {
+  const handleLogoClick = async () => {
+    await initializeAudio();
     setLogoClickCount((prev) => prev + 1);
 
     try {
       if (logoClickCount >= 10 && Math.random() < 0.1) {
         setIsElephantMode(true);
-        playSound(soundAssets.elephant, 0.6);
+        await playSound(soundAssets.elephant, 0.6);
 
         setTimeout(() => {
           setIsElephantMode(false);
@@ -54,7 +55,7 @@ export const AppHeader = ({
       } else {
         setIsMouseSqueaking(true);
         const squeakNumber = Math.floor(Math.random() * 5);
-        playSound(soundAssets.mouseSqueaks[squeakNumber], 0.4);
+        await playSound(soundAssets.mouseSqueaks[squeakNumber], 0.4);
 
         setTimeout(() => {
           setIsMouseSqueaking(false);
@@ -111,7 +112,7 @@ export const AppHeader = ({
                 }}
                 onClick={handleLogoClick}
               />
-              <Title order={4} c="dimmed" fw={500}>
+              <Title order={4} fw={500}>
                 Friendly Kobold
               </Title>
             </Group>

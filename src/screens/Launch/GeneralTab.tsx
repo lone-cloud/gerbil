@@ -10,7 +10,7 @@ import {
 import { File, Search } from 'lucide-react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { BackendSelector } from '@/screens/Launch/BackendSelector';
-import { getInputValidationState } from '@/utils/validation';
+import { getInputValidationState } from '@/utils';
 
 interface GeneralTabProps {
   modelPath: string;

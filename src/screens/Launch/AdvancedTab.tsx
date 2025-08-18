@@ -90,7 +90,7 @@ export const AdvancedTab = ({
                   }
                   label="Use ContextShift"
                 />
-                <InfoTooltip label="Use Context Shifting to reduce reprocessing. Recommended" />
+                <InfoTooltip label="Use Context Shifting to reduce reprocessing." />
               </Group>
             </div>
 

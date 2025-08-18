@@ -2,8 +2,7 @@ import { Stack, Text, Group, TextInput, Button, Select } from '@mantine/core';
 import { useState } from 'react';
 import { File, Search } from 'lucide-react';
 import { InfoTooltip } from '@/components/InfoTooltip';
-import { getInputValidationState } from '@/utils/validation';
-import { IMAGE_MODEL_PRESETS } from '@/utils/imageModelPresets';
+import { getInputValidationState, IMAGE_MODEL_PRESETS } from '@/utils';
 
 interface ImageGenerationTabProps {
   sdmodel: string;

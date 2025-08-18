@@ -10,8 +10,7 @@ import {
 } from '@mantine/core';
 import { DownloadCard } from '@/components/DownloadCard';
 import { StyledTooltip } from '@/components/StyledTooltip';
-import { getPlatformDisplayName } from '@/utils/platform';
-import { formatFileSize } from '@/utils/fileSize';
+import { getPlatformDisplayName, formatFileSize } from '@/utils';
 import {
   isAssetRecommended,
   sortAssetsByRecommendation,

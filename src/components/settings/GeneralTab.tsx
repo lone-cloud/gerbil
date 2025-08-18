@@ -1,23 +1,12 @@
 import { useState, useEffect } from 'react';
-import {
-  Stack,
-  Text,
-  Group,
-  TextInput,
-  Button,
-  rem,
-  Switch,
-} from '@mantine/core';
+import { Stack, Text, Group, TextInput, Button, rem } from '@mantine/core';
 import { Folder, FolderOpen } from 'lucide-react';
 
 export const GeneralTab = () => {
   const [installDir, setInstallDir] = useState<string>('');
-  const [minimizeToTray, setMinimizeToTray] = useState<boolean>(false);
-  const [platform] = useState(() => navigator.platform.toLowerCase());
 
   useEffect(() => {
     loadCurrentInstallDir();
-    loadMinimizeToTray();
   }, []);
 
   const loadCurrentInstallDir = async () => {
@@ -27,30 +16,6 @@ export const GeneralTab = () => {
     } catch (error) {
       window.electronAPI.logs.logError(
         'Failed to load install directory:',
-        error as Error
-      );
-    }
-  };
-
-  const loadMinimizeToTray = async () => {
-    try {
-      const setting = await window.electronAPI.config.get('minimizeToTray');
-      setMinimizeToTray(setting === true);
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to load minimize to tray setting:',
-        error as Error
-      );
-    }
-  };
-
-  const handleMinimizeToTrayChange = async (checked: boolean) => {
-    try {
-      await window.electronAPI.config.set('minimizeToTray', checked);
-      setMinimizeToTray(checked);
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to save minimize to tray setting:',
         error as Error
       );
     }
@@ -100,21 +65,6 @@ export const GeneralTab = () => {
           </Button>
         </Group>
       </div>
-
-      {!platform.includes('mac') && (
-        <div>
-          <Text fw={500} mb="sm">
-            Window Behavior
-          </Text>
-          <Switch
-            checked={minimizeToTray}
-            onChange={(event) =>
-              handleMinimizeToTrayChange(event.currentTarget.checked)
-            }
-            label="Minimize to system tray"
-          />
-        </div>
-      )}
     </Stack>
   );
 };

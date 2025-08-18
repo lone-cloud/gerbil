@@ -1,7 +1,7 @@
 import type { GitHubRelease, DownloadItem } from '@/types/electron';
 import { LogManager } from '@/main/managers/LogManager';
 import { GITHUB_API } from '@/constants';
-import { filterAssetsByPlatform } from '@/utils/platform';
+import { filterAssetsByPlatform } from '@/utils';
 
 export class GitHubService {
   private lastApiCall = 0;
