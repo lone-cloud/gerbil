@@ -23,14 +23,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node.js with Volta
+        uses: volta-cli/action@v4
         with:
-          node-version: '22'
-          cache: 'yarn'
+          node-version: '22.18.0'
+          yarn-version: '4.9.2'
 
       - name: Install dependencies
         run: yarn
