@@ -1,5 +1,9 @@
 name: Release
 
+permissions:
+  contents: write
+  actions: read
+
 on:
   push:
     tags:
@@ -96,27 +100,12 @@ jobs:
             echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Create Release
+      - name: Create Draft Release
         run: |
           gh release create ${{ steps.tag.outputs.tag }} \
             --title "FriendlyKobold ${{ steps.tag.outputs.tag }}" \
-            --notes "## What's New
-            
-            Release ${{ steps.tag.outputs.tag }} of FriendlyKobold
-            
-            ### Downloads
-            - **macOS**: Download the \`.dmg\` file
-            - **Windows**: Download the \`.exe\` installer
-            - **Linux**: Download the \`.AppImage\` file
-            
-            ### Installation
-            - **macOS**: Open the \`.dmg\` file and drag FriendlyKobold to Applications
-            - **Windows**: Run the \`.exe\` installer
-            - **Linux**: Make the \`.AppImage\` executable and run it
-            
-            ---
-            
-            For more information, visit our [repository](https://github.com/${{ github.repository }})."
+            --draft \
+            --generate-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
