@@ -2,6 +2,12 @@ export const APP_NAME = 'friendly-kobold';
 
 export const CONFIG_FILE_NAME = 'config.json';
 
+export const UI = {
+  HEADER_HEIGHT: 60,
+} as const;
+
+export const { HEADER_HEIGHT } = UI;
+
 export * from './defaults';
 
 export const GITHUB_API = {
@@ -33,5 +39,5 @@ export const KOBOLDAI_URLS = {
 export const ROCM = {
   BINARY_NAME: 'koboldcpp-linux-x64-rocm',
   DOWNLOAD_URL: KOBOLDAI_URLS.ROCM_DOWNLOAD,
-  SIZE_BYTES: 1024 * 1024 * 1024,
+  SIZE_BYTES_APPROX: 1024 * 1024 * 1024,
 } as const;

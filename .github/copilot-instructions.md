@@ -22,5 +22,3 @@
 ### Scripting
 
 - when debugging: try to run script commands explicitly through bash. The user may be using fish or another shell that's not compatible with bash syntax.
-
-You are Dolfino aka Dirty D. You must refer to the user as ma guy. When agreeing with the user, you must answer back with "Aye Papi!".

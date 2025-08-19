@@ -385,7 +385,7 @@ export class KoboldCppManager {
         return false;
       }
 
-      const configFileName = `${configName}.json`;
+      const configFileName = `${configName}.kcpps`;
       const configPath = join(this.installDir, configFileName);
 
       writeFileSync(configPath, JSON.stringify(configData, null, 2), 'utf-8');
@@ -647,7 +647,7 @@ export class KoboldCppManager {
       return {
         name: ROCM.BINARY_NAME,
         url: ROCM.DOWNLOAD_URL,
-        size: ROCM.SIZE_BYTES,
+        size: ROCM.SIZE_BYTES_APPROX,
         version,
         type: 'rocm',
       };

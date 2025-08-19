@@ -10,7 +10,7 @@ import {
 } from '@mantine/core';
 import { DownloadCard } from '@/components/DownloadCard';
 import { StyledTooltip } from '@/components/StyledTooltip';
-import { getPlatformDisplayName, formatFileSize } from '@/utils';
+import { getPlatformDisplayName, formatFileSizeInMB } from '@/utils';
 import {
   isAssetRecommended,
   sortAssetsByRecommendation,
@@ -43,7 +43,6 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
 
   const regularDownloads = availableDownloads.filter((d) => d.type === 'asset');
   const rocmDownload = availableDownloads.find((d) => d.type === 'rocm');
-  const latestVersion = availableDownloads[0]?.version || 'unknown';
 
   const handleDownload = useCallback(
     async (type: 'asset' | 'rocm', download?: DownloadItem) => {
@@ -82,7 +81,7 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
     return (
       <DownloadCard
         name={rocmDownload.name}
-        size={formatFileSize(rocmDownload.size)}
+        size={`~${formatFileSizeInMB(rocmDownload.size)}`}
         description={getAssetDescription(rocmDownload.name)}
         version={rocmDownload.version}
         isRecommended={isAssetRecommended(
@@ -120,24 +119,6 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
               <>
                 {availableDownloads.length > 0 && (
                   <>
-                    <Stack gap="xs" py="md">
-                      <div>
-                        <Text
-                          size="xs"
-                          c="dimmed"
-                          mb={6}
-                          tt="uppercase"
-                          fw={600}
-                          style={{ letterSpacing: '0.5px' }}
-                        >
-                          Latest Version
-                        </Text>
-                        <Text fw={700} size="xl" mb={8} c="blue.6">
-                          {latestVersion}
-                        </Text>
-                      </div>
-                    </Stack>
-
                     {availableDownloads.length > 0 ? (
                       <Stack gap="sm">
                         {platformInfo.hasAMDGPU && !platformInfo.hasROCm && (
@@ -186,7 +167,7 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
                           <DownloadCard
                             key={download.name}
                             name={download.name}
-                            size={formatFileSize(download.size)}
+                            size={formatFileSizeInMB(download.size)}
                             version={download.version}
                             description={getAssetDescription(download.name)}
                             isRecommended={isAssetRecommended(

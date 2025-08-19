@@ -1,16 +1,9 @@
-import {
-  Stack,
-  Text,
-  Group,
-  TextInput,
-  Button,
-  Checkbox,
-  Slider,
-} from '@mantine/core';
+import { Stack, Text, Group, TextInput, Button, Slider } from '@mantine/core';
 import { File, Search } from 'lucide-react';
 import { InfoTooltip } from '@/components/InfoTooltip';
-import { BackendSelector } from '@/screens/Launch/BackendSelector';
+import { BackendSelector } from '@/components/screens/Launch/GeneralTab/BackendSelector';
 import { getInputValidationState } from '@/utils';
+import styles from '@/styles/layout.module.css';
 
 interface GeneralTabProps {
   modelPath: string;
@@ -77,7 +70,7 @@ export const GeneralTab = ({
   };
 
   return (
-    <Stack gap="lg">
+    <Stack gap="md">
       <BackendSelector
         backend={backend}
         onBackendChange={onBackendChange}
@@ -87,6 +80,10 @@ export const GeneralTab = ({
         failsafe={failsafe}
         onWarningsChange={onWarningsChange}
         onBackendsReady={onBackendsReady}
+        gpuLayers={gpuLayers}
+        autoGpuLayers={autoGpuLayers}
+        onGpuLayersChange={onGpuLayersChange}
+        onAutoGpuLayersChange={onAutoGpuLayersChange}
       />
 
       <div>
@@ -94,7 +91,7 @@ export const GeneralTab = ({
           Text Model File
         </Text>
         <Group gap="xs" align="flex-start">
-          <div style={{ flex: 1 }}>
+          <div className={styles.flex1}>
             <TextInput
               placeholder="Select a .gguf model file or enter a direct URL to file"
               value={modelPath}
@@ -124,51 +121,6 @@ export const GeneralTab = ({
             Search HF
           </Button>
         </Group>
-      </div>
-
-      <div>
-        <Group justify="space-between" align="center" mb="xs">
-          <Group gap="xs" align="center">
-            <Text size="sm" fw={500}>
-              GPU Layers
-            </Text>
-            <InfoTooltip label="The number of layer's to offload to your GPU's VRAM. Ideally the entire LLM should fit inside the VRAM for optimal performance." />
-          </Group>
-          <Group gap="lg" align="center">
-            <Group gap="xs" align="center">
-              <Checkbox
-                label="Auto"
-                checked={autoGpuLayers}
-                onChange={(event) =>
-                  onAutoGpuLayersChange(event.currentTarget.checked)
-                }
-                size="sm"
-              />
-              <InfoTooltip label="Automatically try to allocate the GPU layers based on available VRAM." />
-            </Group>
-            <TextInput
-              value={gpuLayers.toString()}
-              onChange={(event) =>
-                onGpuLayersChange(Number(event.target.value) || 0)
-              }
-              type="number"
-              min={0}
-              max={100}
-              step={1}
-              size="sm"
-              w={80}
-              disabled={autoGpuLayers}
-            />
-          </Group>
-        </Group>
-        <Slider
-          value={gpuLayers}
-          min={0}
-          max={100}
-          step={1}
-          onChange={onGpuLayersChange}
-          disabled={autoGpuLayers}
-        />
       </div>
 
       <div>

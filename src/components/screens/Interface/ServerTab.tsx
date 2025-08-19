@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { Box, Text, Stack } from '@mantine/core';
+import { UI } from '@/constants';
 
 interface ServerTabProps {
   serverUrl?: string;
@@ -46,7 +47,13 @@ export const ServerTab = ({
       : 'KoboldAI Lite Interface';
 
   return (
-    <Box style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+    <Box
+      style={{
+        width: '100%',
+        height: `calc(100vh - ${UI.HEADER_HEIGHT}px)`,
+        overflow: 'hidden',
+      }}
+    >
       <iframe
         ref={iframeRef}
         src={iframeUrl}
