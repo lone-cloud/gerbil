@@ -1,3 +1,4 @@
+/* eslint-disable no-comments/disallowComments */
 import { spawn, ChildProcess } from 'child_process';
 import { join } from 'path';
 import {
@@ -16,7 +17,8 @@ import { GitHubService } from '@/main/services/GitHubService';
 import { ConfigManager } from '@/main/managers/ConfigManager';
 import { LogManager } from '@/main/managers/LogManager';
 import { WindowManager } from '@/main/managers/WindowManager';
-import { ROCM, GITHUB_API } from '@/constants';
+import { ROCM } from '@/constants';
+import { stripAssetExtensions } from '@/utils/versionUtils';
 import type { DownloadItem } from '@/types/electron';
 
 interface GitHubAsset {
@@ -85,7 +87,7 @@ export class KoboldCppManager {
     onProgress?: (progress: number) => void
   ): Promise<string> {
     const tempPackedFilePath = join(this.installDir, `${asset.name}.packed`);
-    const baseFilename = asset.name.replace(/\.exe$/, '');
+    const baseFilename = stripAssetExtensions(asset.name);
     const unpackedDirPath = join(this.installDir, baseFilename);
 
     if (asset.isUpdate && existsSync(unpackedDirPath)) {
@@ -666,32 +668,35 @@ export class KoboldCppManager {
         type: 'rocm',
       };
     } else if (platform === 'win32') {
-      try {
-        const response = await fetch(GITHUB_API.ROCM_LATEST_RELEASE_URL);
-        if (!response.ok) {
-          return null;
-        }
+      return null;
+      // The launcher doesn't exist in unpacked state yet.
+      // Enable when it's ready.
+      // try {
+      //   const response = await fetch(GITHUB_API.ROCM_LATEST_RELEASE_URL);
+      //   if (!response.ok) {
+      //     return null;
+      //   }
 
-        const release = await response.json();
-        const rocmAsset = release.assets?.find((asset: GitHubAsset) =>
-          asset.name.endsWith('rocm.exe')
-        );
+      //   const release = await response.json();
+      //   const rocmAsset = release.assets?.find((asset: GitHubAsset) =>
+      //     asset.name.endsWith('rocm.exe')
+      //   );
 
-        if (rocmAsset) {
-          return {
-            name: rocmAsset.name,
-            url: rocmAsset.browser_download_url,
-            size: rocmAsset.size,
-            version: release.tag_name?.replace(/^v/, '') || 'unknown',
-            type: 'rocm',
-          };
-        }
-      } catch (error) {
-        this.logManager.logError(
-          'Failed to fetch Windows ROCm release:',
-          error as Error
-        );
-      }
+      //   if (rocmAsset) {
+      //     return {
+      //       name: rocmAsset.name,
+      //       url: rocmAsset.browser_download_url,
+      //       size: rocmAsset.size,
+      //       version: release.tag_name?.replace(/^v/, '') || 'unknown',
+      //       type: 'rocm',
+      //     };
+      //   }
+      // } catch (error) {
+      //   this.logManager.logError(
+      //     'Failed to fetch Windows ROCm release:',
+      //     error as Error
+      //   );
+      // }
     }
 
     return null;
@@ -715,7 +720,7 @@ export class KoboldCppManager {
         this.installDir,
         `${rocmInfo.name}.packed`
       );
-      const baseFilename = rocmInfo.name.replace(/\.exe$/, '');
+      const baseFilename = stripAssetExtensions(rocmInfo.name);
       const unpackedDirPath = join(this.installDir, baseFilename);
 
       const response = await fetch(rocmInfo.url);

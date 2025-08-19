@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   Stack,
   Text,
@@ -17,34 +17,14 @@ import {
   sortAssetsByRecommendation,
   isAssetRecommended,
 } from '@/utils/assets';
-import { getDisplayNameFromPath, formatFileSizeInMB } from '@/utils';
+import {
+  getDisplayNameFromPath,
+  formatDownloadSize,
+  stripAssetExtensions,
+  compareVersions,
+} from '@/utils';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import type { InstalledVersion, ReleaseWithStatus } from '@/types/electron';
-
-const compareVersions = (versionA: string, versionB: string): number => {
-  const cleanVersion = (version: string): string =>
-    version.replace(/^v/, '').replace(/[^0-9.]/g, '');
-
-  const parseVersion = (version: string): number[] =>
-    cleanVersion(version)
-      .split('.')
-      .map((num) => parseInt(num, 10) || 0);
-
-  const a = parseVersion(versionA);
-  const b = parseVersion(versionB);
-  const maxLength = Math.max(a.length, b.length);
-
-  for (let i = 0; i < maxLength; i++) {
-    const aVal = a[i] || 0;
-    const bVal = b[i] || 0;
-
-    if (aVal !== bVal) {
-      return aVal - bVal;
-    }
-  }
-
-  return 0;
-};
 
 interface VersionInfo {
   name: string;
@@ -81,6 +61,7 @@ export const VersionsTab = () => {
   const [latestRelease, setLatestRelease] = useState<ReleaseWithStatus | null>(
     null
   );
+  const downloadingItemRef = useRef<HTMLDivElement>(null);
 
   const loadInstalledVersions = useCallback(async () => {
     setLoadingInstalled(true);
@@ -146,14 +127,12 @@ export const VersionsTab = () => {
     loadLatestRelease();
   }, [loadInstalledVersions, loadLatestRelease]);
 
-  const getAllVersions = (): VersionInfo[] => {
+  const allVersions = useMemo((): VersionInfo[] => {
     const versions: VersionInfo[] = [];
     const processedInstalled = new Set<string>();
 
     availableDownloads.forEach((download) => {
-      const downloadBaseName = download.name
-        .replace(/\.(tar\.gz|zip|exe)$/i, '')
-        .replace(/\.packed$/, '');
+      const downloadBaseName = stripAssetExtensions(download.name);
 
       const installedVersion = installedVersions.find((v) => {
         const displayName = getDisplayNameFromPath(v);
@@ -220,7 +199,21 @@ export const VersionsTab = () => {
     });
 
     return sortAssetsByRecommendation(versions, platformInfo.hasAMDGPU);
-  };
+  }, [
+    availableDownloads,
+    installedVersions,
+    currentVersion,
+    platformInfo.hasAMDGPU,
+  ]);
+
+  useEffect(() => {
+    if (downloading && downloadingItemRef.current) {
+      downloadingItemRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  }, [downloading]);
 
   const handleDownload = async (version: VersionInfo) => {
     try {
@@ -362,21 +355,24 @@ export const VersionsTab = () => {
         </Button>
       </Group>
 
-      {getAllVersions().map((version, index) => {
+      {allVersions.map((version, index) => {
         const isDownloading = downloading === version.name;
 
         return (
           <div
             key={`${version.name}-${version.version}-${index}`}
             style={{ paddingBottom: '8px' }}
+            ref={isDownloading ? downloadingItemRef : null}
           >
             <DownloadCard
               name={version.name}
               size={
                 version.size
-                  ? version.isROCm
-                    ? `~${formatFileSizeInMB(version.size)}`
-                    : formatFileSizeInMB(version.size)
+                  ? formatDownloadSize(
+                      version.size,
+                      version.downloadUrl,
+                      version.isROCm
+                    )
                   : ''
               }
               version={version.version}
@@ -418,7 +414,7 @@ export const VersionsTab = () => {
         );
       })}
 
-      {getAllVersions().length === 0 && (
+      {allVersions.length === 0 && (
         <Card withBorder radius="md" padding="md">
           <Text size="sm" c="dimmed" ta="center">
             No versions found

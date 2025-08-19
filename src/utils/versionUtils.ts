@@ -14,3 +14,8 @@ export const getDisplayNameFromPath = (
 
   return installedVersion.filename;
 };
+
+export const stripAssetExtensions = (assetName: string): string =>
+  assetName
+    .replace(/\.(tar\.gz|zip|exe|dmg|AppImage)$/i, '')
+    .replace(/\.packed$/, '');
