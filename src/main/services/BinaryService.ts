@@ -37,21 +37,18 @@ export class BinaryService {
       const binaryDir = dirname(koboldBinaryPath);
       const internalDir = join(binaryDir, '_internal');
 
-      if (!existsSync(internalDir)) {
-        // eslint-disable-next-line no-console
-        console.warn(
-          '_internal directory not found, cannot detect backend support'
-        );
-        this.backendSupportCache.set(koboldBinaryPath, support);
-        return support;
-      }
-
       const platform = process.platform;
       const isDynamicLib = (name: string) => {
         if (platform === 'win32') {
-          return existsSync(join(internalDir, `${name}.dll`));
+          return (
+            existsSync(join(internalDir, `${name}.dll`)) ||
+            existsSync(join(binaryDir, `${name}.dll`))
+          );
         } else {
-          return existsSync(join(internalDir, `${name}.so`));
+          return (
+            existsSync(join(internalDir, `${name}.so`)) ||
+            existsSync(join(binaryDir, `${name}.so`))
+          );
         }
       };
 

@@ -39,9 +39,11 @@ A koboldcpp manager. <!-- markdownlint-disable MD033 -->
    yarn dev
    ```
 
-### Linux Wayland support
+### Windows ROCm Support
 
-Additional configurations have been written to help with ideal Wayland support, but as per current Electron guidelines, the user should set `ELECTRON_OZONE_PLATFORM_HINT` to `wayland` in their environment variable according to the [Electron Environment Variables documentation](https://www.electronjs.org/docs/latest/api/environment-variables#electron_ozone_platform_hint-linux).
+There is ROCm Windows support maintained by YellowRoseCx in a separate fork.
+Unfortunately it does not properly support unpacking, which would greatly diminish its performance and provide a poor UX when used alongside this app.
+For Friendly Kobold to work with this fork, this issue must be fixed first: https://github.com/YellowRoseCx/koboldcpp-rocm/issues/129
 
 ### Future features
 

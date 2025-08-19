@@ -1,4 +1,5 @@
 export * from './assets';
+export * from './downloadUtils';
 export * from './fileSize';
 export * from './imageModelPresets';
 export * from './nullish';

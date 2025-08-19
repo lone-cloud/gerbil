@@ -262,7 +262,7 @@ export class WindowManager {
             },
           },
           {
-            label: 'Open Logs Directory',
+            label: 'View Error Logs',
             click: () => {
               const logsDir = join(app.getPath('userData'), 'logs');
               shell.openPath(logsDir);

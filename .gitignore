@@ -11,3 +11,4 @@ Thumbs.db
 # Yarn
 .yarn/
 .pnp.*
+package-lock.json

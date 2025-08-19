@@ -46,7 +46,7 @@
     "ai",
     "llm"
   ],
-  "author": "Egor Philippov",
+  "author": "lone-cloud",
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@cspell/eslint-plugin": "^9.2.0",

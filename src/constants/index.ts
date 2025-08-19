@@ -35,6 +35,11 @@ export const ASSET_SUFFIXES = {
 export const KOBOLDAI_URLS = {
   STANDARD_DOWNLOAD: 'https://koboldai.org/cpp',
   ROCM_DOWNLOAD: 'https://koboldai.org/cpplinuxrocm',
+  DOMAIN: 'koboldai.org',
+} as const;
+
+export const GITHUB_URLS = {
+  DOMAIN: 'github.com',
 } as const;
 
 export const ROCM = {
