@@ -10,6 +10,7 @@ import {
   writeFileSync,
   unlinkSync,
 } from 'fs';
+import { rm } from 'fs/promises';
 import { dialog } from 'electron';
 import { GitHubService } from '@/main/services/GitHubService';
 import { ConfigManager } from '@/main/managers/ConfigManager';
@@ -23,6 +24,8 @@ interface GitHubAsset {
   browser_download_url: string;
   size: number;
   created_at: string;
+  isUpdate?: boolean;
+  wasCurrentBinary?: boolean;
 }
 
 interface GitHubRelease {
@@ -84,6 +87,17 @@ export class KoboldCppManager {
     const tempPackedFilePath = join(this.installDir, `${asset.name}.packed`);
     const baseFilename = asset.name.replace(/\.exe$/, '');
     const unpackedDirPath = join(this.installDir, baseFilename);
+
+    if (asset.isUpdate && existsSync(unpackedDirPath)) {
+      try {
+        await rm(unpackedDirPath, { recursive: true, force: true });
+      } catch (error) {
+        this.logManager.logError(
+          'Failed to remove existing directory for update:',
+          error as Error
+        );
+      }
+    }
 
     const response = await fetch(asset.browser_download_url);
 
@@ -150,7 +164,7 @@ export class KoboldCppManager {
       const launcherPath = this.getLauncherPath(unpackedDirPath);
       if (launcherPath && existsSync(launcherPath)) {
         const currentBinary = this.configManager.getCurrentKoboldBinary();
-        if (!currentBinary) {
+        if (!currentBinary || (asset.isUpdate && asset.wasCurrentBinary)) {
           this.configManager.setCurrentKoboldBinary(launcherPath);
         }
 

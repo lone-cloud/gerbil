@@ -21,6 +21,31 @@ import { getDisplayNameFromPath, formatFileSizeInMB } from '@/utils';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import type { InstalledVersion, ReleaseWithStatus } from '@/types/electron';
 
+const compareVersions = (versionA: string, versionB: string): number => {
+  const cleanVersion = (version: string): string =>
+    version.replace(/^v/, '').replace(/[^0-9.]/g, '');
+
+  const parseVersion = (version: string): number[] =>
+    cleanVersion(version)
+      .split('.')
+      .map((num) => parseInt(num, 10) || 0);
+
+  const a = parseVersion(versionA);
+  const b = parseVersion(versionB);
+  const maxLength = Math.max(a.length, b.length);
+
+  for (let i = 0; i < maxLength; i++) {
+    const aVal = a[i] || 0;
+    const bVal = b[i] || 0;
+
+    if (aVal !== bVal) {
+      return aVal - bVal;
+    }
+  }
+
+  return 0;
+};
+
 interface VersionInfo {
   name: string;
   version: string;
@@ -30,6 +55,8 @@ interface VersionInfo {
   downloadUrl?: string;
   installedPath?: string;
   isROCm?: boolean;
+  hasUpdate?: boolean;
+  newerVersion?: string;
 }
 
 export const VersionsTab = () => {
@@ -68,6 +95,7 @@ export const VersionsTab = () => {
 
       if (currentBinaryPath && versions.length > 0) {
         const current = versions.find((v) => v.path === currentBinaryPath);
+
         if (current) {
           setCurrentVersion(current);
         } else {
@@ -79,6 +107,7 @@ export const VersionsTab = () => {
         }
       } else if (versions.length > 0) {
         setCurrentVersion(versions[0]);
+
         await window.electronAPI.config.set(
           'currentKoboldBinary',
           versions[0].path
@@ -119,13 +148,15 @@ export const VersionsTab = () => {
 
   const getAllVersions = (): VersionInfo[] => {
     const versions: VersionInfo[] = [];
+    const processedInstalled = new Set<string>();
 
     availableDownloads.forEach((download) => {
+      const downloadBaseName = download.name
+        .replace(/\.(tar\.gz|zip|exe)$/i, '')
+        .replace(/\.packed$/, '');
+
       const installedVersion = installedVersions.find((v) => {
         const displayName = getDisplayNameFromPath(v);
-        const downloadBaseName = download.name
-          .replace(/\.(tar\.gz|zip|exe)$/i, '')
-          .replace(/\.packed$/, '');
         return displayName === downloadBaseName;
       });
 
@@ -135,23 +166,43 @@ export const VersionsTab = () => {
           currentVersion.path === installedVersion.path
       );
 
-      versions.push({
-        name: download.name,
-        version: installedVersion?.version || download.version || 'unknown',
-        size: installedVersion ? undefined : download.size,
-        isInstalled: Boolean(installedVersion),
-        isCurrent,
-        downloadUrl: download.url,
-        installedPath: installedVersion?.path,
-        isROCm: download.type === 'rocm',
-      });
+      if (installedVersion) {
+        processedInstalled.add(installedVersion.path);
+
+        const hasUpdate =
+          compareVersions(
+            download.version || 'unknown',
+            installedVersion.version
+          ) > 0;
+
+        versions.push({
+          name: download.name,
+          version: installedVersion.version,
+          size: undefined,
+          isInstalled: true,
+          isCurrent,
+          downloadUrl: download.url,
+          installedPath: installedVersion.path,
+          isROCm: download.type === 'rocm',
+          hasUpdate,
+          newerVersion: hasUpdate ? download.version : undefined,
+        });
+      } else {
+        versions.push({
+          name: download.name,
+          version: download.version || 'unknown',
+          size: download.size,
+          isInstalled: false,
+          isCurrent: false,
+          downloadUrl: download.url,
+          isROCm: download.type === 'rocm',
+        });
+      }
     });
 
     installedVersions.forEach((installed) => {
-      const displayName = getDisplayNameFromPath(installed);
-      const existsInRemote = versions.some((v) => v.name === displayName);
-
-      if (!existsInRemote) {
+      if (!processedInstalled.has(installed.path)) {
+        const displayName = getDisplayNameFromPath(installed);
         const isCurrent = Boolean(
           currentVersion && currentVersion.path === installed.path
         );
@@ -179,13 +230,42 @@ export const VersionsTab = () => {
       }
 
       const downloadType = download.type === 'rocm' ? 'rocm' : 'asset';
-      const success = await sharedHandleDownload(downloadType, download);
+      const success = await sharedHandleDownload(
+        downloadType,
+        download,
+        false,
+        false
+      );
 
       if (success) {
         await loadInstalledVersions();
       }
     } catch (error) {
       window.electronAPI.logs.logError('Failed to download:', error as Error);
+    }
+  };
+
+  const handleUpdate = async (version: VersionInfo) => {
+    try {
+      const download = availableDownloads.find((d) => d.name === version.name);
+      if (!download) {
+        throw new Error('Download not found');
+      }
+
+      const downloadType = download.type === 'rocm' ? 'rocm' : 'asset';
+      const wasCurrentBinary = version.isCurrent;
+      const success = await sharedHandleDownload(
+        downloadType,
+        download,
+        true,
+        wasCurrentBinary
+      );
+
+      if (success) {
+        await loadInstalledVersions();
+      }
+    } catch (error) {
+      window.electronAPI.logs.logError('Failed to update:', error as Error);
     }
   };
 
@@ -310,6 +390,8 @@ export const VersionsTab = () => {
               isDownloading={isDownloading}
               downloadProgress={downloadProgress[version.name]}
               disabled={downloading !== null}
+              hasUpdate={version.hasUpdate}
+              newerVersion={version.newerVersion}
               onDownload={
                 !version.isInstalled
                   ? (e) => {
@@ -318,8 +400,16 @@ export const VersionsTab = () => {
                     }
                   : undefined
               }
+              onUpdate={
+                version.hasUpdate
+                  ? (e) => {
+                      e.stopPropagation();
+                      handleUpdate(version);
+                    }
+                  : undefined
+              }
               onMakeCurrent={
-                version.isInstalled && !version.isCurrent
+                version.isInstalled && !version.isCurrent && !version.hasUpdate
                   ? () => makeCurrent(version)
                   : undefined
               }

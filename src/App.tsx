@@ -4,11 +4,15 @@ import { DownloadScreen } from '@/components/screens/Download';
 import { LaunchScreen } from '@/components/screens/Launch';
 import { InterfaceScreen } from '@/components/screens/Interface';
 import { UpdateDialog } from '@/components/UpdateDialog';
+import { UpdateAvailableModal } from '@/components/UpdateAvailableModal';
 import { SettingsModal } from '@/components/settings/SettingsModal';
 import { ScreenTransition } from '@/components/ScreenTransition';
 import { AppHeader } from '@/components/AppHeader';
+import { useUpdateChecker } from '@/hooks/useUpdateChecker';
+import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import { UI } from '@/constants';
 import type { UpdateInfo } from '@/types';
+import type { DownloadItem } from '@/types/electron';
 
 type Screen = 'download' | 'launch' | 'interface';
 
@@ -23,6 +27,19 @@ export const App = () => {
   );
   const [isImageGenerationMode, setIsImageGenerationMode] =
     useState<boolean>(false);
+
+  const {
+    updateInfo: binaryUpdateInfo,
+    showUpdateModal,
+    checkForUpdates,
+    dismissUpdate,
+  } = useUpdateChecker();
+
+  const {
+    handleDownload: sharedHandleDownload,
+    downloading,
+    downloadProgress,
+  } = useKoboldVersions();
 
   useEffect(() => {
     const checkInstallation = async () => {
@@ -54,6 +71,12 @@ export const App = () => {
         }
 
         setHasInitialized(true);
+
+        if (versions.length > 0) {
+          setTimeout(() => {
+            checkForUpdates();
+          }, 2000);
+        }
       } catch (error) {
         window.electronAPI.logs.logError(
           'Error checking installation:',
@@ -86,7 +109,28 @@ export const App = () => {
       cleanupInstallDirListener();
       cleanupVersionsListener();
     };
-  }, []);
+  }, [checkForUpdates]);
+
+  const handleBinaryUpdate = async (download: DownloadItem) => {
+    try {
+      const downloadType = download.type === 'rocm' ? 'rocm' : 'asset';
+      const success = await sharedHandleDownload(
+        downloadType,
+        download,
+        true,
+        true
+      );
+
+      if (success) {
+        dismissUpdate();
+      }
+    } catch (error) {
+      window.electronAPI.logs.logError(
+        'Failed to update binary:',
+        error as Error
+      );
+    }
+  };
 
   const handleDownloadComplete = async () => {
     try {
@@ -233,6 +277,22 @@ export const App = () => {
               updateInfo={updateInfo}
               onIgnore={handleUpdateIgnore}
               onAccept={handleUpdateAccept}
+            />
+          )}
+
+          {showUpdateModal && binaryUpdateInfo && (
+            <UpdateAvailableModal
+              opened={showUpdateModal}
+              onClose={dismissUpdate}
+              currentVersion={binaryUpdateInfo.currentVersion}
+              availableUpdate={binaryUpdateInfo.availableUpdate}
+              onUpdate={handleBinaryUpdate}
+              isDownloading={
+                downloading === binaryUpdateInfo.availableUpdate.name
+              }
+              downloadProgress={
+                downloadProgress[binaryUpdateInfo.availableUpdate.name] || 0
+              }
             />
           )}
         </AppShell.Main>

@@ -8,6 +8,7 @@ import {
 } from 'electron';
 import * as os from 'os';
 import { join } from 'path';
+import { GITHUB_API } from '../../constants';
 
 export class WindowManager {
   private mainWindow: BrowserWindow | null = null;
@@ -255,7 +256,9 @@ export class WindowManager {
           {
             label: 'KoboldCpp Wiki',
             click: () => {
-              shell.openExternal('https://github.com/LostRuins/koboldcpp/wiki');
+              shell.openExternal(
+                `https://github.com/${GITHUB_API.KOBOLDCPP_REPO}/wiki`
+              );
             },
           },
           {
@@ -327,7 +330,9 @@ OS: ${osInfo}`;
     });
 
     ipcMain.once('open-github', () => {
-      shell.openExternal('https://github.com/lone-cloud/friendly-kobold');
+      shell.openExternal(
+        `https://github.com/${GITHUB_API.FRIENDLY_KOBOLD_REPO}`
+      );
     });
 
     ipcMain.once('close-about-dialog', () => {

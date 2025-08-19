@@ -17,7 +17,9 @@ interface UseKoboldVersionsReturn {
   loadRemoteVersions: () => Promise<void>;
   handleDownload: (
     type: 'asset' | 'rocm',
-    item?: DownloadItem
+    item?: DownloadItem,
+    isUpdate?: boolean,
+    wasCurrentBinary?: boolean
   ) => Promise<boolean>;
   setDownloading: (value: string | null) => void;
   setDownloadProgress: (
@@ -113,7 +115,12 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
   }, [platformInfo.platform]);
 
   const handleDownload = useCallback(
-    async (type: 'asset' | 'rocm', item?: DownloadItem): Promise<boolean> => {
+    async (
+      type: 'asset' | 'rocm',
+      item?: DownloadItem,
+      isUpdate = false,
+      wasCurrentBinary = false
+    ): Promise<boolean> => {
       if (type === 'asset' && !item) return false;
 
       const downloadName = item?.name || 'download';
@@ -130,6 +137,8 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
                 browser_download_url: item!.url,
                 size: item!.size,
                 created_at: new Date().toISOString(),
+                isUpdate,
+                wasCurrentBinary,
               });
 
         return result.success !== false;

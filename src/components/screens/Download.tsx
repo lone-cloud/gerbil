@@ -52,7 +52,12 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
       setDownloadingAsset(type === 'asset' ? download!.name : null);
 
       try {
-        const success = await sharedHandleDownload(type, download);
+        const success = await sharedHandleDownload(
+          type,
+          download,
+          false,
+          false
+        );
 
         if (success) {
           onDownloadComplete();
