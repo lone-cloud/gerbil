@@ -1,6 +1,7 @@
 import { Stack, Text, TextInput, Group, Checkbox } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
+import styles from '@/styles/layout.module.css';
 
 interface NetworkTabProps {
   port: number | undefined;
@@ -42,7 +43,7 @@ export const NetworkTab = ({
   }, [port]);
 
   return (
-    <Stack gap="lg">
+    <Stack gap="md">
       <Group gap="lg" align="flex-start">
         <div>
           <Group gap="xs" align="center" mb="xs">
@@ -100,7 +101,7 @@ export const NetworkTab = ({
       <div>
         <Stack gap="md">
           <Group gap="lg" align="flex-start" wrap="nowrap">
-            <div style={{ minWidth: '200px' }}>
+            <div className={styles.minWidth200}>
               <Group gap="xs" align="center">
                 <Checkbox
                   checked={multiuser}
@@ -113,7 +114,7 @@ export const NetworkTab = ({
               </Group>
             </div>
 
-            <div style={{ minWidth: '200px' }}>
+            <div className={styles.minWidth200}>
               <Group gap="xs" align="center">
                 <Checkbox
                   checked={multiplayer}
@@ -128,7 +129,7 @@ export const NetworkTab = ({
           </Group>
 
           <Group gap="lg" align="flex-start" wrap="nowrap">
-            <div style={{ minWidth: '200px' }}>
+            <div className={styles.minWidth200}>
               <Group gap="xs" align="center">
                 <Checkbox
                   checked={remotetunnel}
@@ -141,7 +142,7 @@ export const NetworkTab = ({
               </Group>
             </div>
 
-            <div style={{ minWidth: '200px' }}>
+            <div className={styles.minWidth200}>
               <Group gap="xs" align="center">
                 <Checkbox
                   checked={nocertify}

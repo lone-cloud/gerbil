@@ -1,0 +1,14 @@
+.minWidth200 {
+  min-width: 200px;
+}
+
+.flex1 {
+  flex: 1;
+}
+
+.terminalScrollArea {
+  flex: 1;
+  font-family: Monaco, Menlo, 'Ubuntu Mono', monospace;
+  font-size: 14px;
+  line-height: 1.4;
+}

@@ -18,6 +18,7 @@ export interface GitHubRelease {
   name: string;
   published_at: string;
   body: string;
+  html_url: string;
   assets: GitHubAsset[];
 }
 

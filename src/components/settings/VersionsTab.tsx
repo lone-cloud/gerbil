@@ -8,17 +8,18 @@ import {
   Loader,
   rem,
   Center,
+  Anchor,
 } from '@mantine/core';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, ExternalLink } from 'lucide-react';
 import { DownloadCard } from '@/components/DownloadCard';
 import {
   getAssetDescription,
   sortAssetsByRecommendation,
   isAssetRecommended,
 } from '@/utils/assets';
-import { getDisplayNameFromPath } from '@/utils';
+import { getDisplayNameFromPath, formatFileSizeInMB } from '@/utils';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
-import type { InstalledVersion } from '@/types/electron';
+import type { InstalledVersion, ReleaseWithStatus } from '@/types/electron';
 
 interface VersionInfo {
   name: string;
@@ -50,6 +51,9 @@ export const VersionsTab = () => {
     null
   );
   const [loadingInstalled, setLoadingInstalled] = useState(true);
+  const [latestRelease, setLatestRelease] = useState<ReleaseWithStatus | null>(
+    null
+  );
 
   const loadInstalledVersions = useCallback(async () => {
     setLoadingInstalled(true);
@@ -95,9 +99,23 @@ export const VersionsTab = () => {
     }
   }, []);
 
+  const loadLatestRelease = useCallback(async () => {
+    try {
+      const release =
+        await window.electronAPI.kobold.getLatestReleaseWithStatus();
+      setLatestRelease(release);
+    } catch (error) {
+      window.electronAPI.logs.logError(
+        'Failed to load latest release:',
+        error as Error
+      );
+    }
+  }, []);
+
   useEffect(() => {
     loadInstalledVersions();
-  }, [loadInstalledVersions]);
+    loadLatestRelease();
+  }, [loadInstalledVersions, loadLatestRelease]);
 
   const getAllVersions = (): VersionInfo[] => {
     const versions: VersionInfo[] = [];
@@ -105,7 +123,10 @@ export const VersionsTab = () => {
     availableDownloads.forEach((download) => {
       const installedVersion = installedVersions.find((v) => {
         const displayName = getDisplayNameFromPath(v);
-        return displayName === download.name;
+        const downloadBaseName = download.name
+          .replace(/\.(tar\.gz|zip|exe)$/i, '')
+          .replace(/\.packed$/, '');
+        return displayName === downloadBaseName;
       });
 
       const isCurrent = Boolean(
@@ -217,15 +238,41 @@ export const VersionsTab = () => {
   }
 
   return (
-    <Stack gap="lg" h="100%">
-      <Group justify="space-between" align="center">
-        <Text fw={500}>Available Versions</Text>
+    <>
+      <Group justify="space-between" align="center" mb="lg">
+        <div>
+          <Text fw={500}>Available Versions</Text>
+          {latestRelease && (
+            <Group gap="xs" mt={4}>
+              <Text size="sm" c="dimmed">
+                Latest release: {latestRelease.release.tag_name}
+              </Text>
+              <Anchor
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.electronAPI.app.openExternal(
+                    latestRelease.release.html_url
+                  );
+                }}
+                size="sm"
+                c="blue"
+              >
+                <Group gap={4} align="center">
+                  <span>Release notes</span>
+                  <ExternalLink size={12} />
+                </Group>
+              </Anchor>
+            </Group>
+          )}
+        </div>
         <Button
           variant="subtle"
           size="xs"
           onClick={() => {
             loadInstalledVersions();
             loadRemoteVersions();
+            loadLatestRelease();
           }}
           leftSection={
             <RotateCcw style={{ width: rem(14), height: rem(14) }} />
@@ -235,17 +282,21 @@ export const VersionsTab = () => {
         </Button>
       </Group>
 
-      <Stack gap="xs">
-        {getAllVersions().map((version, index) => {
-          const isDownloading = downloading === version.name;
+      {getAllVersions().map((version, index) => {
+        const isDownloading = downloading === version.name;
 
-          return (
+        return (
+          <div
+            key={`${version.name}-${version.version}-${index}`}
+            style={{ paddingBottom: '8px' }}
+          >
             <DownloadCard
-              key={`${version.name}-${version.version}-${index}`}
               name={version.name}
               size={
                 version.size
-                  ? `${(version.size / 1024 / 1024).toFixed(1)} MB`
+                  ? version.isROCm
+                    ? `~${formatFileSizeInMB(version.size)}`
+                    : formatFileSizeInMB(version.size)
                   : ''
               }
               version={version.version}
@@ -273,17 +324,17 @@ export const VersionsTab = () => {
                   : undefined
               }
             />
-          );
-        })}
+          </div>
+        );
+      })}
 
-        {getAllVersions().length === 0 && (
-          <Card withBorder radius="md" padding="md">
-            <Text size="sm" c="dimmed" ta="center">
-              No versions found
-            </Text>
-          </Card>
-        )}
-      </Stack>
-    </Stack>
+      {getAllVersions().length === 0 && (
+        <Card withBorder radius="md" padding="md">
+          <Text size="sm" c="dimmed" ta="center">
+            No versions found
+          </Text>
+        </Card>
+      )}
+    </>
   );
 };

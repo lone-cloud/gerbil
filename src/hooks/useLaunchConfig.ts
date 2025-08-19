@@ -8,7 +8,6 @@ import {
   DEFAULT_CONTEXT_SIZE,
   DEFAULT_MODEL_URL,
   DEFAULT_HOST,
-  DEFAULT_FLUX_MODELS,
 } from '@/constants';
 import { isNotNullish } from '@/utils';
 
@@ -242,7 +241,7 @@ export const useLaunchConfig = () => {
     setSdclipl('');
     setSdclipg('');
     setSdphotomaker('');
-    setSdvae(DEFAULT_FLUX_MODELS.VAE);
+    setSdvae('');
   }, []);
 
   const loadConfigFromFile = useCallback(

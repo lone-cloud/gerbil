@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { File, Search } from 'lucide-react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { getInputValidationState, IMAGE_MODEL_PRESETS } from '@/utils';
+import styles from '@/styles/layout.module.css';
 
 interface ImageGenerationTabProps {
   sdmodel: string;
@@ -78,7 +79,7 @@ const ModelField = ({
         {tooltip && <InfoTooltip label={tooltip} />}
       </Group>
       <Group gap="xs" align="flex-start">
-        <div style={{ flex: 1 }}>
+        <div className={styles.flex1}>
           <TextInput
             placeholder={placeholder}
             value={value}
@@ -139,7 +140,7 @@ export const ImageGenerationTab = ({
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
 
   return (
-    <Stack gap="lg">
+    <Stack gap="md">
       <div>
         <Group gap="xs" align="center" mb="xs">
           <Text size="sm" fw={500}>

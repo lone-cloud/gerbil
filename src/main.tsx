@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { MantineProvider } from '@mantine/core';
 import { App } from '@/App.tsx';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
-import './index.css';
+import '@/styles/index.css';
 
 const AppWithTheme = () => {
   const { effectiveTheme } = useTheme();

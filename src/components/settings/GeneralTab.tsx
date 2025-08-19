@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Stack, Text, Group, TextInput, Button, rem } from '@mantine/core';
 import { Folder, FolderOpen } from 'lucide-react';
+import styles from '@/styles/layout.module.css';
 
 export const GeneralTab = () => {
   const [installDir, setInstallDir] = useState<string>('');
@@ -51,7 +52,7 @@ export const GeneralTab = () => {
             value={installDir}
             readOnly
             placeholder="Default installation directory"
-            style={{ flex: 1 }}
+            className={styles.flex1}
             leftSection={<Folder style={{ width: rem(16), height: rem(16) }} />}
           />
           <Button

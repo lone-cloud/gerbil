@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { AppShell, Loader, Center, Stack, Text } from '@mantine/core';
-import { DownloadScreen } from '@/screens/Download';
-import { LaunchScreen } from '@/screens/Launch';
-import { InterfaceScreen } from '@/screens/Interface';
+import { DownloadScreen } from '@/components/screens/Download';
+import { LaunchScreen } from '@/components/screens/Launch';
+import { InterfaceScreen } from '@/components/screens/Interface';
 import { UpdateDialog } from '@/components/UpdateDialog';
 import { SettingsModal } from '@/components/settings/SettingsModal';
 import { ScreenTransition } from '@/components/ScreenTransition';
 import { AppHeader } from '@/components/AppHeader';
+import { UI } from '@/constants';
 import type { UpdateInfo } from '@/types';
 
 type Screen = 'download' | 'launch' | 'interface';
@@ -167,7 +168,10 @@ export const App = () => {
 
   return (
     <>
-      <AppShell header={{ height: 60 }} padding="md">
+      <AppShell
+        header={{ height: UI.HEADER_HEIGHT }}
+        padding={currentScreen === 'interface' ? 0 : 'md'}
+      >
         <AppHeader
           currentScreen={currentScreen}
           activeInterfaceTab={activeInterfaceTab}
@@ -180,7 +184,7 @@ export const App = () => {
           style={{
             position: 'relative',
             overflow: 'hidden',
-            minHeight: 'calc(100vh - 60px)',
+            minHeight: `calc(100vh - ${UI.HEADER_HEIGHT}px)`,
           }}
         >
           {currentScreen === null ? (

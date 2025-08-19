@@ -121,7 +121,7 @@ export const SettingsModal = ({
         </Tabs.Panel>
 
         {showVersionsTab && (
-          <Tabs.Panel value="versions">
+          <Tabs.Panel value="versions" style={{ overflow: 'visible' }}>
             <VersionsTab />
           </Tabs.Panel>
         )}

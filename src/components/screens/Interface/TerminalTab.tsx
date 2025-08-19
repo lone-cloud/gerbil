@@ -7,6 +7,8 @@ import {
   useMantineColorScheme,
 } from '@mantine/core';
 import { ChevronDown } from 'lucide-react';
+import styles from '@/styles/layout.module.css';
+import { UI } from '@/constants';
 
 interface TerminalTabProps {
   onServerReady?: (serverUrl: string) => void;
@@ -104,7 +106,7 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
   return (
     <Box
       style={{
-        height: '80vh',
+        height: `calc(100vh - ${UI.HEADER_HEIGHT}px)`,
         display: 'flex',
         flexDirection: 'column',
         backgroundColor:
@@ -119,12 +121,7 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
         ref={scrollAreaRef}
         viewportRef={viewportRef}
         onScrollPositionChange={handleScroll}
-        style={{
-          flex: 1,
-          fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-          fontSize: '14px',
-          lineHeight: 1.4,
-        }}
+        className={styles.terminalScrollArea}
         scrollbarSize={8}
         offsetScrollbars={false}
       >

@@ -1,6 +1,7 @@
 import { Stack, Text, Group, TextInput, Checkbox } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
+import styles from '@/styles/layout.module.css';
 
 interface AdvancedTabProps {
   additionalArguments: string;
@@ -72,7 +73,7 @@ export const AdvancedTab = ({
   }, []);
 
   return (
-    <Stack gap="lg">
+    <Stack gap="md">
       <div>
         <Group gap="xs" align="center" mb="md">
           <Text size="sm" fw={600}>
@@ -81,64 +82,89 @@ export const AdvancedTab = ({
         </Group>
         <Stack gap="md">
           <Group gap="lg" align="flex-start" wrap="nowrap">
-            <div style={{ minWidth: '200px' }}>
+            <div className={styles.minWidth200}>
               <Group gap="xs" align="center">
                 <Checkbox
                   checked={!noshift}
                   onChange={(event) =>
                     onNoshiftChange(!event.currentTarget.checked)
                   }
-                  label="Use ContextShift"
+                  label="Context Shift"
                 />
                 <InfoTooltip label="Use Context Shifting to reduce reprocessing." />
               </Group>
             </div>
 
-            <div style={{ minWidth: '200px' }}>
+            <div className={styles.minWidth200}>
+              <Group gap="xs" align="center">
+                <Checkbox
+                  checked={noshift}
+                  onChange={(event) =>
+                    onNoshiftChange(event.currentTarget.checked)
+                  }
+                  label="No Shift"
+                />
+                <InfoTooltip label="Don't use GPU layer shifting for incomplete offloads, which may reduce model performance." />
+              </Group>
+            </div>
+          </Group>
+
+          <Group gap="lg" align="flex-start" wrap="nowrap">
+            <div className={styles.minWidth200}>
               <Group gap="xs" align="center">
                 <Checkbox
                   checked={flashattention}
                   onChange={(event) =>
                     onFlashattentionChange(event.currentTarget.checked)
                   }
-                  label="Use FlashAttention"
+                  label="Flash Attention"
                 />
-                <InfoTooltip label="Enable flash attention for GGUF models." />
+                <InfoTooltip label="Enable flash attention to reduce memory usage. May produce incorrect answers for some prompts, but improves performance." />
+              </Group>
+            </div>
+
+            <div className={styles.minWidth200}>
+              <Group gap="xs" align="center">
+                <Checkbox
+                  checked={lowvram}
+                  onChange={(event) =>
+                    onLowvramChange(event.currentTarget.checked)
+                  }
+                  label="Low VRAM"
+                  disabled={backend !== 'cuda' && backend !== 'rocm'}
+                />
+                <InfoTooltip
+                  label={
+                    backend !== 'cuda' && backend !== 'rocm'
+                      ? 'Low VRAM mode is only available for CUDA and ROCm backends.'
+                      : 'Avoid offloading KV Cache or scratch buffers to VRAM. Allows more layers to fit, but may result in a speed loss.'
+                  }
+                />
               </Group>
             </div>
           </Group>
 
-          {(backend === 'cuda' || backend === 'rocm') && (
-            <Group gap="lg" align="flex-start" wrap="nowrap">
-              <div style={{ minWidth: '200px' }}>
-                <Group gap="xs" align="center">
-                  <Checkbox
-                    checked={lowvram}
-                    onChange={(event) =>
-                      onLowvramChange(event.currentTarget.checked)
-                    }
-                    label="Low VRAM"
-                  />
-                  <InfoTooltip
-                    label="Avoid offloading KV Cache or scratch buffers to VRAM.&#10;Allows more layers to fit, but may result in a speed loss."
-                  />
-                </Group>
-              </div>
-
-              <div style={{ minWidth: '200px' }}>
-                <Group gap="xs" align="center">
-                  <Checkbox
-                    checked={quantmatmul}
-                    onChange={(event) =>
-                      onQuantmatmulChange(event.currentTarget.checked)
-                    }
-                    label="QuantMatMul"
-                  />
-                  <InfoTooltip label="Enable MMQ mode to use finetuned kernels instead of default CuBLAS/HipBLAS for prompt processing." />
-                </Group>
-              </div>
-            </Group>
-          )}
+          <Group gap="lg" align="flex-start" wrap="nowrap">
+            <div className={styles.minWidth200}>
+              <Group gap="xs" align="center">
+                <Checkbox
+                  checked={quantmatmul}
+                  onChange={(event) =>
+                    onQuantmatmulChange(event.currentTarget.checked)
+                  }
+                  label="QuantMatMul"
+                  disabled={backend !== 'cuda' && backend !== 'rocm'}
+                />
+                <InfoTooltip
+                  label={
+                    backend !== 'cuda' && backend !== 'rocm'
+                      ? 'QuantMatMul is only available for CUDA and ROCm backends.'
+                      : 'Enable MMQ mode to use finetuned kernels instead of default CuBLAS/HipBLAS for prompt processing.'
+                  }
+                />
+              </Group>
+            </div>
+          </Group>
         </Stack>
       </div>
 
@@ -150,7 +176,7 @@ export const AdvancedTab = ({
         </Group>
         <Stack gap="md">
           <Group gap="lg" align="flex-start" wrap="nowrap">
-            <div style={{ minWidth: '200px' }}>
+            <div className={styles.minWidth200}>
               <Group gap="xs" align="center">
                 <Checkbox
                   checked={noavx2}
@@ -170,7 +196,7 @@ export const AdvancedTab = ({
               </Group>
             </div>
 
-            <div style={{ minWidth: '200px' }}>
+            <div className={styles.minWidth200}>
               <Group gap="xs" align="center">
                 <Checkbox
                   checked={failsafe}
