@@ -14,6 +14,7 @@ export const GITHUB_API = {
   BASE_URL: 'https://api.github.com',
   KOBOLDCPP_REPO: 'LostRuins/koboldcpp',
   KOBOLDCPP_ROCM_REPO: 'YellowRoseCx/koboldcpp-rocm',
+  FRIENDLY_KOBOLD_REPO: 'lone-cloud/friendly-kobold',
   get LATEST_RELEASE_URL() {
     return `${this.BASE_URL}/repos/${this.KOBOLDCPP_REPO}/releases/latest`;
   },

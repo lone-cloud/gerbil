@@ -24,8 +24,11 @@ interface DownloadCardProps {
   isDownloading?: boolean;
   downloadProgress?: number;
   disabled?: boolean;
+  hasUpdate?: boolean;
+  newerVersion?: string;
   onDownload?: (e: MouseEvent<HTMLButtonElement>) => void;
   onMakeCurrent?: () => void;
+  onUpdate?: (e: MouseEvent<HTMLButtonElement>) => void;
 }
 
 export const DownloadCard = ({
@@ -39,10 +42,35 @@ export const DownloadCard = ({
   isDownloading = false,
   downloadProgress = 0,
   disabled = false,
+  hasUpdate = false,
+  newerVersion,
   onDownload,
   onMakeCurrent,
+  onUpdate,
 }: DownloadCardProps) => {
   const renderActionButton = () => {
+    if (hasUpdate && onUpdate) {
+      return (
+        <Button
+          variant="filled"
+          size="xs"
+          onClick={onUpdate}
+          loading={isDownloading}
+          disabled={disabled}
+          color="orange"
+          leftSection={
+            isDownloading ? (
+              <Loader size="1rem" />
+            ) : (
+              <Download style={{ width: rem(14), height: rem(14) }} />
+            )
+          }
+        >
+          {isDownloading ? 'Updating...' : `Update to ${newerVersion}`}
+        </Button>
+      );
+    }
+
     if (!isInstalled && onDownload) {
       return (
         <Button
@@ -97,6 +125,11 @@ export const DownloadCard = ({
             {isRecommended && (
               <Badge variant="light" color="blue" size="sm">
                 Recommended
+              </Badge>
+            )}
+            {hasUpdate && (
+              <Badge variant="light" color="orange" size="sm">
+                Update Available
               </Badge>
             )}
           </Group>

@@ -11,6 +11,8 @@ interface GitHubAsset {
   browser_download_url: string;
   size: number;
   created_at: string;
+  isUpdate?: boolean;
+  wasCurrentBinary?: boolean;
 }
 
 export interface GitHubRelease {
