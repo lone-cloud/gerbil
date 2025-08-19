@@ -5,5 +5,5 @@ Exec=friendly-kobold %U
 Icon=friendly-kobold
 Type=Application
 Categories=Development;TextEditor;
-StartupWMClass=friendly-kobold
+StartupWMClass=Friendly Kobold
 StartupNotify=true
