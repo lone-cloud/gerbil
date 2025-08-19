@@ -1,7 +1,7 @@
 {
   "name": "friendly-kobold",
   "productName": "Friendly Kobold",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A modern Electron shell for KoboldCpp",
   "main": "out/main/index.js",
   "homepage": "./",
@@ -26,6 +26,7 @@
     "spell-check": "cspell \"**/*.{ts,tsx,js,jsx,md,json}\" --no-progress",
     "spell-check:fix": "cspell \"**/*.{ts,tsx,js,jsx,md,json}\" --no-progress --show-suggestions",
     "check-all": "yarn lint && yarn compile && yarn spell-check",
+    "release": "node scripts/release.js",
     "prepare": "husky"
   },
   "lint-staged": {
