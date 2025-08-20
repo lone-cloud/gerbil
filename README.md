@@ -9,7 +9,6 @@ A koboldcpp manager. <!-- markdownlint-disable MD033 -->
 
 - modern UI for [koboldcpp](https://github.com/LostRuins/koboldcpp) with full support for Linux Wayland
 - download and keep up-to-date your [koboldcpp](https://github.com/LostRuins/koboldcpp/releases) binary
-- better surface the ROCm-specific builds of koboldcpp from YellowRoseCx and from [koboldai.org](https://koboldai.org/cpplinuxrocm)
 - manage the koboldcpp binary to prevent it from running in the background indefinitely
 - automatically unpack all downloaded koboldcpp binaries for significantly faster operation and reduced RAM+HDD utilization (up to ~4GB less RAM usage for ROCm)
 - added presets for a basic flux or chroma image generation setup

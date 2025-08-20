@@ -113,13 +113,7 @@ export const App = () => {
 
   const handleBinaryUpdate = async (download: DownloadItem) => {
     try {
-      const downloadType = download.type === 'rocm' ? 'rocm' : 'asset';
-      const success = await sharedHandleDownload(
-        downloadType,
-        download,
-        true,
-        true
-      );
+      const success = await sharedHandleDownload('asset', download, true, true);
 
       if (success) {
         dismissUpdate();
