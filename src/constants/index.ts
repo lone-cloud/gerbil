@@ -38,10 +38,6 @@ export const KOBOLDAI_URLS = {
   DOMAIN: 'koboldai.org',
 } as const;
 
-export const GITHUB_URLS = {
-  DOMAIN: 'github.com',
-} as const;
-
 export const ROCM = {
   BINARY_NAME: 'koboldcpp-linux-x64-rocm',
   DOWNLOAD_URL: KOBOLDAI_URLS.ROCM_DOWNLOAD,

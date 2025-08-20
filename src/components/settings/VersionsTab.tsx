@@ -12,11 +12,7 @@ import {
 } from '@mantine/core';
 import { RotateCcw, ExternalLink } from 'lucide-react';
 import { DownloadCard } from '@/components/DownloadCard';
-import {
-  getAssetDescription,
-  sortAssetsByRecommendation,
-  isAssetRecommended,
-} from '@/utils/assets';
+import { getAssetDescription, sortDownloadsByType } from '@/utils/assets';
 import {
   getDisplayNameFromPath,
   formatDownloadSize,
@@ -34,14 +30,12 @@ interface VersionInfo {
   isCurrent: boolean;
   downloadUrl?: string;
   installedPath?: string;
-  isROCm?: boolean;
   hasUpdate?: boolean;
   newerVersion?: string;
 }
 
 export const VersionsTab = () => {
   const {
-    platformInfo,
     availableDownloads,
     loadingPlatform,
     loadingRemote,
@@ -131,7 +125,9 @@ export const VersionsTab = () => {
     const versions: VersionInfo[] = [];
     const processedInstalled = new Set<string>();
 
-    availableDownloads.forEach((download) => {
+    const sortedDownloads = sortDownloadsByType(availableDownloads);
+
+    sortedDownloads.forEach((download) => {
       const downloadBaseName = stripAssetExtensions(download.name);
 
       const installedVersion = installedVersions.find((v) => {
@@ -162,7 +158,6 @@ export const VersionsTab = () => {
           isCurrent,
           downloadUrl: download.url,
           installedPath: installedVersion.path,
-          isROCm: download.type === 'rocm',
           hasUpdate,
           newerVersion: hasUpdate ? download.version : undefined,
         });
@@ -174,7 +169,6 @@ export const VersionsTab = () => {
           isInstalled: false,
           isCurrent: false,
           downloadUrl: download.url,
-          isROCm: download.type === 'rocm',
         });
       }
     });
@@ -193,18 +187,12 @@ export const VersionsTab = () => {
           isInstalled: true,
           isCurrent,
           installedPath: installed.path,
-          isROCm: false,
         });
       }
     });
 
-    return sortAssetsByRecommendation(versions, platformInfo.hasAMDGPU);
-  }, [
-    availableDownloads,
-    installedVersions,
-    currentVersion,
-    platformInfo.hasAMDGPU,
-  ]);
+    return versions;
+  }, [availableDownloads, installedVersions, currentVersion]);
 
   useEffect(() => {
     if (downloading && downloadingItemRef.current) {
@@ -222,9 +210,8 @@ export const VersionsTab = () => {
         throw new Error('Download not found');
       }
 
-      const downloadType = download.type === 'rocm' ? 'rocm' : 'asset';
       const success = await sharedHandleDownload(
-        downloadType,
+        'asset',
         download,
         false,
         false
@@ -245,10 +232,9 @@ export const VersionsTab = () => {
         throw new Error('Download not found');
       }
 
-      const downloadType = download.type === 'rocm' ? 'rocm' : 'asset';
       const wasCurrentBinary = version.isCurrent;
       const success = await sharedHandleDownload(
-        downloadType,
+        'asset',
         download,
         true,
         wasCurrentBinary
@@ -368,19 +354,11 @@ export const VersionsTab = () => {
               name={version.name}
               size={
                 version.size
-                  ? formatDownloadSize(
-                      version.size,
-                      version.downloadUrl,
-                      version.isROCm
-                    )
+                  ? formatDownloadSize(version.size, version.downloadUrl)
                   : ''
               }
               version={version.version}
               description={getAssetDescription(version.name)}
-              isRecommended={isAssetRecommended(
-                version.name,
-                platformInfo.hasAMDGPU
-              )}
               isCurrent={version.isCurrent}
               isInstalled={version.isInstalled}
               isDownloading={isDownloading}

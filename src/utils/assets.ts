@@ -5,11 +5,11 @@ export const getAssetDescription = (assetName: string): string => {
   const name = stripAssetExtensions(assetName).toLowerCase();
 
   if (name.includes(ASSET_SUFFIXES.ROCM)) {
-    return 'Optimized for AMD GPUs with ROCm support.';
+    return 'Adds dedicated ROCm support for AMD GPUs. Note that ROCm is unlikely to perform better than modern Vulkan in most cases.';
   }
 
   if (name.endsWith(ASSET_SUFFIXES.OLDPC)) {
-    return 'Meant for old PCs that cannot run the standard build.';
+    return 'Meant for old PCs with outdated CPUs that may not work with the standard build. Does not support modern AVX2 CPU architectures.';
   }
 
   if (name.endsWith(ASSET_SUFFIXES.NOCUDA)) {
@@ -17,24 +17,6 @@ export const getAssetDescription = (assetName: string): string => {
   }
 
   return "Standard build that's ideal for most cases.";
-};
-
-export const isAssetRecommended = (
-  assetName: string,
-  hasAMDGPU: boolean
-): boolean => {
-  const name = stripAssetExtensions(assetName).toLowerCase();
-
-  if (hasAMDGPU && name.includes(ASSET_SUFFIXES.ROCM)) {
-    return true;
-  }
-
-  return (
-    !hasAMDGPU &&
-    !name.includes(ASSET_SUFFIXES.ROCM) &&
-    !name.endsWith(ASSET_SUFFIXES.OLDPC) &&
-    !name.endsWith(ASSET_SUFFIXES.NOCUDA)
-  );
 };
 
 export const isAssetStandard = (assetName: string): boolean => {
@@ -47,23 +29,27 @@ export const isAssetStandard = (assetName: string): boolean => {
   );
 };
 
-export const sortAssetsByRecommendation = <T extends { name: string }>(
-  assets: T[],
-  hasAMDGPU: boolean
+export const sortDownloadsByType = <T extends { name: string }>(
+  downloads: T[]
 ): T[] =>
-  [...assets].sort((a, b) => {
-    const aRecommended = isAssetRecommended(a.name, hasAMDGPU);
-    const bRecommended = isAssetRecommended(b.name, hasAMDGPU);
-    const aStandard = isAssetStandard(a.name);
-    const bStandard = isAssetStandard(b.name);
+  [...downloads].sort((a, b) => {
+    const aName = stripAssetExtensions(a.name).toLowerCase();
+    const bName = stripAssetExtensions(b.name).toLowerCase();
 
-    if (aRecommended && !bRecommended) return -1;
-    if (!aRecommended && bRecommended) return 1;
+    const getOrderPriority = (name: string): number => {
+      if (isAssetStandard(name)) return 0;
+      if (name.includes(ASSET_SUFFIXES.ROCM)) return 1;
+      if (name.endsWith(ASSET_SUFFIXES.NOCUDA)) return 2;
+      if (name.endsWith(ASSET_SUFFIXES.OLDPC)) return 3;
+      return 4;
+    };
 
-    if (aRecommended === bRecommended) {
-      if (aStandard && !bStandard) return -1;
-      if (!aStandard && bStandard) return 1;
+    const aPriority = getOrderPriority(aName);
+    const bPriority = getOrderPriority(bName);
+
+    if (aPriority !== bPriority) {
+      return aPriority - bPriority;
     }
 
-    return 0;
+    return a.name.localeCompare(b.name);
   });

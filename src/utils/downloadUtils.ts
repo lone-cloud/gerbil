@@ -1,16 +1,10 @@
 import { formatFileSizeInMB } from '@/utils/fileSize';
-import { KOBOLDAI_URLS, GITHUB_URLS } from '@/constants';
+import { KOBOLDAI_URLS } from '@/constants';
 
-export const formatDownloadSize = (
-  size: number,
-  url?: string,
-  isROCm?: boolean
-): string => {
+export const formatDownloadSize = (size: number, url?: string): string => {
   if (!size) return '';
 
-  const isApproximateSize =
-    url?.includes(KOBOLDAI_URLS.DOMAIN) ||
-    (isROCm && !url?.includes(GITHUB_URLS.DOMAIN));
+  const isApproximateSize = url?.includes(KOBOLDAI_URLS.DOMAIN);
 
   return isApproximateSize
     ? `~${formatFileSizeInMB(size)}`

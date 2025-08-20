@@ -18,7 +18,6 @@ interface DownloadCardProps {
   size: string;
   version?: string;
   description?: string;
-  isRecommended?: boolean;
   isCurrent?: boolean;
   isInstalled?: boolean;
   isDownloading?: boolean;
@@ -36,7 +35,6 @@ export const DownloadCard = ({
   size,
   version,
   description,
-  isRecommended = false,
   isCurrent = false,
   isInstalled = false,
   isDownloading = false,
@@ -120,11 +118,6 @@ export const DownloadCard = ({
             {isCurrent && (
               <Badge variant="light" color="blue" size="sm">
                 Current
-              </Badge>
-            )}
-            {isRecommended && (
-              <Badge variant="light" color="blue" size="sm">
-                Recommended
               </Badge>
             )}
             {hasUpdate && (
