@@ -9,7 +9,6 @@ import {
   DEFAULT_MODEL_URL,
   DEFAULT_HOST,
 } from '@/constants';
-import { isNotNullish } from '@/utils';
 
 export const useLaunchConfig = () => {
   const [gpuLayers, setGpuLayers] = useState<number>(0);
@@ -137,7 +136,7 @@ export const useLaunchConfig = () => {
         setQuantmatmul(configData.quantmatmul);
       }
 
-      if (isNotNullish(configData.usecuda)) {
+      if (configData.usecuda === true) {
         const gpuInfo = await window.electronAPI.kobold.detectGPU();
         setBackend(gpuInfo.hasNVIDIA ? 'cuda' : 'rocm');
 
@@ -150,9 +149,9 @@ export const useLaunchConfig = () => {
           setGpuDevice(parseInt(deviceId, 10) || 0);
           setQuantmatmul(mmqMode === 'mmq');
         }
-      } else if (isNotNullish(configData.usevulkan)) {
+      } else if (configData.usevulkan === true) {
         setBackend('vulkan');
-      } else if (isNotNullish(configData.useclblast)) {
+      } else if (configData.useclblast === true) {
         setBackend('clblast');
       } else {
         setBackend('cpu');

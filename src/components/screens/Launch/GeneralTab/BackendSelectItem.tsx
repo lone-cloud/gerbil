@@ -20,7 +20,7 @@ export const BackendSelectItem = forwardRef<
         <Group gap={4}>
           {devices.slice(0, 2).map((device, index) => (
             <Badge key={index} size="md" variant="light" color="blue">
-              {device.length > 18 ? `${device.slice(0, 18)}...` : device}
+              {device.length > 25 ? `${device.slice(0, 25)}...` : device}
             </Badge>
           ))}
           {devices.length > 2 && (

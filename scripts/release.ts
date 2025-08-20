@@ -1,22 +1,24 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync } from 'child_process';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
-// Read package.json to get current version
-const packageJson = JSON.parse(
-  fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8')
+interface PackageJson {
+  version: string;
+  [key: string]: unknown;
+}
+
+const packageJson: PackageJson = JSON.parse(
+  readFileSync(join(__dirname, '..', 'package.json'), 'utf8')
 );
 const currentVersion = packageJson.version;
 
 console.log(`Creating release for version ${currentVersion}...`);
 
 try {
-  // Check if we're in a git repository
   execSync('git rev-parse --is-inside-work-tree', { stdio: 'ignore' });
 
-  // Check if there are uncommitted changes
   const gitStatus = execSync('git status --porcelain', { encoding: 'utf8' });
   if (gitStatus.trim() !== '') {
     console.error(
@@ -25,7 +27,6 @@ try {
     process.exit(1);
   }
 
-  // Create and push the tag
   const tagName = `v${currentVersion}`;
   console.log(`Creating tag ${tagName}...`);
 
@@ -39,7 +40,8 @@ try {
   console.log(
     `🔗 Check the progress at: https://github.com/lone-cloud/friendly-kobold/actions`
   );
-} catch (error) {
-  console.error('❌ Error creating release:', error.message);
+} catch (error: unknown) {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  console.error('❌ Error creating release:', errorMessage);
   process.exit(1);
 }

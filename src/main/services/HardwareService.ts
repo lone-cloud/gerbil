@@ -1,5 +1,6 @@
 /* eslint-disable no-comments/disallowComments */
 import si from 'systeminformation';
+import { shortenDeviceName } from '@/utils';
 import type {
   CPUCapabilities,
   GPUCapabilities,
@@ -22,7 +23,7 @@ export class HardwareService {
 
       const devices: string[] = [];
       if (cpu.brand) {
-        devices.push(cpu.brand);
+        devices.push(shortenDeviceName(cpu.brand));
       }
 
       const avx = flags.includes('avx') || flags.includes('AVX');
@@ -62,7 +63,7 @@ export class HardwareService {
 
       for (const controller of graphics.controllers) {
         if (controller.model) {
-          gpuInfo.push(controller.model);
+          gpuInfo.push(shortenDeviceName(controller.model));
         }
 
         const vendor = controller.vendor?.toLowerCase() || '';
@@ -168,7 +169,8 @@ export class HardwareService {
               .split('\n')
               .map((line) => {
                 const parts = line.split(',');
-                return parts[0]?.trim() || 'Unknown NVIDIA GPU';
+                const rawName = parts[0]?.trim() || 'Unknown NVIDIA GPU';
+                return shortenDeviceName(rawName);
               })
               .filter(Boolean);
 
@@ -248,7 +250,7 @@ export class HardwareService {
                   }
 
                   if (deviceType !== 'CPU') {
-                    devices.push(name);
+                    devices.push(shortenDeviceName(name));
                   }
                 }
               }
@@ -304,7 +306,7 @@ export class HardwareService {
               if (line.includes('deviceName')) {
                 const name = line.split('=')[1]?.trim();
                 if (name) {
-                  devices.push(name);
+                  devices.push(shortenDeviceName(name));
                 }
               }
             }
@@ -362,7 +364,7 @@ export class HardwareService {
                   if (platform.devices) {
                     for (const device of platform.devices) {
                       if (device.name && device.type !== 'CPU') {
-                        devices.push(device.name);
+                        devices.push(shortenDeviceName(device.name));
                       }
                     }
                   }
@@ -381,7 +383,7 @@ export class HardwareService {
                 if (line.includes('Device Name') && !line.includes('CPU')) {
                   const name = line.split(':')[1]?.trim();
                   if (name) {
-                    devices.push(name);
+                    devices.push(shortenDeviceName(name));
                   }
                 }
               }

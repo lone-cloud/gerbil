@@ -132,8 +132,6 @@ export const LaunchScreen = ({
   });
 
   const { isLaunching, handleLaunch } = useLaunchLogic({
-    configFiles,
-    selectedFile,
     modelPath,
     sdmodel,
     onLaunch,

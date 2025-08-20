@@ -1,9 +1,6 @@
 import { useState, useCallback } from 'react';
-import type { ConfigFile } from '@/types';
 
 interface UseLaunchLogicProps {
-  configFiles: ConfigFile[];
-  selectedFile: string | null;
   modelPath: string;
   sdmodel: string;
   onLaunch: () => void;
@@ -133,8 +130,6 @@ const buildBackendArgs = (launchArgs: LaunchArgs): string[] => {
 };
 
 export const useLaunchLogic = ({
-  configFiles,
-  selectedFile,
   modelPath,
   sdmodel,
   onLaunch,
@@ -154,10 +149,6 @@ export const useLaunchLogic = ({
       setIsLaunching(true);
 
       try {
-        const selectedConfig = selectedFile
-          ? configFiles.find((f) => f.name === selectedFile)
-          : null;
-
         const args: string[] = [
           ...buildModelArgs(
             isImageMode,
@@ -177,10 +168,7 @@ export const useLaunchLogic = ({
           args.push(...additionalArgs);
         }
 
-        const result = await window.electronAPI.kobold.launchKoboldCpp(
-          args,
-          selectedConfig?.path
-        );
+        const result = await window.electronAPI.kobold.launchKoboldCpp(args);
 
         if (result.success) {
           if (onLaunchModeChange) {
@@ -205,15 +193,7 @@ export const useLaunchLogic = ({
         setIsLaunching(false);
       }
     },
-    [
-      configFiles,
-      selectedFile,
-      modelPath,
-      sdmodel,
-      isLaunching,
-      onLaunch,
-      onLaunchModeChange,
-    ]
+    [modelPath, sdmodel, isLaunching, onLaunch, onLaunchModeChange]
   );
 
   return {
