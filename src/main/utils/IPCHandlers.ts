@@ -171,8 +171,8 @@ export class IPCHandlers {
       this.koboldManager.getLatestReleaseWithDownloadStatus()
     );
 
-    ipcMain.handle('kobold:launchKoboldCpp', (_event, args, configFilePath) =>
-      this.koboldManager.launchKoboldCpp(args, configFilePath)
+    ipcMain.handle('kobold:launchKoboldCpp', (_event, args) =>
+      this.koboldManager.launchKoboldCpp(args)
     );
 
     ipcMain.handle('kobold:stopKoboldCpp', () =>

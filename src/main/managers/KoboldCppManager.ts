@@ -914,8 +914,7 @@ export class KoboldCppManager {
   }
 
   async launchKoboldCpp(
-    args: string[] = [],
-    configFilePath?: string
+    args: string[] = []
   ): Promise<{ success: boolean; pid?: number; error?: string }> {
     try {
       if (this.koboldProcess) {
@@ -935,10 +934,6 @@ export class KoboldCppManager {
       }
 
       const finalArgs = [...args];
-
-      if (configFilePath && existsSync(configFilePath)) {
-        finalArgs.push('--config', configFilePath);
-      }
 
       const child = spawn(currentVersion.path, finalArgs, {
         stdio: ['pipe', 'pipe', 'pipe'],

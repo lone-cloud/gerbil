@@ -9,7 +9,7 @@ export const getAssetDescription = (assetName: string): string => {
   }
 
   if (name.endsWith(ASSET_SUFFIXES.OLDPC)) {
-    return 'Meant for old PCs that cannot normally run the standard build.';
+    return 'Meant for old PCs that cannot run the standard build.';
   }
 
   if (name.endsWith(ASSET_SUFFIXES.NOCUDA)) {
