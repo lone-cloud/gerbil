@@ -81,10 +81,9 @@ export interface KoboldAPI {
     failsafe: boolean;
     cuda: boolean;
   }>;
-  getAvailableBackends: (
-    binaryPath: string,
-    hardwareCapabilities: GPUCapabilities
-  ) => Promise<Array<{ value: string; label: string; devices?: string[] }>>;
+  getAvailableBackends: () => Promise<
+    Array<{ value: string; label: string; devices?: string[] }>
+  >;
   getCurrentInstallDir: () => Promise<string>;
   selectInstallDirectory: () => Promise<string | null>;
   downloadRelease: (

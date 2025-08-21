@@ -76,10 +76,7 @@ export const LaunchScreen = ({
 
   const setHappyDefaults = useCallback(async () => {
     try {
-      const backends = await window.electronAPI.kobold.getAvailableBackends(
-        (await window.electronAPI.kobold.getCurrentBinaryInfo())?.path || '',
-        await window.electronAPI.kobold.detectGPUCapabilities()
-      );
+      const backends = await window.electronAPI.kobold.getAvailableBackends();
 
       if (!backend && backends.length > 0) {
         handleBackendChange(backends[0].value);

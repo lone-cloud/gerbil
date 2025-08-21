@@ -6,7 +6,6 @@ import type {
   LogsAPI,
   UpdateInfo,
 } from '@/types/electron';
-import type { GPUCapabilities } from '@/types/hardware';
 
 const koboldAPI: KoboldAPI = {
   getInstalledVersion: () => ipcRenderer.invoke('kobold:getInstalledVersion'),
@@ -32,15 +31,7 @@ const koboldAPI: KoboldAPI = {
     ipcRenderer.invoke('kobold:detectAllCapabilities'),
   detectBackendSupport: (binaryPath: string) =>
     ipcRenderer.invoke('kobold:detectBackendSupport', binaryPath),
-  getAvailableBackends: (
-    binaryPath: string,
-    hardwareCapabilities: GPUCapabilities
-  ) =>
-    ipcRenderer.invoke(
-      'kobold:getAvailableBackends',
-      binaryPath,
-      hardwareCapabilities
-    ),
+  getAvailableBackends: () => ipcRenderer.invoke('kobold:getAvailableBackends'),
   getCurrentInstallDir: () => ipcRenderer.invoke('kobold:getCurrentInstallDir'),
   selectInstallDirectory: () =>
     ipcRenderer.invoke('kobold:selectInstallDirectory'),

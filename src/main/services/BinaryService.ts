@@ -1,6 +1,8 @@
 import { existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { LogManager } from '@/main/managers/LogManager';
+import type { KoboldCppManager } from '@/main/managers/KoboldCppManager';
+import type { HardwareService } from '@/main/services/HardwareService';
 
 export interface BackendSupport {
   rocm: boolean;
@@ -18,9 +20,17 @@ export class BinaryService {
     Array<{ value: string; label: string; devices?: string[] }>
   >();
   private logManager: LogManager;
+  private koboldManager: KoboldCppManager;
+  private hardwareService: HardwareService;
 
-  constructor(logManager: LogManager) {
+  constructor(
+    logManager: LogManager,
+    koboldManager: KoboldCppManager,
+    hardwareService: HardwareService
+  ) {
     this.logManager = logManager;
+    this.koboldManager = koboldManager;
+    this.hardwareService = hardwareService;
   }
 
   detectBackendSupport(koboldBinaryPath: string): BackendSupport {
@@ -46,7 +56,18 @@ export class BinaryService {
 
       const hasKoboldCppLib = (name: string) => {
         const filename = `${name}${libExtension}`;
-        return existsSync(join(internalDir, filename));
+
+        if (platform === 'win32') {
+          return (
+            existsSync(join(binaryDir, filename)) ||
+            existsSync(join(internalDir, filename))
+          );
+        } else {
+          return (
+            existsSync(join(internalDir, filename)) ||
+            existsSync(join(binaryDir, filename))
+          );
+        }
       };
 
       support.rocm = hasKoboldCppLib('koboldcpp_hipblas');
@@ -66,67 +87,78 @@ export class BinaryService {
     return support;
   }
 
-  getAvailableBackends(
-    koboldBinaryPath: string,
-    hardwareCapabilities?: {
-      cuda: { supported: boolean; devices: string[] };
-      rocm: { supported: boolean; devices: string[] };
-      vulkan: { supported: boolean; devices: string[] };
-      clblast: { supported: boolean; devices: string[] };
-    }
-  ): Array<{ value: string; label: string; devices?: string[] }> {
-    const cacheKey = `${koboldBinaryPath}:${JSON.stringify(hardwareCapabilities)}`;
+  async getAvailableBackends(): Promise<
+    Array<{ value: string; label: string; devices?: string[] }>
+  > {
+    try {
+      const [currentBinaryInfo, hardwareCapabilities] = await Promise.all([
+        this.koboldManager.getCurrentBinaryInfo(),
+        this.hardwareService.detectGPUCapabilities(),
+      ]);
 
-    if (this.availableBackendsCache.has(cacheKey)) {
-      return this.availableBackendsCache.get(cacheKey)!;
-    }
+      if (!currentBinaryInfo?.path) {
+        return [{ value: 'cpu', label: 'CPU' }];
+      }
 
-    const backendSupport = this.detectBackendSupport(koboldBinaryPath);
-    const backends: Array<{
-      value: string;
-      label: string;
-      devices?: string[];
-    }> = [];
+      const cacheKey = `${currentBinaryInfo.path}:${JSON.stringify(hardwareCapabilities)}`;
 
-    if (backendSupport.cuda && hardwareCapabilities?.cuda.supported) {
+      if (this.availableBackendsCache.has(cacheKey)) {
+        return this.availableBackendsCache.get(cacheKey)!;
+      }
+
+      const backendSupport = this.detectBackendSupport(currentBinaryInfo.path);
+      const backends: Array<{
+        value: string;
+        label: string;
+        devices?: string[];
+      }> = [];
+
+      if (backendSupport.cuda && hardwareCapabilities.cuda.supported) {
+        backends.push({
+          value: 'cuda',
+          label: 'CUDA',
+          devices: hardwareCapabilities.cuda.devices,
+        });
+      }
+
+      if (backendSupport.rocm && hardwareCapabilities.rocm.supported) {
+        backends.push({
+          value: 'rocm',
+          label: 'ROCm',
+          devices: hardwareCapabilities.rocm.devices,
+        });
+      }
+
+      if (backendSupport.vulkan && hardwareCapabilities.vulkan.supported) {
+        backends.push({
+          value: 'vulkan',
+          label: 'Vulkan',
+          devices: hardwareCapabilities.vulkan.devices,
+        });
+      }
+
+      if (backendSupport.clblast && hardwareCapabilities.clblast.supported) {
+        backends.push({
+          value: 'clblast',
+          label: 'CLBlast',
+          devices: hardwareCapabilities.clblast.devices,
+        });
+      }
+
       backends.push({
-        value: 'cuda',
-        label: 'CUDA',
-        devices: hardwareCapabilities.cuda.devices,
+        value: 'cpu',
+        label: 'CPU',
       });
+
+      this.availableBackendsCache.set(cacheKey, backends);
+      return backends;
+    } catch (error) {
+      this.logManager.logError(
+        'Failed to get available backends:',
+        error as Error
+      );
+      return [{ value: 'cpu', label: 'CPU' }];
     }
-
-    if (backendSupport.rocm && hardwareCapabilities?.rocm.supported) {
-      backends.push({
-        value: 'rocm',
-        label: 'ROCm',
-        devices: hardwareCapabilities.rocm.devices,
-      });
-    }
-
-    if (backendSupport.vulkan && hardwareCapabilities?.vulkan.supported) {
-      backends.push({
-        value: 'vulkan',
-        label: 'Vulkan',
-        devices: hardwareCapabilities.vulkan.devices,
-      });
-    }
-
-    if (backendSupport.clblast && hardwareCapabilities?.clblast.supported) {
-      backends.push({
-        value: 'clblast',
-        label: 'CLBlast',
-        devices: hardwareCapabilities.clblast.devices,
-      });
-    }
-
-    backends.push({
-      value: 'cpu',
-      label: 'CPU',
-    });
-
-    this.availableBackendsCache.set(cacheKey, backends);
-    return backends;
   }
 
   clearCache(): void {
