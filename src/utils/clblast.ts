@@ -11,15 +11,3 @@ export function parseCLBlastDevice(deviceString: string): {
   }
   return null;
 }
-
-export function formatCLBlastArgs(
-  deviceIndex: number,
-  platformIndex: number
-): [string, string] {
-  return [deviceIndex.toString(), platformIndex.toString()];
-}
-
-export function getCLBlastDeviceName(deviceString: string): string {
-  const match = deviceString.match(/^(.+?)\s+\(Platform:/);
-  return match ? match[1].trim() : deviceString;
-}

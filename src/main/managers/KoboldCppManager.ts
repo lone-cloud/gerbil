@@ -19,6 +19,7 @@ import { LogManager } from '@/main/managers/LogManager';
 import { WindowManager } from '@/main/managers/WindowManager';
 import { ROCM } from '@/constants';
 import { stripAssetExtensions } from '@/utils/versionUtils';
+import { compareVersions } from '@/utils';
 import type { DownloadItem } from '@/types/electron';
 
 interface GitHubAsset {
@@ -846,7 +847,7 @@ export class KoboldCppManager {
       const latestVersion = latestRelease.tag_name.replace(/^v/, '');
       const current = currentVersion.version.replace(/^v/, '');
 
-      const hasUpdate = this.compareVersions(current, latestVersion) < 0;
+      const hasUpdate = compareVersions(current, latestVersion) < 0;
 
       return {
         currentVersion: current,
@@ -857,21 +858,6 @@ export class KoboldCppManager {
     } catch {
       return null;
     }
-  }
-
-  private compareVersions(a: string, b: string): number {
-    const aParts = a.split('.').map(Number);
-    const bParts = b.split('.').map(Number);
-
-    for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
-      const aPart = aParts[i] || 0;
-      const bPart = bParts[i] || 0;
-
-      if (aPart < bPart) return -1;
-      if (aPart > bPart) return 1;
-    }
-
-    return 0;
   }
 
   async getLatestReleaseWithDownloadStatus(): Promise<ReleaseWithStatus | null> {

@@ -8,7 +8,7 @@ import { AdvancedTab } from '@/components/screens/Launch/AdvancedTab';
 import { NetworkTab } from '@/components/screens/Launch/NetworkTab';
 import { ImageGenerationTab } from '@/components/screens/Launch/ImageGenerationTab';
 import { WarningDisplay } from '@/components/WarningDisplay';
-import { ConfigFileManager } from '@/components/ConfigFileManager';
+import { ConfigFileManager } from '@/components/screens/Launch/ConfigFileManager';
 import { DEFAULT_MODEL_URL } from '@/constants';
 import type { ConfigFile } from '@/types';
 

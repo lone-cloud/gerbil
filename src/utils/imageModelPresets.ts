@@ -49,6 +49,3 @@ export const IMAGE_MODEL_PRESETS: ImageModelPreset[] = [
     sdvae: '',
   },
 ];
-
-export const getPresetByName = (name: string): ImageModelPreset | undefined =>
-  IMAGE_MODEL_PRESETS.find((preset) => preset.name === name);
