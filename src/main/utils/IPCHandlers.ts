@@ -6,7 +6,6 @@ import { LogManager } from '@/main/managers/LogManager';
 import { GitHubService } from '@/main/services/GitHubService';
 import { HardwareService } from '@/main/services/HardwareService';
 import { BinaryService } from '@/main/services/BinaryService';
-import type { GPUCapabilities } from '@/types/hardware';
 
 export class IPCHandlers {
   private koboldManager: KoboldCppManager;
@@ -125,13 +124,8 @@ export class IPCHandlers {
       this.binaryService.detectBackendSupport(binaryPath)
     );
 
-    ipcMain.handle(
-      'kobold:getAvailableBackends',
-      (_, binaryPath: string, hardwareCapabilities: GPUCapabilities) =>
-        this.binaryService.getAvailableBackends(
-          binaryPath,
-          hardwareCapabilities
-        )
+    ipcMain.handle('kobold:getAvailableBackends', () =>
+      this.binaryService.getAvailableBackends()
     );
 
     ipcMain.handle('kobold:getPlatform', () => ({

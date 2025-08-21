@@ -35,13 +35,18 @@ class FriendlyKoboldApp {
     this.windowManager = new WindowManager();
     this.githubService = new GitHubService(this.logManager);
     this.hardwareService = new HardwareService();
-    this.binaryService = new BinaryService(this.logManager);
 
     this.koboldManager = new KoboldCppManager(
       this.configManager,
       this.githubService,
       this.windowManager,
       this.logManager
+    );
+
+    this.binaryService = new BinaryService(
+      this.logManager,
+      this.koboldManager,
+      this.hardwareService
     );
 
     this.ipcHandlers = new IPCHandlers(

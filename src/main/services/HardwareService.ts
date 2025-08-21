@@ -125,6 +125,7 @@ export class HardwareService {
     ]);
 
     this.gpuCapabilitiesCache = { cuda, rocm, vulkan, clblast };
+
     return this.gpuCapabilitiesCache;
   }
 
@@ -303,10 +304,14 @@ export class HardwareService {
             const lines = output.split('\n');
 
             for (const line of lines) {
-              if (line.includes('deviceName')) {
-                const name = line.split('=')[1]?.trim();
-                if (name) {
-                  devices.push(shortenDeviceName(name));
+              // Handle both formats: "deviceName = AMD Radeon RX 7900 GRE" and other potential formats
+              if (line.includes('deviceName') && line.includes('=')) {
+                const parts = line.split('=');
+                if (parts.length >= 2) {
+                  const name = parts[1]?.trim();
+                  if (name) {
+                    devices.push(shortenDeviceName(name));
+                  }
                 }
               }
             }
@@ -343,34 +348,56 @@ export class HardwareService {
     const lines = output.split('\n');
 
     let currentPlatform = '';
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
 
-      // Extract platform name
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+
+      // Extract platform name - this appears early in the output
       if (line.includes('Platform Name:')) {
         currentPlatform = line.split('Platform Name:')[1]?.trim() || '';
         continue;
       }
 
-      // Extract device names for GPU devices
-      if (line.includes('Device Name:')) {
-        const deviceName = line.split('Device Name:')[1]?.trim();
-        if (deviceName) {
-          // Look ahead to check if this is a GPU device
-          for (let j = i + 1; j < Math.min(i + 10, lines.length); j++) {
-            if (lines[j].includes('Device Type:') && lines[j].includes('GPU')) {
-              const deviceLabel = currentPlatform
-                ? `${shortenDeviceName(deviceName)} (${currentPlatform})`
-                : shortenDeviceName(deviceName);
-              devices.push(deviceLabel);
-              break;
-            }
-          }
+      // When we find a GPU device type, look for device name
+      if (line.includes('Device Type:') && line.includes('GPU')) {
+        const deviceName = this.findDeviceNameInClInfo(lines, i);
+
+        if (deviceName && currentPlatform) {
+          const deviceLabel = `${shortenDeviceName(deviceName)} (${currentPlatform})`;
+          devices.push(deviceLabel);
         }
       }
     }
 
     return devices;
+  }
+
+  private findDeviceNameInClInfo(lines: string[], startIndex: number): string {
+    // Look for Board name first (appears closer to Device Type and is more descriptive)
+    for (
+      let j = startIndex + 1;
+      j < Math.min(startIndex + 50, lines.length);
+      j++
+    ) {
+      const nextLine = lines[j].trim();
+      if (nextLine.includes('Board name:')) {
+        return nextLine.split('Board name:')[1]?.trim() || '';
+      }
+    }
+
+    // If no Board name found, look for Name: field (appears much later)
+    for (
+      let j = startIndex + 1;
+      j < Math.min(startIndex + 100, lines.length);
+      j++
+    ) {
+      const nextLine = lines[j].trim();
+      if (nextLine.startsWith('Name:')) {
+        return nextLine.split('Name:')[1]?.trim() || '';
+      }
+    }
+
+    return '';
   }
 
   private async detectCLBlast(): Promise<{

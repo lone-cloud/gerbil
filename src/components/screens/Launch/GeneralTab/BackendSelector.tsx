@@ -40,34 +40,19 @@ export const BackendSelector = ({
   useEffect(() => {
     const loadBackends = async () => {
       try {
-        const [currentBinaryInfo, cpuCapabilitiesResult, gpuCapabilities] =
-          await Promise.all([
-            window.electronAPI.kobold.getCurrentBinaryInfo(),
-            window.electronAPI.kobold.detectCPU(),
-            window.electronAPI.kobold.detectGPUCapabilities(),
-          ]);
+        const [cpuCapabilitiesResult, backends] = await Promise.all([
+          window.electronAPI.kobold.detectCPU(),
+          window.electronAPI.kobold.getAvailableBackends(),
+        ]);
 
         setCpuCapabilities({
           avx: cpuCapabilitiesResult.avx,
           avx2: cpuCapabilitiesResult.avx2,
         });
 
-        let backends: Array<{
-          value: string;
-          label: string;
-          devices?: string[];
-        }> = [];
-
-        if (currentBinaryInfo?.path) {
-          backends = await window.electronAPI.kobold.getAvailableBackends(
-            currentBinaryInfo.path,
-            gpuCapabilities
-          );
-
-          const cpuBackend = backends.find((b) => b.value === 'cpu');
-          if (cpuBackend) {
-            cpuBackend.devices = cpuCapabilitiesResult.devices;
-          }
+        const cpuBackend = backends.find((b) => b.value === 'cpu');
+        if (cpuBackend) {
+          cpuBackend.devices = cpuCapabilitiesResult.devices;
         }
 
         setAvailableBackends(backends);
@@ -231,7 +216,7 @@ export const BackendSelector = ({
               step={1}
               size="sm"
               w={80}
-              disabled={autoGpuLayers}
+              disabled={autoGpuLayers || backend === 'cpu'}
             />
             <Group gap="xs" align="center">
               <Checkbox
@@ -241,6 +226,7 @@ export const BackendSelector = ({
                   handleAutoGpuLayersChange(event.currentTarget.checked)
                 }
                 size="sm"
+                disabled={backend === 'cpu'}
               />
               <InfoTooltip label="Automatically try to allocate the GPU layers based on available VRAM." />
             </Group>
