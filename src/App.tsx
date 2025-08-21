@@ -6,7 +6,7 @@ import { InterfaceScreen } from '@/components/screens/Interface';
 import { WelcomeScreen } from '@/components/screens/Welcome';
 import { UpdateAvailableModal } from '@/components/UpdateAvailableModal';
 import { SettingsModal } from '@/components/settings/SettingsModal';
-import { EjectConfirmDialog } from '@/components/EjectConfirmDialog';
+import { EjectConfirmModal } from '@/components/EjectConfirmModal';
 import { ScreenTransition } from '@/components/ScreenTransition';
 import { AppHeader } from '@/components/AppHeader';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
@@ -20,7 +20,7 @@ export const App = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen | null>(null);
   const [settingsOpened, setSettingsOpened] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
-  const [showEjectDialog, setShowEjectDialog] = useState(false);
+  const [showEjectModal, setShowEjectModal] = useState(false);
   const [activeInterfaceTab, setActiveInterfaceTab] = useState<string | null>(
     'terminal'
   );
@@ -179,7 +179,7 @@ export const App = () => {
     if (skipEjectConfirmation) {
       performEject();
     } else {
-      setShowEjectDialog(true);
+      setShowEjectModal(true);
     }
   };
 
@@ -309,9 +309,9 @@ export const App = () => {
           onClose={() => setSettingsOpened(false)}
           currentScreen={currentScreen || undefined}
         />
-        <EjectConfirmDialog
-          opened={showEjectDialog}
-          onClose={() => setShowEjectDialog(false)}
+        <EjectConfirmModal
+          opened={showEjectModal}
+          onClose={() => setShowEjectModal(false)}
           onConfirm={handleEjectConfirm}
         />
       </AppShell>

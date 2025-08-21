@@ -13,6 +13,7 @@ export const AdvancedTab = () => {
     failsafe,
     lowvram,
     quantmatmul,
+    usemmap,
     backend,
     handleAdditionalArgumentsChange,
     handleNoshiftChange,
@@ -21,6 +22,7 @@ export const AdvancedTab = () => {
     handleFailsafeChange,
     handleLowvramChange,
     handleQuantmatmulChange,
+    handleUsemmapChange,
   } = useLaunchConfig();
   const [backendSupport, setBackendSupport] = useState<{
     noavx2: boolean;
@@ -146,6 +148,19 @@ export const AdvancedTab = () => {
                       : 'Enable MMQ mode to use finetuned kernels instead of default CuBLAS/HipBLAS for prompt processing.'
                   }
                 />
+              </Group>
+            </div>
+
+            <div className={styles.minWidth200}>
+              <Group gap="xs" align="center">
+                <Checkbox
+                  checked={usemmap}
+                  onChange={(event) =>
+                    handleUsemmapChange(event.currentTarget.checked)
+                  }
+                  label="MMAP"
+                />
+                <InfoTooltip label="Use MMAP to load models when enabled." />
               </Group>
             </div>
           </Group>

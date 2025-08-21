@@ -57,22 +57,17 @@ export interface DownloadItem {
 }
 
 export interface KoboldAPI {
-  getInstalledVersion: () => Promise<string | undefined>;
   getInstalledVersions: () => Promise<InstalledVersion[]>;
-  getCurrentVersion: () => Promise<InstalledVersion | null>;
   getCurrentBinaryInfo: () => Promise<{
     path: string;
     filename: string;
   } | null>;
   setCurrentVersion: (version: string) => Promise<boolean>;
-  getVersionFromBinary: (binaryPath: string) => Promise<string | null>;
   getLatestRelease: () => Promise<DownloadItem[]>;
   getPlatform: () => Promise<PlatformInfo>;
   detectGPU: () => Promise<BasicGPUInfo>;
   detectCPU: () => Promise<CPUCapabilities>;
-  detectGPUCapabilities: () => Promise<GPUCapabilities>;
   detectROCm: () => Promise<{ supported: boolean; devices: string[] }>;
-  detectAllCapabilities: () => Promise<HardwareInfo>;
   detectBackendSupport: (binaryPath: string) => Promise<{
     rocm: boolean;
     vulkan: boolean;
@@ -95,7 +90,6 @@ export interface KoboldAPI {
     error?: string;
   }>;
   getROCmDownload: () => Promise<DownloadItem | null>;
-  checkForUpdates: () => Promise<UpdateInfo | null>;
   getLatestReleaseWithStatus: () => Promise<ReleaseWithStatus | null>;
   launchKoboldCpp: (
     args?: string[],
@@ -121,6 +115,7 @@ export interface KoboldAPI {
       flashattention?: boolean;
       noavx2?: boolean;
       failsafe?: boolean;
+      usemmap?: boolean;
       usecuda?: boolean;
       usevulkan?: boolean;
       useclblast?: boolean;
@@ -152,7 +147,6 @@ export interface KoboldAPI {
 }
 
 export interface AppAPI {
-  getVersion: () => Promise<string>;
   openExternal: (url: string) => Promise<void>;
 }
 
