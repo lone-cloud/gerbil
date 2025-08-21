@@ -612,10 +612,9 @@ export class KoboldCppManager {
     if (!existsSync(versionPath)) {
       throw new Error('Selected version file does not exist');
     }
-
     this.koboldProcess = spawn(versionPath, args, {
-      stdio: ['ignore', 'pipe', 'pipe'],
-      shell: process.platform === 'win32',
+      stdio: ['pipe', 'pipe', 'pipe'],
+      detached: false,
     });
 
     if (onOutput) {
@@ -939,7 +938,6 @@ export class KoboldCppManager {
       const child = spawn(currentVersion.path, finalArgs, {
         stdio: ['pipe', 'pipe', 'pipe'],
         detached: false,
-        shell: process.platform === 'win32',
       });
 
       this.koboldProcess = child;
@@ -1057,18 +1055,56 @@ export class KoboldCppManager {
         this.koboldProcess.once('error', cleanup);
 
         try {
-          this.koboldProcess.kill('SIGTERM');
-
-          setTimeout(() => {
-            if (this.koboldProcess && !this.koboldProcess.killed) {
+          if (process.platform === 'win32') {
+            const pid = this.koboldProcess.pid;
+            if (pid) {
               try {
-                this.koboldProcess.kill('SIGKILL');
-              } catch {
-                void 0;
+                this.koboldProcess.kill('SIGTERM');
+
+                setTimeout(() => {
+                  if (this.koboldProcess && !this.koboldProcess.killed) {
+                    const { exec: execCmd } = require('child_process');
+                    execCmd(
+                      `taskkill /pid ${pid} /t /f`,
+                      (error: Error | null) => {
+                        if (error) {
+                          this.logManager.logError(
+                            'Error force-killing process:',
+                            error
+                          );
+                        }
+                        cleanup();
+                      }
+                    );
+                  } else {
+                    cleanup();
+                  }
+                }, 2000);
+              } catch (error) {
+                this.logManager.logError(
+                  'Error during Windows cleanup:',
+                  error as Error
+                );
+                cleanup();
               }
+            } else {
+              cleanup();
             }
-            cleanup();
-          }, 3000);
+          } else {
+            // Unix-like systems
+            this.koboldProcess.kill('SIGTERM');
+
+            setTimeout(() => {
+              if (this.koboldProcess && !this.koboldProcess.killed) {
+                try {
+                  this.koboldProcess.kill('SIGKILL');
+                } catch {
+                  void 0;
+                }
+              }
+              cleanup();
+            }, 3000);
+          }
         } catch (error) {
           this.logManager.logError('Error during cleanup:', error as Error);
           cleanup();

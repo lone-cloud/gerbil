@@ -50,7 +50,6 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
   useEffect(() => {
     const cleanup = window.electronAPI.kobold.onKoboldOutput((data: string) => {
       setTerminalContent((prev) => {
-        const lines = prev.split('\n');
         const newData = data.toString();
 
         if (
@@ -66,28 +65,7 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
           }
         }
 
-        if (newData.includes('\r')) {
-          const parts = newData.split('\r');
-
-          for (let i = 0; i < parts.length; i++) {
-            if (i === 0) {
-              if (lines.length > 0) {
-                lines[lines.length - 1] += parts[i];
-              } else {
-                lines.push(parts[i]);
-              }
-            } else {
-              if (lines.length > 0) {
-                lines[lines.length - 1] = parts[i];
-              } else {
-                lines.push(parts[i]);
-              }
-            }
-          }
-          return lines.join('\n');
-        } else {
-          return prev + newData;
-        }
+        return prev + newData;
       });
     });
 
