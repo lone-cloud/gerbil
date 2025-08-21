@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { ConfigFile } from '@/types';
 import type { ImageModelPreset } from '@/utils/imageModelPresets';
-import { DEFAULT_CONTEXT_SIZE, DEFAULT_HOST } from '@/constants';
+import { DEFAULT_CONTEXT_SIZE } from '@/constants';
 
 interface LaunchConfigState {
   gpuLayers: number;
@@ -22,6 +22,7 @@ interface LaunchConfigState {
   failsafe: boolean;
   lowvram: boolean;
   quantmatmul: boolean;
+  usemmap: boolean;
   backend: string;
   gpuDevice: number;
   gpuPlatform: number;
@@ -51,6 +52,7 @@ interface LaunchConfigState {
   setFailsafe: (failsafe: boolean) => void;
   setLowvram: (lowvram: boolean) => void;
   setQuantmatmul: (quantmatmul: boolean) => void;
+  setUsemmap: (usemmap: boolean) => void;
   setBackend: (backend: string) => void;
   setGpuDevice: (device: number) => void;
   setGpuPlatform: (platform: number) => void;
@@ -86,7 +88,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   modelPath: '',
   additionalArguments: '',
   port: undefined,
-  host: DEFAULT_HOST,
+  host: '',
   multiuser: false,
   multiplayer: false,
   remotetunnel: false,
@@ -98,6 +100,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   failsafe: false,
   lowvram: false,
   quantmatmul: true,
+  usemmap: true,
   backend: '',
   gpuDevice: 0,
   gpuPlatform: 0,
@@ -127,6 +130,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   setFailsafe: (failsafe) => set({ failsafe }),
   setLowvram: (lowvram) => set({ lowvram }),
   setQuantmatmul: (quantmatmul) => set({ quantmatmul }),
+  setUsemmap: (usemmap) => set({ usemmap }),
   setBackend: (backend) => set({ backend }),
   setGpuDevice: (device) => set({ gpuDevice: device }),
   setGpuPlatform: (platform) => set({ gpuPlatform: platform }),
@@ -171,7 +175,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
       if (typeof configData.host === 'string') {
         updates.host = configData.host;
       } else {
-        updates.host = DEFAULT_HOST;
+        updates.host = '';
       }
 
       if (typeof configData.multiuser === 'number') {
@@ -234,6 +238,12 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
 
       if (typeof configData.quantmatmul === 'boolean') {
         updates.quantmatmul = configData.quantmatmul;
+      }
+
+      if (typeof configData.usemmap === 'boolean') {
+        updates.usemmap = configData.usemmap;
+      } else {
+        updates.usemmap = true;
       }
 
       if (configData.usecuda === true) {

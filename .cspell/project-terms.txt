@@ -74,9 +74,11 @@ trycloudflare
 unquantized
 useclblast
 usecuda
+usemmap
 usevulkan
 vram
 vulkan
 vulkaninfo
 wayland
 websearch
+MMAP

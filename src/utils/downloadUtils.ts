@@ -1,4 +1,3 @@
-import { formatFileSizeInMB } from '@/utils/fileSize';
 import { KOBOLDAI_URLS } from '@/constants';
 
 export const formatDownloadSize = (size: number, url?: string): string => {
@@ -34,4 +33,10 @@ export const compareVersions = (versionA: string, versionB: string): number => {
   }
 
   return 0;
+};
+
+const formatFileSizeInMB = (bytes: number) => {
+  if (bytes === 0) return '0 MB';
+  const mb = bytes / (1024 * 1024);
+  return parseFloat(mb.toFixed(1)) + ' MB';
 };

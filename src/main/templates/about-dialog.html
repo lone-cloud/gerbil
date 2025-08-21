@@ -131,8 +131,6 @@
     </div>
 
     <script>
-      const { ipcRenderer } = require('electron');
-
       function setVersionInfo(info) {
         document.getElementById('version-info').innerHTML = info.replace(
           /\n/g,
@@ -141,11 +139,16 @@
       }
 
       function openGitHub() {
-        ipcRenderer.send('open-github');
+        // Send IPC message directly since this is a simple modal
+        if (window.electronAPI && window.electronAPI.app) {
+          window.electronAPI.app.openExternal(
+            'https://github.com/lone-cloud/friendly-kobold'
+          );
+        }
       }
 
       function closeDialog() {
-        ipcRenderer.send('close-about-dialog');
+        window.close();
       }
 
       // Handle keyboard shortcuts
