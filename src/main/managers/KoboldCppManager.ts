@@ -384,6 +384,7 @@ export class KoboldCppManager {
       flashattention?: boolean;
       noavx2?: boolean;
       failsafe?: boolean;
+      usemmap?: boolean;
       usecuda?: boolean;
       usevulkan?: boolean;
       useclblast?: [number, number] | boolean;
