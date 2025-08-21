@@ -1,10 +1,9 @@
-import { Stack, Text, Group, TextInput, Button, Select } from '@mantine/core';
+import { Stack, Select } from '@mantine/core';
 import { useState } from 'react';
-import { File, Search } from 'lucide-react';
-import { InfoTooltip } from '@/components/InfoTooltip';
-import { getInputValidationState, IMAGE_MODEL_PRESETS } from '@/utils';
+import { SectionHeader } from '@/components/SectionHeader';
+import { ModelFileField } from '@/components/ModelFileField';
+import { IMAGE_MODEL_PRESETS } from '@/utils';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
-import styles from '@/styles/layout.module.css';
 
 export const ImageGenerationTab = () => {
   const {
@@ -34,100 +33,15 @@ export const ImageGenerationTab = () => {
 
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
 
-  const ModelField = ({
-    label,
-    value,
-    placeholder,
-    tooltip,
-    onChange,
-    onSelectFile,
-    showSearchHF = false,
-  }: {
-    label: string;
-    value: string;
-    placeholder: string;
-    tooltip?: string;
-    onChange: (value: string) => void;
-    onSelectFile: () => void;
-    showSearchHF?: boolean;
-  }) => {
-    const validationState = getInputValidationState(value);
-
-    const getInputColor = () => {
-      switch (validationState) {
-        case 'valid':
-          return 'green';
-        case 'invalid':
-          return 'red';
-        default:
-          return undefined;
-      }
-    };
-
-    const getHelperText = () => {
-      if (!value.trim()) return undefined;
-
-      if (validationState === 'invalid') {
-        return 'Enter a valid URL or file path';
-      }
-
-      return undefined;
-    };
-
-    return (
-      <div>
-        <Group gap="xs" align="center" mb="xs">
-          <Text size="sm" fw={500}>
-            {label}
-          </Text>
-          {tooltip && <InfoTooltip label={tooltip} />}
-        </Group>
-        <Group gap="xs" align="flex-start">
-          <div className={styles.flex1}>
-            <TextInput
-              placeholder={placeholder}
-              value={value}
-              onChange={(event) => onChange(event.currentTarget.value)}
-              color={getInputColor()}
-              error={
-                validationState === 'invalid' ? getHelperText() : undefined
-              }
-            />
-          </div>
-          <Button
-            onClick={onSelectFile}
-            variant="light"
-            leftSection={<File size={16} />}
-          >
-            Browse
-          </Button>
-          {showSearchHF && (
-            <Button
-              onClick={() => {
-                window.electronAPI.app.openExternal(
-                  'https://huggingface.co/models?pipeline_tag=text-to-image&library=gguf&sort=trending'
-                );
-              }}
-              variant="outline"
-              leftSection={<Search size={16} />}
-            >
-              Search HF
-            </Button>
-          )}
-        </Group>
-      </div>
-    );
-  };
-
   return (
     <Stack gap="md">
       <div>
-        <Group gap="xs" align="center" mb="xs">
-          <Text size="sm" fw={500}>
-            Model Preset
-          </Text>
-          <InfoTooltip label="Quick presets for popular image generation models with pre-configured encoders." />
-        </Group>
+        <SectionHeader
+          title="Model Preset"
+          tooltip="Quick presets for popular image generation models with pre-configured encoders."
+          fontWeight={500}
+          marginBottom="xs"
+        />
         <Select
           placeholder="Choose a preset..."
           data={IMAGE_MODEL_PRESETS.map((preset) => ({
@@ -145,40 +59,45 @@ export const ImageGenerationTab = () => {
         />
       </div>
 
-      <ModelField
+      <ModelFileField
         label="Image Gen. Model File"
         value={sdmodel}
         placeholder="Select a model file or enter a direct URL"
+        tooltip="The primary image generation model. This is the main model that will generate images."
         onChange={handleSdmodelChange}
         onSelectFile={handleSelectSdmodelFile}
         showSearchHF
+        searchUrl="https://huggingface.co/models?pipeline_tag=text-to-image&library=gguf&sort=trending"
       />
 
-      <ModelField
+      <ModelFileField
         label="T5-XXL File"
         value={sdt5xxl}
         placeholder="Select a T5-XXL file or enter a direct URL"
+        tooltip="T5-XXL text encoder model for enhanced text understanding."
         onChange={handleSdt5xxlChange}
         onSelectFile={handleSelectSdt5xxlFile}
       />
 
-      <ModelField
+      <ModelFileField
         label="Clip-L File"
         value={sdclipl}
         placeholder="Select a Clip-L file or enter a direct URL"
+        tooltip="CLIP-L text encoder model for text-image understanding."
         onChange={handleSdcliplChange}
         onSelectFile={handleSelectSdcliplFile}
       />
 
-      <ModelField
+      <ModelFileField
         label="Clip-G File"
         value={sdclipg}
         placeholder="Select a Clip-G file or enter a direct URL"
+        tooltip="CLIP-G text encoder model for enhanced text-image understanding."
         onChange={handleSdclipgChange}
         onSelectFile={handleSelectSdclipgFile}
       />
 
-      <ModelField
+      <ModelFileField
         label="PhotoMaker"
         value={sdphotomaker}
         placeholder="Select a PhotoMaker file or enter a direct URL"
@@ -187,15 +106,16 @@ export const ImageGenerationTab = () => {
         onSelectFile={handleSelectSdphotomakerFile}
       />
 
-      <ModelField
+      <ModelFileField
         label="Image VAE"
         value={sdvae}
         placeholder="Select a VAE file or enter a direct URL"
+        tooltip="Variational Autoencoder model for improved image quality."
         onChange={handleSdvaeChange}
         onSelectFile={handleSelectSdvaeFile}
       />
 
-      <ModelField
+      <ModelFileField
         label="Image LoRa"
         value={sdlora}
         placeholder="Select a LoRa file or enter a direct URL"
