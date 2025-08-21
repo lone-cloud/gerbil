@@ -26,26 +26,11 @@ export interface UpdateInfo {
   hasUpdate: boolean;
 }
 
-export interface ReleaseWithStatus {
-  release: GitHubRelease;
-  availableAssets: Array<{
-    asset: GitHubAsset;
-    isDownloaded: boolean;
-    installedVersion?: string;
-  }>;
-}
-
 export interface InstalledVersion {
   version: string;
   path: string;
   filename: string;
   size?: number;
-}
-
-export interface ROCmDownload {
-  name: string;
-  url: string;
-  size: number;
 }
 
 export type {

@@ -1,11 +1,5 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
-import type {
-  KoboldAPI,
-  AppAPI,
-  ConfigAPI,
-  LogsAPI,
-  UpdateInfo,
-} from '@/types/electron';
+import type { KoboldAPI, AppAPI, ConfigAPI, LogsAPI } from '@/types/electron';
 
 const koboldAPI: KoboldAPI = {
   getInstalledVersion: () => ipcRenderer.invoke('kobold:getInstalledVersion'),
@@ -81,12 +75,6 @@ const koboldAPI: KoboldAPI = {
     ipcRenderer.on(
       'download-progress',
       (_: IpcRendererEvent, progress: number) => callback(progress)
-    );
-  },
-  onUpdateAvailable: (callback) => {
-    ipcRenderer.on(
-      'update-available',
-      (_: IpcRendererEvent, updateInfo: UpdateInfo) => callback(updateInfo)
     );
   },
   onInstallDirChanged: (callback: (newPath: string) => void) => {

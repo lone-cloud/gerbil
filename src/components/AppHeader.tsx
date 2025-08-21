@@ -14,7 +14,7 @@ import { Settings, ArrowLeft } from 'lucide-react';
 import { StyledTooltip } from '@/components/StyledTooltip';
 import { soundAssets, playSound, initializeAudio } from '@/utils';
 import iconUrl from '/icon.png';
-import './AppHeader.css';
+import '@/styles/AppHeader.css';
 
 type Screen = 'welcome' | 'download' | 'launch' | 'interface';
 

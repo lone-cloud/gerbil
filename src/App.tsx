@@ -4,7 +4,6 @@ import { DownloadScreen } from '@/components/screens/Download';
 import { LaunchScreen } from '@/components/screens/Launch';
 import { InterfaceScreen } from '@/components/screens/Interface';
 import { WelcomeScreen } from '@/components/screens/Welcome';
-import { UpdateDialog } from '@/components/UpdateDialog';
 import { UpdateAvailableModal } from '@/components/UpdateAvailableModal';
 import { SettingsModal } from '@/components/settings/SettingsModal';
 import { EjectConfirmDialog } from '@/components/EjectConfirmDialog';
@@ -13,15 +12,12 @@ import { AppHeader } from '@/components/AppHeader';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import { UI } from '@/constants';
-import type { UpdateInfo } from '@/types';
 import type { DownloadItem } from '@/types/electron';
 
 type Screen = 'welcome' | 'download' | 'launch' | 'interface';
 
 export const App = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen | null>(null);
-  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
-  const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [settingsOpened, setSettingsOpened] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [showEjectDialog, setShowEjectDialog] = useState(false);
@@ -100,11 +96,6 @@ export const App = () => {
 
     checkInstallation();
 
-    window.electronAPI.kobold.onUpdateAvailable((info) => {
-      setUpdateInfo(info);
-      setShowUpdateDialog(true);
-    });
-
     const cleanupInstallDirListener =
       window.electronAPI.kobold.onInstallDirChanged(() => {
         checkInstallation();
@@ -117,7 +108,6 @@ export const App = () => {
     );
 
     return () => {
-      window.electronAPI.kobold.removeAllListeners('update-available');
       cleanupInstallDirListener();
       cleanupVersionsListener();
     };
@@ -224,15 +214,6 @@ export const App = () => {
     }
   };
 
-  const handleUpdateIgnore = () => {
-    setShowUpdateDialog(false);
-  };
-
-  const handleUpdateAccept = () => {
-    setShowUpdateDialog(false);
-    setCurrentScreenWithTransition('download');
-  };
-
   return (
     <>
       <AppShell
@@ -305,14 +286,6 @@ export const App = () => {
                 />
               </ScreenTransition>
             </>
-          )}
-
-          {showUpdateDialog && updateInfo && (
-            <UpdateDialog
-              updateInfo={updateInfo}
-              onIgnore={handleUpdateIgnore}
-              onAccept={handleUpdateAccept}
-            />
           )}
 
           {showUpdateModal && binaryUpdateInfo && (

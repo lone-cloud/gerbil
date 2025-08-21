@@ -145,7 +145,6 @@ export interface KoboldAPI {
   selectModelFile: () => Promise<string | null>;
   stopKoboldCpp: () => void;
   onDownloadProgress: (callback: (progress: number) => void) => void;
-  onUpdateAvailable: (callback: (updateInfo: UpdateInfo) => void) => void;
   onInstallDirChanged: (callback: (newPath: string) => void) => () => void;
   onVersionsUpdated: (callback: () => void) => () => void;
   onKoboldOutput: (callback: (data: string) => void) => () => void;
