@@ -1,8 +1,8 @@
-import { Stack, Text, TextInput, Group, Checkbox } from '@mantine/core';
+import { Stack, Text, TextInput, Group } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
+import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
-import styles from '@/styles/layout.module.css';
 
 export const NetworkTab = () => {
   const {
@@ -85,71 +85,43 @@ export const NetworkTab = () => {
       <div>
         <Stack gap="md">
           <Group gap="lg" align="flex-start" wrap="nowrap">
-            <div className={styles.minWidth200}>
-              <Group gap="xs" align="center">
-                <Checkbox
-                  checked={multiuser}
-                  onChange={(event) =>
-                    handleMultiuserChange(event.currentTarget.checked)
-                  }
-                  label="Multiuser Mode"
-                />
-                <InfoTooltip label="Allows requests by multiple different clients to be queued and handled in sequence." />
-              </Group>
-            </div>
+            <CheckboxWithTooltip
+              checked={multiuser}
+              onChange={handleMultiuserChange}
+              label="Multiuser Mode"
+              tooltip="Allows requests by multiple different clients to be queued and handled in sequence."
+            />
 
-            <div className={styles.minWidth200}>
-              <Group gap="xs" align="center">
-                <Checkbox
-                  checked={multiplayer}
-                  onChange={(event) =>
-                    handleMultiplayerChange(event.currentTarget.checked)
-                  }
-                  label="Shared Multiplayer"
-                />
-                <InfoTooltip label="Hosts a shared multiplayer session" />
-              </Group>
-            </div>
+            <CheckboxWithTooltip
+              checked={multiplayer}
+              onChange={handleMultiplayerChange}
+              label="Shared Multiplayer"
+              tooltip="Hosts a shared multiplayer session"
+            />
           </Group>
 
           <Group gap="lg" align="flex-start" wrap="nowrap">
-            <div className={styles.minWidth200}>
-              <Group gap="xs" align="center">
-                <Checkbox
-                  checked={remotetunnel}
-                  onChange={(event) =>
-                    handleRemotetunnelChange(event.currentTarget.checked)
-                  }
-                  label="Remote Tunnel"
-                />
-                <InfoTooltip label="Creates a trycloudflare tunnel. Allows you to access koboldcpp from other devices over an internet URL." />
-              </Group>
-            </div>
-
-            <div className={styles.minWidth200}>
-              <Group gap="xs" align="center">
-                <Checkbox
-                  checked={nocertify}
-                  onChange={(event) =>
-                    handleNocertifyChange(event.currentTarget.checked)
-                  }
-                  label="No Certify Mode (Insecure)"
-                />
-                <InfoTooltip label="Allows insecure SSL connections. Use this if you have SSL cert errors and need to bypass certificate restrictions." />
-              </Group>
-            </div>
-          </Group>
-
-          <Group gap="xs" align="center">
-            <Checkbox
-              checked={websearch}
-              onChange={(event) =>
-                handleWebsearchChange(event.currentTarget.checked)
-              }
-              label="Enable WebSearch"
+            <CheckboxWithTooltip
+              checked={remotetunnel}
+              onChange={handleRemotetunnelChange}
+              label="Remote Tunnel"
+              tooltip="Creates a trycloudflare tunnel. Allows you to access koboldcpp from other devices over an internet URL."
             />
-            <InfoTooltip label="Enable the local search engine proxy so Web Searches can be done." />
+
+            <CheckboxWithTooltip
+              checked={nocertify}
+              onChange={handleNocertifyChange}
+              label="No Certify Mode (Insecure)"
+              tooltip="Allows insecure SSL connections. Use this if you have SSL cert errors and need to bypass certificate restrictions."
+            />
           </Group>
+
+          <CheckboxWithTooltip
+            checked={websearch}
+            onChange={handleWebsearchChange}
+            label="Enable WebSearch"
+            tooltip="Enable the local search engine proxy so Web Searches can be done."
+          />
         </Stack>
       </div>
     </Stack>
