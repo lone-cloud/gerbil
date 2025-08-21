@@ -348,7 +348,7 @@ export class KoboldCppManager {
   async parseConfigFile(filePath: string): Promise<{
     gpulayers?: number;
     contextsize?: number;
-    model_param?: string;
+    model?: string;
     [key: string]: unknown;
   } | null> {
     try {
@@ -371,7 +371,7 @@ export class KoboldCppManager {
     configData: {
       gpulayers?: number;
       contextsize?: number;
-      model_param?: string;
+      model?: string;
       port?: number;
       host?: string;
       multiuser?: number;
@@ -385,7 +385,7 @@ export class KoboldCppManager {
       failsafe?: boolean;
       usecuda?: boolean;
       usevulkan?: boolean;
-      useclblast?: boolean;
+      useclblast?: [number, number] | boolean;
       sdmodel?: string;
       sdt5xxl?: string;
       sdclipl?: string;
@@ -615,6 +615,7 @@ export class KoboldCppManager {
 
     this.koboldProcess = spawn(versionPath, args, {
       stdio: ['ignore', 'pipe', 'pipe'],
+      shell: process.platform === 'win32',
     });
 
     if (onOutput) {
@@ -938,6 +939,7 @@ export class KoboldCppManager {
       const child = spawn(currentVersion.path, finalArgs, {
         stdio: ['pipe', 'pipe', 'pipe'],
         detached: false,
+        shell: process.platform === 'win32',
       });
 
       this.koboldProcess = child;

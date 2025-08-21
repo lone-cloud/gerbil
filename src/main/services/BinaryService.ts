@@ -13,6 +13,10 @@ export interface BackendSupport {
 
 export class BinaryService {
   private backendSupportCache = new Map<string, BackendSupport>();
+  private availableBackendsCache = new Map<
+    string,
+    Array<{ value: string; label: string; devices?: string[] }>
+  >();
   private logManager: LogManager;
 
   constructor(logManager: LogManager) {
@@ -78,6 +82,12 @@ export class BinaryService {
       clblast: { supported: boolean; devices: string[] };
     }
   ): Array<{ value: string; label: string; devices?: string[] }> {
+    const cacheKey = `${koboldBinaryPath}:${JSON.stringify(hardwareCapabilities)}`;
+
+    if (this.availableBackendsCache.has(cacheKey)) {
+      return this.availableBackendsCache.get(cacheKey)!;
+    }
+
     const backendSupport = this.detectBackendSupport(koboldBinaryPath);
     const backends: Array<{
       value: string;
@@ -122,10 +132,12 @@ export class BinaryService {
       label: 'CPU',
     });
 
+    this.availableBackendsCache.set(cacheKey, backends);
     return backends;
   }
 
   clearCache(): void {
     this.backendSupportCache.clear();
+    this.availableBackendsCache.clear();
   }
 }

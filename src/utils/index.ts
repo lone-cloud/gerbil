@@ -1,4 +1,5 @@
 export * from './assets';
+export * from './clblast';
 export * from './downloadUtils';
 export * from './fileSize';
 export * from './hardware';

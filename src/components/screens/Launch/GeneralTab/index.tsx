@@ -3,24 +3,10 @@ import { File, Search } from 'lucide-react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { BackendSelector } from '@/components/screens/Launch/GeneralTab/BackendSelector';
 import { getInputValidationState } from '@/utils';
+import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 import styles from '@/styles/layout.module.css';
 
 interface GeneralTabProps {
-  modelPath: string;
-  gpuLayers: number;
-  autoGpuLayers: boolean;
-  contextSize: number;
-  backend: string;
-  gpuDevice?: number;
-  noavx2: boolean;
-  failsafe: boolean;
-  onModelPathChange: (path: string) => void;
-  onSelectModelFile: () => void;
-  onGpuLayersChange: (layers: number) => void;
-  onAutoGpuLayersChange: (auto: boolean) => void;
-  onContextSizeChange: (size: number) => void;
-  onBackendChange: (backend: string) => void;
-  onGpuDeviceChange?: (device: number) => void;
   onWarningsChange?: (
     warnings: Array<{ type: 'warning' | 'info'; message: string }>
   ) => void;
@@ -28,24 +14,17 @@ interface GeneralTabProps {
 }
 
 export const GeneralTab = ({
-  modelPath,
-  gpuLayers,
-  autoGpuLayers,
-  contextSize,
-  backend,
-  gpuDevice,
-  noavx2,
-  failsafe,
-  onModelPathChange,
-  onSelectModelFile,
-  onGpuLayersChange,
-  onAutoGpuLayersChange,
-  onContextSizeChange,
-  onBackendChange,
-  onGpuDeviceChange,
   onWarningsChange,
   onBackendsReady,
 }: GeneralTabProps) => {
+  const {
+    modelPath,
+    contextSize,
+    handleModelPathChange,
+    handleSelectModelFile,
+    handleContextSizeChangeWithStep,
+  } = useLaunchConfig();
+
   const validationState = getInputValidationState(modelPath);
 
   const getInputColor = () => {
@@ -72,18 +51,8 @@ export const GeneralTab = ({
   return (
     <Stack gap="md">
       <BackendSelector
-        backend={backend}
-        onBackendChange={onBackendChange}
-        gpuDevice={gpuDevice}
-        onGpuDeviceChange={onGpuDeviceChange}
-        noavx2={noavx2}
-        failsafe={failsafe}
         onWarningsChange={onWarningsChange}
         onBackendsReady={onBackendsReady}
-        gpuLayers={gpuLayers}
-        autoGpuLayers={autoGpuLayers}
-        onGpuLayersChange={onGpuLayersChange}
-        onAutoGpuLayersChange={onAutoGpuLayersChange}
       />
 
       <div>
@@ -95,7 +64,7 @@ export const GeneralTab = ({
             <TextInput
               placeholder="Select a .gguf model file or enter a direct URL to file"
               value={modelPath}
-              onChange={(event) => onModelPathChange(event.currentTarget.value)}
+              onChange={(e) => handleModelPathChange(e.target.value)}
               color={getInputColor()}
               error={
                 validationState === 'invalid' ? getHelperText() : undefined
@@ -103,7 +72,7 @@ export const GeneralTab = ({
             />
           </div>
           <Button
-            onClick={onSelectModelFile}
+            onClick={handleSelectModelFile}
             variant="light"
             leftSection={<File size={16} />}
           >
@@ -134,7 +103,7 @@ export const GeneralTab = ({
           <TextInput
             value={contextSize?.toString() || ''}
             onChange={(event) =>
-              onContextSizeChange(Number(event.target.value) || 256)
+              handleContextSizeChangeWithStep(Number(event.target.value) || 256)
             }
             type="number"
             min={256}
@@ -149,7 +118,7 @@ export const GeneralTab = ({
           min={256}
           max={131072}
           step={1}
-          onChange={onContextSizeChange}
+          onChange={handleContextSizeChangeWithStep}
         />
       </div>
     </Stack>

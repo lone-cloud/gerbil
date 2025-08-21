@@ -22,6 +22,8 @@ interface TrackedConfigHandlersProps {
     handleLowvramChange: (enabled: boolean) => void;
     handleQuantmatmulChange: (enabled: boolean) => void;
     handleBackendChange: (backend: string) => void;
+    handleGpuDeviceChange: (device: number) => void;
+    handleGpuPlatformChange: (platform: number) => void;
     handleSdmodelChange: (path: string) => void;
     handleSdt5xxlChange: (path: string) => void;
     handleSdcliplChange: (path: string) => void;
@@ -58,6 +60,8 @@ export const useTrackedConfigHandlers = ({
     handleLowvramChange,
     handleQuantmatmulChange,
     handleBackendChange,
+    handleGpuDeviceChange,
+    handleGpuPlatformChange,
     handleSdmodelChange,
     handleSdt5xxlChange,
     handleSdcliplChange,
@@ -142,6 +146,14 @@ export const useTrackedConfigHandlers = ({
     ),
     handleBackendChangeWithTracking: createChangeTracker(
       handleBackendChange,
+      setHasUnsavedChanges
+    ),
+    handleGpuDeviceChangeWithTracking: createChangeTracker(
+      handleGpuDeviceChange,
+      setHasUnsavedChanges
+    ),
+    handleGpuPlatformChangeWithTracking: createChangeTracker(
+      handleGpuPlatformChange,
       setHasUnsavedChanges
     ),
     handleSdmodelChangeWithTracking: createChangeTracker(

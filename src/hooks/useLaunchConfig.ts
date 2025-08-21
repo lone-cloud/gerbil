@@ -1,534 +1,90 @@
-import { useState, useCallback } from 'react';
-import type { ConfigFile } from '@/types';
+import { useLaunchConfigStore } from '@/stores/launchConfigStore';
 import {
-  getPresetByName,
+  IMAGE_MODEL_PRESETS,
   type ImageModelPreset,
 } from '@/utils/imageModelPresets';
-import {
-  DEFAULT_CONTEXT_SIZE,
-  DEFAULT_MODEL_URL,
-  DEFAULT_HOST,
-} from '@/constants';
 
 export const useLaunchConfig = () => {
-  const [gpuLayers, setGpuLayers] = useState<number>(0);
-  const [autoGpuLayers, setAutoGpuLayers] = useState<boolean>(false);
-  const [contextSize, setContextSize] = useState<number>(DEFAULT_CONTEXT_SIZE);
-  const [modelPath, setModelPath] = useState<string>(DEFAULT_MODEL_URL);
-  const [additionalArguments, setAdditionalArguments] = useState<string>('');
-  const [port, setPort] = useState<number | undefined>(undefined);
-  const [host, setHost] = useState<string>(DEFAULT_HOST);
-  const [multiuser, setMultiuser] = useState<boolean>(false);
-  const [multiplayer, setMultiplayer] = useState<boolean>(false);
-  const [remotetunnel, setRemotetunnel] = useState<boolean>(false);
-  const [nocertify, setNocertify] = useState<boolean>(false);
-  const [websearch, setWebsearch] = useState<boolean>(false);
-  const [noshift, setNoshift] = useState<boolean>(false);
-  const [flashattention, setFlashattention] = useState<boolean>(true);
-  const [noavx2, setNoavx2] = useState<boolean>(false);
-  const [failsafe, setFailsafe] = useState<boolean>(false);
-  const [lowvram, setLowvram] = useState<boolean>(false);
-  const [quantmatmul, setQuantmatmul] = useState<boolean>(true);
-  const [backend, setBackend] = useState<string>('');
-  const [gpuDevice, setGpuDevice] = useState<number>(0);
-
-  const [sdmodel, setSdmodel] = useState<string>('');
-  const [sdt5xxl, setSdt5xxl] = useState<string>('');
-  const [sdclipl, setSdclipl] = useState<string>('');
-  const [sdclipg, setSdclipg] = useState<string>('');
-  const [sdphotomaker, setSdphotomaker] = useState<string>('');
-  const [sdvae, setSdvae] = useState<string>('');
-  const [sdlora, setSdlora] = useState<string>('');
-
-  // eslint-disable-next-line sonarjs/cognitive-complexity
-  const parseAndApplyConfigFile = useCallback(async (configPath: string) => {
-    const configData =
-      await window.electronAPI.kobold.parseConfigFile(configPath);
-
-    if (configData) {
-      if (typeof configData.gpulayers === 'number') {
-        setGpuLayers(configData.gpulayers);
-      } else {
-        setGpuLayers(0);
-      }
-
-      if (typeof configData.contextsize === 'number') {
-        setContextSize(configData.contextsize);
-      } else {
-        setContextSize(DEFAULT_CONTEXT_SIZE);
-      }
-
-      if (typeof configData.model_param === 'string') {
-        setModelPath(configData.model_param);
-      }
-
-      if (typeof configData.port === 'number') {
-        setPort(configData.port);
-      } else {
-        setPort(undefined);
-      }
-
-      if (typeof configData.host === 'string') {
-        setHost(configData.host);
-      } else {
-        setHost(DEFAULT_HOST);
-      }
-
-      if (typeof configData.multiuser === 'number') {
-        setMultiuser(configData.multiuser === 1);
-      } else {
-        setMultiuser(false);
-      }
-
-      if (typeof configData.multiplayer === 'boolean') {
-        setMultiplayer(configData.multiplayer);
-      } else {
-        setMultiplayer(false);
-      }
-
-      if (typeof configData.remotetunnel === 'boolean') {
-        setRemotetunnel(configData.remotetunnel);
-      } else {
-        setRemotetunnel(false);
-      }
-
-      if (typeof configData.nocertify === 'boolean') {
-        setNocertify(configData.nocertify);
-      } else {
-        setNocertify(false);
-      }
-
-      if (typeof configData.websearch === 'boolean') {
-        setWebsearch(configData.websearch);
-      } else {
-        setWebsearch(false);
-      }
-
-      if (typeof configData.noshift === 'boolean') {
-        setNoshift(configData.noshift);
-      } else {
-        setNoshift(false);
-      }
-
-      if (typeof configData.flashattention === 'boolean') {
-        setFlashattention(configData.flashattention);
-      } else {
-        setFlashattention(true);
-      }
-
-      if (typeof configData.noavx2 === 'boolean') {
-        setNoavx2(configData.noavx2);
-      } else {
-        setNoavx2(false);
-      }
-
-      if (typeof configData.failsafe === 'boolean') {
-        setFailsafe(configData.failsafe);
-      } else {
-        setFailsafe(false);
-      }
-
-      if (typeof configData.lowvram === 'boolean') {
-        setLowvram(configData.lowvram);
-      }
-
-      if (typeof configData.quantmatmul === 'boolean') {
-        setQuantmatmul(configData.quantmatmul);
-      }
-
-      if (configData.usecuda === true) {
-        const gpuInfo = await window.electronAPI.kobold.detectGPU();
-        setBackend(gpuInfo.hasNVIDIA ? 'cuda' : 'rocm');
-
-        if (
-          Array.isArray(configData.usecuda) &&
-          configData.usecuda.length >= 3
-        ) {
-          const [vramMode, deviceId, mmqMode] = configData.usecuda;
-          setLowvram(vramMode === 'lowvram');
-          setGpuDevice(parseInt(deviceId, 10) || 0);
-          setQuantmatmul(mmqMode === 'mmq');
-        }
-      } else if (configData.usevulkan === true) {
-        setBackend('vulkan');
-      } else if (configData.useclblast === true) {
-        setBackend('clblast');
-      } else {
-        setBackend('cpu');
-      }
-
-      if (typeof configData.sdmodel === 'string') {
-        setSdmodel(configData.sdmodel);
-      }
-
-      if (typeof configData.sdt5xxl === 'string') {
-        setSdt5xxl(configData.sdt5xxl);
-      }
-
-      if (typeof configData.sdclipl === 'string') {
-        setSdclipl(configData.sdclipl);
-      }
-
-      if (typeof configData.sdclipg === 'string') {
-        setSdclipg(configData.sdclipg);
-      }
-
-      if (typeof configData.sdphotomaker === 'string') {
-        setSdphotomaker(configData.sdphotomaker);
-      }
-
-      if (typeof configData.sdvae === 'string') {
-        setSdvae(configData.sdvae);
-      }
-
-      if (typeof configData.sdlora === 'string') {
-        setSdlora(configData.sdlora);
-      }
-    } else {
-      const cpuCapabilities = await window.electronAPI.kobold.detectCPU();
-      setGpuLayers(0);
-      setContextSize(DEFAULT_CONTEXT_SIZE);
-      setPort(undefined);
-      setHost(DEFAULT_HOST);
-      setMultiuser(false);
-      setMultiplayer(false);
-      setRemotetunnel(false);
-      setNocertify(false);
-      setWebsearch(false);
-      setNoshift(false);
-      setFlashattention(true);
-      setNoavx2(!cpuCapabilities.avx2);
-      setFailsafe(!cpuCapabilities.avx && !cpuCapabilities.avx2);
-      setBackend('');
-
-      setSdmodel('');
-      setSdt5xxl(
-        'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/t5xxl_fp8_e4m3fn.safetensors?download=true'
-      );
-      setSdclipl(
-        'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/clip_l.safetensors?download=true'
-      );
-      setSdclipg('');
-      setSdphotomaker('');
-      setSdvae(
-        'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/ae.safetensors?download=true'
-      );
-    }
-  }, []);
-
-  const loadSavedSettings = useCallback(async () => {
-    const cpuCapabilities = await window.electronAPI.kobold.detectCPU();
-
-    setModelPath(DEFAULT_MODEL_URL);
-    setGpuLayers(0);
-    setContextSize(DEFAULT_CONTEXT_SIZE);
-    setPort(undefined);
-    setHost(DEFAULT_HOST);
-    setMultiuser(false);
-    setMultiplayer(false);
-    setRemotetunnel(false);
-    setNocertify(false);
-    setWebsearch(false);
-    setNoshift(false);
-    setFlashattention(true);
-    setNoavx2(!cpuCapabilities.avx2);
-    setFailsafe(!cpuCapabilities.avx && !cpuCapabilities.avx2);
-    setBackend('');
-
-    setSdmodel('');
-    setSdt5xxl('');
-    setSdclipl('');
-    setSdclipg('');
-    setSdphotomaker('');
-    setSdvae('');
-  }, []);
-
-  const loadConfigFromFile = useCallback(
-    async (configFiles: ConfigFile[], savedConfig: string | null) => {
-      let currentSelectedFile = null;
-
-      if (savedConfig && configFiles.some((f) => f.name === savedConfig)) {
-        currentSelectedFile = savedConfig;
-      } else if (configFiles.length > 0) {
-        currentSelectedFile = configFiles[0].name;
-      }
-
-      if (currentSelectedFile) {
-        const selectedConfig = configFiles.find(
-          (f) => f.name === currentSelectedFile
-        );
-        if (selectedConfig) {
-          await parseAndApplyConfigFile(selectedConfig.path);
-        }
-      }
-
-      return currentSelectedFile;
-    },
-    [parseAndApplyConfigFile]
-  );
-
-  const handleGpuLayersChange = useCallback(async (value: number) => {
-    setGpuLayers(value);
-  }, []);
-
-  const roundToValidContextSize = useCallback((value: number): number => {
-    if (value < 1024) {
-      return Math.round(value / 256) * 256;
-    }
-    return Math.round(value / 1024) * 1024;
-  }, []);
-
-  const handleContextSizeChangeWithStep = useCallback(
-    async (value: number) => {
-      const roundedValue = roundToValidContextSize(value);
-      setContextSize(roundedValue);
-    },
-    [roundToValidContextSize]
-  );
-
-  const handleModelPathChange = useCallback((value: string) => {
-    setModelPath(value);
-  }, []);
-
-  const handleSelectModelFile = useCallback(async () => {
-    const filePath = await window.electronAPI.kobold.selectModelFile();
-    if (filePath) {
-      handleModelPathChange(filePath);
-    }
-  }, [handleModelPathChange]);
-
-  const handleAdditionalArgumentsChange = useCallback((value: string) => {
-    setAdditionalArguments(value);
-  }, []);
-
-  const handleAutoGpuLayersChange = useCallback((checked: boolean) => {
-    setAutoGpuLayers(checked);
-  }, []);
-
-  const handlePortChange = useCallback((value: number | undefined) => {
-    setPort(value);
-  }, []);
-
-  const handleHostChange = useCallback((value: string) => {
-    setHost(value);
-  }, []);
-
-  const handleMultiuserChange = useCallback((checked: boolean) => {
-    setMultiuser(checked);
-  }, []);
-
-  const handleMultiplayerChange = useCallback((checked: boolean) => {
-    setMultiplayer(checked);
-  }, []);
-
-  const handleRemotetunnelChange = useCallback((checked: boolean) => {
-    setRemotetunnel(checked);
-  }, []);
-
-  const handleNocertifyChange = useCallback((checked: boolean) => {
-    setNocertify(checked);
-  }, []);
-
-  const handleWebsearchChange = useCallback((checked: boolean) => {
-    setWebsearch(checked);
-  }, []);
-
-  const handleNoshiftChange = useCallback((checked: boolean) => {
-    setNoshift(checked);
-  }, []);
-
-  const handleFlashattentionChange = useCallback((checked: boolean) => {
-    setFlashattention(checked);
-  }, []);
-
-  const handleNoavx2Change = useCallback((checked: boolean) => {
-    setNoavx2(checked);
-  }, []);
-
-  const handleFailsafeChange = useCallback((checked: boolean) => {
-    setFailsafe(checked);
-  }, []);
-
-  const handleLowvramChange = useCallback((checked: boolean) => {
-    setLowvram(checked);
-  }, []);
-
-  const handleQuantmatmulChange = useCallback((checked: boolean) => {
-    setQuantmatmul(checked);
-  }, []);
-
-  const handleBackendChange = useCallback((backend: string) => {
-    setBackend(backend);
-  }, []);
-
-  const handleGpuDeviceChange = useCallback((device: number) => {
-    setGpuDevice(device);
-  }, []);
-
-  const handleSdmodelChange = useCallback((path: string) => {
-    setSdmodel(path);
-  }, []);
-
-  const handleSelectSdmodelFile = useCallback(async () => {
-    const filePath = await window.electronAPI.kobold.selectModelFile();
-    if (filePath) {
-      setSdmodel(filePath);
-    }
-  }, []);
-
-  const handleSdt5xxlChange = useCallback((path: string) => {
-    setSdt5xxl(path);
-  }, []);
-
-  const handleSelectSdt5xxlFile = useCallback(async () => {
-    const filePath = await window.electronAPI.kobold.selectModelFile();
-    if (filePath) {
-      setSdt5xxl(filePath);
-    }
-  }, []);
-
-  const handleSdcliplChange = useCallback((path: string) => {
-    setSdclipl(path);
-  }, []);
-
-  const handleSelectSdcliplFile = useCallback(async () => {
-    const filePath = await window.electronAPI.kobold.selectModelFile();
-    if (filePath) {
-      setSdclipl(filePath);
-    }
-  }, []);
-
-  const handleSdclipgChange = useCallback((path: string) => {
-    setSdclipg(path);
-  }, []);
-
-  const handleSelectSdclipgFile = useCallback(async () => {
-    const filePath = await window.electronAPI.kobold.selectModelFile();
-    if (filePath) {
-      setSdclipg(filePath);
-    }
-  }, []);
-
-  const handleSdphotomakerChange = useCallback((path: string) => {
-    setSdphotomaker(path);
-  }, []);
-
-  const handleSelectSdphotomakerFile = useCallback(async () => {
-    const filePath = await window.electronAPI.kobold.selectModelFile();
-    if (filePath) {
-      setSdphotomaker(filePath);
-    }
-  }, []);
-
-  const handleSdvaeChange = useCallback((path: string) => {
-    setSdvae(path);
-  }, []);
-
-  const handleSelectSdvaeFile = useCallback(async () => {
-    const filePath = await window.electronAPI.kobold.selectModelFile();
-    if (filePath) {
-      setSdvae(filePath);
-    }
-  }, []);
-
-  const handleSdloraChange = useCallback((path: string) => {
-    setSdlora(path);
-  }, []);
-
-  const handleSelectSdloraFile = useCallback(async () => {
-    const filePath = await window.electronAPI.kobold.selectModelFile();
-    if (filePath) {
-      setSdlora(filePath);
-    }
-  }, []);
-
-  const applyImageModelPreset = useCallback((preset: ImageModelPreset) => {
-    setSdmodel(preset.sdmodel);
-    setSdt5xxl(preset.sdt5xxl);
-    setSdclipl(preset.sdclipl);
-    setSdclipg(preset.sdclipg);
-    setSdphotomaker(preset.sdphotomaker);
-    setSdvae(preset.sdvae);
-  }, []);
-
-  const handleApplyPreset = useCallback(
-    (presetName: string) => {
-      const preset = getPresetByName(presetName);
-      if (preset) {
-        applyImageModelPreset(preset);
-      }
-    },
-    [applyImageModelPreset]
-  );
+  const state = useLaunchConfigStore();
 
   return {
-    gpuLayers,
-    autoGpuLayers,
-    contextSize,
-    modelPath,
-    additionalArguments,
-    port,
-    host,
-    multiuser,
-    multiplayer,
-    remotetunnel,
-    nocertify,
-    websearch,
-    noshift,
-    flashattention,
-    noavx2,
-    failsafe,
-    lowvram,
-    quantmatmul,
-    backend,
-    gpuDevice,
-    sdmodel,
-    sdt5xxl,
-    sdclipl,
-    sdclipg,
-    sdphotomaker,
-    sdvae,
-    sdlora,
+    gpuLayers: state.gpuLayers,
+    autoGpuLayers: state.autoGpuLayers,
+    contextSize: state.contextSize,
+    modelPath: state.modelPath,
+    additionalArguments: state.additionalArguments,
+    port: state.port,
+    host: state.host,
+    multiuser: state.multiuser,
+    multiplayer: state.multiplayer,
+    remotetunnel: state.remotetunnel,
+    nocertify: state.nocertify,
+    websearch: state.websearch,
+    noshift: state.noshift,
+    flashattention: state.flashattention,
+    noavx2: state.noavx2,
+    failsafe: state.failsafe,
+    lowvram: state.lowvram,
+    quantmatmul: state.quantmatmul,
+    backend: state.backend,
+    gpuDevice: state.gpuDevice,
+    gpuPlatform: state.gpuPlatform,
+    sdmodel: state.sdmodel,
+    sdt5xxl: state.sdt5xxl,
+    sdclipl: state.sdclipl,
+    sdclipg: state.sdclipg,
+    sdphotomaker: state.sdphotomaker,
+    sdvae: state.sdvae,
+    sdlora: state.sdlora,
 
-    parseAndApplyConfigFile,
-    loadSavedSettings,
-    loadConfigFromFile,
-    handleGpuLayersChange,
-    handleAutoGpuLayersChange,
-    handleContextSizeChangeWithStep,
-    handleModelPathChange,
-    handleSelectModelFile,
-    handleAdditionalArgumentsChange,
-    handlePortChange,
-    handleHostChange,
-    handleMultiuserChange,
-    handleMultiplayerChange,
-    handleRemotetunnelChange,
-    handleNocertifyChange,
-    handleWebsearchChange,
-    handleNoshiftChange,
-    handleFlashattentionChange,
-    handleNoavx2Change,
-    handleFailsafeChange,
-    handleLowvramChange,
-    handleQuantmatmulChange,
-    handleBackendChange,
-    handleGpuDeviceChange,
-    handleSdmodelChange,
-    handleSelectSdmodelFile,
-    handleSdt5xxlChange,
-    handleSelectSdt5xxlFile,
-    handleSdcliplChange,
-    handleSelectSdcliplFile,
-    handleSdclipgChange,
-    handleSelectSdclipgFile,
-    handleSdphotomakerChange,
-    handleSelectSdphotomakerFile,
-    handleSdvaeChange,
-    handleSelectSdvaeFile,
-    handleSdloraChange,
-    handleSelectSdloraFile,
-    applyImageModelPreset,
-    handleApplyPreset,
+    handleGpuLayersChange: state.setGpuLayers,
+    handleAutoGpuLayersChange: state.setAutoGpuLayers,
+    handleContextSizeChangeWithStep: state.contextSizeChangeWithStep,
+    handleModelPathChange: state.setModelPath,
+    handleAdditionalArgumentsChange: state.setAdditionalArguments,
+    handlePortChange: state.setPort,
+    handleHostChange: state.setHost,
+    handleMultiuserChange: state.setMultiuser,
+    handleMultiplayerChange: state.setMultiplayer,
+    handleRemotetunnelChange: state.setRemotetunnel,
+    handleNocertifyChange: state.setNocertify,
+    handleWebsearchChange: state.setWebsearch,
+    handleNoshiftChange: state.setNoshift,
+    handleFlashattentionChange: state.setFlashattention,
+    handleNoavx2Change: state.setNoavx2,
+    handleFailsafeChange: state.setFailsafe,
+    handleLowvramChange: state.setLowvram,
+    handleQuantmatmulChange: state.setQuantmatmul,
+    handleBackendChange: state.setBackend,
+    handleGpuDeviceChange: state.setGpuDevice,
+    handleGpuPlatformChange: state.setGpuPlatform,
+    handleSdmodelChange: state.setSdmodel,
+    handleSdt5xxlChange: state.setSdt5xxl,
+    handleSdcliplChange: state.setSdclipl,
+    handleSdclipgChange: state.setSdclipg,
+    handleSdphotomakerChange: state.setSdphotomaker,
+    handleSdvaeChange: state.setSdvae,
+    handleSdloraChange: state.setSdlora,
+
+    parseAndApplyConfigFile: state.parseAndApplyConfigFile,
+    loadConfigFromFile: state.loadConfigFromFile,
+    handleSelectModelFile: state.selectModelFile,
+    handleImageModelPresetChange: state.applyImageModelPreset,
+    handleApplyPreset: (presetName: string) => {
+      const preset = IMAGE_MODEL_PRESETS.find(
+        (p: ImageModelPreset) => p.name === presetName
+      );
+      if (preset) {
+        state.applyImageModelPreset(preset);
+      }
+    },
+
+    handleSelectSdmodelFile: state.selectSdmodelFile,
+    handleSelectSdt5xxlFile: state.selectSdt5xxlFile,
+    handleSelectSdcliplFile: state.selectSdcliplFile,
+    handleSelectSdclipgFile: state.selectSdclipgFile,
+    handleSelectSdphotomakerFile: state.selectSdphotomakerFile,
+    handleSelectSdvaeFile: state.selectSdvaeFile,
+    handleSelectSdloraFile: state.selectSdloraFile,
   };
 };

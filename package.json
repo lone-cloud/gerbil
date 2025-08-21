@@ -82,9 +82,11 @@
     "@mantine/core": "^8.2.5",
     "@mantine/hooks": "^8.2.5",
     "lucide-react": "^0.540.0",
+    "opencl-info": "^0.3.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "systeminformation": "^5.27.7"
+    "systeminformation": "^5.27.7",
+    "zustand": "^5.0.8"
   },
   "build": {
     "appId": "com.friendly-kobold.app",

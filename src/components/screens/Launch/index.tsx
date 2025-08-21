@@ -1,10 +1,9 @@
 import { Card, Container, Stack, Tabs, Group, Button } from '@mantine/core';
 import { useState, useEffect, useCallback } from 'react';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
-import { useTrackedConfigHandlers } from '@/hooks/useTrackedConfigHandlers';
 import { useLaunchLogic } from '@/hooks/useLaunchLogic';
 import { useWarnings } from '@/hooks/useWarnings';
-import { GeneralTab } from '@/components/screens/Launch/GeneralTab';
+import { GeneralTab } from '@/components/screens/Launch/GeneralTab/index';
 import { AdvancedTab } from '@/components/screens/Launch/AdvancedTab';
 import { NetworkTab } from '@/components/screens/Launch/NetworkTab';
 import { ImageGenerationTab } from '@/components/screens/Launch/ImageGenerationTab';
@@ -25,7 +24,6 @@ export const LaunchScreen = ({
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [, setInstallDir] = useState<string>('');
   const [activeTab, setActiveTab] = useState<string | null>('general');
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [warnings, setWarnings] = useState<
     Array<{ type: 'warning' | 'info'; message: string }>
   >([]);
@@ -51,6 +49,7 @@ export const LaunchScreen = ({
     quantmatmul,
     backend,
     gpuDevice,
+    gpuPlatform,
     sdmodel,
     sdt5xxl,
     sdclipl,
@@ -59,77 +58,8 @@ export const LaunchScreen = ({
     sdvae,
     sdlora,
     parseAndApplyConfigFile,
-    loadSavedSettings,
     loadConfigFromFile,
-    handleSelectModelFile,
-    handleGpuDeviceChange,
-    handleSelectSdmodelFile,
-    handleSelectSdt5xxlFile,
-    handleSelectSdcliplFile,
-    handleSelectSdclipgFile,
-    handleSelectSdphotomakerFile,
-    handleSelectSdvaeFile,
-    handleSelectSdloraFile,
-    handleApplyPreset,
-    handleModelPathChange,
-    handleGpuLayersChange,
-    handleAutoGpuLayersChange,
-    handleContextSizeChangeWithStep,
-    handleAdditionalArgumentsChange,
-    handlePortChange,
-    handleHostChange,
-    handleMultiuserChange,
-    handleMultiplayerChange,
-    handleRemotetunnelChange,
-    handleNocertifyChange,
-    handleWebsearchChange,
-    handleNoshiftChange,
-    handleFlashattentionChange,
-    handleNoavx2Change,
-    handleFailsafeChange,
-    handleLowvramChange,
-    handleQuantmatmulChange,
-    handleBackendChange,
-    handleSdmodelChange,
-    handleSdt5xxlChange,
-    handleSdcliplChange,
-    handleSdclipgChange,
-    handleSdphotomakerChange,
-    handleSdvaeChange,
-    handleSdloraChange,
   } = useLaunchConfig();
-
-  const trackedHandlers = useTrackedConfigHandlers({
-    setHasUnsavedChanges,
-    handlers: {
-      handleModelPathChange,
-      handleGpuLayersChange,
-      handleAutoGpuLayersChange,
-      handleContextSizeChangeWithStep,
-      handleAdditionalArgumentsChange,
-      handlePortChange,
-      handleHostChange,
-      handleMultiuserChange,
-      handleMultiplayerChange,
-      handleRemotetunnelChange,
-      handleNocertifyChange,
-      handleWebsearchChange,
-      handleNoshiftChange,
-      handleFlashattentionChange,
-      handleNoavx2Change,
-      handleFailsafeChange,
-      handleLowvramChange,
-      handleQuantmatmulChange,
-      handleBackendChange,
-      handleSdmodelChange,
-      handleSdt5xxlChange,
-      handleSdcliplChange,
-      handleSdclipgChange,
-      handleSdphotomakerChange,
-      handleSdvaeChange,
-      handleSdloraChange,
-    },
-  });
 
   const { isLaunching, handleLaunch } = useLaunchLogic({
     modelPath,
@@ -156,13 +86,11 @@ export const LaunchScreen = ({
       setSelectedFile(files[0].name);
     }
 
-    await loadSavedSettings();
-
-    const currentSelectedFile = await loadConfigFromFile(files, savedConfig);
-    if (currentSelectedFile && !selectedFile) {
-      setSelectedFile(currentSelectedFile);
+    const loadedConfigFileName = await loadConfigFromFile(files, savedConfig);
+    if (loadedConfigFileName && !selectedFile) {
+      setSelectedFile(loadedConfigFileName);
     }
-  }, [selectedFile, loadSavedSettings, loadConfigFromFile]);
+  }, [selectedFile, loadConfigFromFile]);
 
   const handleFileSelection = async (fileName: string) => {
     setSelectedFile(fileName);
@@ -172,35 +100,41 @@ export const LaunchScreen = ({
     if (selectedConfig) {
       await parseAndApplyConfigFile(selectedConfig.path);
     }
-
-    setHasUnsavedChanges(false);
   };
 
-  const buildConfigData = () => ({
-    gpulayers: gpuLayers,
-    contextsize: contextSize,
-    model_param: modelPath,
-    port,
-    host,
-    multiuser: multiuser ? 1 : 0,
-    multiplayer,
-    remotetunnel,
-    nocertify,
-    websearch,
-    noshift,
-    flashattention,
-    noavx2,
-    failsafe,
-    usecuda: backend === 'cuda' || backend === 'rocm',
-    usevulkan: backend === 'vulkan',
-    useclblast: backend === 'clblast',
-    sdmodel,
-    sdt5xxl,
-    sdclipl,
-    sdclipg,
-    sdphotomaker,
-    sdvae,
-  });
+  const buildConfigData = () => {
+    let useclblastValue: [number, number] | false = false;
+
+    if (backend === 'clblast') {
+      useclblastValue = [gpuDevice, gpuPlatform];
+    }
+
+    return {
+      gpulayers: gpuLayers,
+      contextsize: contextSize,
+      model: modelPath,
+      port,
+      host,
+      multiuser: multiuser ? 1 : 0,
+      multiplayer,
+      remotetunnel,
+      nocertify,
+      websearch,
+      noshift,
+      flashattention,
+      noavx2,
+      failsafe,
+      usecuda: backend === 'cuda' || backend === 'rocm',
+      usevulkan: backend === 'vulkan',
+      useclblast: useclblastValue,
+      sdmodel,
+      sdt5xxl,
+      sdclipl,
+      sdclipg,
+      sdphotomaker,
+      sdvae,
+    };
+  };
 
   const handleCreateNewConfig = async (configName: string) => {
     try {
@@ -214,7 +148,6 @@ export const LaunchScreen = ({
         const newFileName = `${configName}.kcpps`;
         setSelectedFile(newFileName);
         await window.electronAPI.kobold.setSelectedConfig(newFileName);
-        setHasUnsavedChanges(false);
       } else {
         window.electronAPI.logs.logError(
           'Failed to create new configuration',
@@ -246,9 +179,7 @@ export const LaunchScreen = ({
         buildConfigData()
       );
 
-      if (success) {
-        setHasUnsavedChanges(false);
-      } else {
+      if (!success) {
         window.electronAPI.logs.logError(
           'Failed to save configuration',
           new Error('Save operation failed')
@@ -318,7 +249,6 @@ export const LaunchScreen = ({
             <ConfigFileManager
               configFiles={configFiles}
               selectedFile={selectedFile}
-              hasUnsavedChanges={hasUnsavedChanges}
               onFileSelection={handleFileSelection}
               onCreateNewConfig={handleCreateNewConfig}
               onSaveConfig={handleSaveConfig}
@@ -335,138 +265,19 @@ export const LaunchScreen = ({
 
               <div>
                 <Tabs.Panel value="general" pt="md">
-                  <GeneralTab
-                    modelPath={modelPath}
-                    gpuLayers={gpuLayers}
-                    autoGpuLayers={autoGpuLayers}
-                    contextSize={contextSize}
-                    backend={backend}
-                    gpuDevice={gpuDevice}
-                    noavx2={noavx2}
-                    failsafe={failsafe}
-                    onModelPathChange={
-                      trackedHandlers.handleModelPathChangeWithTracking
-                    }
-                    onSelectModelFile={handleSelectModelFile}
-                    onGpuLayersChange={
-                      trackedHandlers.handleGpuLayersChangeWithTracking
-                    }
-                    onAutoGpuLayersChange={
-                      trackedHandlers.handleAutoGpuLayersChangeWithTracking
-                    }
-                    onContextSizeChange={
-                      trackedHandlers.handleContextSizeChangeWithTracking
-                    }
-                    onBackendChange={
-                      trackedHandlers.handleBackendChangeWithTracking
-                    }
-                    onGpuDeviceChange={handleGpuDeviceChange}
-                    onWarningsChange={setWarnings}
-                  />
+                  <GeneralTab onWarningsChange={setWarnings} />
                 </Tabs.Panel>
 
                 <Tabs.Panel value="advanced" pt="md">
-                  <AdvancedTab
-                    additionalArguments={additionalArguments}
-                    noshift={noshift}
-                    flashattention={flashattention}
-                    noavx2={noavx2}
-                    failsafe={failsafe}
-                    lowvram={lowvram}
-                    quantmatmul={quantmatmul}
-                    backend={backend}
-                    onAdditionalArgumentsChange={
-                      trackedHandlers.handleAdditionalArgumentsChangeWithTracking
-                    }
-                    onNoshiftChange={
-                      trackedHandlers.handleNoshiftChangeWithTracking
-                    }
-                    onFlashattentionChange={
-                      trackedHandlers.handleFlashattentionChangeWithTracking
-                    }
-                    onNoavx2Change={
-                      trackedHandlers.handleNoavx2ChangeWithTracking
-                    }
-                    onFailsafeChange={
-                      trackedHandlers.handleFailsafeChangeWithTracking
-                    }
-                    onLowvramChange={
-                      trackedHandlers.handleLowvramChangeWithTracking
-                    }
-                    onQuantmatmulChange={
-                      trackedHandlers.handleQuantmatmulChangeWithTracking
-                    }
-                  />
+                  <AdvancedTab />
                 </Tabs.Panel>
 
                 <Tabs.Panel value="network" pt="md">
-                  <NetworkTab
-                    port={port}
-                    host={host}
-                    multiuser={multiuser}
-                    multiplayer={multiplayer}
-                    remotetunnel={remotetunnel}
-                    nocertify={nocertify}
-                    websearch={websearch}
-                    onPortChange={trackedHandlers.handlePortChangeWithTracking}
-                    onHostChange={trackedHandlers.handleHostChangeWithTracking}
-                    onMultiuserChange={
-                      trackedHandlers.handleMultiuserChangeWithTracking
-                    }
-                    onMultiplayerChange={
-                      trackedHandlers.handleMultiplayerChangeWithTracking
-                    }
-                    onRemotetunnelChange={
-                      trackedHandlers.handleRemotetunnelChangeWithTracking
-                    }
-                    onNocertifyChange={
-                      trackedHandlers.handleNocertifyChangeWithTracking
-                    }
-                    onWebsearchChange={
-                      trackedHandlers.handleWebsearchChangeWithTracking
-                    }
-                  />
+                  <NetworkTab />
                 </Tabs.Panel>
 
                 <Tabs.Panel value="image" pt="md">
-                  <ImageGenerationTab
-                    sdmodel={sdmodel}
-                    sdt5xxl={sdt5xxl}
-                    sdclipl={sdclipl}
-                    sdclipg={sdclipg}
-                    sdphotomaker={sdphotomaker}
-                    sdvae={sdvae}
-                    sdlora={sdlora}
-                    onSdmodelChange={
-                      trackedHandlers.handleSdmodelChangeWithTracking
-                    }
-                    onSelectSdmodelFile={handleSelectSdmodelFile}
-                    onSdt5xxlChange={
-                      trackedHandlers.handleSdt5xxlChangeWithTracking
-                    }
-                    onSelectSdt5xxlFile={handleSelectSdt5xxlFile}
-                    onSdcliplChange={
-                      trackedHandlers.handleSdcliplChangeWithTracking
-                    }
-                    onSelectSdcliplFile={handleSelectSdcliplFile}
-                    onSdclipgChange={
-                      trackedHandlers.handleSdclipgChangeWithTracking
-                    }
-                    onSelectSdclipgFile={handleSelectSdclipgFile}
-                    onSdphotomakerChange={
-                      trackedHandlers.handleSdphotomakerChangeWithTracking
-                    }
-                    onSelectSdphotomakerFile={handleSelectSdphotomakerFile}
-                    onSdvaeChange={
-                      trackedHandlers.handleSdvaeChangeWithTracking
-                    }
-                    onSelectSdvaeFile={handleSelectSdvaeFile}
-                    onSdloraChange={
-                      trackedHandlers.handleSdloraChangeWithTracking
-                    }
-                    onSelectSdloraFile={handleSelectSdloraFile}
-                    onApplyPreset={handleApplyPreset}
-                  />
+                  <ImageGenerationTab />
                 </Tabs.Panel>
               </div>
             </Tabs>

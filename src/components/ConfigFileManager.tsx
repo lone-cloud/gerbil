@@ -21,7 +21,6 @@ import styles from '@/styles/layout.module.css';
 interface ConfigFileManagerProps {
   configFiles: ConfigFile[];
   selectedFile: string | null;
-  hasUnsavedChanges: boolean;
   onFileSelection: (fileName: string) => Promise<void>;
   onCreateNewConfig: (configName: string) => Promise<void>;
   onSaveConfig: () => void;
@@ -64,7 +63,6 @@ SelectItem.displayName = 'SelectItem';
 export const ConfigFileManager = ({
   configFiles,
   selectedFile,
-  hasUnsavedChanges,
   onFileSelection,
   onCreateNewConfig,
   onSaveConfig,
@@ -108,15 +106,6 @@ export const ConfigFileManager = ({
     };
   });
 
-  if (selectedFile === null && hasUnsavedChanges) {
-    const displayName = 'New Configuration (unsaved)';
-    selectData.unshift({
-      value: '__new__',
-      label: displayName,
-      extension: '.kcpps',
-    });
-  }
-
   return (
     <>
       <Stack gap="xs">
@@ -127,11 +116,7 @@ export const ConfigFileManager = ({
           <div className={styles.flex1}>
             <Select
               placeholder="Select a configuration file"
-              value={
-                selectedFile === null && hasUnsavedChanges
-                  ? '__new__'
-                  : selectedFile
-              }
+              value={selectedFile}
               onChange={(value: string | null) => {
                 if (value === '__new__') {
                   return;
@@ -156,24 +141,18 @@ export const ConfigFileManager = ({
             />
           </div>
           <Button
-            variant={
-              selectedFile === null && hasUnsavedChanges ? 'filled' : 'light'
-            }
+            variant="light"
             leftSection={<Plus size={14} />}
             size="sm"
-            disabled={selectedFile === null && hasUnsavedChanges}
             onClick={() => handleOpenConfigModal()}
           >
-            {selectedFile === null && hasUnsavedChanges
-              ? 'Creating New...'
-              : 'New'}
+            New
           </Button>
 
           <Button
             variant="outline"
             leftSection={<Save size={14} />}
             size="sm"
-            disabled={!hasUnsavedChanges}
             onClick={() => {
               if (selectedFile) {
                 onSaveConfig();

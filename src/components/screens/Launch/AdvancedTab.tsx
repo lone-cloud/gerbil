@@ -1,43 +1,27 @@
-import { Stack, Text, Group, TextInput, Checkbox } from '@mantine/core';
+import { Stack, Checkbox, Group, Text, TextInput } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
+import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 import styles from '@/styles/layout.module.css';
 
-interface AdvancedTabProps {
-  additionalArguments: string;
-  noshift: boolean;
-  flashattention: boolean;
-  noavx2: boolean;
-  failsafe: boolean;
-  lowvram: boolean;
-  quantmatmul: boolean;
-  backend: string;
-  onAdditionalArgumentsChange: (args: string) => void;
-  onNoshiftChange: (noshift: boolean) => void;
-  onFlashattentionChange: (flashattention: boolean) => void;
-  onNoavx2Change: (noavx2: boolean) => void;
-  onFailsafeChange: (failsafe: boolean) => void;
-  onLowvramChange: (lowvram: boolean) => void;
-  onQuantmatmulChange: (quantmatmul: boolean) => void;
-}
-
-export const AdvancedTab = ({
-  additionalArguments,
-  noshift,
-  flashattention,
-  noavx2,
-  failsafe,
-  lowvram,
-  quantmatmul,
-  backend,
-  onAdditionalArgumentsChange,
-  onNoshiftChange,
-  onFlashattentionChange,
-  onNoavx2Change,
-  onFailsafeChange,
-  onLowvramChange,
-  onQuantmatmulChange,
-}: AdvancedTabProps) => {
+export const AdvancedTab = () => {
+  const {
+    additionalArguments,
+    noshift,
+    flashattention,
+    noavx2,
+    failsafe,
+    lowvram,
+    quantmatmul,
+    backend,
+    handleAdditionalArgumentsChange,
+    handleNoshiftChange,
+    handleFlashattentionChange,
+    handleNoavx2Change,
+    handleFailsafeChange,
+    handleLowvramChange,
+    handleQuantmatmulChange,
+  } = useLaunchConfig();
   const [backendSupport, setBackendSupport] = useState<{
     noavx2: boolean;
     failsafe: boolean;
@@ -87,7 +71,7 @@ export const AdvancedTab = ({
                 <Checkbox
                   checked={!noshift}
                   onChange={(event) =>
-                    onNoshiftChange(!event.currentTarget.checked)
+                    handleNoshiftChange(!event.currentTarget.checked)
                   }
                   label="Context Shift"
                 />
@@ -100,7 +84,7 @@ export const AdvancedTab = ({
                 <Checkbox
                   checked={noshift}
                   onChange={(event) =>
-                    onNoshiftChange(event.currentTarget.checked)
+                    handleNoshiftChange(event.currentTarget.checked)
                   }
                   label="No Shift"
                 />
@@ -115,7 +99,7 @@ export const AdvancedTab = ({
                 <Checkbox
                   checked={flashattention}
                   onChange={(event) =>
-                    onFlashattentionChange(event.currentTarget.checked)
+                    handleFlashattentionChange(event.currentTarget.checked)
                   }
                   label="Flash Attention"
                 />
@@ -128,7 +112,7 @@ export const AdvancedTab = ({
                 <Checkbox
                   checked={lowvram}
                   onChange={(event) =>
-                    onLowvramChange(event.currentTarget.checked)
+                    handleLowvramChange(event.currentTarget.checked)
                   }
                   label="Low VRAM"
                   disabled={backend !== 'cuda' && backend !== 'rocm'}
@@ -150,7 +134,7 @@ export const AdvancedTab = ({
                 <Checkbox
                   checked={quantmatmul}
                   onChange={(event) =>
-                    onQuantmatmulChange(event.currentTarget.checked)
+                    handleQuantmatmulChange(event.currentTarget.checked)
                   }
                   label="QuantMatMul"
                   disabled={backend !== 'cuda' && backend !== 'rocm'}
@@ -181,7 +165,7 @@ export const AdvancedTab = ({
                 <Checkbox
                   checked={noavx2}
                   onChange={(event) =>
-                    onNoavx2Change(event.currentTarget.checked)
+                    handleNoavx2Change(event.currentTarget.checked)
                   }
                   label="Disable AVX2"
                   disabled={isLoading || !backendSupport?.noavx2}
@@ -201,7 +185,7 @@ export const AdvancedTab = ({
                 <Checkbox
                   checked={failsafe}
                   onChange={(event) =>
-                    onFailsafeChange(event.currentTarget.checked)
+                    handleFailsafeChange(event.currentTarget.checked)
                   }
                   label="Failsafe"
                   disabled={isLoading || !backendSupport?.failsafe}
@@ -230,7 +214,7 @@ export const AdvancedTab = ({
           placeholder="Additional command line arguments"
           value={additionalArguments}
           onChange={(event) =>
-            onAdditionalArgumentsChange(event.currentTarget.value)
+            handleAdditionalArgumentsChange(event.currentTarget.value)
           }
         />
       </div>

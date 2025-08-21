@@ -55,7 +55,7 @@ const koboldAPI: KoboldAPI = {
     configData: {
       gpulayers?: number;
       contextsize?: number;
-      model_param?: string;
+      model?: string;
       port?: number;
       host?: string;
       multiuser?: number;
@@ -69,7 +69,7 @@ const koboldAPI: KoboldAPI = {
       failsafe?: boolean;
       usecuda?: boolean;
       usevulkan?: boolean;
-      useclblast?: boolean;
+      useclblast?: [number, number] | boolean;
       sdmodel?: string;
       sdt5xxl?: string;
       sdclipl?: string;
