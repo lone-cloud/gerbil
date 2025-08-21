@@ -1,5 +1,6 @@
 /* eslint-disable no-comments/disallowComments */
 import si from 'systeminformation';
+import * as openclInfo from 'opencl-info';
 import { shortenDeviceName } from '@/utils';
 import type {
   CPUCapabilities,
@@ -343,74 +344,35 @@ export class HardwareService {
     devices: string[];
   }> {
     try {
-      const { spawn } = await import('child_process');
-      const clinfo = spawn('clinfo', ['--json'], { timeout: 5000 });
+      const platforms = openclInfo.getPlatformInfo();
 
-      let output = '';
-      clinfo.stdout.on('data', (data) => {
-        output += data.toString();
-      });
+      const devices: string[] = [];
 
-      return new Promise((resolve) => {
-        // eslint-disable-next-line sonarjs/cognitive-complexity
-        clinfo.on('close', (code) => {
-          if (code === 0 && output.trim()) {
-            try {
-              const data = JSON.parse(output);
-              const devices: string[] = [];
-
-              if (data.platforms) {
-                for (const platform of data.platforms) {
-                  if (platform.devices) {
-                    for (const device of platform.devices) {
-                      if (device.name && device.type !== 'CPU') {
-                        devices.push(shortenDeviceName(device.name));
-                      }
-                    }
-                  }
-                }
-              }
-
-              resolve({
-                supported: devices.length > 0,
-                devices,
-              });
-            } catch {
-              const lines = output.split('\n');
-              const devices: string[] = [];
-
-              for (const line of lines) {
-                if (line.includes('Device Name') && !line.includes('CPU')) {
-                  const name = line.split(':')[1]?.trim();
-                  if (name) {
-                    devices.push(shortenDeviceName(name));
-                  }
-                }
-              }
-
-              resolve({
-                supported: devices.length > 0,
-                devices,
-              });
+      for (
+        let platformIndex = 0;
+        platformIndex < platforms.length;
+        platformIndex++
+      ) {
+        const platform = platforms[platformIndex];
+        if (platform.devices) {
+          for (
+            let deviceIndex = 0;
+            deviceIndex < platform.devices.length;
+            deviceIndex++
+          ) {
+            const device = platform.devices[deviceIndex];
+            if (device.name && device.type === 'GPU') {
+              const deviceLabel = `${shortenDeviceName(device.name)} (${platform.name})`;
+              devices.push(deviceLabel);
             }
-          } else {
-            resolve({ supported: false, devices: [] });
           }
-        });
+        }
+      }
 
-        clinfo.on('error', () => {
-          resolve({ supported: false, devices: [] });
-        });
-
-        setTimeout(() => {
-          try {
-            clinfo.kill('SIGTERM');
-          } catch {
-            void 0;
-          }
-          resolve({ supported: false, devices: [] });
-        }, 5000);
-      });
+      return {
+        supported: devices.length > 0,
+        devices,
+      };
     } catch {
       return { supported: false, devices: [] };
     }

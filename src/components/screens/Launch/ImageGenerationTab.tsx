@@ -3,141 +3,121 @@ import { useState } from 'react';
 import { File, Search } from 'lucide-react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { getInputValidationState, IMAGE_MODEL_PRESETS } from '@/utils';
+import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 import styles from '@/styles/layout.module.css';
 
-interface ImageGenerationTabProps {
-  sdmodel: string;
-  sdt5xxl: string;
-  sdclipl: string;
-  sdclipg: string;
-  sdphotomaker: string;
-  sdvae: string;
-  sdlora: string;
-  onSdmodelChange: (path: string) => void;
-  onSelectSdmodelFile: () => void;
-  onSdt5xxlChange: (path: string) => void;
-  onSelectSdt5xxlFile: () => void;
-  onSdcliplChange: (path: string) => void;
-  onSelectSdcliplFile: () => void;
-  onSdclipgChange: (path: string) => void;
-  onSelectSdclipgFile: () => void;
-  onSdphotomakerChange: (path: string) => void;
-  onSelectSdphotomakerFile: () => void;
-  onSdvaeChange: (path: string) => void;
-  onSelectSdvaeFile: () => void;
-  onSdloraChange: (path: string) => void;
-  onSelectSdloraFile: () => void;
-  onApplyPreset: (presetName: string) => void;
-}
+export const ImageGenerationTab = () => {
+  const {
+    sdmodel,
+    sdt5xxl,
+    sdclipl,
+    sdclipg,
+    sdphotomaker,
+    sdvae,
+    sdlora,
+    handleSdmodelChange,
+    handleSelectSdmodelFile,
+    handleSdt5xxlChange,
+    handleSelectSdt5xxlFile,
+    handleSdcliplChange,
+    handleSelectSdcliplFile,
+    handleSdclipgChange,
+    handleSelectSdclipgFile,
+    handleSdphotomakerChange,
+    handleSelectSdphotomakerFile,
+    handleSdvaeChange,
+    handleSelectSdvaeFile,
+    handleSdloraChange,
+    handleSelectSdloraFile,
+    handleApplyPreset,
+  } = useLaunchConfig();
 
-const ModelField = ({
-  label,
-  value,
-  placeholder,
-  tooltip,
-  onChange,
-  onSelectFile,
-  showSearchHF = false,
-}: {
-  label: string;
-  value: string;
-  placeholder: string;
-  tooltip?: string;
-  onChange: (value: string) => void;
-  onSelectFile: () => void;
-  showSearchHF?: boolean;
-}) => {
-  const validationState = getInputValidationState(value);
-
-  const getInputColor = () => {
-    switch (validationState) {
-      case 'valid':
-        return 'green';
-      case 'invalid':
-        return 'red';
-      default:
-        return undefined;
-    }
-  };
-
-  const getHelperText = () => {
-    if (!value.trim()) return undefined;
-
-    if (validationState === 'invalid') {
-      return 'Enter a valid URL or file path';
-    }
-
-    return undefined;
-  };
-
-  return (
-    <div>
-      <Group gap="xs" align="center" mb="xs">
-        <Text size="sm" fw={500}>
-          {label}
-        </Text>
-        {tooltip && <InfoTooltip label={tooltip} />}
-      </Group>
-      <Group gap="xs" align="flex-start">
-        <div className={styles.flex1}>
-          <TextInput
-            placeholder={placeholder}
-            value={value}
-            onChange={(event) => onChange(event.currentTarget.value)}
-            color={getInputColor()}
-            error={validationState === 'invalid' ? getHelperText() : undefined}
-          />
-        </div>
-        <Button
-          onClick={onSelectFile}
-          variant="light"
-          leftSection={<File size={16} />}
-        >
-          Browse
-        </Button>
-        {showSearchHF && (
-          <Button
-            onClick={() => {
-              window.electronAPI.app.openExternal(
-                'https://huggingface.co/models?pipeline_tag=text-to-image&library=gguf&sort=trending'
-              );
-            }}
-            variant="outline"
-            leftSection={<Search size={16} />}
-          >
-            Search HF
-          </Button>
-        )}
-      </Group>
-    </div>
-  );
-};
-
-export const ImageGenerationTab = ({
-  sdmodel,
-  sdt5xxl,
-  sdclipl,
-  sdclipg,
-  sdphotomaker,
-  sdvae,
-  sdlora,
-  onSdmodelChange,
-  onSelectSdmodelFile,
-  onSdt5xxlChange,
-  onSelectSdt5xxlFile,
-  onSdcliplChange,
-  onSelectSdcliplFile,
-  onSdclipgChange,
-  onSelectSdclipgFile,
-  onSdphotomakerChange,
-  onSelectSdphotomakerFile,
-  onSdvaeChange,
-  onSelectSdvaeFile,
-  onSdloraChange,
-  onSelectSdloraFile,
-  onApplyPreset,
-}: ImageGenerationTabProps) => {
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
+
+  const ModelField = ({
+    label,
+    value,
+    placeholder,
+    tooltip,
+    onChange,
+    onSelectFile,
+    showSearchHF = false,
+  }: {
+    label: string;
+    value: string;
+    placeholder: string;
+    tooltip?: string;
+    onChange: (value: string) => void;
+    onSelectFile: () => void;
+    showSearchHF?: boolean;
+  }) => {
+    const validationState = getInputValidationState(value);
+
+    const getInputColor = () => {
+      switch (validationState) {
+        case 'valid':
+          return 'green';
+        case 'invalid':
+          return 'red';
+        default:
+          return undefined;
+      }
+    };
+
+    const getHelperText = () => {
+      if (!value.trim()) return undefined;
+
+      if (validationState === 'invalid') {
+        return 'Enter a valid URL or file path';
+      }
+
+      return undefined;
+    };
+
+    return (
+      <div>
+        <Group gap="xs" align="center" mb="xs">
+          <Text size="sm" fw={500}>
+            {label}
+          </Text>
+          {tooltip && <InfoTooltip label={tooltip} />}
+        </Group>
+        <Group gap="xs" align="flex-start">
+          <div className={styles.flex1}>
+            <TextInput
+              placeholder={placeholder}
+              value={value}
+              onChange={(event) => onChange(event.currentTarget.value)}
+              color={getInputColor()}
+              error={
+                validationState === 'invalid' ? getHelperText() : undefined
+              }
+            />
+          </div>
+          <Button
+            onClick={onSelectFile}
+            variant="light"
+            leftSection={<File size={16} />}
+          >
+            Browse
+          </Button>
+          {showSearchHF && (
+            <Button
+              onClick={() => {
+                window.electronAPI.app.openExternal(
+                  'https://huggingface.co/models?pipeline_tag=text-to-image&library=gguf&sort=trending'
+                );
+              }}
+              variant="outline"
+              leftSection={<Search size={16} />}
+            >
+              Search HF
+            </Button>
+          )}
+        </Group>
+      </div>
+    );
+  };
 
   return (
     <Stack gap="md">
@@ -158,7 +138,7 @@ export const ImageGenerationTab = ({
           onChange={(value) => {
             setSelectedPreset(value);
             if (value) {
-              onApplyPreset(value);
+              handleApplyPreset(value);
             }
           }}
           clearable
@@ -169,8 +149,8 @@ export const ImageGenerationTab = ({
         label="Image Gen. Model File"
         value={sdmodel}
         placeholder="Select a model file or enter a direct URL"
-        onChange={onSdmodelChange}
-        onSelectFile={onSelectSdmodelFile}
+        onChange={handleSdmodelChange}
+        onSelectFile={handleSelectSdmodelFile}
         showSearchHF
       />
 
@@ -178,24 +158,24 @@ export const ImageGenerationTab = ({
         label="T5-XXL File"
         value={sdt5xxl}
         placeholder="Select a T5-XXL file or enter a direct URL"
-        onChange={onSdt5xxlChange}
-        onSelectFile={onSelectSdt5xxlFile}
+        onChange={handleSdt5xxlChange}
+        onSelectFile={handleSelectSdt5xxlFile}
       />
 
       <ModelField
         label="Clip-L File"
         value={sdclipl}
         placeholder="Select a Clip-L file or enter a direct URL"
-        onChange={onSdcliplChange}
-        onSelectFile={onSelectSdcliplFile}
+        onChange={handleSdcliplChange}
+        onSelectFile={handleSelectSdcliplFile}
       />
 
       <ModelField
         label="Clip-G File"
         value={sdclipg}
         placeholder="Select a Clip-G file or enter a direct URL"
-        onChange={onSdclipgChange}
-        onSelectFile={onSelectSdclipgFile}
+        onChange={handleSdclipgChange}
+        onSelectFile={handleSelectSdclipgFile}
       />
 
       <ModelField
@@ -203,16 +183,16 @@ export const ImageGenerationTab = ({
         value={sdphotomaker}
         placeholder="Select a PhotoMaker file or enter a direct URL"
         tooltip="PhotoMaker is a model that allows face cloning. Select a .safetensors PhotoMaker file to be loaded (SDXL only)."
-        onChange={onSdphotomakerChange}
-        onSelectFile={onSelectSdphotomakerFile}
+        onChange={handleSdphotomakerChange}
+        onSelectFile={handleSelectSdphotomakerFile}
       />
 
       <ModelField
         label="Image VAE"
         value={sdvae}
         placeholder="Select a VAE file or enter a direct URL"
-        onChange={onSdvaeChange}
-        onSelectFile={onSelectSdvaeFile}
+        onChange={handleSdvaeChange}
+        onSelectFile={handleSelectSdvaeFile}
       />
 
       <ModelField
@@ -220,8 +200,8 @@ export const ImageGenerationTab = ({
         value={sdlora}
         placeholder="Select a LoRa file or enter a direct URL"
         tooltip="LoRa (Low-Rank Adaptation) file for customizing image generation. Select a .safetensors or .gguf LoRa file to be loaded. Should be unquantized."
-        onChange={onSdloraChange}
-        onSelectFile={onSelectSdloraFile}
+        onChange={handleSdloraChange}
+        onSelectFile={handleSelectSdloraFile}
       />
     </Stack>
   );

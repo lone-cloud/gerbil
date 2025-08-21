@@ -1,41 +1,26 @@
 import { Stack, Text, TextInput, Group, Checkbox } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
+import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 import styles from '@/styles/layout.module.css';
 
-interface NetworkTabProps {
-  port: number | undefined;
-  host: string;
-  multiuser: boolean;
-  multiplayer: boolean;
-  remotetunnel: boolean;
-  nocertify: boolean;
-  websearch: boolean;
-  onPortChange: (port: number | undefined) => void;
-  onHostChange: (host: string) => void;
-  onMultiuserChange: (multiuser: boolean) => void;
-  onMultiplayerChange: (multiplayer: boolean) => void;
-  onRemotetunnelChange: (remotetunnel: boolean) => void;
-  onNocertifyChange: (nocertify: boolean) => void;
-  onWebsearchChange: (websearch: boolean) => void;
-}
-
-export const NetworkTab = ({
-  port,
-  host,
-  multiuser,
-  multiplayer,
-  remotetunnel,
-  nocertify,
-  websearch,
-  onPortChange,
-  onHostChange,
-  onMultiuserChange,
-  onMultiplayerChange,
-  onRemotetunnelChange,
-  onNocertifyChange,
-  onWebsearchChange,
-}: NetworkTabProps) => {
+export const NetworkTab = () => {
+  const {
+    port,
+    host,
+    multiuser,
+    multiplayer,
+    remotetunnel,
+    nocertify,
+    websearch,
+    handlePortChange,
+    handleHostChange,
+    handleMultiuserChange,
+    handleMultiplayerChange,
+    handleRemotetunnelChange,
+    handleNocertifyChange,
+    handleWebsearchChange,
+  } = useLaunchConfig();
   const [portInput, setPortInput] = useState(port?.toString() ?? '');
 
   useEffect(() => {
@@ -53,10 +38,10 @@ export const NetworkTab = ({
             <InfoTooltip label="The hostname or IP address on which KoboldCpp will bind its webserver to." />
           </Group>
           <TextInput
-            placeholder="localhost"
+            label="Host"
+            description="The IP address to bind to"
             value={host}
-            onChange={(event) => onHostChange(event.currentTarget.value)}
-            style={{ maxWidth: 200 }}
+            onChange={(event) => handleHostChange(event.currentTarget.value)}
           />
         </div>
 
@@ -80,13 +65,13 @@ export const NetworkTab = ({
 
               const numValue = Number(value);
               if (!isNaN(numValue) && numValue >= 1 && numValue <= 65535) {
-                onPortChange(numValue);
+                handlePortChange(numValue);
               }
             }}
             onBlur={(event) => {
               const value = event.currentTarget.value;
               if (value === '') {
-                onPortChange(undefined);
+                handlePortChange(undefined);
                 setPortInput('');
               }
             }}
@@ -106,7 +91,7 @@ export const NetworkTab = ({
                 <Checkbox
                   checked={multiuser}
                   onChange={(event) =>
-                    onMultiuserChange(event.currentTarget.checked)
+                    handleMultiuserChange(event.currentTarget.checked)
                   }
                   label="Multiuser Mode"
                 />
@@ -119,7 +104,7 @@ export const NetworkTab = ({
                 <Checkbox
                   checked={multiplayer}
                   onChange={(event) =>
-                    onMultiplayerChange(event.currentTarget.checked)
+                    handleMultiplayerChange(event.currentTarget.checked)
                   }
                   label="Shared Multiplayer"
                 />
@@ -134,7 +119,7 @@ export const NetworkTab = ({
                 <Checkbox
                   checked={remotetunnel}
                   onChange={(event) =>
-                    onRemotetunnelChange(event.currentTarget.checked)
+                    handleRemotetunnelChange(event.currentTarget.checked)
                   }
                   label="Remote Tunnel"
                 />
@@ -147,7 +132,7 @@ export const NetworkTab = ({
                 <Checkbox
                   checked={nocertify}
                   onChange={(event) =>
-                    onNocertifyChange(event.currentTarget.checked)
+                    handleNocertifyChange(event.currentTarget.checked)
                   }
                   label="No Certify Mode (Insecure)"
                 />
@@ -160,7 +145,7 @@ export const NetworkTab = ({
             <Checkbox
               checked={websearch}
               onChange={(event) =>
-                onWebsearchChange(event.currentTarget.checked)
+                handleWebsearchChange(event.currentTarget.checked)
               }
               label="Enable WebSearch"
             />

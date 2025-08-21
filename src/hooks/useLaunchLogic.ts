@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { parseCLBlastDevice } from '@/utils';
 
 interface UseLaunchLogicProps {
   modelPath: string;
@@ -22,7 +23,7 @@ interface LaunchArgs {
   flashattention: boolean;
   backend: string;
   lowvram: boolean;
-  gpuDevice: number;
+  gpuDevice: number | string;
   quantmatmul: boolean;
   additionalArguments: string;
   sdt5xxl: string;
@@ -116,13 +117,33 @@ const buildBackendArgs = (launchArgs: LaunchArgs): string[] => {
     if (launchArgs.backend === 'cuda' || launchArgs.backend === 'rocm') {
       const cudaArgs = ['--usecuda'];
       cudaArgs.push(launchArgs.lowvram ? 'lowvram' : 'normal');
-      cudaArgs.push(launchArgs.gpuDevice.toString());
+      cudaArgs.push(
+        typeof launchArgs.gpuDevice === 'string'
+          ? '0'
+          : launchArgs.gpuDevice.toString()
+      );
       cudaArgs.push(launchArgs.quantmatmul ? 'mmq' : 'nommq');
       args.push(...cudaArgs);
     } else if (launchArgs.backend === 'vulkan') {
       args.push('--usevulkan');
     } else if (launchArgs.backend === 'clblast') {
-      args.push('--useclblast');
+      const clblastArgs = ['--useclblast'];
+
+      if (typeof launchArgs.gpuDevice === 'string') {
+        const parsed = parseCLBlastDevice(launchArgs.gpuDevice);
+        if (parsed) {
+          clblastArgs.push(
+            parsed.deviceIndex.toString(),
+            parsed.platformIndex.toString()
+          );
+        } else {
+          clblastArgs.push('0', '0');
+        }
+      } else {
+        clblastArgs.push(launchArgs.gpuDevice.toString(), '0');
+      }
+
+      args.push(...clblastArgs);
     }
   }
 

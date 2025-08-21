@@ -2,38 +2,32 @@ import { Text, Group, Select, Checkbox, TextInput } from '@mantine/core';
 import { useState, useEffect, useRef } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { BackendSelectItem } from '@/components/screens/Launch/GeneralTab/BackendSelectItem';
+import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 
 interface BackendSelectorProps {
-  backend: string;
-  onBackendChange: (backend: string) => void;
-  gpuDevice?: number;
-  onGpuDeviceChange?: (device: number) => void;
-  noavx2?: boolean;
-  failsafe?: boolean;
   onWarningsChange?: (
     warnings: Array<{ type: 'warning' | 'info'; message: string }>
   ) => void;
   onBackendsReady?: () => void;
-  gpuLayers?: number;
-  autoGpuLayers?: boolean;
-  onGpuLayersChange?: (layers: number) => void;
-  onAutoGpuLayersChange?: (auto: boolean) => void;
 }
 
 export const BackendSelector = ({
-  backend,
-  onBackendChange,
-  gpuDevice = 0,
-  onGpuDeviceChange,
-  noavx2 = false,
-  failsafe = false,
   onWarningsChange,
   onBackendsReady,
-  gpuLayers = 0,
-  autoGpuLayers = false,
-  onGpuLayersChange,
-  onAutoGpuLayersChange,
 }: BackendSelectorProps) => {
+  const {
+    backend,
+    gpuDevice,
+    noavx2,
+    failsafe,
+    gpuLayers,
+    autoGpuLayers,
+    handleBackendChange,
+    handleGpuDeviceChange,
+    handleGpuLayersChange,
+    handleAutoGpuLayersChange,
+  } = useLaunchConfig();
+
   const [availableBackends, setAvailableBackends] = useState<
     Array<{ value: string; label: string; devices?: string[] }>
   >([]);
@@ -44,10 +38,6 @@ export const BackendSelector = ({
   const hasInitialized = useRef(false);
 
   useEffect(() => {
-    if (hasInitialized.current) return;
-
-    let timeoutId: number;
-
     const loadBackends = async () => {
       try {
         const [currentBinaryInfo, cpuCapabilitiesResult, gpuCapabilities] =
@@ -83,16 +73,8 @@ export const BackendSelector = ({
         setAvailableBackends(backends);
         hasInitialized.current = true;
 
-        if (backends.length > 0 && !backend) {
-          timeoutId = window.setTimeout(() => {
-            onBackendChange(backends[0].value);
-          }, 10);
-        }
-
         if (onBackendsReady) {
-          window.setTimeout(() => {
-            onBackendsReady();
-          }, 100);
+          onBackendsReady();
         }
       } catch (error) {
         window.electronAPI.logs.logError(
@@ -107,14 +89,10 @@ export const BackendSelector = ({
       }
     };
 
-    loadBackends();
-
-    return () => {
-      if (timeoutId) {
-        window.clearTimeout(timeoutId);
-      }
-    };
-  }, [backend, onBackendChange, onBackendsReady]);
+    if (!hasInitialized.current) {
+      loadBackends();
+    }
+  }, [onBackendsReady]);
 
   useEffect(() => {
     if (!onWarningsChange) return;
@@ -130,7 +108,7 @@ export const BackendSelector = ({
       warnings.push({
         type: 'warning',
         message:
-          'Your CPU does not support AVX2. Enable the "Disable AVX2" option to avoid crashes.',
+          'Your CPU does not support AVX2. Enable the "Disable AVX2" option on the Advanced tab to avoid crashes.',
       });
     }
 
@@ -138,7 +116,7 @@ export const BackendSelector = ({
       warnings.push({
         type: 'warning',
         message:
-          'Your CPU does not support AVX or AVX2. Enable the "Failsafe" option to avoid crashes.',
+          'Your CPU does not support AVX or AVX2. Enable the "Failsafe" option on the Advanced tab to avoid crashes.',
       });
     }
 
@@ -178,7 +156,7 @@ export const BackendSelector = ({
             value={backend}
             onChange={(value) => {
               if (value) {
-                onBackendChange(value);
+                handleBackendChange(value);
               }
             }}
             data={availableBackends.map((b) => ({
@@ -186,11 +164,6 @@ export const BackendSelector = ({
               label: b.label,
             }))}
             disabled={availableBackends.length === 0}
-            comboboxProps={{
-              middlewares: {
-                flip: false,
-              },
-            }}
             renderOption={({ option }) => {
               const backendData = availableBackends.find(
                 (b) => b.value === option.value
@@ -213,14 +186,13 @@ export const BackendSelector = ({
 
             return (
               isGpuBackend &&
-              onGpuDeviceChange &&
               hasMultipleDevices && (
                 <Select
                   label="GPU Device"
                   placeholder="Select GPU device"
                   value={gpuDevice.toString()}
                   onChange={(value) =>
-                    value && onGpuDeviceChange(parseInt(value, 10))
+                    value && handleGpuDeviceChange(parseInt(value, 10))
                   }
                   data={selectedBackend.devices!.map((device, index) => ({
                     value: index.toString(),
@@ -233,42 +205,40 @@ export const BackendSelector = ({
           })()}
         </div>
 
-        {onGpuLayersChange && onAutoGpuLayersChange && (
-          <div style={{ flex: 1 }}>
-            <Group gap="xs" align="center" mb="xs">
-              <Text size="sm" fw={500}>
-                GPU Layers
-              </Text>
-              <InfoTooltip label="The number of layer's to offload to your GPU's VRAM. Ideally the entire LLM should fit inside the VRAM for optimal performance." />
-            </Group>
-            <Group gap="lg" align="center">
-              <TextInput
-                value={gpuLayers.toString()}
+        <div style={{ flex: 1 }}>
+          <Group gap="xs" align="center" mb="xs">
+            <Text size="sm" fw={500}>
+              GPU Layers
+            </Text>
+            <InfoTooltip label="The number of layer's to offload to your GPU's VRAM. Ideally the entire LLM should fit inside the VRAM for optimal performance." />
+          </Group>
+          <Group gap="lg" align="center">
+            <TextInput
+              value={gpuLayers.toString()}
+              onChange={(event) =>
+                handleGpuLayersChange(Number(event.target.value) || 0)
+              }
+              type="number"
+              min={0}
+              max={100}
+              step={1}
+              size="sm"
+              w={80}
+              disabled={autoGpuLayers}
+            />
+            <Group gap="xs" align="center">
+              <Checkbox
+                label="Auto"
+                checked={autoGpuLayers}
                 onChange={(event) =>
-                  onGpuLayersChange(Number(event.target.value) || 0)
+                  handleAutoGpuLayersChange(event.currentTarget.checked)
                 }
-                type="number"
-                min={0}
-                max={100}
-                step={1}
                 size="sm"
-                w={80}
-                disabled={autoGpuLayers}
               />
-              <Group gap="xs" align="center">
-                <Checkbox
-                  label="Auto"
-                  checked={autoGpuLayers}
-                  onChange={(event) =>
-                    onAutoGpuLayersChange(event.currentTarget.checked)
-                  }
-                  size="sm"
-                />
-                <InfoTooltip label="Automatically try to allocate the GPU layers based on available VRAM." />
-              </Group>
+              <InfoTooltip label="Automatically try to allocate the GPU layers based on available VRAM." />
             </Group>
-          </div>
-        )}
+          </Group>
+        </div>
       </Group>
     </div>
   );
