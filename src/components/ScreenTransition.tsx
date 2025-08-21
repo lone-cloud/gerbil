@@ -15,8 +15,8 @@ export const ScreenTransition = ({
   <Transition
     mounted={isActive}
     transition="fade"
-    duration={shouldAnimate ? 100 : 0}
-    timingFunction="ease-in-out"
+    duration={shouldAnimate ? 150 : 0}
+    timingFunction="ease-out"
   >
     {(styles) => (
       <div

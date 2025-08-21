@@ -42,26 +42,19 @@ export class BinaryService {
       const internalDir = join(binaryDir, '_internal');
 
       const platform = process.platform;
-      const isDynamicLib = (name: string) => {
-        if (platform === 'win32') {
-          return (
-            existsSync(join(internalDir, `${name}.dll`)) ||
-            existsSync(join(binaryDir, `${name}.dll`))
-          );
-        } else {
-          return (
-            existsSync(join(internalDir, `${name}.so`)) ||
-            existsSync(join(binaryDir, `${name}.so`))
-          );
-        }
+      const libExtension = platform === 'win32' ? '.dll' : '.so';
+
+      const hasKoboldCppLib = (name: string) => {
+        const filename = `${name}${libExtension}`;
+        return existsSync(join(internalDir, filename));
       };
 
-      support.rocm = isDynamicLib('koboldcpp_hipblas');
-      support.vulkan = isDynamicLib('koboldcpp_vulkan');
-      support.clblast = isDynamicLib('koboldcpp_clblast');
-      support.noavx2 = isDynamicLib('koboldcpp_noavx2');
-      support.failsafe = isDynamicLib('koboldcpp_failsafe');
-      support.cuda = isDynamicLib('koboldcpp_cublas');
+      support.rocm = hasKoboldCppLib('koboldcpp_hipblas');
+      support.vulkan = hasKoboldCppLib('koboldcpp_vulkan');
+      support.clblast = hasKoboldCppLib('koboldcpp_clblast');
+      support.noavx2 = hasKoboldCppLib('koboldcpp_noavx2');
+      support.failsafe = hasKoboldCppLib('koboldcpp_failsafe');
+      support.cuda = hasKoboldCppLib('koboldcpp_cublas');
     } catch (error) {
       this.logManager.logError(
         'Error detecting backend support:',

@@ -110,7 +110,7 @@ export interface KoboldAPI {
     configData: {
       gpulayers?: number;
       contextsize?: number;
-      model?: string;
+      model_param?: string;
       port?: number;
       host?: string;
       multiuser?: number;
@@ -124,7 +124,8 @@ export interface KoboldAPI {
       failsafe?: boolean;
       usecuda?: boolean;
       usevulkan?: boolean;
-      useclblast?: [number, number] | boolean;
+      useclblast?: boolean;
+      clBlastInfo?: [number, number];
       sdmodel?: string;
       sdt5xxl?: string;
       sdclipl?: string;
@@ -139,12 +140,11 @@ export interface KoboldAPI {
   parseConfigFile: (filePath: string) => Promise<{
     gpulayers?: number;
     contextsize?: number;
-    model?: string;
+    model_param?: string;
     [key: string]: unknown;
   } | null>;
   selectModelFile: () => Promise<string | null>;
   stopKoboldCpp: () => void;
-  confirmEject: () => Promise<boolean>;
   onDownloadProgress: (callback: (progress: number) => void) => void;
   onUpdateAvailable: (callback: (updateInfo: UpdateInfo) => void) => void;
   onInstallDirChanged: (callback: (newPath: string) => void) => () => void;

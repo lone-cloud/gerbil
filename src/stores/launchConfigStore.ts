@@ -1,11 +1,7 @@
 import { create } from 'zustand';
 import type { ConfigFile } from '@/types';
 import type { ImageModelPreset } from '@/utils/imageModelPresets';
-import {
-  DEFAULT_CONTEXT_SIZE,
-  DEFAULT_MODEL_URL,
-  DEFAULT_HOST,
-} from '@/constants';
+import { DEFAULT_CONTEXT_SIZE, DEFAULT_HOST } from '@/constants';
 
 interface LaunchConfigState {
   gpuLayers: number;
@@ -87,7 +83,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   gpuLayers: 0,
   autoGpuLayers: false,
   contextSize: DEFAULT_CONTEXT_SIZE,
-  modelPath: DEFAULT_MODEL_URL,
+  modelPath: '',
   additionalArguments: '',
   port: undefined,
   host: DEFAULT_HOST,

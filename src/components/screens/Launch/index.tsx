@@ -9,6 +9,7 @@ import { NetworkTab } from '@/components/screens/Launch/NetworkTab';
 import { ImageGenerationTab } from '@/components/screens/Launch/ImageGenerationTab';
 import { WarningDisplay } from '@/components/WarningDisplay';
 import { ConfigFileManager } from '@/components/ConfigFileManager';
+import { DEFAULT_MODEL_URL } from '@/constants';
 import type { ConfigFile } from '@/types';
 
 interface LaunchScreenProps {
@@ -27,6 +28,7 @@ export const LaunchScreen = ({
   const [warnings, setWarnings] = useState<
     Array<{ type: 'warning' | 'info'; message: string }>
   >([]);
+  const [configLoaded, setConfigLoaded] = useState<boolean>(false);
 
   const {
     gpuLayers,
@@ -59,6 +61,8 @@ export const LaunchScreen = ({
     sdlora,
     parseAndApplyConfigFile,
     loadConfigFromFile,
+    handleModelPathChange,
+    handleBackendChange,
   } = useLaunchConfig();
 
   const { isLaunching, handleLaunch } = useLaunchLogic({
@@ -69,6 +73,34 @@ export const LaunchScreen = ({
   });
 
   const combinedWarnings = useWarnings({ modelPath, sdmodel, warnings });
+
+  const setHappyDefaults = useCallback(async () => {
+    try {
+      const backends = await window.electronAPI.kobold.getAvailableBackends(
+        (await window.electronAPI.kobold.getCurrentBinaryInfo())?.path || '',
+        await window.electronAPI.kobold.detectGPUCapabilities()
+      );
+
+      if (!backend && backends.length > 0) {
+        handleBackendChange(backends[0].value);
+      }
+
+      if (!modelPath.trim() && !sdmodel.trim()) {
+        handleModelPathChange(DEFAULT_MODEL_URL);
+      }
+    } catch (error) {
+      window.electronAPI.logs.logError(
+        'Failed to set defaults:',
+        error as Error
+      );
+    }
+  }, [backend, modelPath, sdmodel, handleBackendChange, handleModelPathChange]);
+
+  useEffect(() => {
+    if (configLoaded) {
+      void setHappyDefaults();
+    }
+  }, [configLoaded, setHappyDefaults]);
 
   const loadConfigFiles = useCallback(async () => {
     const [files, currentDir, savedConfig] = await Promise.all([
@@ -90,6 +122,8 @@ export const LaunchScreen = ({
     if (loadedConfigFileName && !selectedFile) {
       setSelectedFile(loadedConfigFileName);
     }
+
+    setConfigLoaded(true);
   }, [selectedFile, loadConfigFromFile]);
 
   const handleFileSelection = async (fileName: string) => {
@@ -102,39 +136,35 @@ export const LaunchScreen = ({
     }
   };
 
-  const buildConfigData = () => {
-    let useclblastValue: [number, number] | false = false;
-
-    if (backend === 'clblast') {
-      useclblastValue = [gpuDevice, gpuPlatform];
-    }
-
-    return {
-      gpulayers: gpuLayers,
-      contextsize: contextSize,
-      model: modelPath,
-      port,
-      host,
-      multiuser: multiuser ? 1 : 0,
-      multiplayer,
-      remotetunnel,
-      nocertify,
-      websearch,
-      noshift,
-      flashattention,
-      noavx2,
-      failsafe,
-      usecuda: backend === 'cuda' || backend === 'rocm',
-      usevulkan: backend === 'vulkan',
-      useclblast: useclblastValue,
-      sdmodel,
-      sdt5xxl,
-      sdclipl,
-      sdclipg,
-      sdphotomaker,
-      sdvae,
-    };
-  };
+  const buildConfigData = () => ({
+    gpulayers: gpuLayers,
+    contextsize: contextSize,
+    model: modelPath,
+    port,
+    host,
+    multiuser: multiuser ? 1 : 0,
+    multiplayer,
+    remotetunnel,
+    nocertify,
+    websearch,
+    noshift,
+    flashattention,
+    noavx2,
+    failsafe,
+    usecuda: backend === 'cuda' || backend === 'rocm',
+    usevulkan: backend === 'vulkan',
+    useclblast: backend === 'clblast',
+    clBlastInfo:
+      backend === 'clblast'
+        ? ([gpuDevice, gpuPlatform] as [number, number])
+        : undefined,
+    sdmodel,
+    sdt5xxl,
+    sdclipl,
+    sdclipg,
+    sdphotomaker,
+    sdvae,
+  });
 
   const handleCreateNewConfig = async (configName: string) => {
     try {

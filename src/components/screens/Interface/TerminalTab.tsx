@@ -7,6 +7,7 @@ import {
   useMantineColorScheme,
 } from '@mantine/core';
 import { ChevronDown } from 'lucide-react';
+import Convert from 'ansi-to-html';
 import styles from '@/styles/layout.module.css';
 import { UI } from '@/constants';
 
@@ -17,11 +18,41 @@ interface TerminalTabProps {
 export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
   const { colorScheme } = useMantineColorScheme();
   const [terminalContent, setTerminalContent] = useState<string>('');
+  const [formattedContent, setFormattedContent] = useState<string>('');
   const [isUserScrolling, setIsUserScrolling] = useState<boolean>(false);
   const [shouldAutoScroll, setShouldAutoScroll] = useState<boolean>(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const lastScrollTop = useRef<number>(0);
+
+  const converter = useRef(
+    new Convert({
+      fg: colorScheme === 'dark' ? '#ffffff' : '#000000',
+      bg: colorScheme === 'dark' ? '#1a1b1e' : '#ffffff',
+      newline: false,
+      escapeXML: true,
+      stream: false,
+    })
+  );
+
+  useEffect(() => {
+    converter.current = new Convert({
+      fg: colorScheme === 'dark' ? '#ffffff' : '#000000',
+      bg: colorScheme === 'dark' ? '#1a1b1e' : '#ffffff',
+      newline: false,
+      escapeXML: true,
+      stream: false,
+    });
+    if (terminalContent) {
+      setFormattedContent(converter.current.toHtml(terminalContent));
+    }
+  }, [colorScheme, terminalContent]);
+
+  useEffect(() => {
+    if (terminalContent) {
+      setFormattedContent(converter.current.toHtml(terminalContent));
+    }
+  }, [terminalContent]);
 
   const handleScroll = ({ y }: { y: number }) => {
     if (!viewportRef.current) return;
@@ -45,7 +76,7 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
       const viewport = viewportRef.current;
       viewport.scrollTop = viewport.scrollHeight;
     }
-  }, [terminalContent, shouldAutoScroll, isUserScrolling]);
+  }, [formattedContent, shouldAutoScroll, isUserScrolling]);
 
   useEffect(() => {
     const cleanup = window.electronAPI.kobold.onKoboldOutput((data: string) => {
@@ -109,25 +140,21 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
               Starting KoboldCpp...
             </Text>
           ) : (
-            <>
-              <Text
-                component="pre"
-                style={{
-                  margin: 0,
-                  fontFamily: 'inherit',
-                  fontSize: 'inherit',
-                  lineHeight: 'inherit',
-                  color:
-                    colorScheme === 'dark'
-                      ? 'var(--mantine-color-gray-0)'
-                      : 'var(--mantine-color-dark-9)',
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word',
-                }}
-              >
-                {terminalContent}
-              </Text>
-            </>
+            <div
+              style={{
+                margin: 0,
+                fontFamily: 'inherit',
+                fontSize: 'inherit',
+                lineHeight: 'inherit',
+                color:
+                  colorScheme === 'dark'
+                    ? 'var(--mantine-color-gray-0)'
+                    : 'var(--mantine-color-dark-9)',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+              }}
+              dangerouslySetInnerHTML={{ __html: formattedContent }}
+            />
           )}
         </Box>
       </ScrollArea>

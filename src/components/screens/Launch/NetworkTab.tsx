@@ -38,8 +38,7 @@ export const NetworkTab = () => {
             <InfoTooltip label="The hostname or IP address on which KoboldCpp will bind its webserver to." />
           </Group>
           <TextInput
-            label="Host"
-            description="The IP address to bind to"
+            placeholder="localhost"
             value={host}
             onChange={(event) => handleHostChange(event.currentTarget.value)}
           />

@@ -1,4 +1,4 @@
-import { ipcMain, dialog } from 'electron';
+import { ipcMain } from 'electron';
 import { shell, app } from 'electron';
 import { KoboldCppManager } from '@/main/managers/KoboldCppManager';
 import { ConfigManager } from '@/main/managers/ConfigManager';
@@ -178,24 +178,6 @@ export class IPCHandlers {
     ipcMain.handle('kobold:stopKoboldCpp', () =>
       this.koboldManager.stopKoboldCpp()
     );
-
-    ipcMain.handle('kobold:confirmEject', async () => {
-      const mainWindow = this.koboldManager.getWindowManager().getMainWindow();
-      if (!mainWindow) return false;
-
-      const result = await dialog.showMessageBox(mainWindow, {
-        type: 'warning',
-        title: 'Confirm Eject',
-        message: 'Are you sure you want to eject?',
-        detail:
-          'This will terminate the running process and return to the launch screen.',
-        buttons: ['Cancel', 'Eject'],
-        defaultId: 0,
-        cancelId: 0,
-      });
-
-      return result.response === 1;
-    });
 
     ipcMain.handle('kobold:parseConfigFile', (_event, filePath) =>
       this.koboldManager.parseConfigFile(filePath)
