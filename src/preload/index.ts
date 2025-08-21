@@ -2,14 +2,10 @@ import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
 import type { KoboldAPI, AppAPI, ConfigAPI, LogsAPI } from '@/types/electron';
 
 const koboldAPI: KoboldAPI = {
-  getInstalledVersion: () => ipcRenderer.invoke('kobold:getInstalledVersion'),
   getInstalledVersions: () => ipcRenderer.invoke('kobold:getInstalledVersions'),
-  getCurrentVersion: () => ipcRenderer.invoke('kobold:getCurrentVersion'),
   getCurrentBinaryInfo: () => ipcRenderer.invoke('kobold:getCurrentBinaryInfo'),
   setCurrentVersion: (version: string) =>
     ipcRenderer.invoke('kobold:setCurrentVersion', version),
-  getVersionFromBinary: (binaryPath: string) =>
-    ipcRenderer.invoke('kobold:getVersionFromBinary', binaryPath),
   getLatestReleaseWithStatus: () =>
     ipcRenderer.invoke('kobold:getLatestReleaseWithStatus'),
   getROCmDownload: () => ipcRenderer.invoke('kobold:getROCmDownload'),
@@ -18,11 +14,7 @@ const koboldAPI: KoboldAPI = {
   getPlatform: () => ipcRenderer.invoke('kobold:getPlatform'),
   detectGPU: () => ipcRenderer.invoke('kobold:detectGPU'),
   detectCPU: () => ipcRenderer.invoke('kobold:detectCPU'),
-  detectGPUCapabilities: () =>
-    ipcRenderer.invoke('kobold:detectGPUCapabilities'),
   detectROCm: () => ipcRenderer.invoke('kobold:detectROCm'),
-  detectAllCapabilities: () =>
-    ipcRenderer.invoke('kobold:detectAllCapabilities'),
   detectBackendSupport: (binaryPath: string) =>
     ipcRenderer.invoke('kobold:detectBackendSupport', binaryPath),
   getAvailableBackends: () => ipcRenderer.invoke('kobold:getAvailableBackends'),
@@ -33,7 +25,6 @@ const koboldAPI: KoboldAPI = {
     ipcRenderer.invoke('kobold:downloadRelease', asset),
   launchKoboldCpp: (args?: string[], configFilePath?: string) =>
     ipcRenderer.invoke('kobold:launchKoboldCpp', args, configFilePath),
-  checkForUpdates: () => ipcRenderer.invoke('kobold:checkForUpdates'),
   getConfigFiles: () => ipcRenderer.invoke('kobold:getConfigFiles'),
   saveConfigFile: (
     configName: string,
@@ -52,6 +43,7 @@ const koboldAPI: KoboldAPI = {
       flashattention?: boolean;
       noavx2?: boolean;
       failsafe?: boolean;
+      usemmap?: boolean;
       usecuda?: boolean;
       usevulkan?: boolean;
       useclblast?: boolean;
@@ -107,7 +99,6 @@ const koboldAPI: KoboldAPI = {
 };
 
 const appAPI: AppAPI = {
-  getVersion: () => ipcRenderer.invoke('app:getVersion'),
   openExternal: (url) => ipcRenderer.invoke('app:openExternal', url),
 };
 

@@ -21,10 +21,13 @@ interface LaunchArgs {
   websearch: boolean;
   noshift: boolean;
   flashattention: boolean;
+  noavx2: boolean;
+  failsafe: boolean;
   backend: string;
   lowvram: boolean;
   gpuDevice: number | string;
   quantmatmul: boolean;
+  usemmap: boolean;
   additionalArguments: string;
   sdt5xxl: string;
   sdclipl: string;
@@ -98,6 +101,9 @@ const buildConfigArgs = (launchArgs: LaunchArgs): string[] => {
     [launchArgs.websearch, '--websearch'],
     [launchArgs.noshift, '--noshift'],
     [launchArgs.flashattention, '--flashattention'],
+    [launchArgs.noavx2, '--noavx2'],
+    [launchArgs.failsafe, '--failsafe'],
+    [launchArgs.usemmap, '--usemmap'],
   ];
 
   flagMappings.forEach(([condition, flag, value]) => {

@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { Modal, Text, Group, Button, Checkbox, Stack } from '@mantine/core';
 
-interface EjectConfirmDialogProps {
+interface EjectConfirmModalProps {
   opened: boolean;
   onClose: () => void;
   onConfirm: (skipConfirmation: boolean) => void;
 }
 
-export const EjectConfirmDialog = ({
+export const EjectConfirmModal = ({
   opened,
   onClose,
   onConfirm,
-}: EjectConfirmDialogProps) => {
+}: EjectConfirmModalProps) => {
   const [skipConfirmation, setSkipConfirmation] = useState(false);
 
   const handleConfirm = () => {

@@ -1,11 +1,4 @@
-import {
-  BrowserWindow,
-  app,
-  Menu,
-  shell,
-  ipcMain,
-  nativeImage,
-} from 'electron';
+import { BrowserWindow, app, Menu, shell, nativeImage } from 'electron';
 import * as os from 'os';
 import { join } from 'path';
 import { GITHUB_API } from '../../constants';
@@ -311,8 +304,9 @@ OS: ${osInfo}`;
       maximizable: false,
       show: false,
       webPreferences: {
-        nodeIntegration: true,
-        contextIsolation: false,
+        nodeIntegration: false,
+        contextIsolation: true,
+        preload: join(__dirname, '../preload/index.js'),
       },
     });
 
@@ -327,21 +321,6 @@ OS: ${osInfo}`;
 
     aboutWindow.once('ready-to-show', () => {
       aboutWindow.show();
-    });
-
-    ipcMain.once('open-github', () => {
-      shell.openExternal(
-        `https://github.com/${GITHUB_API.FRIENDLY_KOBOLD_REPO}`
-      );
-    });
-
-    ipcMain.once('close-about-dialog', () => {
-      aboutWindow.close();
-    });
-
-    aboutWindow.on('closed', () => {
-      ipcMain.removeAllListeners('open-github');
-      ipcMain.removeAllListeners('close-about-dialog');
     });
   }
 
