@@ -7,6 +7,10 @@ export const DEFAULT_HOST = '';
 
 export const DEFAULT_VOLUME = 0.5;
 
+export const DEFAULT_SKIP_EJECT_CONFIRMATION = false;
+
+export const DEFAULT_HAS_SEEN_WELCOME = false;
+
 export const DEFAULT_FLUX_MODELS = {
   T5XXL:
     'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/t5xxl_fp8_e4m3fn.safetensors?download=true',

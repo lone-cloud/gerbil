@@ -55,7 +55,7 @@ const koboldAPI: KoboldAPI = {
     configData: {
       gpulayers?: number;
       contextsize?: number;
-      model?: string;
+      model_param?: string;
       port?: number;
       host?: string;
       multiuser?: number;
@@ -69,7 +69,7 @@ const koboldAPI: KoboldAPI = {
       failsafe?: boolean;
       usecuda?: boolean;
       usevulkan?: boolean;
-      useclblast?: [number, number] | boolean;
+      useclblast?: boolean;
       sdmodel?: string;
       sdt5xxl?: string;
       sdclipl?: string;
@@ -86,7 +86,6 @@ const koboldAPI: KoboldAPI = {
     ipcRenderer.invoke('kobold:parseConfigFile', filePath),
   selectModelFile: () => ipcRenderer.invoke('kobold:selectModelFile'),
   stopKoboldCpp: () => ipcRenderer.invoke('kobold:stopKoboldCpp'),
-  confirmEject: () => ipcRenderer.invoke('kobold:confirmEject'),
   onDownloadProgress: (callback) => {
     ipcRenderer.on(
       'download-progress',

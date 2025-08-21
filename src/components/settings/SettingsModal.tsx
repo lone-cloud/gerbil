@@ -8,7 +8,7 @@ import { AppearanceTab } from '@/components/settings/AppearanceTab';
 interface SettingsModalProps {
   opened: boolean;
   onClose: () => void;
-  currentScreen?: 'download' | 'launch' | 'interface';
+  currentScreen?: 'welcome' | 'download' | 'launch' | 'interface';
 }
 
 export const SettingsModal = ({
@@ -18,7 +18,8 @@ export const SettingsModal = ({
 }: SettingsModalProps) => {
   const [activeTab, setActiveTab] = useState('general');
 
-  const showVersionsTab = currentScreen !== 'download';
+  const showVersionsTab =
+    currentScreen !== 'download' && currentScreen !== 'welcome';
 
   useEffect(() => {
     if (!showVersionsTab && activeTab === 'versions') {

@@ -81,8 +81,8 @@
   "dependencies": {
     "@mantine/core": "^8.2.5",
     "@mantine/hooks": "^8.2.5",
+    "ansi-to-html": "^0.7.2",
     "lucide-react": "^0.540.0",
-    "opencl-info": "^0.3.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "systeminformation": "^5.27.7",

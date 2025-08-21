@@ -1,6 +1,5 @@
 /* eslint-disable no-comments/disallowComments */
 import si from 'systeminformation';
-import * as openclInfo from 'opencl-info';
 import { shortenDeviceName } from '@/utils';
 import type {
   CPUCapabilities,
@@ -339,40 +338,80 @@ export class HardwareService {
     }
   }
 
+  private parseClInfoOutput(output: string): string[] {
+    const devices: string[] = [];
+    const lines = output.split('\n');
+
+    let currentPlatform = '';
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // Extract platform name
+      if (line.includes('Platform Name:')) {
+        currentPlatform = line.split('Platform Name:')[1]?.trim() || '';
+        continue;
+      }
+
+      // Extract device names for GPU devices
+      if (line.includes('Device Name:')) {
+        const deviceName = line.split('Device Name:')[1]?.trim();
+        if (deviceName) {
+          // Look ahead to check if this is a GPU device
+          for (let j = i + 1; j < Math.min(i + 10, lines.length); j++) {
+            if (lines[j].includes('Device Type:') && lines[j].includes('GPU')) {
+              const deviceLabel = currentPlatform
+                ? `${shortenDeviceName(deviceName)} (${currentPlatform})`
+                : shortenDeviceName(deviceName);
+              devices.push(deviceLabel);
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    return devices;
+  }
+
   private async detectCLBlast(): Promise<{
     supported: boolean;
     devices: string[];
   }> {
     try {
-      const platforms = openclInfo.getPlatformInfo();
+      const { spawn } = await import('child_process');
+      const clinfo = spawn('clinfo', [], { timeout: 3000 });
 
-      const devices: string[] = [];
+      let output = '';
+      clinfo.stdout.on('data', (data) => {
+        output += data.toString();
+      });
 
-      for (
-        let platformIndex = 0;
-        platformIndex < platforms.length;
-        platformIndex++
-      ) {
-        const platform = platforms[platformIndex];
-        if (platform.devices) {
-          for (
-            let deviceIndex = 0;
-            deviceIndex < platform.devices.length;
-            deviceIndex++
-          ) {
-            const device = platform.devices[deviceIndex];
-            if (device.name && device.type === 'GPU') {
-              const deviceLabel = `${shortenDeviceName(device.name)} (${platform.name})`;
-              devices.push(deviceLabel);
-            }
+      return new Promise((resolve) => {
+        clinfo.on('close', (code) => {
+          if (code === 0 && output.trim()) {
+            const devices = this.parseClInfoOutput(output);
+            resolve({
+              supported: devices.length > 0,
+              devices,
+            });
+          } else {
+            resolve({ supported: false, devices: [] });
           }
-        }
-      }
+        });
 
-      return {
-        supported: devices.length > 0,
-        devices,
-      };
+        clinfo.on('error', () => {
+          resolve({ supported: false, devices: [] });
+        });
+
+        setTimeout(() => {
+          try {
+            clinfo.kill('SIGTERM');
+          } catch {
+            void 0;
+          }
+          resolve({ supported: false, devices: [] });
+        }, 3000);
+      });
     } catch {
       return { supported: false, devices: [] };
     }

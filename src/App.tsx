@@ -3,9 +3,11 @@ import { AppShell, Loader, Center, Stack, Text } from '@mantine/core';
 import { DownloadScreen } from '@/components/screens/Download';
 import { LaunchScreen } from '@/components/screens/Launch';
 import { InterfaceScreen } from '@/components/screens/Interface';
+import { WelcomeScreen } from '@/components/screens/Welcome';
 import { UpdateDialog } from '@/components/UpdateDialog';
 import { UpdateAvailableModal } from '@/components/UpdateAvailableModal';
 import { SettingsModal } from '@/components/settings/SettingsModal';
+import { EjectConfirmDialog } from '@/components/EjectConfirmDialog';
 import { ScreenTransition } from '@/components/ScreenTransition';
 import { AppHeader } from '@/components/AppHeader';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
@@ -14,7 +16,7 @@ import { UI } from '@/constants';
 import type { UpdateInfo } from '@/types';
 import type { DownloadItem } from '@/types/electron';
 
-type Screen = 'download' | 'launch' | 'interface';
+type Screen = 'welcome' | 'download' | 'launch' | 'interface';
 
 export const App = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen | null>(null);
@@ -22,6 +24,7 @@ export const App = () => {
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [settingsOpened, setSettingsOpened] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [showEjectDialog, setShowEjectDialog] = useState(false);
   const [activeInterfaceTab, setActiveInterfaceTab] = useState<string | null>(
     'terminal'
   );
@@ -41,17 +44,26 @@ export const App = () => {
     downloadProgress,
   } = useKoboldVersions();
 
+  const setCurrentScreenWithTransition = (screen: Screen) => {
+    setCurrentScreen(screen);
+  };
+
   useEffect(() => {
     const checkInstallation = async () => {
       try {
-        const [versions, currentBinaryPath] = await Promise.all([
-          window.electronAPI.kobold.getInstalledVersions(),
-          window.electronAPI.config.get(
-            'currentKoboldBinary'
-          ) as Promise<string>,
-        ]);
+        const [versions, currentBinaryPath, hasSeenWelcome] = await Promise.all(
+          [
+            window.electronAPI.kobold.getInstalledVersions(),
+            window.electronAPI.config.get(
+              'currentKoboldBinary'
+            ) as Promise<string>,
+            window.electronAPI.config.get('hasSeenWelcome') as Promise<boolean>,
+          ]
+        );
 
-        if (versions.length > 0) {
+        if (!hasSeenWelcome) {
+          setCurrentScreenWithTransition('welcome');
+        } else if (versions.length > 0) {
           let current = null;
           if (currentBinaryPath) {
             current = versions.find((v) => v.path === currentBinaryPath);
@@ -65,9 +77,9 @@ export const App = () => {
               );
             }
           }
-          setCurrentScreen('launch');
+          setCurrentScreenWithTransition('launch');
         } else {
-          setCurrentScreen('download');
+          setCurrentScreenWithTransition('download');
         }
 
         setHasInitialized(true);
@@ -156,33 +168,32 @@ export const App = () => {
     }
 
     setTimeout(() => {
-      setCurrentScreen('launch');
+      setCurrentScreenWithTransition('launch');
     }, 100);
   };
 
   const handleLaunch = () => {
     setActiveInterfaceTab('terminal');
-    setCurrentScreen('interface');
+    setCurrentScreenWithTransition('interface');
   };
 
   const handleBackToLaunch = () => {
-    setCurrentScreen('launch');
+    setCurrentScreenWithTransition('launch');
   };
 
   const handleEject = async () => {
-    try {
-      const confirmed = await window.electronAPI.kobold.confirmEject();
-      if (!confirmed) {
-        return;
-      }
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Error showing confirmation dialog:',
-        error as Error
-      );
-      return;
-    }
+    const skipEjectConfirmation = await window.electronAPI.config.get(
+      'skipEjectConfirmation'
+    );
 
+    if (skipEjectConfirmation) {
+      performEject();
+    } else {
+      setShowEjectDialog(true);
+    }
+  };
+
+  const performEject = async () => {
     try {
       await window.electronAPI.kobold.stopKoboldCpp();
     } catch (error) {
@@ -195,34 +206,57 @@ export const App = () => {
     handleBackToLaunch();
   };
 
+  const handleEjectConfirm = async (skipConfirmation: boolean) => {
+    if (skipConfirmation) {
+      await window.electronAPI.config.set('skipEjectConfirmation', true);
+    }
+    performEject();
+  };
+
+  const handleWelcomeComplete = async () => {
+    await window.electronAPI.config.set('hasSeenWelcome', true);
+
+    const versions = await window.electronAPI.kobold.getInstalledVersions();
+    if (versions.length > 0) {
+      setCurrentScreenWithTransition('launch');
+    } else {
+      setCurrentScreenWithTransition('download');
+    }
+  };
+
   const handleUpdateIgnore = () => {
     setShowUpdateDialog(false);
   };
 
   const handleUpdateAccept = () => {
     setShowUpdateDialog(false);
-    setCurrentScreen('download');
+    setCurrentScreenWithTransition('download');
   };
 
   return (
     <>
       <AppShell
-        header={{ height: UI.HEADER_HEIGHT }}
+        header={{ height: currentScreen === 'welcome' ? 0 : UI.HEADER_HEIGHT }}
         padding={currentScreen === 'interface' ? 0 : 'md'}
       >
-        <AppHeader
-          currentScreen={currentScreen}
-          activeInterfaceTab={activeInterfaceTab}
-          setActiveInterfaceTab={setActiveInterfaceTab}
-          isImageGenerationMode={isImageGenerationMode}
-          onEject={handleEject}
-          onSettingsOpen={() => setSettingsOpened(true)}
-        />
+        {currentScreen !== 'welcome' && (
+          <AppHeader
+            currentScreen={currentScreen}
+            activeInterfaceTab={activeInterfaceTab}
+            setActiveInterfaceTab={setActiveInterfaceTab}
+            isImageGenerationMode={isImageGenerationMode}
+            onEject={handleEject}
+            onSettingsOpen={() => setSettingsOpened(true)}
+          />
+        )}
         <AppShell.Main
           style={{
             position: 'relative',
             overflow: 'hidden',
-            minHeight: `calc(100vh - ${UI.HEADER_HEIGHT}px)`,
+            minHeight:
+              currentScreen === 'welcome'
+                ? '100vh'
+                : `calc(100vh - ${UI.HEADER_HEIGHT}px)`,
           }}
         >
           {currentScreen === null ? (
@@ -236,6 +270,13 @@ export const App = () => {
             </Center>
           ) : (
             <>
+              <ScreenTransition
+                isActive={currentScreen === 'welcome'}
+                shouldAnimate={hasInitialized}
+              >
+                <WelcomeScreen onGetStarted={handleWelcomeComplete} />
+              </ScreenTransition>
+
               <ScreenTransition
                 isActive={currentScreen === 'download'}
                 shouldAnimate={hasInitialized}
@@ -294,6 +335,11 @@ export const App = () => {
           opened={settingsOpened}
           onClose={() => setSettingsOpened(false)}
           currentScreen={currentScreen || undefined}
+        />
+        <EjectConfirmDialog
+          opened={showEjectDialog}
+          onClose={() => setShowEjectDialog(false)}
+          onConfirm={handleEjectConfirm}
         />
       </AppShell>
     </>

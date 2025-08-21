@@ -92,6 +92,13 @@ export const BackendSelector = ({
     if (!hasInitialized.current) {
       loadBackends();
     }
+
+    const cleanup = window.electronAPI.kobold.onVersionsUpdated(() => {
+      hasInitialized.current = false;
+      loadBackends();
+    });
+
+    return cleanup;
   }, [onBackendsReady]);
 
   useEffect(() => {
@@ -210,7 +217,7 @@ export const BackendSelector = ({
             <Text size="sm" fw={500}>
               GPU Layers
             </Text>
-            <InfoTooltip label="The number of layer's to offload to your GPU's VRAM. Ideally the entire LLM should fit inside the VRAM for optimal performance." />
+            <InfoTooltip label="The number of layers to offload to your GPU's VRAM. Ideally the entire LLM should fit inside the VRAM for optimal performance." />
           </Group>
           <Group gap="lg" align="center">
             <TextInput
