@@ -1,6 +1,5 @@
-import { ActionIcon } from '@mantine/core';
+import { ActionIcon, Tooltip } from '@mantine/core';
 import { Info } from 'lucide-react';
-import { StyledTooltip } from '@/components/StyledTooltip';
 
 interface InfoTooltipProps {
   label: string;
@@ -13,9 +12,9 @@ export const InfoTooltip = ({
   multiline = true,
   width = 300,
 }: InfoTooltipProps) => (
-  <StyledTooltip label={label} multiline={multiline} w={width}>
+  <Tooltip label={label} multiline={multiline} w={width}>
     <ActionIcon variant="subtle" size="xs" color="gray">
       <Info size={14} />
     </ActionIcon>
-  </StyledTooltip>
+  </Tooltip>
 );

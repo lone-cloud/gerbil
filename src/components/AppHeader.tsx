@@ -8,10 +8,9 @@ import {
   Select,
   Title,
   Image,
-  useMantineColorScheme,
+  Tooltip,
 } from '@mantine/core';
 import { Settings, ArrowLeft } from 'lucide-react';
-import { StyledTooltip } from '@/components/StyledTooltip';
 import { soundAssets, playSound, initializeAudio } from '@/utils';
 import iconUrl from '/icon.png';
 
@@ -37,7 +36,6 @@ export const AppHeader = ({
   const [logoClickCount, setLogoClickCount] = useState(0);
   const [isElephantMode, setIsElephantMode] = useState(false);
   const [isMouseSqueaking, setIsMouseSqueaking] = useState(false);
-  const { colorScheme } = useMantineColorScheme();
 
   const handleLogoClick = async () => {
     await initializeAudio();
@@ -66,16 +64,7 @@ export const AppHeader = ({
   };
 
   return (
-    <AppShell.Header
-      style={{
-        borderBottom: `1px solid var(--mantine-color-${colorScheme === 'dark' ? 'dark-4' : 'gray-3'})`,
-        background:
-          colorScheme === 'dark'
-            ? 'var(--mantine-color-dark-7)'
-            : 'var(--mantine-color-white)',
-        transition: 'all 200ms ease',
-      }}
-    >
+    <AppShell.Header>
       <Group h="100%" px="md" justify="space-between" align="center">
         <div style={{ minWidth: '100px' }}>
           {currentScreen === 'interface' ? (
@@ -152,7 +141,7 @@ export const AppHeader = ({
             justifyContent: 'flex-end',
           }}
         >
-          <StyledTooltip label="Settings" position="bottom">
+          <Tooltip label="Settings" position="bottom">
             <ActionIcon
               variant="subtle"
               color="gray"
@@ -165,7 +154,7 @@ export const AppHeader = ({
             >
               <Settings style={{ width: rem(20), height: rem(20) }} />
             </ActionIcon>
-          </StyledTooltip>
+          </Tooltip>
         </div>
       </Group>
     </AppShell.Header>

@@ -1,147 +1,53 @@
-/* eslint-disable no-console */
 import { app } from 'electron';
 import { join } from 'path';
-import { appendFile, existsSync, mkdirSync, statSync } from 'fs';
+import winston from 'winston';
+import 'winston-daily-rotate-file';
 
 export class LogManager {
-  private logFilePath: string;
-  private maxLogSize = 10 * 1024 * 1024;
-  private maxLogFiles = 5;
-  private writeQueue: string[] = [];
-  private isWriting = false;
+  private logger: winston.Logger;
 
   constructor() {
     const logsDir = join(app.getPath('userData'), 'logs');
 
-    if (!existsSync(logsDir)) {
-      mkdirSync(logsDir, { recursive: true });
-    }
+    this.logger = winston.createLogger({
+      level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.printf(({ timestamp, level, message, error }) => {
+          const processInfo = `[${process.type || 'unknown'}:${process.pid}]`;
+          let logEntry = `${timestamp} ${processInfo} [${level.toUpperCase()}] ${message}`;
 
-    this.logFilePath = join(logsDir, 'friendly-kobold.log');
-    this.initializeLogging();
-  }
-
-  private initializeLogging() {
-    this.rotateLogsIfNeeded();
-  }
-
-  private rotateLogsIfNeeded() {
-    if (!existsSync(this.logFilePath)) {
-      return;
-    }
-
-    try {
-      const stats = statSync(this.logFilePath);
-      if (stats.size >= this.maxLogSize) {
-        this.rotateLogs();
-      }
-    } catch (error) {
-      console.warn('Failed to check log file size:', error);
-    }
-  }
-
-  private rotateLogs() {
-    const logsDir = join(app.getPath('userData'), 'logs');
-    const baseName = 'friendly-kobold';
-
-    try {
-      for (let i = this.maxLogFiles - 1; i >= 1; i--) {
-        const oldPath = join(logsDir, `${baseName}.${i}.log`);
-        const newPath = join(logsDir, `${baseName}.${i + 1}.log`);
-
-        if (existsSync(oldPath)) {
-          if (i === this.maxLogFiles - 1) {
-            try {
-              require('fs').unlinkSync(oldPath);
-            } catch (error) {
-              console.warn(`Failed to delete old log file: ${oldPath}`, error);
-            }
-          } else {
-            try {
-              require('fs').renameSync(oldPath, newPath);
-            } catch (error) {
-              console.warn(
-                `Failed to rotate log file: ${oldPath} -> ${newPath}`,
-                error
-              );
+          if (error && error instanceof Error) {
+            logEntry += `\n  Error: ${error.message}`;
+            if (error.stack) {
+              logEntry += `\n  Stack: ${error.stack}`;
             }
           }
-        }
-      }
 
-      const rotatedPath = join(logsDir, `${baseName}.1.log`);
-      try {
-        require('fs').renameSync(this.logFilePath, rotatedPath);
-      } catch (error) {
-        console.warn(
-          `Failed to rotate current log file: ${this.logFilePath} -> ${rotatedPath}`,
-          error
-        );
-      }
-    } catch (error) {
-      console.warn('Failed to rotate logs:', error);
-    }
-  }
+          return logEntry;
+        })
+      ),
+      transports: [
+        new winston.transports.DailyRotateFile({
+          filename: join(logsDir, 'friendly-kobold-%DATE%.log'),
+          datePattern: 'YYYY-MM-DD',
+          maxSize: '10m',
+          maxFiles: '5d',
+          createSymlink: true,
+          symlinkName: 'friendly-kobold.log',
+        }),
+      ],
+    });
 
-  private formatLogEntry(
-    level: string,
-    message: string,
-    error?: Error
-  ): string {
-    const timestamp = new Date().toISOString();
-    const processInfo = `[${process.type || 'unknown'}:${process.pid}]`;
-
-    let logEntry = `${timestamp} ${processInfo} [${level}] ${message}`;
-
-    if (error) {
-      logEntry += `\n  Error: ${error.message}`;
-      if (error.stack) {
-        logEntry += `\n  Stack: ${error.stack}`;
-      }
-    }
-
-    return logEntry + '\n';
-  }
-
-  private writeToLog(entry: string) {
-    this.writeQueue.push(entry);
-    this.processWriteQueue();
-  }
-
-  private async processWriteQueue() {
-    if (this.isWriting || this.writeQueue.length === 0) {
-      return;
-    }
-
-    this.isWriting = true;
-
-    while (this.writeQueue.length > 0) {
-      const entry = this.writeQueue.shift()!;
-      try {
-        await new Promise<void>((resolve, reject) => {
-          appendFile(this.logFilePath, entry, 'utf8', (err) => {
-            if (err) reject(err);
-            else resolve();
-          });
-        });
-      } catch (error) {
-        console.warn('Failed to write to log file:', error);
-      }
-    }
-
-    this.isWriting = false;
+    this.setupGlobalErrorHandlers();
   }
 
   public logError(message: string, error?: Error) {
-    const entry = this.formatLogEntry('ERROR', message, error);
-    this.writeToLog(entry);
+    this.logger.error(message, { error });
   }
 
   public logDebug(message: string) {
-    if (process.env.NODE_ENV === 'development') {
-      const entry = this.formatLogEntry('DEBUG', message);
-      this.writeToLog(entry);
-    }
+    this.logger.debug(message);
   }
 
   public setupGlobalErrorHandlers() {
@@ -158,7 +64,7 @@ export class LogManager {
   }
 
   public getLogFilePath(): string {
-    return this.logFilePath;
+    return join(app.getPath('userData'), 'logs', 'friendly-kobold.log');
   }
 
   public getLogsDirectory(): string {

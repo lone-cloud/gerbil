@@ -1,9 +1,9 @@
 import { Stack, Text, Group, SegmentedControl, rem } from '@mantine/core';
+import { useMantineColorScheme } from '@mantine/core';
 import { Sun, Moon, Monitor } from 'lucide-react';
-import { useTheme, type ThemeMode } from '@/contexts/ThemeContext';
 
 export const AppearanceTab = () => {
-  const { themeMode, setThemeMode } = useTheme();
+  const { colorScheme, setColorScheme } = useMantineColorScheme();
 
   return (
     <Stack gap="lg" h="100%">
@@ -16,8 +16,23 @@ export const AppearanceTab = () => {
         </Text>
         <SegmentedControl
           fullWidth
-          value={themeMode}
-          onChange={(value) => setThemeMode(value as ThemeMode)}
+          value={colorScheme}
+          onChange={(value) =>
+            setColorScheme(value as 'light' | 'dark' | 'auto')
+          }
+          styles={(theme) => ({
+            indicator: {
+              backgroundColor:
+                colorScheme === 'dark'
+                  ? theme.colors.dark[5]
+                  : theme.colors.gray[2],
+              border: `1px solid ${
+                colorScheme === 'dark'
+                  ? theme.colors.dark[4]
+                  : theme.colors.gray[4]
+              }`,
+            },
+          })}
           data={[
             {
               label: (
@@ -44,7 +59,7 @@ export const AppearanceTab = () => {
                   <span>System</span>
                 </Group>
               ),
-              value: 'system',
+              value: 'auto',
             },
           ]}
         />

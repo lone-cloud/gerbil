@@ -1,7 +1,7 @@
 {
   "name": "friendly-kobold",
   "productName": "Friendly Kobold",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "A modern Electron shell for KoboldCpp",
   "main": "out/main/index.js",
   "homepage": "./",
@@ -82,10 +82,14 @@
     "@mantine/core": "^8.2.5",
     "@mantine/hooks": "^8.2.5",
     "ansi-to-html": "^0.7.2",
+    "execa": "^9.6.0",
+    "got": "^14.4.7",
     "lucide-react": "^0.540.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "systeminformation": "^5.27.7",
+    "winston": "^3.17.0",
+    "winston-daily-rotate-file": "^5.0.0",
     "zustand": "^5.0.8"
   },
   "build": {
