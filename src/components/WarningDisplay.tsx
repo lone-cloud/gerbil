@@ -1,7 +1,6 @@
 import { ReactNode } from 'react';
-import { Group, useMantineTheme, List } from '@mantine/core';
+import { Group, useMantineTheme, List, Tooltip } from '@mantine/core';
 import { AlertTriangle, Info } from 'lucide-react';
-import { StyledTooltip } from '@/components/StyledTooltip';
 
 interface WarningItem {
   type: 'warning' | 'info';
@@ -26,7 +25,7 @@ export const WarningDisplay = ({ warnings, children }: WarningDisplayProps) => {
   return (
     <Group gap="xs" align="center">
       {warningMessages.length > 0 && (
-        <StyledTooltip
+        <Tooltip
           label={
             warningMessages.length === 1 ? (
               warningMessages[0].message
@@ -42,10 +41,10 @@ export const WarningDisplay = ({ warnings, children }: WarningDisplayProps) => {
           maw={320}
         >
           <AlertTriangle size={18} color={theme.colors.orange[6]} />
-        </StyledTooltip>
+        </Tooltip>
       )}
       {infoMessages.length > 0 && (
-        <StyledTooltip
+        <Tooltip
           label={
             infoMessages.length === 1 ? (
               infoMessages[0].message
@@ -61,7 +60,7 @@ export const WarningDisplay = ({ warnings, children }: WarningDisplayProps) => {
           maw={320}
         >
           <Info size={18} color={theme.colors.blue[6]} />
-        </StyledTooltip>
+        </Tooltip>
       )}
       {children}
     </Group>

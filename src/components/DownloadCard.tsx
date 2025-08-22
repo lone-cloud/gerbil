@@ -106,8 +106,11 @@ export const DownloadCard = ({
       withBorder
       radius="sm"
       padding="sm"
-      bd={isCurrent ? '2px solid var(--mantine-color-blue-filled)' : undefined}
-      bg={isCurrent ? 'var(--mantine-color-blue-light)' : undefined}
+      {...(isCurrent && {
+        c: 'blue',
+        bg: 'blue.0',
+        bd: '2px solid blue',
+      })}
     >
       <Group justify="space-between" align="center">
         <div className={styles.flex1}>

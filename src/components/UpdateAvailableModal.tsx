@@ -6,7 +6,6 @@ import {
   Button,
   Card,
   Loader,
-  useMantineColorScheme,
   Anchor,
   Progress,
 } from '@mantine/core';
@@ -36,7 +35,6 @@ export const UpdateAvailableModal = ({
   downloadProgress = 0,
 }: UpdateAvailableModalProps) => {
   const [isUpdating, setIsUpdating] = useState(false);
-  const { colorScheme } = useMantineColorScheme();
 
   const handleUpdate = async () => {
     try {
@@ -61,19 +59,7 @@ export const UpdateAvailableModal = ({
       closeOnEscape={!isDownloading && !isUpdating}
     >
       <Stack gap="md">
-        <Card
-          withBorder
-          radius="md"
-          p="md"
-          bg={colorScheme === 'dark' ? 'dark.6' : 'gray.0'}
-          style={{
-            borderColor:
-              colorScheme === 'dark'
-                ? 'var(--mantine-color-orange-7)'
-                : 'var(--mantine-color-orange-3)',
-            borderWidth: '2px',
-          }}
-        >
+        <Card withBorder radius="md" p="md" bd="2px solid orange">
           <Stack gap="xs">
             <Group gap="md" align="center">
               <div>
@@ -85,11 +71,7 @@ export const UpdateAvailableModal = ({
                 </Text>
               </div>
 
-              <Text
-                size="lg"
-                c={colorScheme === 'dark' ? 'orange.4' : 'orange.6'}
-                fw={500}
-              >
+              <Text size="lg" c="orange" fw={500}>
                 →
               </Text>
 
@@ -97,11 +79,7 @@ export const UpdateAvailableModal = ({
                 <Text size="xs" c="dimmed">
                   Available Version
                 </Text>
-                <Text
-                  fw={500}
-                  size="sm"
-                  c={colorScheme === 'dark' ? 'orange.4' : 'orange.6'}
-                >
+                <Text fw={500} size="sm" c="orange">
                   {availableUpdate.version}
                 </Text>
               </div>

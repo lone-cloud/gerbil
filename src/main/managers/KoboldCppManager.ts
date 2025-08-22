@@ -13,6 +13,9 @@ import {
 } from 'fs';
 import { rm } from 'fs/promises';
 import { dialog } from 'electron';
+import { execa } from 'execa';
+import { got } from 'got';
+import { pipeline } from 'stream/promises';
 import { GitHubService } from '@/main/services/GitHubService';
 import { ConfigManager } from '@/main/managers/ConfigManager';
 import { LogManager } from '@/main/managers/LogManager';
@@ -102,45 +105,24 @@ export class KoboldCppManager {
       }
     }
 
-    const response = await fetch(asset.browser_download_url);
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const totalBytes = asset.size;
-    let downloadedBytes = 0;
-
-    const reader = response.body?.getReader();
-    if (!reader) {
-      throw new Error('Failed to get response reader');
-    }
-
     const writer = createWriteStream(tempPackedFilePath);
+    let downloadedBytes = 0;
+    const totalBytes = asset.size;
 
     try {
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) break;
-
-        downloadedBytes += value.length;
-
-        writer.write(value);
-
-        if (onProgress && totalBytes > 0) {
-          onProgress((downloadedBytes / totalBytes) * 100);
-        }
-      }
-
-      writer.end();
-
-      await new Promise<void>((resolve, reject) => {
-        writer.on('finish', () => resolve());
-        writer.on('error', reject);
-      });
-    } finally {
-      reader.releaseLock();
+      await pipeline(
+        got
+          .stream(asset.browser_download_url)
+          .on('downloadProgress', (progress) => {
+            downloadedBytes = progress.transferred;
+            if (onProgress && totalBytes > 0) {
+              onProgress((downloadedBytes / totalBytes) * 100);
+            }
+          }),
+        writer
+      );
+    } catch (error) {
+      throw new Error(`Download failed: ${(error as Error).message}`);
     }
 
     if (process.platform !== 'win32') {
@@ -190,48 +172,21 @@ export class KoboldCppManager {
     packedPath: string,
     unpackDir: string
   ): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const unpackProcess = spawn(packedPath, ['--unpack', unpackDir], {
-        stdio: ['ignore', 'pipe', 'pipe'],
+    try {
+      await execa(packedPath, ['--unpack', unpackDir], {
         timeout: 30000,
+        stdio: ['ignore', 'pipe', 'pipe'],
       });
-
-      let output = '';
-      let errorOutput = '';
-
-      unpackProcess.stdout?.on('data', (data) => {
-        output += data.toString();
-      });
-
-      unpackProcess.stderr?.on('data', (data) => {
-        errorOutput += data.toString();
-      });
-
-      unpackProcess.on('close', (code) => {
-        if (code === 0) {
-          resolve();
-        } else {
-          reject(
-            new Error(
-              `Unpack failed with code ${code}: ${errorOutput || output}`
-            )
-          );
-        }
-      });
-
-      unpackProcess.on('error', (error) => {
-        reject(error);
-      });
-
-      setTimeout(() => {
-        try {
-          unpackProcess.kill('SIGTERM');
-        } catch {
-          void 0;
-        }
-        reject(new Error('Unpack process timed out'));
-      }, 30000);
-    });
+    } catch (error) {
+      const execaError = error as {
+        stderr?: string;
+        stdout?: string;
+        message: string;
+      };
+      const errorMessage =
+        execaError.stderr || execaError.stdout || execaError.message;
+      throw new Error(`Unpack failed: ${errorMessage}`);
+    }
   }
 
   private getLauncherPath(unpackedDir: string): string | null {
@@ -501,72 +456,40 @@ export class KoboldCppManager {
   }
 
   async getVersionFromBinary(binaryPath: string): Promise<string | null> {
-    return new Promise((resolve) => {
-      try {
-        if (!existsSync(binaryPath)) {
-          resolve(null);
-          return;
-        }
-
-        const process = spawn(binaryPath, ['--version'], {
-          stdio: ['ignore', 'pipe', 'pipe'],
-          timeout: 10000,
-          detached: false,
-        });
-
-        let output = '';
-        let errorOutput = '';
-
-        process.stdout.on('data', (data) => {
-          output += data.toString();
-        });
-
-        process.stderr.on('data', (data) => {
-          errorOutput += data.toString();
-        });
-
-        process.on('close', () => {
-          const allOutput = (output + errorOutput).trim();
-
-          if (/^\d+\.\d+/.test(allOutput)) {
-            const versionParts = allOutput.split(/\s+/)[0];
-            if (versionParts && /^\d+\.\d+/.test(versionParts)) {
-              resolve(versionParts);
-              return;
-            }
-          }
-
-          const lines = allOutput.split('\n');
-          for (const line of lines) {
-            const trimmedLine = line.trim();
-            if (/^\d+\.\d+/.test(trimmedLine)) {
-              const versionPart = trimmedLine.split(/\s+/)[0];
-              if (versionPart) {
-                resolve(versionPart);
-                return;
-              }
-            }
-          }
-
-          resolve(null);
-        });
-
-        process.on('error', () => {
-          resolve(null);
-        });
-
-        setTimeout(() => {
-          try {
-            process.kill('SIGTERM');
-          } catch {
-            void 0;
-          }
-          resolve(null);
-        }, 10000);
-      } catch {
-        resolve(null);
+    try {
+      if (!existsSync(binaryPath)) {
+        return null;
       }
-    });
+
+      const result = await execa(binaryPath, ['--version'], {
+        timeout: 10000,
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+
+      const allOutput = (result.stdout + result.stderr).trim();
+
+      if (/^\d+\.\d+/.test(allOutput)) {
+        const versionParts = allOutput.split(/\s+/)[0];
+        if (versionParts && /^\d+\.\d+/.test(versionParts)) {
+          return versionParts;
+        }
+      }
+
+      const lines = allOutput.split('\n');
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        if (/^\d+\.\d+/.test(trimmedLine)) {
+          const versionPart = trimmedLine.split(/\s+/)[0];
+          if (versionPart) {
+            return versionPart;
+          }
+        }
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
   }
 
   getCurrentInstallDir() {
@@ -733,41 +656,25 @@ export class KoboldCppManager {
         };
       }
 
-      const totalBytes = rocmInfo.size;
-      let downloadedBytes = 0;
-
-      const reader = response.body?.getReader();
-      if (!reader) {
-        return {
-          success: false,
-          error: 'Failed to get response reader',
-        };
-      }
-
       const writer = createWriteStream(tempPackedFilePath);
+      let downloadedBytes = 0;
+      const totalBytes = rocmInfo.size;
 
       try {
-        while (true) {
-          const { done, value } = await reader.read();
-
-          if (done) break;
-
-          downloadedBytes += value.length;
-          writer.write(value);
-
-          if (onProgress && totalBytes > 0) {
-            onProgress((downloadedBytes / totalBytes) * 100);
-          }
-        }
-
-        writer.end();
-
-        await new Promise<void>((resolve, reject) => {
-          writer.on('finish', resolve);
-          writer.on('error', reject);
-        });
-      } finally {
-        reader.releaseLock();
+        await pipeline(
+          got.stream(rocmInfo.url).on('downloadProgress', (progress) => {
+            downloadedBytes = progress.transferred;
+            if (onProgress && totalBytes > 0) {
+              onProgress((downloadedBytes / totalBytes) * 100);
+            }
+          }),
+          writer
+        );
+      } catch (error) {
+        return {
+          success: false,
+          error: `Download failed: ${(error as Error).message}`,
+        };
       }
 
       if (process.platform !== 'win32') {

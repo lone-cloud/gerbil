@@ -120,7 +120,7 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
         flexDirection: 'column',
         backgroundColor:
           colorScheme === 'dark'
-            ? 'var(--mantine-color-dark-8)'
+            ? 'var(--mantine-color-dark-filled)'
             : 'var(--mantine-color-gray-0)',
         borderRadius: 'inherit',
         position: 'relative',
@@ -149,7 +149,7 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
                 color:
                   colorScheme === 'dark'
                     ? 'var(--mantine-color-gray-0)'
-                    : 'var(--mantine-color-dark-9)',
+                    : 'var(--mantine-color-dark-filled)',
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-word',
               }}
