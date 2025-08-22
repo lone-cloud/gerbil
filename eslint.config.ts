@@ -112,6 +112,7 @@ const config = [
 
       '@typescript-eslint/no-inferrable-types': 'warn',
       '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
 
       'sonarjs/cognitive-complexity': ['warn', 25],
 

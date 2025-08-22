@@ -138,6 +138,7 @@ export const LaunchScreen = ({
     gpulayers: gpuLayers,
     contextsize: contextSize,
     model: modelPath,
+    additionalArguments,
     port,
     host,
     multiuser: multiuser ? 1 : 0,
@@ -197,7 +198,7 @@ export const LaunchScreen = ({
         'No configuration file selected for saving',
         new Error('Selected file is null')
       );
-      return;
+      return false;
     }
 
     try {
@@ -213,12 +214,16 @@ export const LaunchScreen = ({
           'Failed to save configuration',
           new Error('Save operation failed')
         );
+        return false;
       }
+
+      return true;
     } catch (error) {
       window.electronAPI.logs.logError(
         'Failed to save configuration:',
         error as Error
       );
+      return false;
     }
   };
 

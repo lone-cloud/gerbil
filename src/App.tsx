@@ -241,7 +241,7 @@ export const App = () => {
           }}
         >
           {currentScreen === null ? (
-            <Center h="100%" style={{ minHeight: '400px' }}>
+            <Center h="100%" style={{ minHeight: '25rem' }}>
               <Stack align="center" gap="lg">
                 <Loader size="xl" type="dots" />
                 <Text c="dimmed" size="lg">

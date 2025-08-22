@@ -14,7 +14,7 @@ import {
   forwardRef,
   type ComponentPropsWithoutRef,
 } from 'react';
-import { Save, File, Plus } from 'lucide-react';
+import { Save, File, Plus, Check } from 'lucide-react';
 import type { ConfigFile } from '@/types';
 import styles from '@/styles/layout.module.css';
 
@@ -23,7 +23,7 @@ interface ConfigFileManagerProps {
   selectedFile: string | null;
   onFileSelection: (fileName: string) => Promise<void>;
   onCreateNewConfig: (configName: string) => Promise<void>;
-  onSaveConfig: () => void;
+  onSaveConfig: () => Promise<boolean>;
   onLoadConfigFiles: () => Promise<void>;
 }
 
@@ -69,6 +69,7 @@ export const ConfigFileManager = ({
 }: ConfigFileManagerProps) => {
   const [configModalOpened, setConfigModalOpened] = useState(false);
   const [newConfigName, setNewConfigName] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const existingConfigNames = configFiles.map((file) => {
     const extension = file.name.split('.').pop() || '';
@@ -89,11 +90,22 @@ export const ConfigFileManager = ({
     setNewConfigName('');
   }, []);
 
-  const handleConfigSubmit = useCallback(() => {
-    onCreateNewConfig(newConfigName.trim());
-    setConfigModalOpened(false);
-    setNewConfigName('');
-  }, [newConfigName, onCreateNewConfig]);
+  const handleConfigSubmit = async () => {
+    await onCreateNewConfig(trimmedConfigName);
+    handleCloseConfigModal();
+  };
+
+  const handleSaveClick = async () => {
+    if (selectedFile) {
+      const success = await onSaveConfig();
+      if (success) {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 1500);
+      }
+    } else {
+      handleOpenConfigModal();
+    }
+  };
 
   const selectData = configFiles.map((file) => {
     const extension = file.name.split('.').pop() || '';
@@ -151,17 +163,13 @@ export const ConfigFileManager = ({
 
           <Button
             variant="outline"
-            leftSection={<Save size={14} />}
+            leftSection={saveSuccess ? <Check size={14} /> : <Save size={14} />}
             size="sm"
-            onClick={() => {
-              if (selectedFile) {
-                onSaveConfig();
-              } else {
-                handleOpenConfigModal();
-              }
-            }}
+            onClick={handleSaveClick}
+            color={saveSuccess ? 'green' : undefined}
+            style={{ width: '6rem' }}
           >
-            Save
+            {saveSuccess ? 'Saved!' : 'Save'}
           </Button>
         </Group>
       </Stack>

@@ -97,18 +97,6 @@ export const AdvancedTab = () => {
               label="MMAP"
               tooltip="Use MMAP to load models when enabled."
             />
-
-            <CheckboxWithTooltip
-              checked={lowvram}
-              onChange={handleLowvramChange}
-              label="Low VRAM"
-              tooltip={
-                backend !== 'cuda' && backend !== 'rocm'
-                  ? 'Low VRAM mode is only available for CUDA and ROCm backends.'
-                  : 'Avoid offloading KV Cache or scratch buffers to VRAM. Allows more layers to fit, but may result in a speed loss.'
-              }
-              disabled={backend !== 'cuda' && backend !== 'rocm'}
-            />
           </Group>
 
           <Group gap="lg" align="flex-start" wrap="nowrap">
@@ -120,6 +108,18 @@ export const AdvancedTab = () => {
                 backend !== 'cuda' && backend !== 'rocm'
                   ? 'QuantMatMul is only available for CUDA and ROCm backends.'
                   : 'Enable MMQ mode to use finetuned kernels instead of default CuBLAS/HipBLAS for prompt processing.'
+              }
+              disabled={backend !== 'cuda' && backend !== 'rocm'}
+            />
+
+            <CheckboxWithTooltip
+              checked={lowvram}
+              onChange={handleLowvramChange}
+              label="Low VRAM"
+              tooltip={
+                backend !== 'cuda' && backend !== 'rocm'
+                  ? 'Low VRAM mode is only available for CUDA and ROCm backends.'
+                  : 'Avoid offloading KV Cache or scratch buffers to VRAM. Allows more layers to fit, but may result in a speed loss.'
               }
               disabled={backend !== 'cuda' && backend !== 'rocm'}
             />
