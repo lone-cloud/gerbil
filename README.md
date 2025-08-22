@@ -42,7 +42,9 @@ A koboldcpp manager. <!-- markdownlint-disable MD033 -->
 
 There is ROCm Windows support maintained by YellowRoseCx in a separate fork.
 Unfortunately it does not properly support unpacking, which would greatly diminish its performance and provide a poor UX when used alongside this app.
-For Friendly Kobold to work with this fork, this issue must be fixed first: https://github.com/YellowRoseCx/koboldcpp-rocm/issues/129
+For Friendly Kobold to work with this fork, [this issue must be fixed first](https://github.com/YellowRoseCx/koboldcpp-rocm/issues/129).
+
+Note that this build is not important as modern day Vulkan matches or even surpasses ROCm in terms of LLM performance for most cases.
 
 ### Future features
 

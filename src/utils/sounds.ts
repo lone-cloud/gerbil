@@ -19,7 +19,7 @@ export const soundAssets = {
 const audioCache = new Map<string, HTMLAudioElement>();
 let audioInitialized = false;
 
-export const initializeAudio = async (): Promise<void> => {
+export const initializeAudio = async () => {
   if (audioInitialized) return;
 
   try {
@@ -50,10 +50,7 @@ export const initializeAudio = async (): Promise<void> => {
   }
 };
 
-export const playSound = async (
-  soundUrl: string,
-  volume = 0.5
-): Promise<void> => {
+export const playSound = async (soundUrl: string, volume = 0.5) => {
   try {
     if (!audioInitialized) {
       await initializeAudio();

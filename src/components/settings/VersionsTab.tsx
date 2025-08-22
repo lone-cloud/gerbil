@@ -347,7 +347,7 @@ export const VersionsTab = () => {
         return (
           <div
             key={`${version.name}-${version.version}-${index}`}
-            style={{ paddingBottom: '8px' }}
+            style={{ paddingBottom: '0.5rem' }}
             ref={isDownloading ? downloadingItemRef : null}
           >
             <DownloadCard

@@ -113,7 +113,7 @@ export const UpdateAvailableModal = ({
           </Stack>
         </Card>
 
-        <Stack gap="xs" style={{ minHeight: '44px' }}>
+        <Stack gap="xs" style={{ minHeight: '2.75rem' }}>
           <Progress
             value={isDownloading ? Math.min(downloadProgress, 100) : 0}
             color="orange"

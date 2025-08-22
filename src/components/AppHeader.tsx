@@ -66,7 +66,7 @@ export const AppHeader = ({
   return (
     <AppShell.Header>
       <Group h="100%" px="md" justify="space-between" align="center">
-        <div style={{ minWidth: '100px' }}>
+        <div style={{ minWidth: '6.25rem' }}>
           {currentScreen === 'interface' ? (
             <Button
               variant="light"
@@ -121,14 +121,14 @@ export const AppHeader = ({
             placeholder="Select view"
             styles={{
               input: {
-                minWidth: '150px',
+                minWidth: '9.375rem',
                 textAlign: 'center',
                 border: 'none',
                 backgroundColor: 'transparent',
                 fontWeight: 500,
               },
               dropdown: {
-                minWidth: '150px',
+                minWidth: '9.375rem',
               },
             }}
           />
@@ -136,7 +136,7 @@ export const AppHeader = ({
 
         <div
           style={{
-            minWidth: '100px',
+            minWidth: '6.25rem',
             display: 'flex',
             justifyContent: 'flex-end',
           }}

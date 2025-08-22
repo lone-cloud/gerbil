@@ -166,6 +166,12 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
         updates.modelPath = configData.model;
       }
 
+      if (typeof configData.additionalArguments === 'string') {
+        updates.additionalArguments = configData.additionalArguments;
+      } else {
+        updates.additionalArguments = '';
+      }
+
       if (typeof configData.port === 'number') {
         updates.port = configData.port;
       } else {
