@@ -161,4 +161,5 @@ jobs:
     uses: ./.github/workflows/aur-release.yml
     with:
       tag: ${{ github.ref_name }}
+      pkgrel: '1'
     secrets: inherit

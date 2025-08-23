@@ -11,12 +11,22 @@ on:
         description: 'Tag version to release to AUR (e.g., v0.5.1)'
         required: true
         type: string
+      pkgrel:
+        description: 'Package release number (default: 1)'
+        required: false
+        type: string
+        default: '1'
   workflow_call:
     inputs:
       tag:
         description: 'Tag version to release to AUR'
         required: true
         type: string
+      pkgrel:
+        description: 'Package release number (default: 1)'
+        required: false
+        type: string
+        default: '1'
 
 jobs:
   aur-release:
@@ -81,9 +91,48 @@ jobs:
       - name: Download artifacts and calculate SHA256s
         id: sha_calc
         run: |
-          # Download AppImage and desktop file, then calculate SHA256s
-          curl -L -o "friendly-kobold-${{ steps.release_info.outputs.version }}.AppImage" "${{ steps.release_info.outputs.appimage_url }}"
-          curl -L -o "friendly-kobold.desktop" "https://raw.githubusercontent.com/lone-cloud/friendly-kobold/${{ inputs.tag }}/assets/friendly-kobold.desktop"
+          # Download AppImage and desktop file with retry logic, then calculate SHA256s
+          max_attempts=3
+
+          # Download AppImage with retry
+          for attempt in $(seq 1 $max_attempts); do
+            echo "Attempt $attempt: Downloading AppImage..."
+            if curl -L -o "friendly-kobold-${{ steps.release_info.outputs.version }}.AppImage" "${{ steps.release_info.outputs.appimage_url }}"; then
+              echo "✅ AppImage downloaded successfully"
+              break
+            else
+              echo "❌ AppImage download failed, waiting 10 seconds..."
+              sleep 10
+              if [ $attempt -eq $max_attempts ]; then
+                echo "❌ Failed to download AppImage after $max_attempts attempts"
+                exit 1
+              fi
+            fi
+          done
+
+          # Download desktop file with retry
+          for attempt in $(seq 1 $max_attempts); do
+            echo "Attempt $attempt: Downloading desktop file..."
+            if curl -L -o "friendly-kobold.desktop" "https://raw.githubusercontent.com/lone-cloud/friendly-kobold/${{ inputs.tag }}/assets/friendly-kobold.desktop"; then
+              echo "✅ Desktop file downloaded successfully"
+              break
+            else
+              echo "❌ Desktop file download failed, waiting 10 seconds..."
+              sleep 10
+              if [ $attempt -eq $max_attempts ]; then
+                echo "❌ Failed to download desktop file after $max_attempts attempts"
+                exit 1
+              fi
+            fi
+          done
+
+          # Verify file sizes
+          appimage_size=$(stat -c%s "friendly-kobold-${{ steps.release_info.outputs.version }}.AppImage")
+          echo "AppImage size: $appimage_size bytes"
+          if [ $appimage_size -lt 50000000 ]; then  # Less than 50MB is suspicious
+            echo "❌ AppImage seems too small ($appimage_size bytes), possible download issue"
+            exit 1
+          fi
 
           SHA256_APPIMAGE=$(sha256sum "friendly-kobold-${{ steps.release_info.outputs.version }}.AppImage" | cut -d' ' -f1)
           SHA256_DESKTOP=$(sha256sum "friendly-kobold.desktop" | cut -d' ' -f1)
@@ -100,7 +149,7 @@ jobs:
           # Maintainer: ${{ steps.release_info.outputs.author_name }} <${{ steps.release_info.outputs.author_email }}>
           pkgname=friendly-kobold
           pkgver=${{ steps.release_info.outputs.version }}
-          pkgrel=3
+          pkgrel=${{ inputs.pkgrel || '1' }}
           pkgdesc="A desktop app for running Large Language Models locally"
           arch=('x86_64')
           url="https://github.com/lone-cloud/friendly-kobold"
@@ -167,7 +216,7 @@ jobs:
           pkgbase = friendly-kobold
           	pkgdesc = A desktop app for running Large Language Models locally
           	pkgver = ${{ steps.release_info.outputs.version }}
-          	pkgrel = 3
+          	pkgrel = ${{ inputs.pkgrel || '1' }}
           	url = https://github.com/lone-cloud/friendly-kobold
           	arch = x86_64
           	license = AGPL-3.0-or-later
@@ -193,7 +242,7 @@ jobs:
           commit_username: ${{ steps.release_info.outputs.author_name }}
           commit_email: ${{ steps.release_info.outputs.author_email }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-          commit_message: 'Update to ${{ steps.release_info.outputs.version }}'
+          commit_message: "Update to ${{ steps.release_info.outputs.version }}-${{ inputs.pkgrel || '1' }}"
           ssh_keyscan_types: rsa,ecdsa,ed25519
 
       - name: Create AUR release summary
