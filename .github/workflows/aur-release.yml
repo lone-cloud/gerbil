@@ -30,32 +30,37 @@ jobs:
 
       - name: Get release information
         id: release_info
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+            
+            const tag = "${{ inputs.tag }}";
+            const version = tag.replace(/^v/, '');
+            const authorName = packageJson.author.name;
+            const authorEmail = packageJson.author.email;
+            const appImageUrl = `https://github.com/lone-cloud/friendly-kobold/releases/download/${tag}/Friendly%20Kobold-${version}.AppImage`;
+            
+            core.setOutput('version', version);
+            core.setOutput('tag', tag);
+            core.setOutput('author_name', authorName);
+            core.setOutput('author_email', authorEmail);
+            core.setOutput('appimage_url', appImageUrl);
+            
+            console.log(`Release info:`);
+            console.log(`Version: ${version}`);
+            console.log(`Tag: ${tag}`);
+            console.log(`Author: ${authorName} <${authorEmail}>`);
+            console.log(`AppImage URL: ${appImageUrl}`);
+
+      - name: Download AppImage and calculate SHA256
+        id: sha_calc
         run: |
-          TAG="${{ inputs.tag }}"
-          VERSION=${TAG#v}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-
-          # Get author info from package.json
-          AUTHOR_NAME=$(node -p "require('./package.json').author.name")
-          AUTHOR_EMAIL=$(node -p "require('./package.json').author.email")
-          echo "author_name=$AUTHOR_NAME" >> $GITHUB_OUTPUT
-          echo "author_email=$AUTHOR_EMAIL" >> $GITHUB_OUTPUT
-
-          # Get AppImage download URL from GitHub release  
-          APPIMAGE_URL="https://github.com/lone-cloud/friendly-kobold/releases/download/$TAG/Friendly%20Kobold-$VERSION.AppImage"
-          echo "appimage_url=$APPIMAGE_URL" >> $GITHUB_OUTPUT
-
           # Download AppImage to calculate SHA256
-          curl -L -o "friendly-kobold-$VERSION.AppImage" "$APPIMAGE_URL"
-          SHA256=$(sha256sum "friendly-kobold-$VERSION.AppImage" | cut -d' ' -f1)
+          curl -L -o "friendly-kobold-${{ steps.release_info.outputs.version }}.AppImage" "${{ steps.release_info.outputs.appimage_url }}"
+          SHA256=$(sha256sum "friendly-kobold-${{ steps.release_info.outputs.version }}.AppImage" | cut -d' ' -f1)
           echo "sha256=$SHA256" >> $GITHUB_OUTPUT
-
-          echo "Release info:"
-          echo "Version: $VERSION"
-          echo "Tag: $TAG" 
-          echo "Author: $AUTHOR_NAME <$AUTHOR_EMAIL>"
-          echo "AppImage URL: $APPIMAGE_URL"
           echo "SHA256: $SHA256"
 
       - name: Generate PKGBUILD
@@ -74,7 +79,7 @@ jobs:
           provides=('friendly-kobold')
           conflicts=('friendly-kobold-git')
           source=("friendly-kobold-${pkgver}.AppImage::${{ steps.release_info.outputs.appimage_url }}")
-          sha256sums=('${{ steps.release_info.outputs.sha256 }}')
+          sha256sums=('${{ steps.sha_calc.outputs.sha256 }}')
 
           prepare() {
               chmod +x "friendly-kobold-${pkgver}.AppImage"
@@ -116,14 +121,29 @@ jobs:
           }
           EOF
 
-      - name: Validate PKGBUILD
+      - name: Create .SRCINFO
         run: |
-          # Install tools needed for validation
-          sudo pacman -Sy --noconfirm namcap
+          # Create .SRCINFO file (required for AUR)
+          cat > .SRCINFO << 'EOF'
+          pkgbase = friendly-kobold
+          	pkgdesc = A modern Electron shell for KoboldCpp
+          	pkgver = ${{ steps.release_info.outputs.version }}
+          	pkgrel = 1
+          	url = https://github.com/lone-cloud/friendly-kobold
+          	arch = x86_64
+          	license = AGPL-3.0-or-later
+          	depends = gtk3
+          	depends = libxss
+          	depends = nss
+          	depends = alsa-lib
+          	optdepends = koboldcpp: AI language model backend
+          	provides = friendly-kobold
+          	conflicts = friendly-kobold-git
+          	source = friendly-kobold-${{ steps.release_info.outputs.version }}.AppImage::${{ steps.release_info.outputs.appimage_url }}
+          	sha256sums = ${{ steps.sha_calc.outputs.sha256 }}
 
-          # Check PKGBUILD syntax
-          makepkg --printsrcinfo > .SRCINFO
-          namcap PKGBUILD || true
+          pkgname = friendly-kobold
+          EOF
 
       - name: Publish to AUR
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.2
