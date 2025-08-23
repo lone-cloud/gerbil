@@ -27,11 +27,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Get Node.js and Yarn versions from package.json
+        id: versions
+        run: |
+          # Use system node to read package.json (GitHub runners have Node.js pre-installed)
+          NODE_VERSION=$(node -p "require('./package.json').volta.node")
+          YARN_VERSION=$(node -p "require('./package.json').volta.yarn")
+          echo "node-version=$NODE_VERSION" >> $GITHUB_OUTPUT
+          echo "yarn-version=$YARN_VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Using Node.js $NODE_VERSION and Yarn $YARN_VERSION from package.json"
+
       - name: Setup Node.js with Volta
         uses: volta-cli/action@v4
         with:
-          node-version: '22.18.0'
-          yarn-version: '4.9.2'
+          node-version: ${{ steps.versions.outputs.node-version }}
+          yarn-version: ${{ steps.versions.outputs.yarn-version }}
 
       - name: Install dependencies
         run: yarn
@@ -141,3 +151,10 @@ jobs:
           done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  aur-release:
+    needs: release
+    uses: ./.github/workflows/aur-release.yml
+    with:
+      tag: ${{ github.ref_name }}
+    secrets: inherit

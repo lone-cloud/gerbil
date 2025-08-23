@@ -1,7 +1,7 @@
 {
   "name": "friendly-kobold",
   "productName": "Friendly Kobold",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "A modern Electron shell for KoboldCpp",
   "main": "out/main/index.js",
   "homepage": "./",
@@ -11,9 +11,9 @@
   },
   "volta": {
     "node": "22.18.0",
-    "yarn": "4.9.2"
+    "yarn": "4.9.3"
   },
-  "packageManager": "yarn@4.9.2",
+  "packageManager": "yarn@4.9.3",
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
@@ -46,11 +46,14 @@
     "ai",
     "llm"
   ],
-  "author": "lone-cloud",
+  "author": {
+    "name": "lone-cloud",
+    "email": "hoboman313@proton.me"
+  },
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@cspell/eslint-plugin": "^9.2.0",
-    "@eslint/js": "^9.33.0",
+    "@eslint/js": "^9.34.0",
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.11",
     "@types/react-dom": "^19.1.7",
@@ -62,7 +65,7 @@
     "electron": "^37.3.1",
     "electron-builder": "^26.0.12",
     "electron-vite": "^4.0.0",
-    "eslint": "^9.33.0",
+    "eslint": "^9.34.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-no-comments": "^1.1.10",
     "eslint-plugin-react": "^7.37.5",
