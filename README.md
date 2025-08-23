@@ -1,14 +1,14 @@
 # Friendly Kobold
 
-A modern desktop app for running Large Language Models locally. <!-- markdownlint-disable MD033 -->
+A desktop app for running Large Language Models locally. <!-- markdownlint-disable MD033 -->
 <img src="assets/icon.png" alt="FriendlyKobold Icon" width="32" height="32">
 
 <!-- markdownlint-enable MD033 -->
 
 ## Core Features
 
-- **Run LLMs locally** with a modern, intuitive interface powered by [KoboldCpp](https://github.com/LostRuins/koboldcpp)
-- **Full Linux Wayland support** for seamless integration with modern Linux desktops
+- **Run LLMs locally** with an intuitive interface powered by [KoboldCpp](https://github.com/LostRuins/koboldcpp)
+- **Full Linux Wayland support** for seamless integration with Linux desktops
 - **Automatic updates** - Download and keep your KoboldCpp binary up-to-date effortlessly
 - **Smart process management** - Prevents runaway background processes and system resource waste
 - **Optimized performance** - Automatically unpacks binaries for faster operation and reduced memory usage (up to ~4GB less RAM)
@@ -18,19 +18,13 @@ A modern desktop app for running Large Language Models locally. <!-- markdownlin
 
 ## Installation
 
-### Pre-built Binaries (Recommended)
+### Pre-built Binaries
 
 Download the latest release for your platform from the [GitHub Releases page](https://github.com/lone-cloud/friendly-kobold/releases/latest):
 
 - **Windows**: `Friendly-Kobold-X.X.X.exe` (portable executable)
 - **macOS**: `Friendly-Kobold-X.X.X.dmg` (disk image)
 - **Linux**: `Friendly-Kobold-X.X.X.AppImage` (portable application)
-
-#### Linux - AppImage
-
-1. Download the `.AppImage` file
-2. Make it executable: `chmod +x Friendly-Kobold-X.X.X.AppImage`
-3. Run it: `./Friendly-Kobold-X.X.X.AppImage`
 
 #### Linux - AUR (Arch Linux)
 
@@ -85,7 +79,7 @@ There is ROCm Windows support maintained by YellowRoseCx in a separate fork.
 Unfortunately it does not properly support unpacking, which would greatly diminish its performance and provide a poor UX when used alongside this app.
 For Friendly Kobold to work with this fork, [this issue must be fixed first](https://github.com/YellowRoseCx/koboldcpp-rocm/issues/129).
 
-Note that this build is not important as the modern day Vulkan backend matches or even surpasses ROCm in terms of LLM performance for most cases.
+Note that this build is not important as the Vulkan backend matches or even surpasses ROCm in terms of LLM performance for most cases.
 
 ### Future features
 
