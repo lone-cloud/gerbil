@@ -25,28 +25,37 @@ export const checkBackendWarnings = async (
   const warnings: BackendWarning[] = [];
 
   try {
-    const [backendSupport, gpuCapabilities] = await Promise.all([
+    const [backendSupport, gpuCapabilities, gpuInfo] = await Promise.all([
       window.electronAPI.kobold.detectBackendSupport(),
       window.electronAPI.kobold.detectGPUCapabilities(),
+      window.electronAPI.kobold.detectGPU(),
     ]);
 
     if (!backendSupport) {
       return warnings;
     }
 
-    if (backendSupport.cuda && !gpuCapabilities.cuda.supported) {
+    if (
+      backendSupport.cuda &&
+      !gpuCapabilities.cuda.supported &&
+      gpuInfo.hasNVIDIA
+    ) {
       warnings.push({
         type: 'warning',
         message:
-          'Your KoboldCpp binary supports CUDA, but CUDA runtime is not detected on your system.',
+          'Your KoboldCpp binary supports CUDA and you have an NVIDIA GPU, but CUDA runtime is not detected on your system.',
       });
     }
 
-    if (backendSupport.rocm && !gpuCapabilities.rocm.supported) {
+    if (
+      backendSupport.rocm &&
+      !gpuCapabilities.rocm.supported &&
+      gpuInfo.hasAMD
+    ) {
       warnings.push({
         type: 'warning',
         message:
-          'Your KoboldCpp binary supports ROCm, but ROCm runtime is not detected on your system.',
+          'Your KoboldCpp binary supports ROCm and you have an AMD GPU, but ROCm runtime is not detected on your system.',
       });
     }
 
