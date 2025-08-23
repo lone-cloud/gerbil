@@ -3,24 +3,15 @@ import { useState, useEffect, useRef } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { BackendSelectItem } from '@/components/screens/Launch/GeneralTab/BackendSelectItem';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
-import { checkBackendWarnings } from '@/utils/backendWarnings';
 
 interface BackendSelectorProps {
-  onWarningsChange?: (
-    warnings: Array<{ type: 'warning' | 'info'; message: string }>
-  ) => void;
   onBackendsReady?: () => void;
 }
 
-export const BackendSelector = ({
-  onWarningsChange,
-  onBackendsReady,
-}: BackendSelectorProps) => {
+export const BackendSelector = ({ onBackendsReady }: BackendSelectorProps) => {
   const {
     backend,
     gpuDevice,
-    noavx2,
-    failsafe,
     gpuLayers,
     autoGpuLayers,
     handleBackendChange,
@@ -32,10 +23,6 @@ export const BackendSelector = ({
   const [availableBackends, setAvailableBackends] = useState<
     Array<{ value: string; label: string; devices?: string[] }>
   >([]);
-  const [cpuCapabilities, setCpuCapabilities] = useState<{
-    avx: boolean;
-    avx2: boolean;
-  } | null>(null);
   const hasInitialized = useRef(false);
 
   useEffect(() => {
@@ -45,11 +32,6 @@ export const BackendSelector = ({
           window.electronAPI.kobold.detectCPU(),
           window.electronAPI.kobold.getAvailableBackends(),
         ]);
-
-        setCpuCapabilities({
-          avx: cpuCapabilitiesResult.avx,
-          avx2: cpuCapabilitiesResult.avx2,
-        });
 
         const cpuBackend = backends.find((b) => b.value === 'cpu');
         if (cpuBackend) {
@@ -86,38 +68,6 @@ export const BackendSelector = ({
 
     return cleanup;
   }, [onBackendsReady]);
-
-  useEffect(() => {
-    if (!onWarningsChange) return;
-
-    const updateWarnings = async () => {
-      try {
-        const warnings = await checkBackendWarnings({
-          backend,
-          cpuCapabilities,
-          noavx2,
-          failsafe,
-          availableBackends,
-        });
-        onWarningsChange(warnings);
-      } catch (error) {
-        window.electronAPI.logs.logError(
-          'Failed to check backend warnings:',
-          error as Error
-        );
-        onWarningsChange([]);
-      }
-    };
-
-    updateWarnings();
-  }, [
-    backend,
-    cpuCapabilities,
-    noavx2,
-    failsafe,
-    availableBackends,
-    onWarningsChange,
-  ]);
 
   return (
     <div>

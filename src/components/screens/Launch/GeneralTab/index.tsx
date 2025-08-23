@@ -7,16 +7,10 @@ import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 import styles from '@/styles/layout.module.css';
 
 interface GeneralTabProps {
-  onWarningsChange?: (
-    warnings: Array<{ type: 'warning' | 'info'; message: string }>
-  ) => void;
   onBackendsReady?: () => void;
 }
 
-export const GeneralTab = ({
-  onWarningsChange,
-  onBackendsReady,
-}: GeneralTabProps) => {
+export const GeneralTab = ({ onBackendsReady }: GeneralTabProps) => {
   const {
     modelPath,
     contextSize,
@@ -50,10 +44,7 @@ export const GeneralTab = ({
 
   return (
     <Stack gap="md">
-      <BackendSelector
-        onWarningsChange={onWarningsChange}
-        onBackendsReady={onBackendsReady}
-      />
+      <BackendSelector onBackendsReady={onBackendsReady} />
 
       <div>
         <Text size="sm" fw={500} mb="xs">
