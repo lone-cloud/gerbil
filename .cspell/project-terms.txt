@@ -32,6 +32,7 @@ KOBOLDCPP
 lora
 lowvram
 Lowvram
+makepkg
 maximizable
 minimizable
 MMAP
@@ -49,6 +50,7 @@ nvidia
 oldpc
 OLDPC
 opencl
+paru
 pkexec
 quantmatmul
 radeon
