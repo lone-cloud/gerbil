@@ -1,212 +1,169 @@
-import { useState, useEffect, useRef } from 'react';
-import {
-  Box,
-  ScrollArea,
-  Text,
-  ActionIcon,
-  useComputedColorScheme,
-} from '@mantine/core';
-import { ChevronDown } from 'lucide-react';
-import styles from '@/styles/layout.module.css';
+import { useEffect, useRef } from 'react';
+import { Box, useComputedColorScheme } from '@mantine/core';
+import { Terminal } from '@xterm/xterm';
+import { FitAddon } from '@xterm/addon-fit';
+import { WebLinksAddon } from '@xterm/addon-web-links';
+import '@xterm/xterm/css/xterm.css';
 import { UI } from '@/constants';
 
 interface TerminalTabProps {
   onServerReady?: (serverUrl: string) => void;
 }
 
-const handleCarriageReturns = (
-  prevContent: string,
-  newData: string
-): string => {
-  if (!newData.includes('\r')) {
-    return prevContent + newData;
-  }
-
-  try {
-    let result = prevContent;
-    let i = 0;
-
-    while (i < newData.length) {
-      const char = newData[i];
-
-      if (char === '\r') {
-        const nextChar = newData[i + 1];
-
-        if (nextChar === '\n') {
-          result += '\n';
-          i += 2;
-        } else {
-          const lines = result.split('\n');
-          if (lines.length > 0) {
-            const restOfData = newData.slice(i + 1);
-            const nextNewlinePos = restOfData.indexOf('\n');
-            const replacementText =
-              nextNewlinePos === -1
-                ? restOfData
-                : restOfData.slice(0, nextNewlinePos);
-
-            lines[lines.length - 1] = replacementText;
-            result = lines.join('\n');
-
-            i += 1 + replacementText.length;
-            if (nextNewlinePos !== -1) {
-              result += '\n';
-              i += 1;
-            }
-          } else {
-            i++;
-          }
-        }
-      } else {
-        result += char;
-        i++;
-      }
-    }
-
-    return result;
-  } catch (error) {
-    window.electronAPI.logs.logError('Terminal CR Error', error as Error);
-    return prevContent + newData;
-  }
-};
-
 export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
   const computedColorScheme = useComputedColorScheme('light', {
     getInitialValueInEffect: false,
   });
-  const [terminalContent, setTerminalContent] = useState<string>('');
-  const [isUserScrolling, setIsUserScrolling] = useState<boolean>(false);
-  const [shouldAutoScroll, setShouldAutoScroll] = useState<boolean>(true);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const lastScrollTop = useRef<number>(0);
+  const terminalRef = useRef<HTMLDivElement>(null);
+  const xtermRef = useRef<Terminal | null>(null);
+  const fitAddonRef = useRef<FitAddon | null>(null);
 
   const isDark = computedColorScheme === 'dark';
 
-  const handleScroll = ({ y }: { y: number }) => {
-    if (!viewportRef.current) return;
+  useEffect(() => {
+    if (!terminalRef.current) return;
 
-    const { scrollHeight, clientHeight } = viewportRef.current;
-    const isAtBottomNow = y + clientHeight >= scrollHeight - 10;
+    const terminal = new Terminal({
+      theme: {
+        background: '#1a1b1e',
+        foreground: '#ffffff',
+        cursor: '#ffffff',
+        selectionBackground: '#264f78',
+      },
+      fontFamily:
+        'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+      fontSize: 14,
+      lineHeight: 1.4,
+      cursorBlink: false,
+      disableStdin: true,
+      allowTransparency: false,
+      scrollback: 10000,
+      convertEol: true,
+    });
 
-    if (y < lastScrollTop.current) {
-      setIsUserScrolling(true);
-      setShouldAutoScroll(false);
-    } else if (isAtBottomNow) {
-      setIsUserScrolling(false);
-      setShouldAutoScroll(true);
-    }
+    const fitAddon = new FitAddon();
+    const webLinksAddon = new WebLinksAddon();
 
-    lastScrollTop.current = y;
-  };
+    terminal.loadAddon(fitAddon);
+    terminal.loadAddon(webLinksAddon);
+
+    terminal.open(terminalRef.current);
+
+    setTimeout(() => {
+      fitAddon.fit();
+    }, 100);
+
+    xtermRef.current = terminal;
+    fitAddonRef.current = fitAddon;
+
+    terminal.writeln('\x1b[90mStarting KoboldCpp...\x1b[0m');
+
+    return () => {
+      terminal.dispose();
+      xtermRef.current = null;
+      fitAddonRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
-    if (shouldAutoScroll && !isUserScrolling && viewportRef.current) {
-      const viewport = viewportRef.current;
-      viewport.scrollTop = viewport.scrollHeight;
+    if (xtermRef.current) {
+      const newTheme = {
+        background: isDark ? '#1a1b1e' : '#ffffff',
+        foreground: isDark ? '#ffffff' : '#000000',
+        cursor: isDark ? '#ffffff' : '#000000',
+        selectionBackground: isDark ? '#264f78' : '#0078d4',
+      };
+
+      xtermRef.current.options.theme = newTheme;
+
+      const element = xtermRef.current.element;
+      if (element) {
+        element.style.backgroundColor = newTheme.background;
+        element.style.color = newTheme.foreground;
+      }
+
+      xtermRef.current.refresh(0, xtermRef.current.rows - 1);
     }
-  }, [terminalContent, shouldAutoScroll, isUserScrolling]);
+  }, [isDark]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (fitAddonRef.current && xtermRef.current) {
+        setTimeout(() => {
+          fitAddonRef.current?.fit();
+        }, 50);
+      }
+    };
+
+    const resizeObserver = new ResizeObserver(handleResize);
+    if (terminalRef.current) {
+      resizeObserver.observe(terminalRef.current);
+    }
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     const cleanup = window.electronAPI.kobold.onKoboldOutput((data: string) => {
-      setTerminalContent((prev) => {
-        const newData = data.toString();
+      if (!xtermRef.current) return;
 
-        if (
-          onServerReady &&
-          newData.includes('Please connect to custom endpoint at ')
-        ) {
-          const match = newData.match(
-            /Please connect to custom endpoint at (http:\/\/[^\s]+)/
-          );
-          if (match) {
-            const serverUrl = match[1];
-            setTimeout(() => onServerReady(serverUrl), 1500);
-          }
+      const newData = data.toString();
+
+      if (
+        onServerReady &&
+        newData.includes('Please connect to custom endpoint at ')
+      ) {
+        const match = newData.match(
+          /Please connect to custom endpoint at (http:\/\/[^\s]+)/
+        );
+        if (match) {
+          const serverUrl = match[1];
+          setTimeout(() => onServerReady(serverUrl), 1500);
         }
+      }
 
-        return handleCarriageReturns(prev, newData);
-      });
+      xtermRef.current.write(newData);
+
+      setTimeout(() => {
+        if (xtermRef.current) {
+          xtermRef.current.scrollToBottom();
+        }
+      }, 0);
     });
 
     return cleanup;
   }, [onServerReady]);
 
-  const scrollToBottom = () => {
-    if (viewportRef.current) {
-      const viewport = viewportRef.current;
-      viewport.scrollTop = viewport.scrollHeight;
-      setShouldAutoScroll(true);
-      setIsUserScrolling(false);
-    }
-  };
-
   return (
     <Box
       style={{
         height: `calc(100vh - ${UI.HEADER_HEIGHT}px)`,
-        display: 'flex',
-        flexDirection: 'column',
         backgroundColor: isDark
           ? 'var(--mantine-color-dark-filled)'
           : 'var(--mantine-color-gray-0)',
         borderRadius: 'inherit',
-        position: 'relative',
+        padding: '0.5rem',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
-      <ScrollArea
-        ref={scrollAreaRef}
-        viewportRef={viewportRef}
-        onScrollPositionChange={handleScroll}
-        className={styles.terminalScrollArea}
-        scrollbarSize={8}
-        offsetScrollbars={false}
-      >
-        <Box p="md">
-          {terminalContent.length === 0 ? (
-            <Text c="dimmed" style={{ fontFamily: 'inherit' }}>
-              Starting KoboldCpp...
-            </Text>
-          ) : (
-            <div
-              style={{
-                margin: 0,
-                fontFamily:
-                  'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-                fontSize: '14px',
-                lineHeight: 1.4,
-                color: isDark
-                  ? 'var(--mantine-color-gray-0)'
-                  : 'var(--mantine-color-dark-filled)',
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-              }}
-            >
-              {terminalContent}
-            </div>
-          )}
-        </Box>
-      </ScrollArea>
-
-      {isUserScrolling && !shouldAutoScroll && (
-        <ActionIcon
-          variant="filled"
-          color="blue"
-          size="lg"
-          radius="xl"
-          onClick={scrollToBottom}
-          style={{
-            position: 'absolute',
-            bottom: '20px',
-            right: '20px',
-            zIndex: 10,
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-          }}
-          aria-label="Scroll to bottom"
-        >
-          <ChevronDown size={20} />
-        </ActionIcon>
-      )}
+      <div
+        ref={terminalRef}
+        style={{
+          height: '100%',
+          width: '100%',
+          flex: 1,
+          minHeight: 0,
+          backgroundColor: isDark ? '#1a1b1e' : '#ffffff',
+          borderRadius: '0.25rem',
+          overflow: 'hidden',
+        }}
+      />
     </Box>
   );
 };

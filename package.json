@@ -1,7 +1,7 @@
 {
   "name": "friendly-kobold",
   "productName": "Friendly Kobold",
-  "version": "0.5.7",
+  "version": "0.5.8",
   "description": "A modern desktop app for running Large Language Models locally",
   "main": "out/main/index.js",
   "homepage": "./",
@@ -88,6 +88,9 @@
   "dependencies": {
     "@mantine/core": "^8.2.7",
     "@mantine/hooks": "^8.2.7",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/addon-web-links": "^0.11.0",
+    "@xterm/xterm": "^5.5.0",
     "execa": "^9.6.0",
     "got": "^14.4.7",
     "lucide-react": "^0.541.0",
