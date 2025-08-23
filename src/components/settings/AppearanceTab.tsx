@@ -1,9 +1,13 @@
 import { Stack, Text, Group, SegmentedControl, rem } from '@mantine/core';
-import { useMantineColorScheme } from '@mantine/core';
+import { useMantineColorScheme, useComputedColorScheme } from '@mantine/core';
 import { Sun, Moon, Monitor } from 'lucide-react';
 
 export const AppearanceTab = () => {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
+  const computedColorScheme = useComputedColorScheme('light', {
+    getInitialValueInEffect: false,
+  });
+  const isDark = computedColorScheme === 'dark';
 
   return (
     <Stack gap="lg" h="100%">
@@ -22,14 +26,11 @@ export const AppearanceTab = () => {
           }
           styles={(theme) => ({
             indicator: {
-              backgroundColor:
-                colorScheme === 'dark'
-                  ? theme.colors.dark[5]
-                  : theme.colors.gray[2],
+              backgroundColor: isDark
+                ? theme.colors.dark[5]
+                : theme.colors.gray[2],
               border: `1px solid ${
-                colorScheme === 'dark'
-                  ? theme.colors.dark[4]
-                  : theme.colors.gray[4]
+                isDark ? theme.colors.dark[4] : theme.colors.gray[4]
               }`,
             },
           })}

@@ -88,7 +88,6 @@
   "dependencies": {
     "@mantine/core": "^8.2.7",
     "@mantine/hooks": "^8.2.7",
-    "ansi-to-html": "^0.7.2",
     "execa": "^9.6.0",
     "got": "^14.4.7",
     "lucide-react": "^0.541.0",

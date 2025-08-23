@@ -1,13 +1,12 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Box,
   ScrollArea,
   Text,
   ActionIcon,
-  useMantineColorScheme,
+  useComputedColorScheme,
 } from '@mantine/core';
 import { ChevronDown } from 'lucide-react';
-import Convert from 'ansi-to-html';
 import styles from '@/styles/layout.module.css';
 import { UI } from '@/constants';
 
@@ -39,19 +38,20 @@ const handleCarriageReturns = (
         } else {
           const lines = result.split('\n');
           if (lines.length > 0) {
-            const lastLineIndex = lines.length - 1;
             const restOfData = newData.slice(i + 1);
-            const nextCrOrLfIndex = restOfData.search(/[\r\n]/);
+            const nextNewlinePos = restOfData.indexOf('\n');
+            const replacementText =
+              nextNewlinePos === -1
+                ? restOfData
+                : restOfData.slice(0, nextNewlinePos);
 
-            if (nextCrOrLfIndex === -1) {
-              lines[lastLineIndex] = restOfData;
-              result = lines.join('\n');
-              break;
-            } else {
-              const replacement = restOfData.slice(0, nextCrOrLfIndex);
-              lines[lastLineIndex] = replacement;
-              result = lines.join('\n');
-              i += 1 + nextCrOrLfIndex;
+            lines[lines.length - 1] = replacementText;
+            result = lines.join('\n');
+
+            i += 1 + replacementText.length;
+            if (nextNewlinePos !== -1) {
+              result += '\n';
+              i += 1;
             }
           } else {
             i++;
@@ -64,64 +64,24 @@ const handleCarriageReturns = (
     }
 
     return result;
-  } catch {
+  } catch (error) {
+    window.electronAPI.logs.logError('Terminal CR Error', error as Error);
     return prevContent + newData;
   }
 };
 
 export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
-  const { colorScheme } = useMantineColorScheme();
+  const computedColorScheme = useComputedColorScheme('light', {
+    getInitialValueInEffect: false,
+  });
   const [terminalContent, setTerminalContent] = useState<string>('');
-  const [formattedContent, setFormattedContent] = useState<string>('');
   const [isUserScrolling, setIsUserScrolling] = useState<boolean>(false);
   const [shouldAutoScroll, setShouldAutoScroll] = useState<boolean>(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const lastScrollTop = useRef<number>(0);
-  const updateTimeoutRef = useRef<number | null>(null);
-  const pendingContentRef = useRef<string>('');
 
-  const debouncedUpdateContent = useCallback((newContent: string) => {
-    pendingContentRef.current = newContent;
-
-    if (updateTimeoutRef.current) {
-      clearTimeout(updateTimeoutRef.current);
-    }
-
-    updateTimeoutRef.current = window.setTimeout(() => {
-      setTerminalContent(pendingContentRef.current);
-      updateTimeoutRef.current = null;
-    }, 16);
-  }, []);
-
-  const converter = useRef(
-    new Convert({
-      fg: colorScheme === 'dark' ? '#ffffff' : '#000000',
-      bg: colorScheme === 'dark' ? '#1a1b1e' : '#ffffff',
-      newline: false,
-      escapeXML: true,
-      stream: false,
-    })
-  );
-
-  useEffect(() => {
-    converter.current = new Convert({
-      fg: colorScheme === 'dark' ? '#ffffff' : '#000000',
-      bg: colorScheme === 'dark' ? '#1a1b1e' : '#ffffff',
-      newline: false,
-      escapeXML: true,
-      stream: false,
-    });
-    if (terminalContent) {
-      setFormattedContent(converter.current.toHtml(terminalContent));
-    }
-  }, [colorScheme, terminalContent]);
-
-  useEffect(() => {
-    if (terminalContent) {
-      setFormattedContent(converter.current.toHtml(terminalContent));
-    }
-  }, [terminalContent]);
+  const isDark = computedColorScheme === 'dark';
 
   const handleScroll = ({ y }: { y: number }) => {
     if (!viewportRef.current) return;
@@ -145,7 +105,7 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
       const viewport = viewportRef.current;
       viewport.scrollTop = viewport.scrollHeight;
     }
-  }, [formattedContent, shouldAutoScroll, isUserScrolling]);
+  }, [terminalContent, shouldAutoScroll, isUserScrolling]);
 
   useEffect(() => {
     const cleanup = window.electronAPI.kobold.onKoboldOutput((data: string) => {
@@ -165,19 +125,12 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
           }
         }
 
-        const newContent = handleCarriageReturns(prev, newData);
-
-        if (newData.includes('\r') && !newData.includes('\n')) {
-          debouncedUpdateContent(newContent);
-          return prev;
-        }
-
-        return newContent;
+        return handleCarriageReturns(prev, newData);
       });
     });
 
     return cleanup;
-  }, [onServerReady, debouncedUpdateContent]);
+  }, [onServerReady]);
 
   const scrollToBottom = () => {
     if (viewportRef.current) {
@@ -194,10 +147,9 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
         height: `calc(100vh - ${UI.HEADER_HEIGHT}px)`,
         display: 'flex',
         flexDirection: 'column',
-        backgroundColor:
-          colorScheme === 'dark'
-            ? 'var(--mantine-color-dark-filled)'
-            : 'var(--mantine-color-gray-0)',
+        backgroundColor: isDark
+          ? 'var(--mantine-color-dark-filled)'
+          : 'var(--mantine-color-gray-0)',
         borderRadius: 'inherit',
         position: 'relative',
       }}
@@ -219,18 +171,19 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
             <div
               style={{
                 margin: 0,
-                fontFamily: 'inherit',
-                fontSize: 'inherit',
-                lineHeight: 'inherit',
-                color:
-                  colorScheme === 'dark'
-                    ? 'var(--mantine-color-gray-0)'
-                    : 'var(--mantine-color-dark-filled)',
+                fontFamily:
+                  'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                fontSize: '14px',
+                lineHeight: 1.4,
+                color: isDark
+                  ? 'var(--mantine-color-gray-0)'
+                  : 'var(--mantine-color-dark-filled)',
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-word',
               }}
-              dangerouslySetInnerHTML={{ __html: formattedContent }}
-            />
+            >
+              {terminalContent}
+            </div>
           )}
         </Box>
       </ScrollArea>

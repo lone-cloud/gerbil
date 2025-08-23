@@ -8,6 +8,7 @@ import {
   Loader,
   Progress,
   rem,
+  useComputedColorScheme,
 } from '@mantine/core';
 import { Download } from 'lucide-react';
 import { MouseEvent } from 'react';
@@ -46,6 +47,10 @@ export const DownloadCard = ({
   onMakeCurrent,
   onUpdate,
 }: DownloadCardProps) => {
+  const computedColorScheme = useComputedColorScheme('light', {
+    getInitialValueInEffect: false,
+  });
+  const isDark = computedColorScheme === 'dark';
   const renderActionButton = () => {
     if (hasUpdate && onUpdate) {
       return (
@@ -107,9 +112,8 @@ export const DownloadCard = ({
       radius="sm"
       padding="sm"
       {...(isCurrent && {
-        c: 'blue',
-        bg: 'blue.0',
-        bd: '2px solid blue',
+        bg: isDark ? 'dark.6' : 'gray.0',
+        bd: `2px solid var(--mantine-color-${isDark ? 'blue-4' : 'blue-6'})`,
       })}
     >
       <Group justify="space-between" align="center">
