@@ -4,6 +4,11 @@ export interface CPUCapabilities {
   devices: string[];
 }
 
+export interface GPUMemoryInfo {
+  deviceName: string;
+  totalMemoryMB: number | null;
+}
+
 export interface GPUCapabilities {
   cuda: {
     supported: boolean;

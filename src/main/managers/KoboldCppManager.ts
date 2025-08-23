@@ -142,8 +142,10 @@ export class KoboldCppManager {
       try {
         unlinkSync(tempPackedFilePath);
       } catch (error) {
-        // eslint-disable-next-line no-console
-        console.warn('Failed to cleanup packed file:', error);
+        this.logManager.logError(
+          'Failed to cleanup packed file:',
+          error as Error
+        );
       }
 
       const launcherPath = this.getLauncherPath(unpackedDirPath);
@@ -700,8 +702,10 @@ export class KoboldCppManager {
         try {
           unlinkSync(tempPackedFilePath);
         } catch (error) {
-          // eslint-disable-next-line no-console
-          console.warn('Failed to cleanup packed ROCm file:', error);
+          this.logManager.logError(
+            'Failed to cleanup packed ROCm file:',
+            error as Error
+          );
         }
 
         const launcherPath = this.getLauncherPath(unpackedDirPath);

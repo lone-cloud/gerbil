@@ -100,7 +100,7 @@ jobs:
           # Maintainer: ${{ steps.release_info.outputs.author_name }} <${{ steps.release_info.outputs.author_email }}>
           pkgname=friendly-kobold
           pkgver=${{ steps.release_info.outputs.version }}
-          pkgrel=2
+          pkgrel=3
           pkgdesc="A desktop app for running Large Language Models locally"
           arch=('x86_64')
           url="https://github.com/lone-cloud/friendly-kobold"
@@ -167,7 +167,7 @@ jobs:
           pkgbase = friendly-kobold
           	pkgdesc = A desktop app for running Large Language Models locally
           	pkgver = ${{ steps.release_info.outputs.version }}
-          	pkgrel = 2
+          	pkgrel = 3
           	url = https://github.com/lone-cloud/friendly-kobold
           	arch = x86_64
           	license = AGPL-3.0-or-later
