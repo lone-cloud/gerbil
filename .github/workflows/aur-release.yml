@@ -78,14 +78,21 @@ jobs:
             exit 1
           fi
 
-      - name: Download AppImage and calculate SHA256
+      - name: Download artifacts and calculate SHA256s
         id: sha_calc
         run: |
-          # Download AppImage to calculate SHA256
+          # Download AppImage and desktop file, then calculate SHA256s
           curl -L -o "friendly-kobold-${{ steps.release_info.outputs.version }}.AppImage" "${{ steps.release_info.outputs.appimage_url }}"
-          SHA256=$(sha256sum "friendly-kobold-${{ steps.release_info.outputs.version }}.AppImage" | cut -d' ' -f1)
-          echo "sha256=$SHA256" >> $GITHUB_OUTPUT
-          echo "SHA256: $SHA256"
+          curl -L -o "friendly-kobold.desktop" "https://raw.githubusercontent.com/lone-cloud/friendly-kobold/${{ inputs.tag }}/assets/friendly-kobold.desktop"
+
+          SHA256_APPIMAGE=$(sha256sum "friendly-kobold-${{ steps.release_info.outputs.version }}.AppImage" | cut -d' ' -f1)
+          SHA256_DESKTOP=$(sha256sum "friendly-kobold.desktop" | cut -d' ' -f1)
+
+          echo "sha256_appimage=$SHA256_APPIMAGE" >> $GITHUB_OUTPUT
+          echo "sha256_desktop=$SHA256_DESKTOP" >> $GITHUB_OUTPUT
+
+          echo "AppImage SHA256: $SHA256_APPIMAGE"
+          echo "Desktop SHA256: $SHA256_DESKTOP"
 
       - name: Generate PKGBUILD
         run: |
@@ -103,8 +110,10 @@ jobs:
                      'libxss: Screen saver detection support')
           provides=('friendly-kobold')
           conflicts=('friendly-kobold-git')
-          source=("friendly-kobold-${pkgver}.AppImage::${{ steps.release_info.outputs.appimage_url }}")
-          sha256sums=('${{ steps.sha_calc.outputs.sha256 }}')
+          source=("friendly-kobold-${pkgver}.AppImage::${{ steps.release_info.outputs.appimage_url }}"
+                  "friendly-kobold.desktop::https://raw.githubusercontent.com/lone-cloud/friendly-kobold/${{ steps.release_info.outputs.tag }}/assets/friendly-kobold.desktop")
+          sha256sums=('${{ steps.sha_calc.outputs.sha256_appimage }}'
+                      '${{ steps.sha_calc.outputs.sha256_desktop }}')
 
           prepare() {
               chmod +x "friendly-kobold-${pkgver}.AppImage"
@@ -129,7 +138,7 @@ jobs:
               
               # Install desktop file from assets
               install -dm755 "${pkgdir}/usr/share/applications"
-              cp "${srcdir}/../assets/friendly-kobold.desktop" "${pkgdir}/usr/share/applications/"
+              cp "${srcdir}/friendly-kobold.desktop" "${pkgdir}/usr/share/applications/"
               
               # Install icon
               install -dm755 "${pkgdir}/usr/share/pixmaps"
@@ -164,7 +173,9 @@ jobs:
           	provides = friendly-kobold
           	conflicts = friendly-kobold-git
           	source = friendly-kobold-${{ steps.release_info.outputs.version }}.AppImage::${{ steps.release_info.outputs.appimage_url }}
-          	sha256sums = ${{ steps.sha_calc.outputs.sha256 }}
+          	source = friendly-kobold.desktop::https://raw.githubusercontent.com/lone-cloud/friendly-kobold/${{ steps.release_info.outputs.tag }}/assets/friendly-kobold.desktop
+          	sha256sums = ${{ steps.sha_calc.outputs.sha256_appimage }}
+          	sha256sums = ${{ steps.sha_calc.outputs.sha256_desktop }}
 
           pkgname = friendly-kobold
           EOF
