@@ -122,10 +122,6 @@ Not all koboldcpp features have currently been ported over the UI. As a workarou
 
 It would make a lot of sense to transition this project to Tauri from Electron. The app size should drop from ~110MB to ~10MB; however, users on obsolete OSes (with outdated WebViews) will very likely encounter issues. In addition, I would need to learn Rust to rewrite the BE (Electron main code), but at least we can re-use all the React code. The app would be much smaller, faster and memory efficient, but not work for some users. I think it's a worthy tradeoff.
 
-### Dev notes
-
-- Maximum compression doesn't work well on Linux and causes the app start time to be over 30 secs. Reducing compression for Linux's AppImage builds, which increases file size by ~20MB, but makes its start up time reasonable again.
-
 ## License
 
 AGPL v3 License - see LICENSE file for details
