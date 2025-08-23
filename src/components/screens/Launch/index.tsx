@@ -25,9 +25,6 @@ export const LaunchScreen = ({
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [, setInstallDir] = useState<string>('');
   const [activeTab, setActiveTab] = useState<string | null>('general');
-  const [warnings, setWarnings] = useState<
-    Array<{ type: 'warning' | 'info'; message: string }>
-  >([]);
   const [configLoaded, setConfigLoaded] = useState<boolean>(false);
 
   const {
@@ -73,7 +70,14 @@ export const LaunchScreen = ({
     onLaunchModeChange,
   });
 
-  const combinedWarnings = useWarnings({ modelPath, sdmodel, warnings });
+  const { warnings: combinedWarnings } = useWarnings({
+    modelPath,
+    sdmodel,
+    backend,
+    noavx2,
+    failsafe,
+    configLoaded,
+  });
 
   const setHappyDefaults = useCallback(async () => {
     try {
@@ -302,7 +306,7 @@ export const LaunchScreen = ({
 
               <div>
                 <Tabs.Panel value="general" pt="md">
-                  <GeneralTab onWarningsChange={setWarnings} />
+                  <GeneralTab />
                 </Tabs.Panel>
 
                 <Tabs.Panel value="advanced" pt="md">
