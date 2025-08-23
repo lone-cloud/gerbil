@@ -16,10 +16,15 @@ jobs:
 
       - name: Get Node.js version from package.json
         id: versions
-        run: |
-          NODE_VERSION=$(node -p "require('./package.json').volta.node")
-          echo "node-version=$NODE_VERSION" >> $GITHUB_OUTPUT
-          echo "📦 Using Node.js $NODE_VERSION from package.json"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+            const nodeVersion = packageJson.volta.node;
+
+            core.setOutput('node-version', nodeVersion);
+            console.log(`📦 Using Node.js ${nodeVersion} from package.json`);
 
       - name: Enable Corepack
         run: corepack enable
