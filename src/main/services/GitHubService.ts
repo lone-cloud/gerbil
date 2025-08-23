@@ -24,8 +24,7 @@ export class GitHubService {
 
       if (!response.ok) {
         if (response.status === 403) {
-          // eslint-disable-next-line no-console
-          console.warn(
+          this.logManager.logError(
             'GitHub API rate limit reached, using cached data if available'
           );
           return this.cachedRelease
@@ -78,8 +77,7 @@ export class GitHubService {
 
       if (!response.ok) {
         if (response.status === 403) {
-          // eslint-disable-next-line no-console
-          console.warn(
+          this.logManager.logError(
             'GitHub API rate limit reached, using cached data if available'
           );
           return this.cachedRelease;

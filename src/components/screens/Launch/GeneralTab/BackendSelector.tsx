@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { BackendSelectItem } from '@/components/screens/Launch/GeneralTab/BackendSelectItem';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
+import { checkBackendWarnings } from '@/utils/backendWarnings';
 
 interface BackendSelectorProps {
   onWarningsChange?: (
@@ -89,41 +90,26 @@ export const BackendSelector = ({
   useEffect(() => {
     if (!onWarningsChange) return;
 
-    if (backend !== 'cpu' || !cpuCapabilities) {
-      onWarningsChange([]);
-      return;
-    }
+    const updateWarnings = async () => {
+      try {
+        const warnings = await checkBackendWarnings({
+          backend,
+          cpuCapabilities,
+          noavx2,
+          failsafe,
+          availableBackends,
+        });
+        onWarningsChange(warnings);
+      } catch (error) {
+        window.electronAPI.logs.logError(
+          'Failed to check backend warnings:',
+          error as Error
+        );
+        onWarningsChange([]);
+      }
+    };
 
-    const warnings: Array<{ type: 'warning' | 'info'; message: string }> = [];
-
-    if (!cpuCapabilities.avx2 && !noavx2) {
-      warnings.push({
-        type: 'warning',
-        message:
-          'Your CPU does not support AVX2. Enable the "Disable AVX2" option on the Advanced tab to avoid crashes.',
-      });
-    }
-
-    if (!cpuCapabilities.avx && !cpuCapabilities.avx2 && !failsafe) {
-      warnings.push({
-        type: 'warning',
-        message:
-          'Your CPU does not support AVX or AVX2. Enable the "Failsafe" option on the Advanced tab to avoid crashes.',
-      });
-    }
-
-    if (
-      availableBackends.length > 0 &&
-      availableBackends.some((b) => b.value === 'cpu')
-    ) {
-      warnings.push({
-        type: 'info',
-        message:
-          "Performance Note: LLMs run significantly faster on GPU-accelerated systems. Consider using NVIDIA's CUDA or AMD's ROCm backends for optimal performance.",
-      });
-    }
-
-    onWarningsChange(warnings);
+    updateWarnings();
   }, [
     backend,
     cpuCapabilities,

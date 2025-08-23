@@ -1,3 +1,4 @@
+alsa
 AMDGPU
 APPIMAGE
 asar
@@ -29,6 +30,7 @@ KOBOLDAI
 koboldcpp
 KoboldCpp
 KOBOLDCPP
+libxss
 lora
 lowvram
 Lowvram
@@ -50,8 +52,16 @@ nvidia
 oldpc
 OLDPC
 opencl
+optdepends
 paru
 pkexec
+pkgbase
+PKGBUILD
+pkgdesc
+pkgdir
+pkgname
+pkgrel
+pkgver
 quantmatmul
 radeon
 remotetunnel
@@ -70,6 +80,8 @@ SDXL
 Segoe
 sonarjs
 SPACEBAR
+squashfs
+SRCINFO
 taskkill
 Tauri
 togglefullscreen

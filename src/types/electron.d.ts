@@ -4,6 +4,7 @@ import type {
   BasicGPUInfo,
   HardwareInfo,
   PlatformInfo,
+  GPUMemoryInfo,
 } from '@/types/hardware';
 
 interface GitHubAsset {
@@ -67,15 +68,17 @@ export interface KoboldAPI {
   getPlatform: () => Promise<PlatformInfo>;
   detectGPU: () => Promise<BasicGPUInfo>;
   detectCPU: () => Promise<CPUCapabilities>;
+  detectGPUCapabilities: () => Promise<GPUCapabilities>;
+  detectGPUMemory: () => Promise<GPUMemoryInfo[]>;
   detectROCm: () => Promise<{ supported: boolean; devices: string[] }>;
-  detectBackendSupport: (binaryPath: string) => Promise<{
+  detectBackendSupport: () => Promise<{
     rocm: boolean;
     vulkan: boolean;
     clblast: boolean;
     noavx2: boolean;
     failsafe: boolean;
     cuda: boolean;
-  }>;
+  } | null>;
   getAvailableBackends: () => Promise<
     Array<{ value: string; label: string; devices?: string[] }>
   >;
@@ -92,8 +95,7 @@ export interface KoboldAPI {
   getROCmDownload: () => Promise<DownloadItem | null>;
   getLatestReleaseWithStatus: () => Promise<ReleaseWithStatus | null>;
   launchKoboldCpp: (
-    args?: string[],
-    configFilePath?: string
+    args?: string[]
   ) => Promise<{ success: boolean; pid?: number; error?: string }>;
   getConfigFiles: () => Promise<
     Array<{ name: string; path: string; size: number }>

@@ -14,17 +14,19 @@ const koboldAPI: KoboldAPI = {
   getPlatform: () => ipcRenderer.invoke('kobold:getPlatform'),
   detectGPU: () => ipcRenderer.invoke('kobold:detectGPU'),
   detectCPU: () => ipcRenderer.invoke('kobold:detectCPU'),
+  detectGPUCapabilities: () =>
+    ipcRenderer.invoke('kobold:detectGPUCapabilities'),
+  detectGPUMemory: () => ipcRenderer.invoke('kobold:detectGPUMemory'),
   detectROCm: () => ipcRenderer.invoke('kobold:detectROCm'),
-  detectBackendSupport: (binaryPath: string) =>
-    ipcRenderer.invoke('kobold:detectBackendSupport', binaryPath),
+  detectBackendSupport: () => ipcRenderer.invoke('kobold:detectBackendSupport'),
   getAvailableBackends: () => ipcRenderer.invoke('kobold:getAvailableBackends'),
   getCurrentInstallDir: () => ipcRenderer.invoke('kobold:getCurrentInstallDir'),
   selectInstallDirectory: () =>
     ipcRenderer.invoke('kobold:selectInstallDirectory'),
   downloadRelease: (asset) =>
     ipcRenderer.invoke('kobold:downloadRelease', asset),
-  launchKoboldCpp: (args?: string[], configFilePath?: string) =>
-    ipcRenderer.invoke('kobold:launchKoboldCpp', args, configFilePath),
+  launchKoboldCpp: (args?: string[]) =>
+    ipcRenderer.invoke('kobold:launchKoboldCpp', args),
   getConfigFiles: () => ipcRenderer.invoke('kobold:getConfigFiles'),
   saveConfigFile: (
     configName: string,

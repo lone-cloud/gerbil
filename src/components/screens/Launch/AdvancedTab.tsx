@@ -33,16 +33,14 @@ export const AdvancedTab = () => {
   useEffect(() => {
     const detectBackendSupport = async () => {
       try {
-        const currentBinaryInfo =
-          await window.electronAPI.kobold.getCurrentBinaryInfo();
-        if (currentBinaryInfo?.path) {
-          const support = await window.electronAPI.kobold.detectBackendSupport(
-            currentBinaryInfo.path
-          );
+        const support = await window.electronAPI.kobold.detectBackendSupport();
+        if (support) {
           setBackendSupport({
             noavx2: support.noavx2,
             failsafe: support.failsafe,
           });
+        } else {
+          setBackendSupport({ noavx2: false, failsafe: false });
         }
       } catch (error) {
         window.electronAPI.logs.logError(

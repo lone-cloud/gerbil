@@ -1,17 +1,25 @@
 /* eslint-disable no-comments/disallowComments */
 import si from 'systeminformation';
 import { shortenDeviceName } from '@/utils';
+import { LogManager } from '@/main/managers/LogManager';
 import type {
   CPUCapabilities,
   GPUCapabilities,
   BasicGPUInfo,
   HardwareInfo,
+  GPUMemoryInfo,
 } from '@/types/hardware';
 
 export class HardwareService {
   private cpuCapabilitiesCache: CPUCapabilities | null = null;
   private basicGPUInfoCache: BasicGPUInfo | null = null;
   private gpuCapabilitiesCache: GPUCapabilities | null = null;
+  private gpuMemoryInfoCache: GPUMemoryInfo[] | null = null;
+  private logManager: LogManager;
+
+  constructor(logManager: LogManager) {
+    this.logManager = logManager;
+  }
 
   async detectCPU(): Promise<CPUCapabilities> {
     if (this.cpuCapabilitiesCache) {
@@ -37,8 +45,7 @@ export class HardwareService {
 
       return this.cpuCapabilitiesCache;
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.warn('CPU detection failed:', error);
+      this.logManager.logError('CPU detection failed:', error as Error);
       const fallbackCapabilities = {
         avx: false,
         avx2: false,
@@ -98,8 +105,7 @@ export class HardwareService {
 
       return this.basicGPUInfoCache;
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.warn('GPU detection failed:', error);
+      this.logManager.logError('GPU detection failed:', error as Error);
       const fallbackGPUInfo = {
         hasAMD: false,
         hasNVIDIA: false,
@@ -442,5 +448,38 @@ export class HardwareService {
     } catch {
       return { supported: false, devices: [] };
     }
+  }
+
+  async detectGPUMemory(): Promise<GPUMemoryInfo[]> {
+    if (this.gpuMemoryInfoCache) {
+      return this.gpuMemoryInfoCache;
+    }
+
+    const memoryInfo: GPUMemoryInfo[] = [];
+
+    try {
+      const graphics = await si.graphics();
+
+      for (const controller of graphics.controllers) {
+        if (controller.model) {
+          let vram = controller.vram;
+          // systeminformation returns 0 or 1 if unknown/invalid
+          if (!vram || vram === 1) {
+            vram = null;
+          }
+          memoryInfo.push({
+            deviceName: shortenDeviceName(controller.model),
+            totalMemoryMB: vram,
+          });
+        }
+      }
+
+      this.gpuMemoryInfoCache = memoryInfo;
+    } catch (error) {
+      this.logManager.logError('GPU memory detection failed:', error as Error);
+      this.gpuMemoryInfoCache = [];
+    }
+
+    return this.gpuMemoryInfoCache;
   }
 }

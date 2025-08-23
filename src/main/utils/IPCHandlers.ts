@@ -112,6 +112,10 @@ export class IPCHandlers {
       this.hardwareService.detectGPUCapabilities()
     );
 
+    ipcMain.handle('kobold:detectGPUMemory', () =>
+      this.hardwareService.detectGPUMemory()
+    );
+
     ipcMain.handle('kobold:detectROCm', () =>
       this.hardwareService.detectROCm()
     );
@@ -120,8 +124,8 @@ export class IPCHandlers {
       this.hardwareService.detectAllWithCapabilities()
     );
 
-    ipcMain.handle('kobold:detectBackendSupport', (_, binaryPath: string) =>
-      this.binaryService.detectBackendSupport(binaryPath)
+    ipcMain.handle('kobold:detectBackendSupport', () =>
+      this.binaryService.detectBackendSupport()
     );
 
     ipcMain.handle('kobold:getAvailableBackends', () =>

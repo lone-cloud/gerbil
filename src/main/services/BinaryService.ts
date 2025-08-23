@@ -33,7 +33,9 @@ export class BinaryService {
     this.hardwareService = hardwareService;
   }
 
-  detectBackendSupport(koboldBinaryPath: string): BackendSupport {
+  private detectBackendSupportFromPath(
+    koboldBinaryPath: string
+  ): BackendSupport {
     if (this.backendSupportCache.has(koboldBinaryPath)) {
       return this.backendSupportCache.get(koboldBinaryPath)!;
     }
@@ -87,6 +89,24 @@ export class BinaryService {
     return support;
   }
 
+  async detectBackendSupport(): Promise<BackendSupport | null> {
+    try {
+      const currentBinaryInfo = await this.koboldManager.getCurrentBinaryInfo();
+
+      if (!currentBinaryInfo?.path) {
+        return null;
+      }
+
+      return this.detectBackendSupportFromPath(currentBinaryInfo.path);
+    } catch (error) {
+      this.logManager.logError(
+        'Error detecting current binary backend support:',
+        error as Error
+      );
+      return null;
+    }
+  }
+
   async getAvailableBackends(): Promise<
     Array<{ value: string; label: string; devices?: string[] }>
   > {
@@ -106,7 +126,12 @@ export class BinaryService {
         return this.availableBackendsCache.get(cacheKey)!;
       }
 
-      const backendSupport = this.detectBackendSupport(currentBinaryInfo.path);
+      const backendSupport = await this.detectBackendSupport();
+
+      if (!backendSupport) {
+        return [];
+      }
+
       const backends: Array<{
         value: string;
         label: string;

@@ -34,7 +34,7 @@ class FriendlyKoboldApp {
     this.ensureInstallDirectory();
     this.windowManager = new WindowManager();
     this.githubService = new GitHubService(this.logManager);
-    this.hardwareService = new HardwareService();
+    this.hardwareService = new HardwareService(this.logManager);
 
     this.koboldManager = new KoboldCppManager(
       this.configManager,
