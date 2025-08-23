@@ -35,19 +35,19 @@ jobs:
           script: |
             const fs = require('fs');
             const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
-            
+
             const tag = "${{ inputs.tag }}";
             const version = tag.replace(/^v/, '');
             const authorName = packageJson.author.name;
             const authorEmail = packageJson.author.email;
-            const appImageUrl = `https://github.com/lone-cloud/friendly-kobold/releases/download/${tag}/Friendly%20Kobold-${version}.AppImage`;
-            
+            const appImageUrl = `https://github.com/lone-cloud/friendly-kobold/releases/download/${tag}/Friendly.Kobold-${version}.AppImage`;
+
             core.setOutput('version', version);
             core.setOutput('tag', tag);
             core.setOutput('author_name', authorName);
             core.setOutput('author_email', authorEmail);
             core.setOutput('appimage_url', appImageUrl);
-            
+
             console.log(`Release info:`);
             console.log(`Version: ${version}`);
             console.log(`Tag: ${tag}`);
@@ -74,8 +74,9 @@ jobs:
           arch=('x86_64')
           url="https://github.com/lone-cloud/friendly-kobold"
           license=('AGPL-3.0-or-later')
-          depends=('gtk3' 'libxss' 'nss' 'alsa-lib')
-          optdepends=('koboldcpp: AI language model backend')
+          depends=('gtk3' 'nss')
+          optdepends=('alsa-lib: Audio support for sound effects'
+                     'libxss: Screen saver detection support')
           provides=('friendly-kobold')
           conflicts=('friendly-kobold-git')
           source=("friendly-kobold-${pkgver}.AppImage::${{ steps.release_info.outputs.appimage_url }}")
@@ -133,10 +134,9 @@ jobs:
           	arch = x86_64
           	license = AGPL-3.0-or-later
           	depends = gtk3
-          	depends = libxss
           	depends = nss
-          	depends = alsa-lib
-          	optdepends = koboldcpp: AI language model backend
+          	optdepends = alsa-lib: Audio support for sound effects
+          	optdepends = libxss: Screen saver detection support
           	provides = friendly-kobold
           	conflicts = friendly-kobold-git
           	source = friendly-kobold-${{ steps.release_info.outputs.version }}.AppImage::${{ steps.release_info.outputs.appimage_url }}
