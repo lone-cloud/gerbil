@@ -39,6 +39,7 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
       allowTransparency: false,
       scrollback: 10000,
       convertEol: true,
+      smoothScrollDuration: 0,
     });
 
     const fitAddon = new FitAddon();
@@ -128,12 +129,7 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
       }
 
       xtermRef.current.write(newData);
-
-      setTimeout(() => {
-        if (xtermRef.current) {
-          xtermRef.current.scrollToBottom();
-        }
-      }, 0);
+      xtermRef.current.scrollToBottom();
     });
 
     return cleanup;

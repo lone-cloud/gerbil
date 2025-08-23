@@ -1,14 +1,5 @@
 @import '@mantine/core/styles.css';
 
-/* Global smooth scrolling */
-* {
-  scroll-behavior: smooth;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
 /* Custom scrollbars */
 ::-webkit-scrollbar {
   width: 0.5rem;
