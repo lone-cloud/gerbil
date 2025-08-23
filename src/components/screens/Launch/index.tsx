@@ -202,7 +202,7 @@ export const LaunchScreen = ({
     }
 
     try {
-      const configName = selectedFile.replace('.kcpps', '');
+      const configName = selectedFile.replace(/\.(kcpps|kcppt)$/, '');
 
       const success = await window.electronAPI.kobold.saveConfigFile(
         configName,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box,
   ScrollArea,
@@ -15,6 +15,60 @@ interface TerminalTabProps {
   onServerReady?: (serverUrl: string) => void;
 }
 
+const handleCarriageReturns = (
+  prevContent: string,
+  newData: string
+): string => {
+  if (!newData.includes('\r')) {
+    return prevContent + newData;
+  }
+
+  try {
+    let result = prevContent;
+    let i = 0;
+
+    while (i < newData.length) {
+      const char = newData[i];
+
+      if (char === '\r') {
+        const nextChar = newData[i + 1];
+
+        if (nextChar === '\n') {
+          result += '\n';
+          i += 2;
+        } else {
+          const lines = result.split('\n');
+          if (lines.length > 0) {
+            const lastLineIndex = lines.length - 1;
+            const restOfData = newData.slice(i + 1);
+            const nextCrOrLfIndex = restOfData.search(/[\r\n]/);
+
+            if (nextCrOrLfIndex === -1) {
+              lines[lastLineIndex] = restOfData;
+              result = lines.join('\n');
+              break;
+            } else {
+              const replacement = restOfData.slice(0, nextCrOrLfIndex);
+              lines[lastLineIndex] = replacement;
+              result = lines.join('\n');
+              i += 1 + nextCrOrLfIndex;
+            }
+          } else {
+            i++;
+          }
+        }
+      } else {
+        result += char;
+        i++;
+      }
+    }
+
+    return result;
+  } catch {
+    return prevContent + newData;
+  }
+};
+
 export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
   const { colorScheme } = useMantineColorScheme();
   const [terminalContent, setTerminalContent] = useState<string>('');
@@ -24,6 +78,21 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const lastScrollTop = useRef<number>(0);
+  const updateTimeoutRef = useRef<number | null>(null);
+  const pendingContentRef = useRef<string>('');
+
+  const debouncedUpdateContent = useCallback((newContent: string) => {
+    pendingContentRef.current = newContent;
+
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+
+    updateTimeoutRef.current = window.setTimeout(() => {
+      setTerminalContent(pendingContentRef.current);
+      updateTimeoutRef.current = null;
+    }, 16);
+  }, []);
 
   const converter = useRef(
     new Convert({
@@ -96,12 +165,19 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
           }
         }
 
-        return prev + newData;
+        const newContent = handleCarriageReturns(prev, newData);
+
+        if (newData.includes('\r') && !newData.includes('\n')) {
+          debouncedUpdateContent(newContent);
+          return prev;
+        }
+
+        return newContent;
       });
     });
 
     return cleanup;
-  }, [onServerReady]);
+  }, [onServerReady, debouncedUpdateContent]);
 
   const scrollToBottom = () => {
     if (viewportRef.current) {
