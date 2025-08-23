@@ -8,10 +8,10 @@ A desktop app for running Large Language Models locally. <!-- markdownlint-disab
 ## Core Features
 
 - **Run LLMs locally** with an intuitive interface powered by [KoboldCpp](https://github.com/LostRuins/koboldcpp)
-- **Full Linux Wayland support** for seamless integration with Linux desktops
+- **Cross-platform desktop app** - Native support for Windows, macOS, and Linux (including Wayland)
 - **Automatic updates** - Download and keep your KoboldCpp binary up-to-date effortlessly
 - **Smart process management** - Prevents runaway background processes and system resource waste
-- **Optimized performance** - Automatically unpacks binaries for faster operation and reduced memory usage (up to ~4GB less RAM)
+- **Optimized performance** - Automatically unpacks binaries for faster operation and reduced memory usage
 - **Image generation support** - Built-in presets for Flux and Chroma image generation workflows
 - **Adaptive theming** - Light, dark, and system theme modes that automatically follow your OS preferences
 - **Privacy-focused** - Everything runs locally on your machine, no data sent to external servers
@@ -79,11 +79,9 @@ There is ROCm Windows support maintained by YellowRoseCx in a separate fork.
 Unfortunately it does not properly support unpacking, which would greatly diminish its performance and provide a poor UX when used alongside this app.
 For Friendly Kobold to work with this fork, [this issue must be fixed first](https://github.com/YellowRoseCx/koboldcpp-rocm/issues/129).
 
-Note that this build is not important as the Vulkan backend matches or even surpasses ROCm in terms of LLM performance for most cases.
-
 ### Future features
 
-Not all koboldcpp features have currently been ported over the UI. As a workaround one may use the "Additional arguments" on the "Advanced" tab of the launcher to provide additional command line arguments if you know them.
+Not all koboldcpp features have currently been ported over to the UI. As a workaround one may use the "Additional arguments" on the "Advanced" tab of the launcher to provide additional command line arguments if you know them.
 
 ## For Local Dev
 
