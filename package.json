@@ -1,8 +1,8 @@
 {
   "name": "friendly-kobold",
   "productName": "Friendly Kobold",
-  "version": "0.5.3",
-  "description": "A modern Electron shell for KoboldCpp",
+  "version": "0.5.4",
+  "description": "A modern desktop app for running Large Language Models locally",
   "main": "out/main/index.js",
   "homepage": "./",
   "engines": {
@@ -41,10 +41,14 @@
     ]
   },
   "keywords": [
-    "electron",
-    "koboldcpp",
+    "llm",
     "ai",
-    "llm"
+    "local-ai",
+    "language-model",
+    "koboldcpp",
+    "electron",
+    "privacy",
+    "offline"
   ],
   "author": {
     "name": "lone-cloud",
