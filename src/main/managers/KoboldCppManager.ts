@@ -358,8 +358,14 @@ export class KoboldCppManager {
         return false;
       }
 
-      const configFileName = `${configName}.kcpps`;
-      const configPath = join(this.installDir, configFileName);
+      let configFileName = `${configName}.kcpps`;
+      let configPath = join(this.installDir, configFileName);
+
+      const kcpptPath = join(this.installDir, `${configName}.kcppt`);
+      if (existsSync(kcpptPath)) {
+        configFileName = `${configName}.kcppt`;
+        configPath = kcpptPath;
+      }
 
       writeFileSync(configPath, JSON.stringify(configData, null, 2), 'utf-8');
       return true;

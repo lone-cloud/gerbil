@@ -115,11 +115,10 @@ jobs:
             echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Create Draft Release
+      - name: Create Release
         run: |
           gh release create ${{ steps.tag.outputs.tag }} \
             --title "FriendlyKobold ${{ steps.tag.outputs.tag }}" \
-            --draft \
             --generate-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

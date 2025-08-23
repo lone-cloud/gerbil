@@ -54,6 +54,30 @@ jobs:
             console.log(`Author: ${authorName} <${authorEmail}>`);
             console.log(`AppImage URL: ${appImageUrl}`);
 
+      - name: Verify AppImage availability
+        run: |
+          echo "Verifying AppImage is accessible..."
+          APPIMAGE_URL="${{ steps.release_info.outputs.appimage_url }}"
+          max_attempts=10
+          attempt=1
+
+          while [ $attempt -le $max_attempts ]; do
+            echo "Attempt $attempt: Checking if AppImage is available..."
+            if curl -I -f "$APPIMAGE_URL" > /dev/null 2>&1; then
+              echo "✅ AppImage is accessible"
+              break
+            else
+              echo "❌ AppImage not yet accessible, waiting 30 seconds..."
+              sleep 30
+              attempt=$((attempt + 1))
+            fi
+          done
+
+          if [ $attempt -gt $max_attempts ]; then
+            echo "❌ AppImage not accessible after $max_attempts attempts"
+            exit 1
+          fi
+
       - name: Download AppImage and calculate SHA256
         id: sha_calc
         run: |
