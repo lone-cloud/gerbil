@@ -1,13 +1,4 @@
-import {
-  Stack,
-  Text,
-  Group,
-  Button,
-  Select,
-  Modal,
-  TextInput,
-  Badge,
-} from '@mantine/core';
+import { Stack, Text, Group, Button, Select, Badge } from '@mantine/core';
 import {
   useState,
   useCallback,
@@ -17,6 +8,7 @@ import {
 import { Save, File, Plus, Check } from 'lucide-react';
 import type { ConfigFile } from '@/types';
 import styles from '@/styles/layout.module.css';
+import { CreateConfigModal } from './CreateConfigModal';
 
 interface ConfigFileManagerProps {
   configFiles: ConfigFile[];
@@ -68,7 +60,6 @@ export const ConfigFileManager = ({
   onSaveConfig,
 }: ConfigFileManagerProps) => {
   const [configModalOpened, setConfigModalOpened] = useState(false);
-  const [newConfigName, setNewConfigName] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   const existingConfigNames = configFiles.map((file) => {
@@ -76,24 +67,13 @@ export const ConfigFileManager = ({
     return file.name.replace(`.${extension}`, '').toLowerCase();
   });
 
-  const trimmedConfigName = newConfigName.trim();
-  const configNameExists =
-    trimmedConfigName &&
-    existingConfigNames.includes(trimmedConfigName.toLowerCase());
-
   const handleOpenConfigModal = () => {
     setConfigModalOpened(true);
   };
 
   const handleCloseConfigModal = useCallback(() => {
     setConfigModalOpened(false);
-    setNewConfigName('');
   }, []);
-
-  const handleConfigSubmit = async () => {
-    await onCreateNewConfig(trimmedConfigName);
-    handleCloseConfigModal();
-  };
 
   const handleSaveClick = async () => {
     if (selectedFile) {
@@ -174,38 +154,12 @@ export const ConfigFileManager = ({
         </Group>
       </Stack>
 
-      <Modal
+      <CreateConfigModal
         opened={configModalOpened}
         onClose={handleCloseConfigModal}
-        title="Create New Configuration"
-        size="sm"
-      >
-        <Stack gap="md">
-          <TextInput
-            label="Name"
-            placeholder="Enter a name for the new configuration"
-            value={newConfigName}
-            onChange={(event) => setNewConfigName(event.currentTarget.value)}
-            data-autofocus
-            error={
-              configNameExists
-                ? 'A configuration with this name already exists'
-                : undefined
-            }
-          />
-          <Group justify="flex-end" gap="sm">
-            <Button variant="outline" onClick={handleCloseConfigModal}>
-              Cancel
-            </Button>
-            <Button
-              disabled={!trimmedConfigName || !!configNameExists}
-              onClick={handleConfigSubmit}
-            >
-              Create
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+        onCreateConfig={onCreateNewConfig}
+        existingConfigNames={existingConfigNames}
+      />
     </>
   );
 };
