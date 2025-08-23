@@ -14,13 +14,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Get Node.js version from package.json
+        id: versions
+        run: |
+          NODE_VERSION=$(node -p "require('./package.json').volta.node")
+          echo "node-version=$NODE_VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Using Node.js $NODE_VERSION from package.json"
+
       - name: Enable Corepack
         run: corepack enable
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: ${{ steps.versions.outputs.node-version }}
           cache: 'yarn'
 
       - name: Install dependencies
