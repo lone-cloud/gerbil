@@ -1,9 +1,9 @@
 [Desktop Entry]
 Name=Friendly Kobold
-Comment=A koboldcpp manager.
+Comment=A desktop app for running Large Language Models locally
 Exec=friendly-kobold %U
-Icon=friendly-kobold
+Terminal=false
 Type=Application
-Categories=Development;TextEditor;
+Icon=friendly-kobold
+Categories=Utility;
 StartupWMClass=Friendly Kobold
-StartupNotify=true

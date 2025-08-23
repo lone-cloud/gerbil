@@ -1,7 +1,7 @@
 {
   "name": "friendly-kobold",
   "productName": "Friendly Kobold",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "A desktop app for running Large Language Models locally",
   "main": "out/main/index.js",
   "homepage": "./",
@@ -169,7 +169,7 @@
         "entry": {
           "Name": "Friendly Kobold",
           "Comment": "A desktop app for running Large Language Models locally",
-          "Categories": "Development;Utility;",
+          "Categories": "Utility;",
           "StartupWMClass": "Friendly Kobold"
         }
       },

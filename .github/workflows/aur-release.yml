@@ -127,19 +127,9 @@ jobs:
           WRAPPER
               chmod +x "${pkgdir}/usr/bin/friendly-kobold"
               
-              # Install desktop file
+              # Install desktop file from assets
               install -dm755 "${pkgdir}/usr/share/applications"
-              cat > "${pkgdir}/usr/share/applications/friendly-kobold.desktop" << 'DESKTOP'
-          [Desktop Entry]
-          Name=Friendly Kobold
-          Comment=A desktop app for running Large Language Models locally
-          Exec=friendly-kobold %U
-          Terminal=false
-          Type=Application
-          Icon=friendly-kobold
-          Categories=Development;Utility;
-          StartupWMClass=Friendly Kobold
-          DESKTOP
+              cp "${srcdir}/../assets/friendly-kobold.desktop" "${pkgdir}/usr/share/applications/"
               
               # Install icon
               install -dm755 "${pkgdir}/usr/share/pixmaps"

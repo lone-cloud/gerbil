@@ -23,11 +23,10 @@ export const WelcomeScreen = ({ onGetStarted }: WelcomeScreenProps) => (
         <Stack gap="lg" align="center">
           <Stack gap="md" align="center">
             <Title order={1} ta="center">
-              Welcome to Friendly Kobold
+              Friendly Kobold
             </Title>
             <Text size="lg" c="dimmed" ta="center" maw={600}>
-              A simple launcher for KoboldCpp - your gateway to running large
-              language models locally on your computer.
+              A desktop app for running Large Language Models locally
             </Text>
           </Stack>
 
