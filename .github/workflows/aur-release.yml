@@ -42,7 +42,7 @@ jobs:
           echo "author_name=$AUTHOR_NAME" >> $GITHUB_OUTPUT
           echo "author_email=$AUTHOR_EMAIL" >> $GITHUB_OUTPUT
 
-          # Get AppImage download URL from GitHub release
+          # Get AppImage download URL from GitHub release  
           APPIMAGE_URL="https://github.com/lone-cloud/friendly-kobold/releases/download/$TAG/Friendly%20Kobold-$VERSION.AppImage"
           echo "appimage_url=$APPIMAGE_URL" >> $GITHUB_OUTPUT
 
@@ -105,7 +105,7 @@ jobs:
           Type=Application
           Icon=friendly-kobold
           Categories=Development;Utility;
-          StartupWMClass=friendly-kobold
+          StartupWMClass=Friendly Kobold
           DESKTOP
               
               # Install icon
