@@ -27,17 +27,6 @@ export const ModelFileField = ({
 }: ModelFileFieldProps) => {
   const validationState = getInputValidationState(value);
 
-  const getInputColor = () => {
-    switch (validationState) {
-      case 'valid':
-        return 'green';
-      case 'invalid':
-        return 'red';
-      default:
-        return undefined;
-    }
-  };
-
   const getHelperText = () => {
     if (!value.trim()) return undefined;
 
@@ -62,7 +51,6 @@ export const ModelFileField = ({
             placeholder={placeholder}
             value={value}
             onChange={(event) => onChange(event.currentTarget.value)}
-            color={getInputColor()}
             error={validationState === 'invalid' ? getHelperText() : undefined}
           />
         </div>

@@ -1,6 +1,9 @@
 alsa
 AMDGPU
+ansi
+ANSI
 APPIMAGE
+stripansi
 asar
 Autoencoder
 BLAS

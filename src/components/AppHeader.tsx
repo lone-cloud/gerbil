@@ -109,8 +109,8 @@ export const AppHeader = ({
 
         {currentScreen === 'interface' && (
           <Select
-            value={activeInterfaceTab}
-            onChange={setActiveInterfaceTab}
+            value={activeInterfaceTab || 'terminal'}
+            onChange={(value) => setActiveInterfaceTab(value || 'terminal')}
             data={[
               {
                 value: 'chat',
@@ -118,7 +118,7 @@ export const AppHeader = ({
               },
               { value: 'terminal', label: 'Terminal' },
             ]}
-            placeholder="Select view"
+            allowDeselect={false}
             styles={{
               input: {
                 minWidth: '9.375rem',

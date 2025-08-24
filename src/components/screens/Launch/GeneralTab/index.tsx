@@ -21,17 +21,6 @@ export const GeneralTab = ({ onBackendsReady }: GeneralTabProps) => {
 
   const validationState = getInputValidationState(modelPath);
 
-  const getInputColor = () => {
-    switch (validationState) {
-      case 'valid':
-        return 'green';
-      case 'invalid':
-        return 'red';
-      default:
-        return undefined;
-    }
-  };
-
   const getHelperText = () => {
     if (!modelPath.trim()) return undefined;
 
@@ -56,7 +45,6 @@ export const GeneralTab = ({ onBackendsReady }: GeneralTabProps) => {
               placeholder="Select a .gguf model file or enter a direct URL to file"
               value={modelPath}
               onChange={(e) => handleModelPathChange(e.target.value)}
-              color={getInputColor()}
               error={
                 validationState === 'invalid' ? getHelperText() : undefined
               }
