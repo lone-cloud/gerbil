@@ -1,5 +1,5 @@
 import { Card, Container, Stack, Tabs, Group, Button } from '@mantine/core';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 import { useLaunchLogic } from '@/hooks/useLaunchLogic';
 import { useWarnings } from '@/hooks/useWarnings';
@@ -26,6 +26,7 @@ export const LaunchScreen = ({
   const [, setInstallDir] = useState<string>('');
   const [activeTab, setActiveTab] = useState<string | null>('general');
   const [configLoaded, setConfigLoaded] = useState<boolean>(false);
+  const defaultsSetRef = useRef(false);
 
   const {
     gpuLayers,
@@ -86,22 +87,43 @@ export const LaunchScreen = ({
       if (!backend && backends.length > 0) {
         handleBackendChange(backends[0].value);
       }
-
-      if (!modelPath.trim() && !sdmodel.trim()) {
-        handleModelPathChange(DEFAULT_MODEL_URL);
-      }
     } catch (error) {
       window.electronAPI.logs.logError(
         'Failed to set defaults:',
         error as Error
       );
     }
-  }, [backend, modelPath, sdmodel, handleBackendChange, handleModelPathChange]);
+  }, [backend, handleBackendChange]);
+
+  const setInitialDefaults = useCallback(
+    async (currentModelPath: string, currentSdModel: string) => {
+      try {
+        if (
+          !defaultsSetRef.current &&
+          !currentModelPath.trim() &&
+          !currentSdModel.trim()
+        ) {
+          handleModelPathChange(DEFAULT_MODEL_URL);
+          defaultsSetRef.current = true;
+        }
+      } catch (error) {
+        window.electronAPI.logs.logError(
+          'Failed to set initial defaults:',
+          error as Error
+        );
+      }
+    },
+    [handleModelPathChange]
+  );
 
   useEffect(() => {
-    if (configLoaded) {
+    if (configLoaded && !defaultsSetRef.current) {
       void setHappyDefaults();
+      if (!modelPath.trim() && !sdmodel.trim()) {
+        void setInitialDefaults(modelPath, sdmodel);
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [configLoaded, setHappyDefaults]);
 
   const loadConfigFiles = useCallback(async () => {

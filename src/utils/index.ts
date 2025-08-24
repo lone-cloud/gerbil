@@ -5,5 +5,6 @@ export * from './hardware';
 export * from './imageModelPresets';
 export * from './platform';
 export * from './sounds';
+export * from './terminal';
 export * from './validation';
 export * from './versionUtils';

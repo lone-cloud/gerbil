@@ -1,10 +1,15 @@
-import { useEffect, useRef } from 'react';
-import { Box, useComputedColorScheme } from '@mantine/core';
-import { Terminal } from '@xterm/xterm';
-import { FitAddon } from '@xterm/addon-fit';
-import { WebLinksAddon } from '@xterm/addon-web-links';
-import '@xterm/xterm/css/xterm.css';
+import { useState, useEffect, useRef } from 'react';
+import {
+  Box,
+  ScrollArea,
+  Text,
+  ActionIcon,
+  useComputedColorScheme,
+} from '@mantine/core';
+import { ChevronDown } from 'lucide-react';
+import styles from '@/styles/layout.module.css';
 import { UI } from '@/constants';
+import { handleTerminalOutput } from '@/utils';
 
 interface TerminalTabProps {
   onServerReady?: (serverUrl: string) => void;
@@ -14,152 +19,139 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
   const computedColorScheme = useComputedColorScheme('light', {
     getInitialValueInEffect: false,
   });
-  const terminalRef = useRef<HTMLDivElement>(null);
-  const xtermRef = useRef<Terminal | null>(null);
-  const fitAddonRef = useRef<FitAddon | null>(null);
+  const [terminalContent, setTerminalContent] = useState<string>('');
+  const [isUserScrolling, setIsUserScrolling] = useState<boolean>(false);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState<boolean>(true);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const lastScrollTop = useRef<number>(0);
 
   const isDark = computedColorScheme === 'dark';
 
-  useEffect(() => {
-    if (!terminalRef.current) return;
+  const handleScroll = ({ y }: { y: number }) => {
+    if (!viewportRef.current) return;
 
-    const terminal = new Terminal({
-      theme: {
-        background: '#1a1b1e',
-        foreground: '#ffffff',
-        cursor: '#ffffff',
-        selectionBackground: '#264f78',
-      },
-      fontFamily:
-        'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-      fontSize: 14,
-      lineHeight: 1.4,
-      cursorBlink: false,
-      disableStdin: true,
-      allowTransparency: false,
-      scrollback: 10000,
-      convertEol: true,
-      smoothScrollDuration: 0,
-    });
+    const { scrollHeight, clientHeight } = viewportRef.current;
+    const isAtBottomNow = y + clientHeight >= scrollHeight - 10;
 
-    const fitAddon = new FitAddon();
-    const webLinksAddon = new WebLinksAddon();
-
-    terminal.loadAddon(fitAddon);
-    terminal.loadAddon(webLinksAddon);
-
-    terminal.open(terminalRef.current);
-
-    setTimeout(() => {
-      fitAddon.fit();
-    }, 100);
-
-    xtermRef.current = terminal;
-    fitAddonRef.current = fitAddon;
-
-    terminal.writeln('\x1b[90mStarting KoboldCpp...\x1b[0m');
-
-    return () => {
-      terminal.dispose();
-      xtermRef.current = null;
-      fitAddonRef.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (xtermRef.current) {
-      const newTheme = {
-        background: isDark ? '#1a1b1e' : '#ffffff',
-        foreground: isDark ? '#ffffff' : '#000000',
-        cursor: isDark ? '#ffffff' : '#000000',
-        selectionBackground: isDark ? '#264f78' : '#0078d4',
-      };
-
-      xtermRef.current.options.theme = newTheme;
-
-      const element = xtermRef.current.element;
-      if (element) {
-        element.style.backgroundColor = newTheme.background;
-        element.style.color = newTheme.foreground;
-      }
-
-      xtermRef.current.refresh(0, xtermRef.current.rows - 1);
-    }
-  }, [isDark]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (fitAddonRef.current && xtermRef.current) {
-        setTimeout(() => {
-          fitAddonRef.current?.fit();
-        }, 50);
-      }
-    };
-
-    const resizeObserver = new ResizeObserver(handleResize);
-    if (terminalRef.current) {
-      resizeObserver.observe(terminalRef.current);
+    if (y < lastScrollTop.current) {
+      setIsUserScrolling(true);
+      setShouldAutoScroll(false);
+    } else if (isAtBottomNow) {
+      setIsUserScrolling(false);
+      setShouldAutoScroll(true);
     }
 
-    window.addEventListener('resize', handleResize);
+    lastScrollTop.current = y;
+  };
 
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      resizeObserver.disconnect();
-    };
-  }, []);
+  useEffect(() => {
+    if (shouldAutoScroll && !isUserScrolling && viewportRef.current) {
+      const viewport = viewportRef.current;
+      viewport.scrollTop = viewport.scrollHeight;
+    }
+  }, [terminalContent, shouldAutoScroll, isUserScrolling]);
 
   useEffect(() => {
     const cleanup = window.electronAPI.kobold.onKoboldOutput((data: string) => {
-      if (!xtermRef.current) return;
+      setTerminalContent((prev) => {
+        const newData = data.toString();
 
-      const newData = data.toString();
-
-      if (
-        onServerReady &&
-        newData.includes('Please connect to custom endpoint at ')
-      ) {
-        const match = newData.match(
-          /Please connect to custom endpoint at (http:\/\/[^\s]+)/
-        );
-        if (match) {
-          const serverUrl = match[1];
-          setTimeout(() => onServerReady(serverUrl), 1500);
+        if (
+          onServerReady &&
+          newData.includes('Please connect to custom endpoint at ')
+        ) {
+          const match = newData.match(
+            /Please connect to custom endpoint at (http:\/\/[^\s]+)/
+          );
+          if (match) {
+            const serverUrl = match[1];
+            setTimeout(() => onServerReady(serverUrl), 1500);
+          }
         }
-      }
 
-      xtermRef.current.write(newData);
-      xtermRef.current.scrollToBottom();
+        return handleTerminalOutput(prev, newData);
+      });
     });
 
     return cleanup;
   }, [onServerReady]);
 
+  const scrollToBottom = () => {
+    if (viewportRef.current) {
+      const viewport = viewportRef.current;
+      viewport.scrollTop = viewport.scrollHeight;
+      setShouldAutoScroll(true);
+      setIsUserScrolling(false);
+    }
+  };
+
   return (
     <Box
       style={{
         height: `calc(100vh - ${UI.HEADER_HEIGHT}px)`,
+        display: 'flex',
+        flexDirection: 'column',
         backgroundColor: isDark
           ? 'var(--mantine-color-dark-filled)'
           : 'var(--mantine-color-gray-0)',
         borderRadius: 'inherit',
-        padding: '0.5rem',
-        display: 'flex',
-        flexDirection: 'column',
+        position: 'relative',
       }}
     >
-      <div
-        ref={terminalRef}
-        style={{
-          height: '100%',
-          width: '100%',
-          flex: 1,
-          minHeight: 0,
-          backgroundColor: isDark ? '#1a1b1e' : '#ffffff',
-          borderRadius: '0.25rem',
-          overflow: 'hidden',
-        }}
-      />
+      <ScrollArea
+        ref={scrollAreaRef}
+        viewportRef={viewportRef}
+        onScrollPositionChange={handleScroll}
+        className={styles.terminalScrollArea}
+        scrollbarSize={8}
+        offsetScrollbars={false}
+      >
+        <Box p="md">
+          {terminalContent.length === 0 ? (
+            <Text c="dimmed" style={{ fontFamily: 'inherit' }}>
+              Starting KoboldCpp...
+            </Text>
+          ) : (
+            <div
+              style={{
+                margin: 0,
+                fontFamily:
+                  'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                fontSize: '14px',
+                lineHeight: 1.4,
+                color: isDark
+                  ? 'var(--mantine-color-gray-0)'
+                  : 'var(--mantine-color-dark-filled)',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+              }}
+            >
+              {terminalContent}
+            </div>
+          )}
+        </Box>
+      </ScrollArea>
+
+      {isUserScrolling && !shouldAutoScroll && (
+        <ActionIcon
+          variant="filled"
+          color="blue"
+          size="lg"
+          radius="xl"
+          onClick={scrollToBottom}
+          style={{
+            position: 'absolute',
+            bottom: '20px',
+            right: '20px',
+            zIndex: 10,
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+          }}
+          aria-label="Scroll to bottom"
+        >
+          <ChevronDown size={20} />
+        </ActionIcon>
+      )}
     </Box>
   );
 };
