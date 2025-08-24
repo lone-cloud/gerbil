@@ -83,6 +83,28 @@ For Friendly Kobold to work with this fork, [this issue must be fixed first](htt
 
 Not all koboldcpp features have currently been ported over to the UI. As a workaround one may use the "Additional arguments" on the "Advanced" tab of the launcher to provide additional command line arguments if you know them.
 
+## CLI Mode
+
+The `--cli` argument allows you to use the Friendly Kobold binary as a proxy to the downloaded KoboldCpp binary. This enables you to run KoboldCpp from the command line using the same binary that the GUI has downloaded.
+
+### Considerations
+
+You might want to run CLI Mode if you're looking to use a different frontend, such as SillyTavern or OpenWebUI, than the ones bundled (eg. KoboldAI Lite, Stable UI) with KoboldCpp AND you're looking to minimize any resource utilization of this app. Note that at the time of this writing, Friendly Kobold takes about ~200MB of RAM and ~100MB of VRAM for its Chromium-based UI.
+
+### Usage
+
+```bash
+# Basic usage - launch KoboldCpp with no arguments
+./friendly-kobold --cli
+
+# Pass arguments to KoboldCpp
+./friendly-kobold --cli --help
+./friendly-kobold --cli --port 5001 --model /path/to/model.gguf
+
+# Any KoboldCpp arguments are supported
+./friendly-kobold --cli --model /path/to/model.gguf --port 5001 --host 0.0.0.0 --multiuser 2
+```
+
 ## For Local Dev
 
 ### Prerequisites

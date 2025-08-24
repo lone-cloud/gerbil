@@ -11,6 +11,7 @@ import { GitHubService } from '@/main/services/GitHubService';
 import { HardwareService } from '@/main/services/HardwareService';
 import { BinaryService } from '@/main/services/BinaryService';
 import { IPCHandlers } from '@/main/utils/IPCHandlers';
+import { CliHandler } from '@/main/utils/CliHandler';
 import { APP_NAME, CONFIG_FILE_NAME } from '@/constants';
 
 class FriendlyKoboldApp {
@@ -146,8 +147,25 @@ class FriendlyKoboldApp {
   }
 }
 
-const friendlyKoboldApp = new FriendlyKoboldApp();
-friendlyKoboldApp.initialize().catch((error) => {
-  // eslint-disable-next-line no-console
-  console.error('Failed to initialize FriendlyKobold:', error);
-});
+const { isCliMode, args } = CliHandler.parseArguments(process.argv);
+
+if (isCliMode) {
+  async function runCliMode() {
+    try {
+      const cliHandler = new CliHandler();
+      await cliHandler.handleCliMode(args);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('CLI mode error:', error);
+      process.exit(1);
+    }
+  }
+
+  runCliMode();
+} else {
+  const friendlyKoboldApp = new FriendlyKoboldApp();
+  friendlyKoboldApp.initialize().catch((error) => {
+    // eslint-disable-next-line no-console
+    console.error('Failed to initialize FriendlyKobold:', error);
+  });
+}
