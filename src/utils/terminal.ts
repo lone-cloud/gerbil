@@ -7,7 +7,7 @@ export const handleTerminalOutput = (
   try {
     const cleanData = stripAnsi(newData);
 
-    if (cleanData.includes('\r')) {
+    if (cleanData.includes('\r') && !cleanData.includes('\r\n')) {
       const lines = (prevContent + cleanData).split('\n');
       return lines
         .map((line) => {
