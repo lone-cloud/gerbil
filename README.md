@@ -22,10 +22,10 @@ A desktop app for running Large Language Models locally. <!-- markdownlint-disab
 
 Download the latest release for your platform from the [GitHub Releases page](https://github.com/lone-cloud/friendly-kobold/releases/latest):
 
-- **Windows**: `Friendly Kobold Portable X.X.X.exe` (portable executable)
-- **Windows**: `Friendly Kobold Setup X.X.X.exe` (installer executable - **recommended for CLI mode**)
-- **macOS**: `Friendly Kobold-X.X.X.dmg` (disk image)
-- **Linux**: `Friendly Kobold-X.X.X.AppImage` (portable application)
+- **Windows**: `Friendly.Kobold.Portable X.X.X.exe` (portable executable)
+- **Windows**: `Friendly.Kobold.Setup X.X.X.exe` (installer executable)
+- **macOS**: `Friendly.Kobold-X.X.X.dmg` (disk image)
+- **Linux**: `Friendly.Kobold-X.X.X.AppImage` (portable application)
 
 #### Linux - AUR (Arch Linux)
 
@@ -90,7 +90,7 @@ The `--cli` argument allows you to use the Friendly Kobold binary as a proxy to 
 
 ### Considerations
 
-You might want to run CLI Mode if you're looking to use a different frontend, such as SillyTavern or OpenWebUI, than the ones bundled (eg. KoboldAI Lite, Stable UI) with KoboldCpp AND you're looking to minimize any resource utilization of this app. Note that at the time of this writing, Friendly Kobold takes about ~200MB of RAM and ~100MB of VRAM for its Chromium-based UI.
+You might want to run CLI Mode if you're looking to use a different frontend, such as SillyTavern or OpenWebUI, than the ones bundled (eg. KoboldAI Lite, Stable UI) with KoboldCpp AND you're looking to minimize any resource utilization of this app. Note that at the time of this writing, Friendly Kobold only takes about ~200MB of RAM and ~100MB of VRAM for its Chromium-based UI. When running in CLI Mode, Friendly Kobold will still take about 1/3 of those RAM and VRAM numbers.
 
 ### Usage
 
