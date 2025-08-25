@@ -4,9 +4,9 @@ import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 
-import { CONFIG_FILE_NAME } from '@/constants';
+const CONFIG_FILE_NAME = 'config.json';
 
-export class CliHandler {
+export class LightweightCliHandler {
   private getConfigPath(): string {
     const platform = process.platform;
     const home = homedir();
@@ -108,25 +108,20 @@ export class CliHandler {
         console.log('\nReceived termination signal, terminating KoboldCpp...');
         if (!child.killed) {
           child.kill('SIGTERM');
+
+          setTimeout(() => {
+            if (!child.killed) {
+              child.kill('SIGKILL');
+            }
+          }, 5000);
         }
       };
 
       process.on('SIGINT', handleSignal);
       process.on('SIGTERM', handleSignal);
+      if (process.platform === 'win32') {
+        process.on('SIGBREAK', handleSignal);
+      }
     });
-  }
-
-  static parseArguments(argv: string[]): {
-    isCliMode: boolean;
-    args: string[];
-  } {
-    const cliIndex = argv.indexOf('--cli');
-
-    if (cliIndex === -1) {
-      return { isCliMode: false, args: [] };
-    }
-
-    const koboldArgs = argv.slice(cliIndex + 1);
-    return { isCliMode: true, args: koboldArgs };
   }
 }
