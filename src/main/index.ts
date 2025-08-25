@@ -160,7 +160,6 @@ if (isCliMode) {
       process.exit(1);
     }
   }
-
   runCliMode();
 } else {
   const friendlyKoboldApp = new FriendlyKoboldApp();
