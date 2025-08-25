@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { spawn } from 'child_process';
 import { existsSync } from 'fs';
 import { app } from 'electron';
@@ -27,7 +28,6 @@ export class CliHandler {
     const currentBinary = this.configManager.getCurrentKoboldBinary();
 
     if (!currentBinary) {
-      // eslint-disable-next-line no-console
       console.error(
         'Error: No KoboldCpp binary found. Please run the GUI first to download KoboldCpp.'
       );
@@ -35,29 +35,38 @@ export class CliHandler {
     }
 
     if (!existsSync(currentBinary)) {
-      // eslint-disable-next-line no-console
       console.error(`Error: KoboldCpp binary not found at: ${currentBinary}`);
-      // eslint-disable-next-line no-console
       console.error('Please run the GUI to download or reconfigure KoboldCpp.');
       process.exit(1);
     }
 
-    // eslint-disable-next-line no-console
-    console.log(`Launching KoboldCpp: ${currentBinary}`);
-    // eslint-disable-next-line no-console
-    console.log(`Arguments: ${args.join(' ')}`);
-    // eslint-disable-next-line no-console
-    console.log('─'.repeat(60));
-
     return new Promise<void>((resolve, reject) => {
+      const isWindows = process.platform === 'win32';
+
       const child = spawn(currentBinary, args, {
-        stdio: 'inherit',
+        stdio: isWindows ? 'pipe' : 'inherit',
         detached: false,
       });
 
+      if (isWindows) {
+        child.stdout?.setEncoding('utf8');
+        child.stderr?.setEncoding('utf8');
+
+        child.stdout?.on('data', (data) => {
+          process.stdout.write(data.toString());
+        });
+
+        child.stderr?.on('data', (data) => {
+          process.stderr.write(data.toString());
+        });
+
+        if (child.stdin && process.stdin.readable) {
+          process.stdin.pipe(child.stdin);
+        }
+      }
+
       child.on('exit', (code, signal) => {
         if (signal) {
-          // eslint-disable-next-line no-console
           console.log(`\nProcess terminated with signal: ${signal}`);
           process.exit(128 + (signal === 'SIGTERM' ? 15 : 2));
         } else if (code !== null) {
@@ -68,13 +77,11 @@ export class CliHandler {
       });
 
       child.on('error', (error) => {
-        // eslint-disable-next-line no-console
         console.error(`Failed to start KoboldCpp: ${error.message}`);
         reject(error);
       });
 
       const handleSignal = () => {
-        // eslint-disable-next-line no-console
         console.log('\nReceived termination signal, terminating KoboldCpp...');
         if (!child.killed) {
           child.kill('SIGTERM');

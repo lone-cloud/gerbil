@@ -22,9 +22,10 @@ A desktop app for running Large Language Models locally. <!-- markdownlint-disab
 
 Download the latest release for your platform from the [GitHub Releases page](https://github.com/lone-cloud/friendly-kobold/releases/latest):
 
-- **Windows**: `Friendly-Kobold-X.X.X.exe` (portable executable)
-- **macOS**: `Friendly-Kobold-X.X.X.dmg` (disk image)
-- **Linux**: `Friendly-Kobold-X.X.X.AppImage` (portable application)
+- **Windows**: `Friendly Kobold Portable X.X.X.exe` (portable executable)
+- **Windows**: `Friendly Kobold Setup X.X.X.exe` (installer executable - **recommended for CLI mode**)
+- **macOS**: `Friendly Kobold-X.X.X.dmg` (disk image)
+- **Linux**: `Friendly Kobold-X.X.X.AppImage` (portable application)
 
 #### Linux - AUR (Arch Linux)
 
@@ -93,6 +94,8 @@ You might want to run CLI Mode if you're looking to use a different frontend, su
 
 ### Usage
 
+**Linux/macOS:**
+
 ```bash
 # Basic usage - launch KoboldCpp with no arguments
 ./friendly-kobold --cli
@@ -104,6 +107,10 @@ You might want to run CLI Mode if you're looking to use a different frontend, su
 # Any KoboldCpp arguments are supported
 ./friendly-kobold --cli --model /path/to/model.gguf --port 5001 --host 0.0.0.0 --multiuser 2
 ```
+
+**Windows:**
+
+CLI mode will only work correctly on Windows if you install Friendly Kobold using the Setup.exe from the github releases. Otherwise there is currently a technical limitation with the Windows portable .exe which will cause it to not display the terminal output correctly nor will it be killable through the standard terminal (Ctrl+C) commands.
 
 ## For Local Dev
 
