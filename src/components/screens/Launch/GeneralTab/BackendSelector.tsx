@@ -5,11 +5,7 @@ import { BackendSelectItem } from '@/components/screens/Launch/GeneralTab/Backen
 import { GpuDeviceSelector } from '@/components/screens/Launch/GeneralTab/GpuDeviceSelector';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 
-interface BackendSelectorProps {
-  onBackendsReady?: () => void;
-}
-
-export const BackendSelector = ({ onBackendsReady }: BackendSelectorProps) => {
+export const BackendSelector = () => {
   const {
     backend,
     gpuLayers,
@@ -20,39 +16,95 @@ export const BackendSelector = ({ onBackendsReady }: BackendSelectorProps) => {
   } = useLaunchConfig();
 
   const [availableBackends, setAvailableBackends] = useState<
-    Array<{ value: string; label: string; devices?: string[] }>
+    Array<{
+      value: string;
+      label: string;
+      devices?: string[];
+      disabled?: boolean;
+    }>
   >([]);
   const hasInitialized = useRef(false);
 
   useEffect(() => {
     const loadBackends = async () => {
       try {
-        const [cpuCapabilitiesResult, backends] = await Promise.all([
-          window.electronAPI.kobold.detectCPU(),
-          window.electronAPI.kobold.getAvailableBackends(),
-        ]);
+        const [cpuCapabilitiesResult, binarySupport, gpuCapabilities] =
+          await Promise.all([
+            window.electronAPI.kobold.detectCPU(),
+            window.electronAPI.kobold.detectBackendSupport(),
+            window.electronAPI.kobold.detectGPUCapabilities(),
+          ]);
 
-        const cpuBackend = backends.find((b) => b.value === 'cpu');
-        if (cpuBackend) {
-          cpuBackend.devices = cpuCapabilitiesResult.devices;
+        if (!binarySupport) {
+          setAvailableBackends([]);
+          hasInitialized.current = true;
+
+          return;
         }
+
+        const backends: Array<{
+          value: string;
+          label: string;
+          devices?: string[];
+          disabled?: boolean;
+        }> = [];
+
+        if (binarySupport.cuda) {
+          backends.push({
+            value: 'cuda',
+            label: 'CUDA',
+            devices: gpuCapabilities.cuda.devices,
+            disabled: !gpuCapabilities.cuda.supported,
+          });
+        }
+
+        if (binarySupport.rocm) {
+          backends.push({
+            value: 'rocm',
+            label: 'ROCm',
+            devices: gpuCapabilities.rocm.devices,
+            disabled: !gpuCapabilities.rocm.supported,
+          });
+        }
+
+        if (binarySupport.vulkan) {
+          backends.push({
+            value: 'vulkan',
+            label: 'Vulkan',
+            devices: gpuCapabilities.vulkan.devices,
+            disabled: !gpuCapabilities.vulkan.supported,
+          });
+        }
+
+        if (binarySupport.clblast) {
+          backends.push({
+            value: 'clblast',
+            label: 'CLBlast',
+            devices: gpuCapabilities.clblast.devices,
+            disabled: !gpuCapabilities.clblast.supported,
+          });
+        }
+
+        backends.push({
+          value: 'cpu',
+          label: 'CPU',
+          devices: cpuCapabilitiesResult.devices,
+          disabled: false,
+        });
+
+        backends.sort((a, b) => {
+          if (a.disabled === b.disabled) return 0;
+          return a.disabled ? 1 : -1;
+        });
 
         setAvailableBackends(backends);
         hasInitialized.current = true;
-
-        if (onBackendsReady) {
-          onBackendsReady();
-        }
       } catch (error) {
         window.electronAPI.logs.logError(
           'Failed to detect available backends:',
           error as Error
         );
         setAvailableBackends([]);
-
-        if (onBackendsReady) {
-          onBackendsReady();
-        }
       }
     };
 
@@ -66,7 +118,7 @@ export const BackendSelector = ({ onBackendsReady }: BackendSelectorProps) => {
     });
 
     return cleanup;
-  }, [onBackendsReady]);
+  }, []);
 
   return (
     <div>
@@ -89,6 +141,7 @@ export const BackendSelector = ({ onBackendsReady }: BackendSelectorProps) => {
             data={availableBackends.map((b) => ({
               value: b.value,
               label: b.label,
+              disabled: b.disabled,
             }))}
             disabled={availableBackends.length === 0}
             renderOption={({ option }) => {
@@ -99,6 +152,7 @@ export const BackendSelector = ({ onBackendsReady }: BackendSelectorProps) => {
                 <BackendSelectItem
                   label={backendData?.label || option.label.split(' (')[0]}
                   devices={backendData?.devices}
+                  disabled={backendData?.disabled}
                 />
               );
             }}

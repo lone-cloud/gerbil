@@ -366,27 +366,15 @@ export const VersionsTab = () => {
               disabled={downloading !== null}
               hasUpdate={version.hasUpdate}
               newerVersion={version.newerVersion}
-              onDownload={
-                !version.isInstalled
-                  ? (e) => {
-                      e.stopPropagation();
-                      handleDownload(version);
-                    }
-                  : undefined
-              }
-              onUpdate={
-                version.hasUpdate
-                  ? (e) => {
-                      e.stopPropagation();
-                      handleUpdate(version);
-                    }
-                  : undefined
-              }
-              onMakeCurrent={
-                version.isInstalled && !version.isCurrent && !version.hasUpdate
-                  ? () => makeCurrent(version)
-                  : undefined
-              }
+              onDownload={(e) => {
+                e.stopPropagation();
+                handleDownload(version);
+              }}
+              onUpdate={(e) => {
+                e.stopPropagation();
+                handleUpdate(version);
+              }}
+              onMakeCurrent={() => makeCurrent(version)}
             />
           </div>
         );

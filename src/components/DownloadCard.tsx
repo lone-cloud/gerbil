@@ -26,7 +26,7 @@ interface DownloadCardProps {
   disabled?: boolean;
   hasUpdate?: boolean;
   newerVersion?: string;
-  onDownload?: (e: MouseEvent<HTMLButtonElement>) => void;
+  onDownload: (e: MouseEvent<HTMLButtonElement>) => void;
   onMakeCurrent?: () => void;
   onUpdate?: (e: MouseEvent<HTMLButtonElement>) => void;
 }
@@ -51,32 +51,13 @@ export const DownloadCard = ({
     getInitialValueInEffect: false,
   });
   const isDark = computedColorScheme === 'dark';
-  const renderActionButton = () => {
-    if (hasUpdate && onUpdate) {
-      return (
-        <Button
-          variant="filled"
-          size="xs"
-          onClick={onUpdate}
-          loading={isDownloading}
-          disabled={disabled}
-          color="orange"
-          leftSection={
-            isDownloading ? (
-              <Loader size="1rem" />
-            ) : (
-              <Download style={{ width: rem(14), height: rem(14) }} />
-            )
-          }
-        >
-          {isDownloading ? 'Updating...' : `Update to ${newerVersion}`}
-        </Button>
-      );
-    }
+  const renderActionButtons = () => {
+    const buttons = [];
 
-    if (!isInstalled && onDownload) {
-      return (
+    if (!isInstalled) {
+      buttons.push(
         <Button
+          key="download"
           variant="filled"
           size="xs"
           onClick={onDownload}
@@ -96,14 +77,42 @@ export const DownloadCard = ({
     }
 
     if (isInstalled && !isCurrent && onMakeCurrent) {
-      return (
-        <Button variant="light" size="xs" onClick={onMakeCurrent}>
+      buttons.push(
+        <Button
+          key="makeCurrent"
+          variant="light"
+          size="xs"
+          onClick={onMakeCurrent}
+        >
           Make Current
         </Button>
       );
     }
 
-    return null;
+    if (hasUpdate && onUpdate) {
+      buttons.push(
+        <Button
+          key="update"
+          variant="filled"
+          size="xs"
+          onClick={onUpdate}
+          loading={isDownloading}
+          disabled={disabled}
+          color="orange"
+          leftSection={
+            isDownloading ? (
+              <Loader size="1rem" />
+            ) : (
+              <Download style={{ width: rem(14), height: rem(14) }} />
+            )
+          }
+        >
+          {isDownloading ? 'Updating...' : `Update to ${newerVersion}`}
+        </Button>
+      );
+    }
+
+    return buttons.length > 0 ? <Stack gap="xs">{buttons}</Stack> : null;
   };
 
   return (
@@ -157,7 +166,7 @@ export const DownloadCard = ({
           </Group>
         </div>
 
-        {renderActionButton()}
+        {renderActionButtons()}
       </Group>
 
       {isDownloading && downloadProgress !== undefined && (

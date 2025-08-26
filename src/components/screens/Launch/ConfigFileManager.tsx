@@ -1,10 +1,5 @@
 import { Stack, Text, Group, Button, Select, Badge } from '@mantine/core';
-import {
-  useState,
-  useCallback,
-  forwardRef,
-  type ComponentPropsWithoutRef,
-} from 'react';
+import { useState, useCallback } from 'react';
 import { Save, File, Plus, Check } from 'lucide-react';
 import type { ConfigFile } from '@/types';
 import styles from '@/styles/layout.module.css';
@@ -19,7 +14,7 @@ interface ConfigFileManagerProps {
   onLoadConfigFiles: () => Promise<void>;
 }
 
-interface SelectItemProps extends ComponentPropsWithoutRef<'div'> {
+interface SelectItemProps {
   label: string;
   extension: string;
 }
@@ -35,22 +30,16 @@ const getBadgeColor = (extension: string) => {
   }
 };
 
-const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
-  ({ label, extension, ...others }, ref) => (
-    <div ref={ref} {...others}>
-      <Group justify="space-between" wrap="nowrap">
-        <Text size="sm" truncate>
-          {label}
-        </Text>
-        <Badge size="xs" variant="light" color={getBadgeColor(extension)}>
-          {extension}
-        </Badge>
-      </Group>
-    </div>
-  )
+const SelectItem = ({ label, extension }: SelectItemProps) => (
+  <Group justify="space-between" wrap="nowrap">
+    <Text size="sm" truncate>
+      {label}
+    </Text>
+    <Badge size="xs" variant="light" color={getBadgeColor(extension)}>
+      {extension}
+    </Badge>
+  </Group>
 );
-
-SelectItem.displayName = 'SelectItem';
 
 export const ConfigFileManager = ({
   configFiles,

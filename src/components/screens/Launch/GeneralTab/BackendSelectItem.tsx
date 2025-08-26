@@ -1,37 +1,38 @@
 import { Text, Group, Badge } from '@mantine/core';
-import { forwardRef } from 'react';
-import type { ComponentPropsWithoutRef } from 'react';
 
-interface BackendSelectItemProps extends ComponentPropsWithoutRef<'div'> {
+interface BackendSelectItemProps {
   label: string;
   devices?: string[];
+  disabled?: boolean;
 }
 
-export const BackendSelectItem = forwardRef<
-  HTMLDivElement,
-  BackendSelectItemProps
->(({ label, devices, ...others }, ref) => (
-  <div ref={ref} {...others}>
-    <Group justify="space-between" wrap="nowrap">
-      <Text size="sm" truncate>
-        {label}
-      </Text>
-      {devices && devices.length > 0 && (
-        <Group gap={4}>
-          {devices.slice(0, 2).map((device, index) => (
-            <Badge key={index} size="md" variant="light" color="blue">
-              {device.length > 25 ? `${device.slice(0, 25)}...` : device}
-            </Badge>
-          ))}
-          {devices.length > 2 && (
-            <Badge size="md" variant="light" color="gray">
-              +{devices.length - 2}
-            </Badge>
-          )}
-        </Group>
+export const BackendSelectItem = ({
+  label,
+  devices,
+  disabled = false,
+}: BackendSelectItemProps) => (
+  <Group justify="space-between" wrap="nowrap">
+    <Text size="sm" truncate>
+      {label}
+      {disabled && (
+        <Text component="span" size="xs" ml="xs">
+          (Compatible device(s) not found)
+        </Text>
       )}
-    </Group>
-  </div>
-));
-
-BackendSelectItem.displayName = 'BackendSelectItem';
+    </Text>
+    {devices && devices.length > 0 && (
+      <Group gap={4}>
+        {devices.slice(0, 2).map((device, index) => (
+          <Badge key={index} size="md" variant="light" color="blue">
+            {device.length > 25 ? `${device.slice(0, 25)}...` : device}
+          </Badge>
+        ))}
+        {devices.length > 2 && (
+          <Badge size="md" variant="light" color="gray">
+            +{devices.length - 2}
+          </Badge>
+        )}
+      </Group>
+    )}
+  </Group>
+);

@@ -4,11 +4,7 @@ import { BackendSelector } from '@/components/screens/Launch/GeneralTab/BackendS
 import { ModelFileField } from '@/components/ModelFileField';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 
-interface GeneralTabProps {
-  onBackendsReady?: () => void;
-}
-
-export const GeneralTab = ({ onBackendsReady }: GeneralTabProps) => {
+export const GeneralTab = () => {
   const {
     modelPath,
     contextSize,
@@ -19,7 +15,7 @@ export const GeneralTab = ({ onBackendsReady }: GeneralTabProps) => {
 
   return (
     <Stack gap="md">
-      <BackendSelector onBackendsReady={onBackendsReady} />
+      <BackendSelector />
 
       <ModelFileField
         label="Text Model File"

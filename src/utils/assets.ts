@@ -9,7 +9,7 @@ export const getAssetDescription = (assetName: string): string => {
   }
 
   if (name.endsWith(ASSET_SUFFIXES.OLDPC)) {
-    return 'Meant for old PCs with outdated CPUs that may not work with the standard build. Does not support modern AVX2 CPU architectures.';
+    return 'Meant for old PCs with outdated CPUs that may not work with the standard build. Does not support modern AVX2 CPU architectures or modern CUDA.';
   }
 
   if (name.endsWith(ASSET_SUFFIXES.NOCUDA)) {
