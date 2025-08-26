@@ -60,7 +60,7 @@ export const GpuDeviceSelector = ({
             <Text size="sm" fw={500}>
               GPU Device
             </Text>
-            <InfoTooltip label="Select which GPU device(s) to use. Choose 'All GPUs' to use multiple devices with tensor splitting." />
+            <InfoTooltip label="Select which GPU device to use. Choose 'All GPUs' to use multiple devices with tensor splitting." />
           </Group>
           <Select
             placeholder="Select GPU device"
