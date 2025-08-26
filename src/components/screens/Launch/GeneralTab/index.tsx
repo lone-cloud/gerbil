@@ -1,10 +1,8 @@
-import { Stack, Text, Group, TextInput, Button, Slider } from '@mantine/core';
-import { File, Search } from 'lucide-react';
+import { Stack, Text, Group, TextInput, Slider } from '@mantine/core';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { BackendSelector } from '@/components/screens/Launch/GeneralTab/BackendSelector';
-import { getInputValidationState } from '@/utils';
+import { ModelFileField } from '@/components/ModelFileField';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
-import styles from '@/styles/layout.module.css';
 
 interface GeneralTabProps {
   onBackendsReady?: () => void;
@@ -19,57 +17,20 @@ export const GeneralTab = ({ onBackendsReady }: GeneralTabProps) => {
     handleContextSizeChangeWithStep,
   } = useLaunchConfig();
 
-  const validationState = getInputValidationState(modelPath);
-
-  const getHelperText = () => {
-    if (!modelPath.trim()) return undefined;
-
-    if (validationState === 'invalid') {
-      return 'Enter a valid URL or file path to the .gguf';
-    }
-
-    return undefined;
-  };
-
   return (
     <Stack gap="md">
       <BackendSelector onBackendsReady={onBackendsReady} />
 
-      <div>
-        <Text size="sm" fw={500} mb="xs">
-          Text Model File
-        </Text>
-        <Group gap="xs" align="flex-start">
-          <div className={styles.flex1}>
-            <TextInput
-              placeholder="Select a .gguf model file or enter a direct URL to file"
-              value={modelPath}
-              onChange={(e) => handleModelPathChange(e.target.value)}
-              error={
-                validationState === 'invalid' ? getHelperText() : undefined
-              }
-            />
-          </div>
-          <Button
-            onClick={handleSelectModelFile}
-            variant="light"
-            leftSection={<File size={16} />}
-          >
-            Browse
-          </Button>
-          <Button
-            onClick={() => {
-              window.electronAPI.app.openExternal(
-                'https://huggingface.co/models?pipeline_tag=text-generation&library=gguf&sort=trending'
-              );
-            }}
-            variant="outline"
-            leftSection={<Search size={16} />}
-          >
-            Search HF
-          </Button>
-        </Group>
-      </div>
+      <ModelFileField
+        label="Text Model File"
+        value={modelPath}
+        placeholder="Select a .gguf model file or enter a direct URL to file"
+        tooltip="Select a GGUF text generation model file for chat and completion tasks."
+        onChange={handleModelPathChange}
+        onSelectFile={handleSelectModelFile}
+        showSearchHF
+        searchUrl="https://huggingface.co/models?pipeline_tag=text-generation&library=gguf&sort=trending"
+      />
 
       <div>
         <Group justify="space-between" align="center" mb="xs">

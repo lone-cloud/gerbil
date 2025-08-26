@@ -1,6 +1,6 @@
 import { Group, TextInput, Button } from '@mantine/core';
 import { File, Search } from 'lucide-react';
-import { SectionHeader } from '@/components/SectionHeader';
+import { LabelWithTooltip } from '@/components/LabelWithTooltip';
 import { getInputValidationState } from '@/utils';
 import styles from '@/styles/layout.module.css';
 
@@ -39,12 +39,7 @@ export const ModelFileField = ({
 
   return (
     <div>
-      <SectionHeader
-        title={label}
-        tooltip={tooltip}
-        fontWeight={500}
-        marginBottom="xs"
-      />
+      <LabelWithTooltip label={label} tooltip={tooltip} />
       <Group gap="xs" align="flex-start">
         <div className={styles.flex1}>
           <TextInput

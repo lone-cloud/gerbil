@@ -121,7 +121,6 @@ export interface KoboldAPI {
       usecuda?: boolean;
       usevulkan?: boolean;
       useclblast?: boolean;
-      clBlastInfo?: [number, number];
       sdmodel?: string;
       sdt5xxl?: string;
       sdclipl?: string;

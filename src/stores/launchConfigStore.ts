@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ConfigFile } from '@/types';
+import type { ConfigFile, SdConvDirectMode } from '@/types';
 import type { ImageModelPreset } from '@/utils/imageModelPresets';
 import { DEFAULT_CONTEXT_SIZE } from '@/constants';
 
@@ -24,7 +24,8 @@ interface LaunchConfigState {
   quantmatmul: boolean;
   usemmap: boolean;
   backend: string;
-  gpuDevice: number;
+  gpuDeviceSelection: string;
+  tensorSplit: string;
   gpuPlatform: number;
   sdmodel: string;
   sdt5xxl: string;
@@ -33,6 +34,7 @@ interface LaunchConfigState {
   sdphotomaker: string;
   sdvae: string;
   sdlora: string;
+  sdconvdirect: SdConvDirectMode;
 
   setGpuLayers: (layers: number) => void;
   setAutoGpuLayers: (auto: boolean) => void;
@@ -54,7 +56,8 @@ interface LaunchConfigState {
   setQuantmatmul: (quantmatmul: boolean) => void;
   setUsemmap: (usemmap: boolean) => void;
   setBackend: (backend: string) => void;
-  setGpuDevice: (device: number) => void;
+  setGpuDeviceSelection: (selection: string) => void;
+  setTensorSplit: (split: string) => void;
   setGpuPlatform: (platform: number) => void;
   setSdmodel: (model: string) => void;
   setSdt5xxl: (model: string) => void;
@@ -63,6 +66,7 @@ interface LaunchConfigState {
   setSdphotomaker: (model: string) => void;
   setSdvae: (vae: string) => void;
   setSdlora: (loraModel: string) => void;
+  setSdconvdirect: (mode: SdConvDirectMode) => void;
 
   parseAndApplyConfigFile: (configPath: string) => Promise<void>;
   loadConfigFromFile: (
@@ -102,7 +106,8 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   quantmatmul: true,
   usemmap: true,
   backend: '',
-  gpuDevice: 0,
+  gpuDeviceSelection: '0',
+  tensorSplit: '',
   gpuPlatform: 0,
   sdmodel: '',
   sdt5xxl: '',
@@ -111,6 +116,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   sdphotomaker: '',
   sdvae: '',
   sdlora: '',
+  sdconvdirect: 'off' as const,
 
   setGpuLayers: (layers) => set({ gpuLayers: layers }),
   setAutoGpuLayers: (auto) => set({ autoGpuLayers: auto }),
@@ -131,8 +137,14 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   setLowvram: (lowvram) => set({ lowvram }),
   setQuantmatmul: (quantmatmul) => set({ quantmatmul }),
   setUsemmap: (usemmap) => set({ usemmap }),
-  setBackend: (backend) => set({ backend }),
-  setGpuDevice: (device) => set({ gpuDevice: device }),
+  setBackend: (backend) =>
+    set({
+      backend,
+      gpuDeviceSelection: '0',
+      tensorSplit: '',
+    }),
+  setGpuDeviceSelection: (selection) => set({ gpuDeviceSelection: selection }),
+  setTensorSplit: (split) => set({ tensorSplit: split }),
   setGpuPlatform: (platform) => set({ gpuPlatform: platform }),
   setSdmodel: (model) => set({ sdmodel: model }),
   setSdt5xxl: (model) => set({ sdt5xxl: model }),
@@ -141,6 +153,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   setSdphotomaker: (model) => set({ sdphotomaker: model }),
   setSdvae: (vae) => set({ sdvae: vae }),
   setSdlora: (loraModel) => set({ sdlora: loraModel }),
+  setSdconvdirect: (mode) => set({ sdconvdirect: mode }),
 
   // eslint-disable-next-line sonarjs/cognitive-complexity
   parseAndApplyConfigFile: async (configPath: string) => {
@@ -262,7 +275,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
         ) {
           const [vramMode, deviceId, mmqMode] = configData.usecuda;
           updates.lowvram = vramMode === 'lowvram';
-          updates.gpuDevice = parseInt(deviceId, 10) || 0;
+          updates.gpuDeviceSelection = deviceId || '0';
           updates.quantmatmul = mmqMode === 'mmq';
         }
       } else if (configData.usevulkan === true) {
@@ -273,10 +286,18 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
       ) {
         updates.backend = 'clblast';
         const [deviceIndex, platformIndex] = configData.useclblast;
-        updates.gpuDevice = deviceIndex;
+        updates.gpuDeviceSelection = deviceIndex.toString();
         updates.gpuPlatform = platformIndex;
       } else {
         updates.backend = 'cpu';
+      }
+
+      if (typeof configData.gpuDeviceSelection === 'string') {
+        updates.gpuDeviceSelection = configData.gpuDeviceSelection;
+      }
+
+      if (typeof configData.tensorSplit === 'string') {
+        updates.tensorSplit = configData.tensorSplit;
       }
 
       if (typeof configData.sdmodel === 'string') {
@@ -305,6 +326,12 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
 
       if (typeof configData.sdlora === 'string') {
         updates.sdlora = configData.sdlora;
+      }
+      if (
+        typeof configData.sdconvdirect === 'string' &&
+        ['off', 'vaeonly', 'full'].includes(configData.sdconvdirect)
+      ) {
+        updates.sdconvdirect = configData.sdconvdirect as SdConvDirectMode;
       }
 
       set(updates);
@@ -396,6 +423,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
 
   applyImageModelPreset: (preset: ImageModelPreset) => {
     set({
+      sdmodel: preset.sdmodel,
       sdt5xxl: preset.sdt5xxl,
       sdclipl: preset.sdclipl,
       sdclipg: preset.sdclipg || '',

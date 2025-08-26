@@ -22,8 +22,8 @@ A desktop app for running Large Language Models locally. <!-- markdownlint-disab
 
 Download the latest release for your platform from the [GitHub Releases page](https://github.com/lone-cloud/friendly-kobold/releases/latest):
 
-- **Windows**: `Friendly.Kobold.Portable X.X.X.exe` (portable executable)
-- **Windows**: `Friendly.Kobold.Setup X.X.X.exe` (installer executable)
+- **Windows**: `Friendly.Kobold-Portable-X.X.X.exe` (portable executable)
+- **Windows**: `Friendly.Kobold-Setup-X.X.X.exe` (installer executable)
 - **macOS**: `Friendly.Kobold-X.X.X.dmg` (disk image)
 - **Linux**: `Friendly.Kobold-X.X.X.AppImage` (portable application)
 

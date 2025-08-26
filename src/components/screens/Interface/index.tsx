@@ -1,10 +1,11 @@
 import { useState, useCallback } from 'react';
 import { ServerTab } from '@/components/screens/Interface/ServerTab';
 import { TerminalTab } from '@/components/screens/Interface/TerminalTab';
+import type { InterfaceTab } from '@/types';
 
 interface InterfaceScreenProps {
-  activeTab?: string | null;
-  onTabChange?: (tab: string | null) => void;
+  activeTab?: InterfaceTab | null;
+  onTabChange?: (tab: InterfaceTab) => void;
   isImageGenerationMode?: boolean;
 }
 
@@ -21,10 +22,10 @@ export const InterfaceScreen = ({
       setServerUrl(url);
       setIsServerReady(true);
       if (onTabChange) {
-        onTabChange(isImageGenerationMode ? 'image' : 'chat');
+        onTabChange('chat');
       }
     },
-    [onTabChange, isImageGenerationMode]
+    [onTabChange]
   );
 
   return (
@@ -46,18 +47,6 @@ export const InterfaceScreen = ({
           serverUrl={serverUrl}
           isServerReady={isServerReady}
           mode={isImageGenerationMode ? 'image-generation' : 'chat'}
-        />
-      </div>
-      <div
-        style={{
-          flex: 1,
-          display: activeTab === 'image' ? 'block' : 'none',
-        }}
-      >
-        <ServerTab
-          serverUrl={serverUrl}
-          isServerReady={isServerReady}
-          mode="image-generation"
         />
       </div>
       <div

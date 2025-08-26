@@ -13,6 +13,7 @@ import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import { UI } from '@/constants';
 import type { DownloadItem } from '@/types/electron';
+import type { InterfaceTab } from '@/types';
 
 type Screen = 'welcome' | 'download' | 'launch' | 'interface';
 
@@ -21,11 +22,9 @@ export const App = () => {
   const [settingsOpened, setSettingsOpened] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [showEjectModal, setShowEjectModal] = useState(false);
-  const [activeInterfaceTab, setActiveInterfaceTab] = useState<string | null>(
-    'terminal'
-  );
-  const [isImageGenerationMode, setIsImageGenerationMode] =
-    useState<boolean>(false);
+  const [activeInterfaceTab, setActiveInterfaceTab] =
+    useState<InterfaceTab>('terminal');
+  const [isImageGenerationMode, setIsImageGenerationMode] = useState(false);
 
   const {
     updateInfo: binaryUpdateInfo,

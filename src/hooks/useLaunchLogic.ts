@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { parseCLBlastDevice } from '@/utils';
+import type { SdConvDirectMode } from '@/types';
 
 interface UseLaunchLogicProps {
   modelPath: string;
@@ -25,7 +26,9 @@ interface LaunchArgs {
   failsafe: boolean;
   backend: string;
   lowvram: boolean;
-  gpuDevice: number | string;
+  gpuDeviceSelection: string;
+  gpuPlatform: number;
+  tensorSplit: string;
   quantmatmul: boolean;
   usemmap: boolean;
   additionalArguments: string;
@@ -35,20 +38,18 @@ interface LaunchArgs {
   sdphotomaker: string;
   sdvae: string;
   sdlora: string;
+  sdconvdirect: SdConvDirectMode;
 }
 
 const buildModelArgs = (
   isImageMode: boolean,
-  isTextMode: boolean,
   modelPath: string,
   sdmodel: string,
   launchArgs: LaunchArgs
 ): string[] => {
   const args: string[] = [];
 
-  if (isImageMode && isTextMode) {
-    args.push('--sdmodel', sdmodel);
-  } else if (isImageMode) {
+  if (isImageMode) {
     args.push('--sdmodel', sdmodel);
 
     const imageModels = [
@@ -65,6 +66,14 @@ const buildModelArgs = (
         args.push(flag, value);
       }
     });
+
+    if (launchArgs.flashattention) {
+      args.push('--sdflashattention');
+    }
+
+    if (launchArgs.sdconvdirect !== 'off') {
+      args.push('--sdconvdirect', launchArgs.sdconvdirect);
+    }
   } else {
     args.push('--model', modelPath);
   }
@@ -72,7 +81,10 @@ const buildModelArgs = (
   return args;
 };
 
-const buildConfigArgs = (launchArgs: LaunchArgs): string[] => {
+const buildConfigArgs = (
+  isImageMode: boolean,
+  launchArgs: LaunchArgs
+): string[] => {
   const args: string[] = [];
 
   if (launchArgs.autoGpuLayers) {
@@ -100,7 +112,7 @@ const buildConfigArgs = (launchArgs: LaunchArgs): string[] => {
     [launchArgs.nocertify, '--nocertify'],
     [launchArgs.websearch, '--websearch'],
     [launchArgs.noshift, '--noshift'],
-    [launchArgs.flashattention, '--flashattention'],
+    [!isImageMode && launchArgs.flashattention, '--flashattention'],
     [launchArgs.noavx2, '--noavx2'],
     [launchArgs.failsafe, '--failsafe'],
     [launchArgs.usemmap, '--usemmap'],
@@ -116,41 +128,87 @@ const buildConfigArgs = (launchArgs: LaunchArgs): string[] => {
   return args;
 };
 
+const buildCudaArgs = (launchArgs: LaunchArgs): string[] => {
+  const cudaArgs = ['--usecuda'];
+  cudaArgs.push(launchArgs.lowvram ? 'lowvram' : 'normal');
+
+  if (launchArgs.gpuDeviceSelection === 'all') {
+    cudaArgs.push('0');
+  } else {
+    cudaArgs.push(launchArgs.gpuDeviceSelection || '0');
+  }
+
+  cudaArgs.push(launchArgs.quantmatmul ? 'mmq' : 'nommq');
+  return cudaArgs;
+};
+
+const buildVulkanArgs = (): string[] => ['--usevulkan'];
+
+const buildClblastArgs = (launchArgs: LaunchArgs): string[] => {
+  const clblastArgs = ['--useclblast'];
+
+  if (
+    typeof launchArgs.gpuDeviceSelection === 'string' &&
+    launchArgs.gpuDeviceSelection.includes(':')
+  ) {
+    const parsed = parseCLBlastDevice(launchArgs.gpuDeviceSelection);
+    if (parsed) {
+      clblastArgs.push(
+        parsed.platformIndex.toString(),
+        parsed.deviceIndex.toString()
+      );
+    } else {
+      clblastArgs.push(launchArgs.gpuPlatform.toString(), '0');
+    }
+  } else {
+    clblastArgs.push(
+      launchArgs.gpuPlatform.toString(),
+      launchArgs.gpuDeviceSelection || '0'
+    );
+  }
+
+  return clblastArgs;
+};
+
+const addTensorSplitArgs = (args: string[], launchArgs: LaunchArgs): void => {
+  if (launchArgs.tensorSplit && launchArgs.tensorSplit.trim()) {
+    const tensorValues = launchArgs.tensorSplit
+      .split(',')
+      .map((value) => value.trim())
+      .filter((value) => value !== '' && !isNaN(Number(value)));
+
+    if (tensorValues.length > 0) {
+      args.push('--tensorsplit', ...tensorValues);
+    }
+  }
+};
+
 const buildBackendArgs = (launchArgs: LaunchArgs): string[] => {
   const args: string[] = [];
 
-  if (launchArgs.backend && launchArgs.backend !== 'cpu') {
-    if (launchArgs.backend === 'cuda' || launchArgs.backend === 'rocm') {
-      const cudaArgs = ['--usecuda'];
-      cudaArgs.push(launchArgs.lowvram ? 'lowvram' : 'normal');
-      cudaArgs.push(
-        typeof launchArgs.gpuDevice === 'string'
-          ? '0'
-          : launchArgs.gpuDevice.toString()
-      );
-      cudaArgs.push(launchArgs.quantmatmul ? 'mmq' : 'nommq');
-      args.push(...cudaArgs);
-    } else if (launchArgs.backend === 'vulkan') {
-      args.push('--usevulkan');
-    } else if (launchArgs.backend === 'clblast') {
-      const clblastArgs = ['--useclblast'];
+  if (!launchArgs.backend || launchArgs.backend === 'cpu') {
+    return args;
+  }
 
-      if (typeof launchArgs.gpuDevice === 'string') {
-        const parsed = parseCLBlastDevice(launchArgs.gpuDevice);
-        if (parsed) {
-          clblastArgs.push(
-            parsed.deviceIndex.toString(),
-            parsed.platformIndex.toString()
-          );
-        } else {
-          clblastArgs.push('0', '0');
-        }
-      } else {
-        clblastArgs.push(launchArgs.gpuDevice.toString(), '0');
-      }
+  const isTensorSplitSupported =
+    launchArgs.backend === 'cuda' ||
+    launchArgs.backend === 'rocm' ||
+    launchArgs.backend === 'vulkan';
 
-      args.push(...clblastArgs);
+  if (launchArgs.backend === 'cuda' || launchArgs.backend === 'rocm') {
+    args.push(...buildCudaArgs(launchArgs));
+
+    if (launchArgs.gpuDeviceSelection === 'all' && isTensorSplitSupported) {
+      addTensorSplitArgs(args, launchArgs);
     }
+  } else if (launchArgs.backend === 'vulkan') {
+    args.push(...buildVulkanArgs());
+
+    if (launchArgs.gpuDeviceSelection === 'all' && isTensorSplitSupported) {
+      addTensorSplitArgs(args, launchArgs);
+    }
+  } else if (launchArgs.backend === 'clblast') {
+    args.push(...buildClblastArgs(launchArgs));
   }
 
   return args;
@@ -177,14 +235,8 @@ export const useLaunchLogic = ({
 
       try {
         const args: string[] = [
-          ...buildModelArgs(
-            isImageMode,
-            isTextMode,
-            modelPath,
-            sdmodel,
-            launchArgs
-          ),
-          ...buildConfigArgs(launchArgs),
+          ...buildModelArgs(isImageMode, modelPath, sdmodel, launchArgs),
+          ...buildConfigArgs(isImageMode, launchArgs),
           ...buildBackendArgs(launchArgs),
         ];
 
