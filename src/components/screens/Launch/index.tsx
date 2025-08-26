@@ -49,7 +49,8 @@ export const LaunchScreen = ({
     quantmatmul,
     usemmap,
     backend,
-    gpuDevice,
+    gpuDeviceSelection,
+    tensorSplit,
     gpuPlatform,
     sdmodel,
     sdt5xxl,
@@ -58,6 +59,7 @@ export const LaunchScreen = ({
     sdphotomaker,
     sdvae,
     sdlora,
+    sdconvdirect,
     parseAndApplyConfigFile,
     loadConfigFromFile,
     handleModelPathChange,
@@ -180,10 +182,8 @@ export const LaunchScreen = ({
     usecuda: backend === 'cuda' || backend === 'rocm',
     usevulkan: backend === 'vulkan',
     useclblast: backend === 'clblast',
-    clBlastInfo:
-      backend === 'clblast'
-        ? ([gpuDevice, gpuPlatform] as [number, number])
-        : undefined,
+    gpuDeviceSelection,
+    tensorSplit,
     sdmodel,
     sdt5xxl,
     sdclipl,
@@ -285,7 +285,9 @@ export const LaunchScreen = ({
       failsafe,
       backend,
       lowvram,
-      gpuDevice,
+      gpuDeviceSelection,
+      gpuPlatform,
+      tensorSplit,
       quantmatmul,
       usemmap,
       additionalArguments,
@@ -295,6 +297,7 @@ export const LaunchScreen = ({
       sdphotomaker,
       sdvae,
       sdlora,
+      sdconvdirect,
     });
   };
 

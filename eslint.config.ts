@@ -7,7 +7,6 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import react from 'eslint-plugin-react';
 import importPlugin from 'eslint-plugin-import';
 import sonarjs from 'eslint-plugin-sonarjs';
-import cspell from '@cspell/eslint-plugin';
 import noComments from 'eslint-plugin-no-comments';
 
 const config = [
@@ -47,7 +46,6 @@ const config = [
       react: react,
       import: importPlugin,
       sonarjs: sonarjs,
-      '@cspell': cspell,
       'no-comments': noComments,
     },
     settings: {
@@ -115,8 +113,6 @@ const config = [
       '@typescript-eslint/explicit-module-boundary-types': 'off',
 
       'sonarjs/cognitive-complexity': ['warn', 25],
-
-      '@cspell/spellchecker': ['warn'],
 
       'no-comments/disallowComments': 'error',
     },

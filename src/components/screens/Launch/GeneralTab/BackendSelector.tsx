@@ -2,6 +2,7 @@ import { Text, Group, Select, Checkbox, TextInput } from '@mantine/core';
 import { useState, useEffect, useRef } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { BackendSelectItem } from '@/components/screens/Launch/GeneralTab/BackendSelectItem';
+import { GpuDeviceSelector } from '@/components/screens/Launch/GeneralTab/GpuDeviceSelector';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 
 interface BackendSelectorProps {
@@ -11,11 +12,9 @@ interface BackendSelectorProps {
 export const BackendSelector = ({ onBackendsReady }: BackendSelectorProps) => {
   const {
     backend,
-    gpuDevice,
     gpuLayers,
     autoGpuLayers,
     handleBackendChange,
-    handleGpuDeviceChange,
     handleGpuLayersChange,
     handleAutoGpuLayersChange,
   } = useLaunchConfig();
@@ -72,7 +71,7 @@ export const BackendSelector = ({ onBackendsReady }: BackendSelectorProps) => {
   return (
     <div>
       <Group justify="space-between" align="flex-start" mb="xs">
-        <div style={{ flex: 1, marginRight: '2rem' }}>
+        <div style={{ flex: 1, marginRight: '1rem' }}>
           <Group gap="xs" align="center" mb="xs">
             <Text size="sm" fw={500}>
               Backend
@@ -104,33 +103,6 @@ export const BackendSelector = ({ onBackendsReady }: BackendSelectorProps) => {
               );
             }}
           />
-          {(() => {
-            const selectedBackend = availableBackends.find(
-              (b) => b.value === backend
-            );
-            const isGpuBackend = backend === 'cuda' || backend === 'rocm';
-            const hasMultipleDevices =
-              selectedBackend?.devices && selectedBackend.devices.length > 1;
-
-            return (
-              isGpuBackend &&
-              hasMultipleDevices && (
-                <Select
-                  label="GPU Device"
-                  placeholder="Select GPU device"
-                  value={gpuDevice.toString()}
-                  onChange={(value) =>
-                    value && handleGpuDeviceChange(parseInt(value, 10))
-                  }
-                  data={selectedBackend.devices!.map((device, index) => ({
-                    value: index.toString(),
-                    label: `GPU ${index}: ${device}`,
-                  }))}
-                  mt="xs"
-                />
-              )
-            );
-          })()}
         </div>
 
         <div style={{ flex: 1 }}>
@@ -169,6 +141,8 @@ export const BackendSelector = ({ onBackendsReady }: BackendSelectorProps) => {
           </Group>
         </div>
       </Group>
+
+      <GpuDeviceSelector availableBackends={availableBackends} />
     </div>
   );
 };

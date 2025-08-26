@@ -38,14 +38,4 @@ export const IMAGE_MODEL_PRESETS: ImageModelPreset[] = [
     sdvae:
       'https://huggingface.co/lodestones/Chroma/resolve/main/ae.safetensors?download=true',
   },
-  {
-    name: 'Custom',
-    description: 'Start with empty fields for custom configuration',
-    sdmodel: '',
-    sdt5xxl: '',
-    sdclipl: '',
-    sdclipg: '',
-    sdphotomaker: '',
-    sdvae: '',
-  },
 ];

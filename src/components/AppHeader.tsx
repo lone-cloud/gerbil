@@ -12,14 +12,15 @@ import {
 } from '@mantine/core';
 import { Settings, ArrowLeft } from 'lucide-react';
 import { soundAssets, playSound, initializeAudio } from '@/utils';
+import type { InterfaceTab } from '@/types';
 import iconUrl from '/icon.png';
 
 type Screen = 'welcome' | 'download' | 'launch' | 'interface';
 
 interface AppHeaderProps {
   currentScreen: Screen | null;
-  activeInterfaceTab: string | null;
-  setActiveInterfaceTab: (tab: string | null) => void;
+  activeInterfaceTab: InterfaceTab;
+  setActiveInterfaceTab: (tab: InterfaceTab) => void;
   isImageGenerationMode: boolean;
   onEject: () => void;
   onSettingsOpen: () => void;
@@ -109,8 +110,10 @@ export const AppHeader = ({
 
         {currentScreen === 'interface' && (
           <Select
-            value={activeInterfaceTab || 'terminal'}
-            onChange={(value) => setActiveInterfaceTab(value || 'terminal')}
+            value={activeInterfaceTab}
+            onChange={(value) =>
+              setActiveInterfaceTab((value || 'terminal') as InterfaceTab)
+            }
             data={[
               {
                 value: 'chat',

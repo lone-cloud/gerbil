@@ -1,7 +1,7 @@
-import { Stack, Select } from '@mantine/core';
+import { Stack } from '@mantine/core';
 import { useState } from 'react';
-import { SectionHeader } from '@/components/SectionHeader';
 import { ModelFileField } from '@/components/ModelFileField';
+import { SelectWithTooltip } from '@/components/SelectWithTooltip';
 import { IMAGE_MODEL_PRESETS } from '@/utils';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 
@@ -14,50 +14,54 @@ export const ImageGenerationTab = () => {
     sdphotomaker,
     sdvae,
     sdlora,
+    sdconvdirect,
     handleSdmodelChange,
-    handleSelectSdmodelFile,
     handleSdt5xxlChange,
-    handleSelectSdt5xxlFile,
     handleSdcliplChange,
-    handleSelectSdcliplFile,
     handleSdclipgChange,
-    handleSelectSdclipgFile,
     handleSdphotomakerChange,
-    handleSelectSdphotomakerFile,
     handleSdvaeChange,
-    handleSelectSdvaeFile,
     handleSdloraChange,
-    handleSelectSdloraFile,
+    handleSdconvdirectChange,
     handleApplyPreset,
+    handleSelectSdmodelFile,
+    handleSelectSdt5xxlFile,
+    handleSelectSdcliplFile,
+    handleSelectSdclipgFile,
+    handleSelectSdphotomakerFile,
+    handleSelectSdvaeFile,
+    handleSelectSdloraFile,
   } = useLaunchConfig();
 
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
 
   return (
     <Stack gap="md">
-      <div>
-        <SectionHeader
-          title="Model Preset"
-          tooltip="Quick presets for popular image generation models with pre-configured encoders."
-          fontWeight={500}
-          marginBottom="xs"
-        />
-        <Select
-          placeholder="Choose a preset..."
-          data={IMAGE_MODEL_PRESETS.map((preset) => ({
-            value: preset.name,
-            label: preset.name,
-          }))}
-          value={selectedPreset}
-          onChange={(value) => {
-            setSelectedPreset(value);
-            if (value) {
-              handleApplyPreset(value);
-            }
-          }}
-          clearable
-        />
-      </div>
+      <SelectWithTooltip
+        label="Model Preset"
+        tooltip="Quick presets for popular image generation models with pre-configured encoders."
+        placeholder="Choose a preset..."
+        data={IMAGE_MODEL_PRESETS.map((preset) => ({
+          value: preset.name,
+          label: preset.name,
+        }))}
+        value={selectedPreset ?? ''}
+        onChange={(value) => {
+          setSelectedPreset(value);
+          if (value) {
+            handleApplyPreset(value);
+          } else {
+            handleSdmodelChange('');
+            handleSdt5xxlChange('');
+            handleSdcliplChange('');
+            handleSdclipgChange('');
+            handleSdphotomakerChange('');
+            handleSdvaeChange('');
+            handleSdloraChange('');
+          }
+        }}
+        clearable
+      />
 
       <ModelFileField
         label="Image Gen. Model File"
@@ -122,6 +126,22 @@ export const ImageGenerationTab = () => {
         tooltip="LoRa (Low-Rank Adaptation) file for customizing image generation. Select a .safetensors or .gguf LoRa file to be loaded. Should be unquantized."
         onChange={handleSdloraChange}
         onSelectFile={handleSelectSdloraFile}
+      />
+
+      <SelectWithTooltip
+        label="Conv2D Direct"
+        tooltip="May improve performance or reduce memory usage. WARNING: Might crash if not supported by your backend! Only enable if you're sure your GPU and drivers support it."
+        value={sdconvdirect}
+        onChange={(value) => {
+          if (value === 'off' || value === 'vaeonly' || value === 'full') {
+            handleSdconvdirectChange(value);
+          }
+        }}
+        data={[
+          { value: 'off', label: 'Off' },
+          { value: 'vaeonly', label: 'VAE Only' },
+          { value: 'full', label: 'Full' },
+        ]}
       />
     </Stack>
   );

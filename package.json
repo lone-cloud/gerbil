@@ -1,7 +1,7 @@
 {
   "name": "friendly-kobold",
   "productName": "Friendly Kobold",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "A desktop app for running Large Language Models locally",
   "main": "out/main/index.js",
   "homepage": "./",
@@ -23,20 +23,16 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "compile": "tsc --noEmit",
-    "spell-check": "cspell \"**/*.{ts,tsx,js,jsx,md,json}\" --no-progress",
-    "spell-check:fix": "cspell \"**/*.{ts,tsx,js,jsx,md,json}\" --no-progress --show-suggestions",
-    "check-all": "yarn lint && yarn compile && yarn spell-check",
+    "check-all": "yarn lint && yarn compile",
     "release": "yarn dlx tsx scripts/release.ts",
     "prepare": "husky"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "eslint --fix",
-      "cspell \"**/*.{ts,tsx,js,jsx,md,json}\" --no-progress",
       "prettier --write --ignore-path .gitignore"
     ],
     "*.{json,css,md}": [
-      "cspell \"**/*.{ts,tsx,js,jsx,md,json}\" --no-progress",
       "prettier --write --ignore-path .gitignore"
     ]
   },
@@ -56,17 +52,15 @@
   },
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
-    "@cspell/eslint-plugin": "^9.2.0",
     "@eslint/js": "^9.34.0",
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.11",
     "@types/react-dom": "^19.1.7",
     "@types/strip-ansi": "^5.2.1",
-    "@typescript-eslint/eslint-plugin": "^8.40.0",
-    "@typescript-eslint/parser": "^8.40.0",
+    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/parser": "^8.41.0",
     "@vitejs/plugin-react": "^5.0.1",
     "cross-env": "^10.0.0",
-    "cspell": "^9.2.0",
     "electron": "^37.3.1",
     "electron-builder": "^26.0.12",
     "electron-vite": "^4.0.0",
@@ -76,7 +70,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
-    "eslint-plugin-sonarjs": "^3.0.4",
+    "eslint-plugin-sonarjs": "^3.0.5",
     "globals": "^16.3.0",
     "husky": "^9.1.7",
     "jiti": "^2.5.1",
@@ -95,7 +89,7 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "strip-ansi": "^7.1.0",
-    "systeminformation": "^5.27.7",
+    "systeminformation": "^5.27.8",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0",
     "zustand": "^5.0.8"
@@ -168,7 +162,7 @@
       ]
     },
     "nsis": {
-      "artifactName": "${productName} Setup ${version}.${ext}",
+      "artifactName": "${productName}-Setup-${version}.${ext}",
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
@@ -176,11 +170,11 @@
       "shortcutName": "Friendly Kobold"
     },
     "portable": {
-      "artifactName": "${productName} Portable ${version}.${ext}"
+      "artifactName": "${productName}-Portable-${version}.${ext}"
     },
     "linux": {
       "compression": "store",
-      "category": "Development",
+      "category": "Utility",
       "desktop": {
         "entry": {
           "Name": "Friendly Kobold",

@@ -1,11 +1,12 @@
 import { useRef } from 'react';
 import { Box, Text, Stack } from '@mantine/core';
 import { UI } from '@/constants';
+import type { ServerTabMode } from '@/types';
 
 interface ServerTabProps {
   serverUrl?: string;
   isServerReady?: boolean;
-  mode: 'chat' | 'image-generation';
+  mode: ServerTabMode;
 }
 
 export const ServerTab = ({
