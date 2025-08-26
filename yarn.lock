@@ -1324,12 +1324,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^19.1.7":
-  version: 19.1.7
-  resolution: "@types/react-dom@npm:19.1.7"
+"@types/react-dom@npm:^19.1.8":
+  version: 19.1.8
+  resolution: "@types/react-dom@npm:19.1.8"
   peerDependencies:
     "@types/react": ^19.0.0
-  checksum: 10c0/8db5751c1567552fe4e1ece9f5823b682f2994ec8d30ed34ba0ef984e3c8ace1435f8be93d02f55c350147e78ac8c4dbcd8ed2c3b6a60f575bc5374f588c51c9
+  checksum: 10c0/561f9679c99e93adba8ecdf7d5ad69cc9d5e35837fa996246a83713f0ce498fc5b871f9a2a3342c7d440fc02159abe10f29c4a4004527d5d38b2e84f21840793
   languageName: node
   linkType: hard
 
@@ -3612,7 +3612,7 @@ __metadata:
     "@mantine/hooks": "npm:^8.2.7"
     "@types/node": "npm:^24.3.0"
     "@types/react": "npm:^19.1.11"
-    "@types/react-dom": "npm:^19.1.7"
+    "@types/react-dom": "npm:^19.1.8"
     "@types/strip-ansi": "npm:^5.2.1"
     "@typescript-eslint/eslint-plugin": "npm:^8.41.0"
     "@typescript-eslint/parser": "npm:^8.41.0"
@@ -3634,7 +3634,7 @@ __metadata:
     husky: "npm:^9.1.7"
     jiti: "npm:^2.5.1"
     lint-staged: "npm:^16.1.5"
-    lucide-react: "npm:^0.541.0"
+    lucide-react: "npm:^0.542.0"
     prettier: "npm:^3.6.2"
     react: "npm:^19.1.1"
     react-dom: "npm:^19.1.1"
@@ -5005,12 +5005,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide-react@npm:^0.541.0":
-  version: 0.541.0
-  resolution: "lucide-react@npm:0.541.0"
+"lucide-react@npm:^0.542.0":
+  version: 0.542.0
+  resolution: "lucide-react@npm:0.542.0"
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10c0/ffa23a9c9ead0832c7e0bb1eb7ed44e9f38bbf083d94b4d36a66eb23fa2099d4a52e1677c91eb7e8ea922621fa98e730f5d513bc56b3111b14b835bd8ab823ab
+  checksum: 10c0/3ccdb898a480f0194f93abef0b6f0347bc2647db24051e65a17c1dbd22ca0d10a7636d9af68c92665b42b6c9e761567a0d65944fe8568fb0e30a7ea57281ccec
   languageName: node
   linkType: hard
 
