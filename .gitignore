@@ -11,4 +11,8 @@ Thumbs.db
 # Yarn
 .yarn/
 .pnp.*
-package-lock.json
+t5xxl_fp8_e4m3fn.safetensors.aria2
+ae.safetensors
+clip_l.safetensors
+t5xxl_fp8_e4m3fn.safetensors
+flux1-kontext-dev-Q3_K_S.gguf
