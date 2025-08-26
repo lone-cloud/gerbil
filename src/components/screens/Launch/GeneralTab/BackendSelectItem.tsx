@@ -16,7 +16,7 @@ export const BackendSelectItem = ({
       {label}
       {disabled && (
         <Text component="span" size="xs" ml="xs">
-          (Compatible device(s) not found)
+          (Compatible devices not found)
         </Text>
       )}
     </Text>
