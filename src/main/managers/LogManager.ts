@@ -47,7 +47,8 @@ export class LogManager {
   }
 
   public logDebug(message: string) {
-    this.logger.debug(message);
+    // eslint-disable-next-line no-console
+    console.log(message);
   }
 
   public setupGlobalErrorHandlers() {

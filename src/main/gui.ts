@@ -1,23 +1,25 @@
 import { app } from 'electron';
 import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
-import { homedir } from 'os';
 
 import { WindowManager } from '@/main/managers/WindowManager';
 import { ConfigManager } from '@/main/managers/ConfigManager';
 import { LogManager } from '@/main/managers/LogManager';
 import { KoboldCppManager } from '@/main/managers/KoboldCppManager';
+import { SillyTavernManager } from '@/main/managers/SillyTavernManager';
 import { GitHubService } from '@/main/services/GitHubService';
 import { HardwareService } from '@/main/services/HardwareService';
 import { BinaryService } from '@/main/services/BinaryService';
-import { IPCHandlers } from '@/main/utils/IPCHandlers';
-import { APP_NAME, CONFIG_FILE_NAME } from '@/constants';
+import { IPCHandlers } from '@/main/ipc';
+import { PRODUCT_NAME, CONFIG_FILE_NAME } from '@/constants';
+import { homedir } from 'os';
 
 export class FriendlyKoboldApp {
   private windowManager: WindowManager;
   private configManager: ConfigManager;
   private logManager: LogManager;
   private koboldManager: KoboldCppManager;
+  private sillyTavernManager: SillyTavernManager;
   private githubService: GitHubService;
   private hardwareService: HardwareService;
   private binaryService: BinaryService;
@@ -49,13 +51,19 @@ export class FriendlyKoboldApp {
       this.hardwareService
     );
 
+    this.sillyTavernManager = new SillyTavernManager(
+      this.logManager,
+      this.windowManager
+    );
+
     this.ipcHandlers = new IPCHandlers(
       this.koboldManager,
       this.configManager,
       this.githubService,
       this.hardwareService,
       this.binaryService,
-      this.logManager
+      this.logManager,
+      this.sillyTavernManager
     );
   }
 
@@ -63,23 +71,24 @@ export class FriendlyKoboldApp {
     return join(app.getPath('userData'), CONFIG_FILE_NAME);
   }
 
-  private getDefaultInstallPath() {
+  private getDefaultInstallDir(appName: string): string {
     const platform = process.platform;
     const home = homedir();
 
     switch (platform) {
       case 'win32':
-        return join(home, APP_NAME);
+        return join(home, appName);
       case 'darwin':
-        return join(home, 'Applications', APP_NAME);
+        return join(home, 'Applications', appName);
       default:
-        return join(home, '.local', 'share', APP_NAME);
+        return join(home, '.local', 'share', appName);
     }
   }
 
   private ensureInstallDirectory() {
     const installDir =
-      this.configManager.getInstallDir() || this.getDefaultInstallPath();
+      this.configManager.getInstallDir() ||
+      this.getDefaultInstallDir(PRODUCT_NAME);
 
     if (!this.configManager.getInstallDir()) {
       this.configManager.setInstallDir(installDir);
@@ -113,19 +122,20 @@ export class FriendlyKoboldApp {
       event.preventDefault();
 
       try {
-        const cleanupPromise = this.koboldManager.cleanup();
+        const cleanupPromises = [
+          this.koboldManager.cleanup(),
+          this.sillyTavernManager.cleanup(),
+        ];
+
         const timeoutPromise = new Promise<void>((resolve) => {
           setTimeout(() => {
             resolve();
           }, 10000);
         });
 
-        await Promise.race([cleanupPromise, timeoutPromise]);
+        await Promise.race([Promise.all(cleanupPromises), timeoutPromise]);
       } catch (error) {
-        this.logManager.logError(
-          'Error during KoboldCpp cleanup:',
-          error as Error
-        );
+        this.logManager.logError('Error during cleanup:', error as Error);
       }
 
       this.windowManager.cleanup();

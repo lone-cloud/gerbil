@@ -2,12 +2,12 @@ import type {
   CPUCapabilities,
   GPUCapabilities,
   BasicGPUInfo,
-  HardwareInfo,
   PlatformInfo,
   GPUMemoryInfo,
 } from '@/types/hardware';
+import type { BackendOption } from '@/types';
 
-interface GitHubAsset {
+export interface GitHubAsset {
   name: string;
   browser_download_url: string;
   size: number;
@@ -32,13 +32,13 @@ export interface UpdateInfo {
   hasUpdate: boolean;
 }
 
-interface ReleaseWithStatus {
+export interface ReleaseWithStatus {
   release: GitHubRelease;
-  availableAssets: Array<{
+  availableAssets: {
     asset: GitHubAsset;
     isDownloaded: boolean;
     installedVersion?: string;
-  }>;
+  }[];
 }
 
 export interface InstalledVersion {
@@ -79,9 +79,7 @@ export interface KoboldAPI {
     failsafe: boolean;
     cuda: boolean;
   } | null>;
-  getAvailableBackends: () => Promise<
-    Array<{ value: string; label: string; devices?: string[] }>
-  >;
+  getAvailableBackends: (includeDisabled?: boolean) => Promise<BackendOption[]>;
   getCurrentInstallDir: () => Promise<string>;
   selectInstallDirectory: () => Promise<string | null>;
   downloadRelease: (
@@ -97,9 +95,7 @@ export interface KoboldAPI {
   launchKoboldCpp: (
     args?: string[]
   ) => Promise<{ success: boolean; pid?: number; error?: string }>;
-  getConfigFiles: () => Promise<
-    Array<{ name: string; path: string; size: number }>
-  >;
+  getConfigFiles: () => Promise<{ name: string; path: string; size: number }[]>;
   saveConfigFile: (
     configName: string,
     configData: {

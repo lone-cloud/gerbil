@@ -1,5 +1,10 @@
 @import '@mantine/core/styles.css';
 
+/* TODO: something (mantine?) is setting this sometimes to "none" on the terminal tab */
+body {
+  user-select: auto !important;
+}
+
 /* Custom scrollbars */
 ::-webkit-scrollbar {
   width: 0.5rem;

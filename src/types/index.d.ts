@@ -8,7 +8,11 @@ export type InterfaceTab = 'terminal' | 'chat';
 
 export type SdConvDirectMode = 'off' | 'vaeonly' | 'full';
 
+export type FrontendPreference = 'koboldcpp' | 'sillytavern';
+
 export type ServerTabMode = 'chat' | 'image-generation';
+
+export type Screen = 'welcome' | 'download' | 'launch' | 'interface';
 
 export interface GitHubAsset {
   name: string;
@@ -39,11 +43,12 @@ export interface InstalledVersion {
   size?: number;
 }
 
-export type {
-  CPUCapabilities,
-  GPUCapabilities,
-  BasicGPUInfo,
-  HardwareInfo,
-  PlatformInfo,
-  SystemCapabilities,
-} from '@/types/hardware';
+export interface SelectOption {
+  value: string;
+  label: string;
+}
+
+export interface BackendOption extends SelectOption {
+  devices?: string[];
+  disabled?: boolean;
+}

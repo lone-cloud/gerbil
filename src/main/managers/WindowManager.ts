@@ -1,7 +1,10 @@
 import { BrowserWindow, app, Menu, shell, nativeImage } from 'electron';
 import * as os from 'os';
 import { join } from 'path';
-import { GITHUB_API } from '../../constants';
+import { readFileSync } from 'fs';
+import { stripVTControlCharacters } from 'util';
+import { GITHUB_API, PRODUCT_NAME } from '../../constants';
+import type { IPCChannel, IPCChannelPayloads } from '@/types/ipc';
 
 export class WindowManager {
   private mainWindow: BrowserWindow | null = null;
@@ -25,7 +28,7 @@ export class WindowManager {
       width: 1000,
       height: 600,
       icon: iconImage,
-      title: 'Friendly Kobold',
+      title: PRODUCT_NAME,
       show: false,
       backgroundColor: '#ffffff',
       webPreferences: {
@@ -117,6 +120,23 @@ export class WindowManager {
 
   getMainWindow(): BrowserWindow | null {
     return this.mainWindow;
+  }
+
+  sendToRenderer<T extends IPCChannel>(
+    channel: T,
+    ...args: IPCChannelPayloads[T]
+  ): void {
+    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+      this.mainWindow.webContents.send(channel, ...args);
+    }
+  }
+
+  sendKoboldOutput(message: string, raw?: boolean): void {
+    const cleanMessage = stripVTControlCharacters(message);
+    this.sendToRenderer(
+      'kobold-output',
+      raw ? cleanMessage : `${cleanMessage}\n`
+    );
   }
 
   public cleanup() {
@@ -280,7 +300,7 @@ export class WindowManager {
 
   private async showAboutDialog() {
     const packagePath = join(app.getAppPath(), 'package.json');
-    const packageInfo = require(packagePath);
+    const packageInfo = JSON.parse(readFileSync(packagePath, 'utf8'));
     const electronVersion = process.versions.electron;
     const chromeVersion = process.versions.chrome;
     const nodeVersion = process.versions.node;

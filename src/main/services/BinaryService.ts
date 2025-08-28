@@ -3,6 +3,7 @@ import { join, dirname } from 'path';
 import { LogManager } from '@/main/managers/LogManager';
 import type { KoboldCppManager } from '@/main/managers/KoboldCppManager';
 import type { HardwareService } from '@/main/services/HardwareService';
+import type { BackendOption } from '@/types';
 
 export interface BackendSupport {
   rocm: boolean;
@@ -15,10 +16,7 @@ export interface BackendSupport {
 
 export class BinaryService {
   private backendSupportCache = new Map<string, BackendSupport>();
-  private availableBackendsCache = new Map<
-    string,
-    Array<{ value: string; label: string; devices?: string[] }>
-  >();
+  private availableBackendsCache = new Map<string, BackendOption[]>();
   private logManager: LogManager;
   private koboldManager: KoboldCppManager;
   private hardwareService: HardwareService;
@@ -107,20 +105,25 @@ export class BinaryService {
     }
   }
 
-  async getAvailableBackends(): Promise<
-    Array<{ value: string; label: string; devices?: string[] }>
-  > {
+  // eslint-disable-next-line sonarjs/cognitive-complexity
+  async getAvailableBackends(
+    includeDisabled = false
+  ): Promise<BackendOption[]> {
     try {
-      const [currentBinaryInfo, hardwareCapabilities] = await Promise.all([
-        this.koboldManager.getCurrentBinaryInfo(),
-        this.hardwareService.detectGPUCapabilities(),
-      ]);
+      const [currentBinaryInfo, hardwareCapabilities, cpuCapabilities] =
+        await Promise.all([
+          this.koboldManager.getCurrentBinaryInfo(),
+          this.hardwareService.detectGPUCapabilities(),
+          includeDisabled
+            ? this.hardwareService.detectCPU()
+            : Promise.resolve(null),
+        ]);
 
       if (!currentBinaryInfo?.path) {
         return [{ value: 'cpu', label: 'CPU' }];
       }
 
-      const cacheKey = `${currentBinaryInfo.path}:${JSON.stringify(hardwareCapabilities)}`;
+      const cacheKey = `${currentBinaryInfo.path}:${includeDisabled}`;
 
       if (this.availableBackendsCache.has(cacheKey)) {
         return this.availableBackendsCache.get(cacheKey)!;
@@ -132,48 +135,69 @@ export class BinaryService {
         return [];
       }
 
-      const backends: Array<{
-        value: string;
-        label: string;
-        devices?: string[];
-      }> = [];
+      const backends: BackendOption[] = [];
 
-      if (backendSupport.cuda && hardwareCapabilities.cuda.supported) {
-        backends.push({
-          value: 'cuda',
-          label: 'CUDA',
-          devices: hardwareCapabilities.cuda.devices,
-        });
+      if (backendSupport.cuda) {
+        const isSupported = hardwareCapabilities.cuda.supported;
+        if (isSupported || includeDisabled) {
+          backends.push({
+            value: 'cuda',
+            label: 'CUDA',
+            devices: hardwareCapabilities.cuda.devices,
+            disabled: includeDisabled ? !isSupported : undefined,
+          });
+        }
       }
 
-      if (backendSupport.rocm && hardwareCapabilities.rocm.supported) {
-        backends.push({
-          value: 'rocm',
-          label: 'ROCm',
-          devices: hardwareCapabilities.rocm.devices,
-        });
+      if (backendSupport.rocm) {
+        const isSupported = hardwareCapabilities.rocm.supported;
+        if (isSupported || includeDisabled) {
+          backends.push({
+            value: 'rocm',
+            label: 'ROCm',
+            devices: hardwareCapabilities.rocm.devices,
+            disabled: includeDisabled ? !isSupported : undefined,
+          });
+        }
       }
 
-      if (backendSupport.vulkan && hardwareCapabilities.vulkan.supported) {
-        backends.push({
-          value: 'vulkan',
-          label: 'Vulkan',
-          devices: hardwareCapabilities.vulkan.devices,
-        });
+      if (backendSupport.vulkan) {
+        const isSupported = hardwareCapabilities.vulkan.supported;
+        if (isSupported || includeDisabled) {
+          backends.push({
+            value: 'vulkan',
+            label: 'Vulkan',
+            devices: hardwareCapabilities.vulkan.devices,
+            disabled: includeDisabled ? !isSupported : undefined,
+          });
+        }
       }
 
-      if (backendSupport.clblast && hardwareCapabilities.clblast.supported) {
-        backends.push({
-          value: 'clblast',
-          label: 'CLBlast',
-          devices: hardwareCapabilities.clblast.devices,
-        });
+      if (backendSupport.clblast) {
+        const isSupported = hardwareCapabilities.clblast.supported;
+        if (isSupported || includeDisabled) {
+          backends.push({
+            value: 'clblast',
+            label: 'CLBlast',
+            devices: hardwareCapabilities.clblast.devices,
+            disabled: includeDisabled ? !isSupported : undefined,
+          });
+        }
       }
 
       backends.push({
         value: 'cpu',
         label: 'CPU',
+        devices: cpuCapabilities?.devices,
+        disabled: false,
       });
+
+      if (includeDisabled) {
+        backends.sort((a, b) => {
+          if (a.disabled === b.disabled) return 0;
+          return a.disabled ? 1 : -1;
+        });
+      }
 
       this.availableBackendsCache.set(cacheKey, backends);
       return backends;

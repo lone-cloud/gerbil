@@ -4,11 +4,12 @@ import { Settings, Palette, SlidersHorizontal, GitBranch } from 'lucide-react';
 import { GeneralTab } from '@/components/settings/GeneralTab';
 import { VersionsTab } from '@/components/settings/VersionsTab';
 import { AppearanceTab } from '@/components/settings/AppearanceTab';
+import type { Screen } from '@/types';
 
 interface SettingsModalProps {
   opened: boolean;
   onClose: () => void;
-  currentScreen?: 'welcome' | 'download' | 'launch' | 'interface';
+  currentScreen?: Screen;
 }
 
 export const SettingsModal = ({

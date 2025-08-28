@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { parseCLBlastDevice } from '@/utils';
 import type { SdConvDirectMode } from '@/types';
 
 interface UseLaunchLogicProps {
@@ -105,7 +104,7 @@ const buildConfigArgs = (
     args.push('--host', launchArgs.host);
   }
 
-  const flagMappings: Array<[boolean, string, string?]> = [
+  const flagMappings: [boolean, string, string?][] = [
     [launchArgs.multiuser, '--multiuser', '1'],
     [launchArgs.multiplayer, '--multiplayer'],
     [launchArgs.remotetunnel, '--remotetunnel'],
@@ -214,6 +213,20 @@ const buildBackendArgs = (launchArgs: LaunchArgs): string[] => {
   return args;
 };
 
+function parseCLBlastDevice(deviceString: string): {
+  deviceIndex: number;
+  platformIndex: number;
+} | null {
+  const match = deviceString.match(/\[(\d+),(\d+)\]$/);
+  if (match) {
+    return {
+      deviceIndex: parseInt(match[1], 10),
+      platformIndex: parseInt(match[2], 10),
+    };
+  }
+  return null;
+}
+
 export const useLaunchLogic = ({
   modelPath,
   sdmodel,
@@ -232,6 +245,8 @@ export const useLaunchLogic = ({
       }
 
       setIsLaunching(true);
+
+      onLaunch();
 
       try {
         const args: string[] = [
@@ -253,10 +268,6 @@ export const useLaunchLogic = ({
           if (onLaunchModeChange) {
             onLaunchModeChange(isImageMode);
           }
-
-          setTimeout(() => {
-            onLaunch();
-          }, 100);
         } else {
           window.electronAPI.logs.logError(
             'Launch failed:',

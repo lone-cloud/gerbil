@@ -1,10 +1,7 @@
 import { Text, Group, Badge } from '@mantine/core';
+import type { BackendOption } from '@/types';
 
-interface BackendSelectItemProps {
-  label: string;
-  devices?: string[];
-  disabled?: boolean;
-}
+type BackendSelectItemProps = Omit<BackendOption, 'value'>;
 
 export const BackendSelectItem = ({
   label,

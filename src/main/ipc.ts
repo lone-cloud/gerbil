@@ -1,16 +1,18 @@
-import { ipcMain } from 'electron';
-import { shell, app } from 'electron';
+import { ipcMain, shell, app } from 'electron';
 import { KoboldCppManager } from '@/main/managers/KoboldCppManager';
 import { ConfigManager } from '@/main/managers/ConfigManager';
 import { LogManager } from '@/main/managers/LogManager';
+import { SillyTavernManager } from '@/main/managers/SillyTavernManager';
 import { GitHubService } from '@/main/services/GitHubService';
 import { HardwareService } from '@/main/services/HardwareService';
 import { BinaryService } from '@/main/services/BinaryService';
+import type { FrontendPreference } from '@/types';
 
 export class IPCHandlers {
   private koboldManager: KoboldCppManager;
   private configManager: ConfigManager;
   private logManager: LogManager;
+  private sillyTavernManager: SillyTavernManager;
   private githubService: GitHubService;
   private hardwareService: HardwareService;
   private binaryService: BinaryService;
@@ -21,14 +23,49 @@ export class IPCHandlers {
     githubService: GitHubService,
     hardwareService: HardwareService,
     binaryService: BinaryService,
-    logManager: LogManager
+    logManager: LogManager,
+    sillyTavernManager: SillyTavernManager
   ) {
     this.koboldManager = koboldManager;
     this.configManager = configManager;
     this.logManager = logManager;
+    this.sillyTavernManager = sillyTavernManager;
     this.githubService = githubService;
     this.hardwareService = hardwareService;
     this.binaryService = binaryService;
+  }
+
+  private async launchKoboldCppWithCustomFrontends(
+    args: string[] = []
+  ): Promise<{
+    success: boolean;
+    pid?: number;
+    error?: string;
+  }> {
+    try {
+      const frontendPreference = (await this.configManager.get(
+        'frontendPreference'
+      )) as FrontendPreference | undefined;
+
+      if (frontendPreference === 'sillytavern') {
+        try {
+          await this.sillyTavernManager.startFrontend(args);
+        } catch (error) {
+          this.logManager.logError(
+            'Failed to setup SillyTavern text frontend:',
+            error as Error
+          );
+        }
+      }
+
+      return await this.koboldManager.launchKoboldCpp(args);
+    } catch (error) {
+      this.logManager.logError('Error in enhanced launch:', error as Error);
+      return {
+        success: false,
+        error: (error as Error).message,
+      };
+    }
   }
 
   setupHandlers() {
@@ -128,8 +165,10 @@ export class IPCHandlers {
       this.binaryService.detectBackendSupport()
     );
 
-    ipcMain.handle('kobold:getAvailableBackends', () =>
-      this.binaryService.getAvailableBackends()
+    ipcMain.handle(
+      'kobold:getAvailableBackends',
+      (_event, includeDisabled = false) =>
+        this.binaryService.getAvailableBackends(includeDisabled)
     );
 
     ipcMain.handle('kobold:getPlatform', () => ({
@@ -170,7 +209,7 @@ export class IPCHandlers {
     );
 
     ipcMain.handle('kobold:launchKoboldCpp', (_event, args) =>
-      this.koboldManager.launchKoboldCpp(args)
+      this.launchKoboldCppWithCustomFrontends(args)
     );
 
     ipcMain.handle('kobold:stopKoboldCpp', () =>

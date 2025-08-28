@@ -1,4 +1,5 @@
 import { useMemo, useEffect, useState, useCallback } from 'react';
+import type { BackendOption } from '@/types';
 
 export interface Warning {
   type: 'warning' | 'info';
@@ -135,7 +136,7 @@ const checkCpuWarnings = (
   cpuCapabilities: { avx: boolean; avx2: boolean },
   noavx2: boolean,
   failsafe: boolean,
-  availableBackends: Array<{ value: string; label: string; devices?: string[] }>
+  availableBackends: BackendOption[]
 ): Warning[] => {
   const warnings: Warning[] = [];
 
@@ -181,11 +182,7 @@ const checkBackendWarnings = async (params?: {
   } | null;
   noavx2: boolean;
   failsafe: boolean;
-  availableBackends: Array<{
-    value: string;
-    label: string;
-    devices?: string[];
-  }>;
+  availableBackends: BackendOption[];
 }): Promise<Warning[]> => {
   const warnings: Warning[] = [];
 

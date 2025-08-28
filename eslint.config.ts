@@ -56,6 +56,10 @@ const config = [
     rules: {
       ...reactHooks.configs.recommended.rules,
       ...react.configs.recommended.rules,
+      ...importPlugin.configs.recommended.rules,
+      ...importPlugin.configs.typescript.rules,
+      ...tseslint.configs.recommended.rules,
+      ...tseslint.configs.stylistic.rules,
 
       '@typescript-eslint/no-unused-vars': [
         'error',
@@ -102,6 +106,11 @@ const config = [
 
       'import/no-default-export': 'error',
       'import/prefer-default-export': 'off',
+      'import/no-unresolved': 'off',
+      'import/no-relative-parent-imports': 'error',
+
+      '@typescript-eslint/array-type': ['error', { default: 'array' }],
+      '@typescript-eslint/no-require-imports': 'error',
 
       'arrow-body-style': ['error', 'as-needed'],
       'prefer-arrow-callback': ['error', { allowNamedFunctions: false }],

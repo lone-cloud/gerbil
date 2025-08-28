@@ -9,13 +9,15 @@ import {
 import { ChevronDown } from 'lucide-react';
 import styles from '@/styles/layout.module.css';
 import { UI } from '@/constants';
-import { handleTerminalOutput } from '@/utils';
+import { handleTerminalOutput, processTerminalContent } from '@/utils';
+import { useLaunchConfigStore } from '@/stores/launchConfigStore';
 
 interface TerminalTabProps {
-  onServerReady?: (serverUrl: string) => void;
+  onServerReady: (url: string) => void;
 }
 
 export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
+  const { host, port } = useLaunchConfigStore();
   const computedColorScheme = useComputedColorScheme('light', {
     getInitialValueInEffect: false,
   });
@@ -57,16 +59,19 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
       setTerminalContent((prev) => {
         const newData = data.toString();
 
-        if (
-          onServerReady &&
-          newData.includes('Please connect to custom endpoint at ')
-        ) {
-          const match = newData.match(
-            /Please connect to custom endpoint at (http:\/\/[^\s]+)/
-          );
-          if (match) {
-            const serverUrl = match[1];
-            setTimeout(() => onServerReady(serverUrl), 1500);
+        if (onServerReady) {
+          if (
+            newData.includes('Please connect to custom endpoint at') ||
+            newData.includes(
+              'Now running KoboldCpp in Interactive Terminal Chat mode'
+            )
+          ) {
+            const serverHost = host || 'localhost';
+            const serverPort = port || 5001;
+            setTimeout(
+              () => onServerReady(`http://${serverHost}:${serverPort}`),
+              1500
+            );
           }
         }
 
@@ -75,7 +80,7 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
     });
 
     return cleanup;
-  }, [onServerReady]);
+  }, [onServerReady, host, port]);
 
   const scrollToBottom = () => {
     if (viewportRef.current) {
@@ -126,9 +131,10 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-word',
               }}
-            >
-              {terminalContent}
-            </div>
+              dangerouslySetInnerHTML={{
+                __html: processTerminalContent(terminalContent),
+              }}
+            />
           )}
         </Box>
       </ScrollArea>
