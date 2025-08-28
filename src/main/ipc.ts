@@ -1,9 +1,8 @@
 import { ipcMain, shell, app } from 'electron';
-import { KoboldCppManager } from '@/main/managers/KoboldCppManager';
-import { ConfigManager } from '@/main/managers/ConfigManager';
-import { LogManager } from '@/main/managers/LogManager';
-import { SillyTavernManager } from '@/main/managers/SillyTavernManager';
-import { GitHubService } from '@/main/services/GitHubService';
+import type { KoboldCppManager } from '@/main/managers/KoboldCppManager';
+import type { ConfigManager } from '@/main/managers/ConfigManager';
+import type { LogManager } from '@/main/managers/LogManager';
+import type { SillyTavernManager } from '@/main/managers/SillyTavernManager';
 import { HardwareService } from '@/main/services/HardwareService';
 import { BinaryService } from '@/main/services/BinaryService';
 import type { FrontendPreference } from '@/types';
@@ -13,14 +12,12 @@ export class IPCHandlers {
   private configManager: ConfigManager;
   private logManager: LogManager;
   private sillyTavernManager: SillyTavernManager;
-  private githubService: GitHubService;
   private hardwareService: HardwareService;
   private binaryService: BinaryService;
 
   constructor(
     koboldManager: KoboldCppManager,
     configManager: ConfigManager,
-    githubService: GitHubService,
     hardwareService: HardwareService,
     binaryService: BinaryService,
     logManager: LogManager,
@@ -30,7 +27,6 @@ export class IPCHandlers {
     this.configManager = configManager;
     this.logManager = logManager;
     this.sillyTavernManager = sillyTavernManager;
-    this.githubService = githubService;
     this.hardwareService = hardwareService;
     this.binaryService = binaryService;
   }
@@ -74,15 +70,6 @@ export class IPCHandlers {
   }
 
   setupHandlers() {
-    ipcMain.handle('kobold:getLatestRelease', () =>
-      this.githubService.getLatestRelease()
-    );
-
-    ipcMain.handle('kobold:checkForUpdates', async () => {
-      const latest = await this.githubService.getRawLatestRelease();
-      return latest;
-    });
-
     ipcMain.handle('kobold:downloadRelease', async (_event, asset) => {
       try {
         const mainWindow = this.koboldManager
@@ -126,14 +113,6 @@ export class IPCHandlers {
       this.configManager.setSelectedConfig(configName)
     );
 
-    ipcMain.handle('kobold:getCurrentVersion', () =>
-      this.koboldManager.getCurrentVersion()
-    );
-
-    ipcMain.handle('kobold:getCurrentBinaryInfo', () =>
-      this.koboldManager.getCurrentBinaryInfo()
-    );
-
     ipcMain.handle('kobold:setCurrentVersion', (_event, version) =>
       this.koboldManager.setCurrentVersion(version)
     );
@@ -162,10 +141,6 @@ export class IPCHandlers {
       this.hardwareService.detectROCm()
     );
 
-    ipcMain.handle('kobold:detectAllCapabilities', () =>
-      this.hardwareService.detectAllWithCapabilities()
-    );
-
     ipcMain.handle('kobold:detectBackendSupport', () =>
       this.binaryService.detectBackendSupport()
     );
@@ -180,10 +155,6 @@ export class IPCHandlers {
       platform: process.platform,
       arch: process.arch,
     }));
-
-    ipcMain.handle('kobold:getROCmDownload', () =>
-      this.koboldManager.getROCmDownload()
-    );
 
     ipcMain.handle('kobold:downloadROCm', async () => {
       try {
@@ -200,18 +171,6 @@ export class IPCHandlers {
         return { success: false, error: (error as Error).message };
       }
     });
-
-    ipcMain.handle('kobold:getInstalledVersion', () =>
-      this.koboldManager.getInstalledVersion()
-    );
-
-    ipcMain.handle('kobold:getVersionFromBinary', (_event, binaryPath) =>
-      this.koboldManager.getVersionFromBinary(binaryPath)
-    );
-
-    ipcMain.handle('kobold:getLatestReleaseWithStatus', () =>
-      this.koboldManager.getLatestReleaseWithDownloadStatus()
-    );
 
     ipcMain.handle('kobold:launchKoboldCpp', (_event, args) =>
       this.launchKoboldCppWithCustomFrontends(args)

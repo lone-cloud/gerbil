@@ -16,19 +16,16 @@ import { dialog } from 'electron';
 import { execa } from 'execa';
 import { got } from 'got';
 import { pipeline } from 'stream/promises';
-import { GitHubService } from '@/main/services/GitHubService';
 import { ConfigManager } from '@/main/managers/ConfigManager';
 import { LogManager } from '@/main/managers/LogManager';
 import { WindowManager } from '@/main/managers/WindowManager';
-import { ROCM, PRODUCT_NAME } from '@/constants';
+import { ROCM, PRODUCT_NAME, GITHUB_API } from '@/constants';
 import { stripAssetExtensions } from '@/utils/versionUtils';
-import { compareVersions } from '@/utils/downloadUtils';
 import type {
   DownloadItem,
   GitHubAsset,
-  UpdateInfo,
-  ReleaseWithStatus,
   InstalledVersion,
+  KoboldConfig,
 } from '@/types/electron';
 
 export class KoboldCppManager {
@@ -36,18 +33,15 @@ export class KoboldCppManager {
   private koboldProcess: ChildProcess | null = null;
   private configManager: ConfigManager;
   private logManager: LogManager;
-  private githubService: GitHubService;
   private windowManager: WindowManager;
 
   constructor(
     configManager: ConfigManager,
-    githubService: GitHubService,
     windowManager: WindowManager,
     logManager: LogManager
   ) {
     this.configManager = configManager;
     this.logManager = logManager;
-    this.githubService = githubService;
     this.windowManager = windowManager;
     this.installDir = this.configManager.getInstallDir() || '';
   }
@@ -265,12 +259,7 @@ export class KoboldCppManager {
     return configFiles.sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  async parseConfigFile(filePath: string): Promise<{
-    gpulayers?: number;
-    contextsize?: number;
-    model?: string;
-    [key: string]: unknown;
-  } | null> {
+  async parseConfigFile(filePath: string): Promise<KoboldConfig | null> {
     try {
       if (!existsSync(filePath)) {
         return null;
@@ -288,33 +277,7 @@ export class KoboldCppManager {
 
   async saveConfigFile(
     configName: string,
-    configData: {
-      gpulayers?: number;
-      contextsize?: number;
-      model?: string;
-      port?: number;
-      host?: string;
-      multiuser?: number;
-      multiplayer?: boolean;
-      remotetunnel?: boolean;
-      nocertify?: boolean;
-      websearch?: boolean;
-      noshift?: boolean;
-      flashattention?: boolean;
-      noavx2?: boolean;
-      failsafe?: boolean;
-      usemmap?: boolean;
-      usecuda?: boolean;
-      usevulkan?: boolean;
-      useclblast?: [number, number] | boolean;
-      sdmodel?: string;
-      sdt5xxl?: string;
-      sdclipl?: string;
-      sdclipg?: string;
-      sdphotomaker?: string;
-      sdvae?: string;
-      [key: string]: unknown;
-    }
+    configData: KoboldConfig
   ): Promise<boolean> {
     try {
       if (!this.installDir) {
@@ -549,16 +512,35 @@ export class KoboldCppManager {
     const platform = process.platform;
 
     if (platform === 'linux') {
-      const latestRelease = await this.githubService.getRawLatestRelease();
-      const version = latestRelease?.tag_name?.replace(/^v/, '') || 'unknown';
+      try {
+        const response = await fetch(GITHUB_API.LATEST_RELEASE_URL);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-      return {
-        name: ROCM.BINARY_NAME,
-        url: ROCM.DOWNLOAD_URL,
-        size: ROCM.SIZE_BYTES_APPROX,
-        version,
-        type: 'rocm',
-      };
+        const latestRelease = await response.json();
+        const version = latestRelease?.tag_name?.replace(/^v/, '') || 'unknown';
+
+        return {
+          name: ROCM.BINARY_NAME,
+          url: ROCM.DOWNLOAD_URL,
+          size: ROCM.SIZE_BYTES_APPROX,
+          version,
+          type: 'rocm',
+        };
+      } catch (error) {
+        this.logManager.logError(
+          'Failed to fetch ROCm version info:',
+          error as Error
+        );
+        return {
+          name: ROCM.BINARY_NAME,
+          url: ROCM.DOWNLOAD_URL,
+          size: ROCM.SIZE_BYTES_APPROX,
+          version: 'unknown',
+          type: 'rocm',
+        };
+      }
     } else if (platform === 'win32') {
       return null;
       // The launcher doesn't exist in unpacked state yet.
@@ -704,73 +686,6 @@ export class KoboldCppManager {
   async getInstalledVersion(): Promise<string | undefined> {
     const currentVersion = await this.getCurrentVersion();
     return currentVersion?.version;
-  }
-
-  async checkForUpdates(): Promise<UpdateInfo | null> {
-    try {
-      const currentVersion = await this.getCurrentVersion();
-      if (!currentVersion) {
-        return null;
-      }
-
-      const latestRelease = await this.githubService.getRawLatestRelease();
-      if (!latestRelease) {
-        return null;
-      }
-
-      const latestVersion = latestRelease.tag_name.replace(/^v/, '');
-      const current = currentVersion.version.replace(/^v/, '');
-
-      const hasUpdate = compareVersions(current, latestVersion) < 0;
-
-      return {
-        currentVersion: current,
-        latestVersion,
-        releaseInfo: latestRelease,
-        hasUpdate,
-      };
-    } catch {
-      return null;
-    }
-  }
-
-  async getLatestReleaseWithDownloadStatus(): Promise<ReleaseWithStatus | null> {
-    try {
-      const latestRelease = await this.githubService.getRawLatestRelease();
-      if (!latestRelease) return null;
-
-      const installedVersions = await this.getInstalledVersions();
-
-      const availableAssets = latestRelease.assets.map((asset: GitHubAsset) => {
-        const installedVersion = installedVersions.find((v) => {
-          const pathParts = v.path.split(/[/\\]/);
-          const launcherIndex = pathParts.findIndex(
-            (part) =>
-              part === 'koboldcpp-launcher' || part === 'koboldcpp-launcher.exe'
-          );
-
-          if (launcherIndex > 0) {
-            const directoryName = pathParts[launcherIndex - 1];
-            return directoryName === asset.name;
-          }
-
-          return false;
-        });
-
-        return {
-          asset,
-          isDownloaded: !!installedVersion,
-          installedVersion: installedVersion?.version,
-        };
-      });
-
-      return {
-        release: latestRelease,
-        availableAssets,
-      };
-    } catch {
-      return null;
-    }
   }
 
   async launchKoboldCpp(

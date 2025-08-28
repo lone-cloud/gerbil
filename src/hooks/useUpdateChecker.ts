@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { getDisplayNameFromPath } from '@/utils/versionUtils';
 import { compareVersions } from '@/utils/downloadUtils';
+import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import type { InstalledVersion, DownloadItem } from '@/types/electron';
 
 interface UpdateInfo {
@@ -16,6 +17,8 @@ export const useUpdateChecker = () => {
     new Set()
   );
   const [dismissedUpdatesLoaded, setDismissedUpdatesLoaded] = useState(false);
+
+  const { availableDownloads: releases, getROCmDownload } = useKoboldVersions();
 
   useEffect(() => {
     const loadDismissedUpdates = async () => {
@@ -54,28 +57,26 @@ export const useUpdateChecker = () => {
   }, []);
 
   const checkForUpdates = useCallback(async () => {
-    if (!dismissedUpdatesLoaded) {
+    if (!dismissedUpdatesLoaded || releases.length === 0) {
       return;
     }
 
     setIsChecking(true);
 
     try {
-      const [currentBinaryPath, installedVersions, releases, rocm] =
+      const [currentBinaryPath, installedVersionsResult, rocmDownload] =
         await Promise.all([
           window.electronAPI.config.get(
             'currentKoboldBinary'
           ) as Promise<string>,
           window.electronAPI.kobold.getInstalledVersions(),
-          window.electronAPI.kobold.getLatestRelease(),
-          window.electronAPI.kobold.getROCmDownload(),
+          getROCmDownload(),
         ]);
-
-      if (!currentBinaryPath || installedVersions.length === 0) {
+      if (!currentBinaryPath || installedVersionsResult.length === 0) {
         return;
       }
 
-      const currentVersion = installedVersions.find(
+      const currentVersion = installedVersionsResult.find(
         (v: InstalledVersion) => v.path === currentBinaryPath
       );
       if (!currentVersion) {
@@ -83,8 +84,8 @@ export const useUpdateChecker = () => {
       }
 
       const availableDownloads: DownloadItem[] = [...releases];
-      if (rocm) {
-        availableDownloads.push(rocm);
+      if (rocmDownload) {
+        availableDownloads.push(rocmDownload);
       }
 
       const currentDisplayName = getDisplayNameFromPath(currentVersion);
@@ -122,7 +123,7 @@ export const useUpdateChecker = () => {
     } finally {
       setIsChecking(false);
     }
-  }, [dismissedUpdates, dismissedUpdatesLoaded]);
+  }, [dismissedUpdates, dismissedUpdatesLoaded, releases, getROCmDownload]);
 
   const dismissUpdate = useCallback(async () => {
     if (updateInfo) {

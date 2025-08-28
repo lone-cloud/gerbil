@@ -141,16 +141,6 @@ export class HardwareService {
     return { cpu, gpu };
   }
 
-  async detectAllWithCapabilities(): Promise<HardwareInfo> {
-    const [cpu, gpu, gpuCapabilities] = await Promise.all([
-      this.detectCPU(),
-      this.detectGPU(),
-      this.detectGPUCapabilities(),
-    ]);
-
-    return { cpu, gpu, gpuCapabilities };
-  }
-
   private async detectCUDA(): Promise<{
     supported: boolean;
     devices: string[];

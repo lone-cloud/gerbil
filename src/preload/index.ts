@@ -5,18 +5,14 @@ import type {
   ConfigAPI,
   LogsAPI,
   SillyTavernAPI,
+  KoboldConfig,
 } from '@/types/electron';
 
 const koboldAPI: KoboldAPI = {
   getInstalledVersions: () => ipcRenderer.invoke('kobold:getInstalledVersions'),
-  getCurrentBinaryInfo: () => ipcRenderer.invoke('kobold:getCurrentBinaryInfo'),
   setCurrentVersion: (version: string) =>
     ipcRenderer.invoke('kobold:setCurrentVersion', version),
-  getLatestReleaseWithStatus: () =>
-    ipcRenderer.invoke('kobold:getLatestReleaseWithStatus'),
-  getROCmDownload: () => ipcRenderer.invoke('kobold:getROCmDownload'),
   downloadROCm: () => ipcRenderer.invoke('kobold:downloadROCm'),
-  getLatestRelease: () => ipcRenderer.invoke('kobold:getLatestRelease'),
   getPlatform: () => ipcRenderer.invoke('kobold:getPlatform'),
   detectGPU: () => ipcRenderer.invoke('kobold:detectGPU'),
   detectCPU: () => ipcRenderer.invoke('kobold:detectCPU'),
@@ -35,36 +31,8 @@ const koboldAPI: KoboldAPI = {
   launchKoboldCpp: (args?: string[]) =>
     ipcRenderer.invoke('kobold:launchKoboldCpp', args),
   getConfigFiles: () => ipcRenderer.invoke('kobold:getConfigFiles'),
-  saveConfigFile: (
-    configName: string,
-    configData: {
-      gpulayers?: number;
-      contextsize?: number;
-      model_param?: string;
-      port?: number;
-      host?: string;
-      multiuser?: number;
-      multiplayer?: boolean;
-      remotetunnel?: boolean;
-      nocertify?: boolean;
-      websearch?: boolean;
-      noshift?: boolean;
-      flashattention?: boolean;
-      noavx2?: boolean;
-      failsafe?: boolean;
-      usemmap?: boolean;
-      usecuda?: boolean;
-      usevulkan?: boolean;
-      useclblast?: boolean;
-      sdmodel?: string;
-      sdt5xxl?: string;
-      sdclipl?: string;
-      sdclipg?: string;
-      sdphotomaker?: string;
-      sdvae?: string;
-      [key: string]: unknown;
-    }
-  ) => ipcRenderer.invoke('kobold:saveConfigFile', configName, configData),
+  saveConfigFile: (configName: string, configData: KoboldConfig) =>
+    ipcRenderer.invoke('kobold:saveConfigFile', configName, configData),
   getSelectedConfig: () => ipcRenderer.invoke('kobold:getSelectedConfig'),
   setSelectedConfig: (configName: string) =>
     ipcRenderer.invoke('kobold:setSelectedConfig', configName),
@@ -109,6 +77,7 @@ const koboldAPI: KoboldAPI = {
 
 const appAPI: AppAPI = {
   openExternal: (url) => ipcRenderer.invoke('app:openExternal', url),
+  getVersion: () => ipcRenderer.invoke('app:getVersion'),
 };
 
 const configAPI: ConfigAPI = {

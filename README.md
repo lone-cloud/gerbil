@@ -13,7 +13,7 @@ A desktop app for running Large Language Models locally. <!-- markdownlint-disab
 - **Smart process management** - Prevents runaway background processes and system resource waste
 - **Optimized performance** - Automatically unpacks binaries for faster operation and reduced memory usage
 - **Image generation support** - Built-in presets for Flux and Chroma image generation workflows
-- **Adaptive theming** - Light, dark, and system theme modes that automatically follow your OS preferences
+- **SillyTavern integration** - Seamlessly launch SillyTavern for advanced character interactions (requires [Node.js](https://nodejs.org/))
 - **Privacy-focused** - Everything runs locally on your machine, no data sent to external servers
 
 ## Installation
