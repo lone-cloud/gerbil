@@ -12,12 +12,17 @@ import { UI } from '@/constants';
 import { handleTerminalOutput } from '@/utils/terminal';
 import { processTerminalContent } from '@/utils/linkifyTerminal';
 import { useLaunchConfigStore } from '@/stores/launchConfigStore';
+import type { FrontendPreference } from '@/types';
 
 interface TerminalTabProps {
   onServerReady: (url: string) => void;
+  frontendPreference?: FrontendPreference;
 }
 
-export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
+export const TerminalTab = ({
+  onServerReady,
+  frontendPreference = 'koboldcpp',
+}: TerminalTabProps) => {
   const { host, port } = useLaunchConfigStore();
   const computedColorScheme = useComputedColorScheme('light', {
     getInitialValueInEffect: false,
@@ -61,18 +66,23 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
         const newData = data.toString();
 
         if (onServerReady) {
-          if (
-            newData.includes('Please connect to custom endpoint at') ||
-            newData.includes(
-              'Now running KoboldCpp in Interactive Terminal Chat mode'
-            )
-          ) {
-            const serverHost = host || 'localhost';
-            const serverPort = port || 5001;
-            setTimeout(
-              () => onServerReady(`http://${serverHost}:${serverPort}`),
-              1500
-            );
+          const serverHost = host || 'localhost';
+          const serverPort = port || 5001;
+
+          if (frontendPreference === 'sillytavern') {
+            if (newData.includes('SillyTavern is listening on')) {
+              setTimeout(
+                () => onServerReady(`http://${serverHost}:${serverPort}`),
+                1500
+              );
+            }
+          } else {
+            if (newData.includes('Please connect to custom endpoint at')) {
+              setTimeout(
+                () => onServerReady(`http://${serverHost}:${serverPort}`),
+                1500
+              );
+            }
           }
         }
 
@@ -81,7 +91,7 @@ export const TerminalTab = ({ onServerReady }: TerminalTabProps) => {
     });
 
     return cleanup;
-  }, [onServerReady, host, port]);
+  }, [onServerReady, host, port, frontendPreference]);
 
   const scrollToBottom = () => {
     if (viewportRef.current) {
