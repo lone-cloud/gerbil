@@ -113,6 +113,13 @@ export class SillyTavernManager {
     }
   }
 
+  private createNpxProcess(args: string[]): ChildProcess {
+    return spawn('npx', args, {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      detached: false,
+    });
+  }
+
   private async ensureSillyTavernSettings(): Promise<void> {
     const settingsPath = this.getSillyTavernSettingsPath();
 
@@ -132,10 +139,7 @@ export class SillyTavernManager {
     );
 
     return new Promise((resolve, reject) => {
-      const initProcess = spawn('npx', spawnArgs, {
-        stdio: ['pipe', 'pipe', 'pipe'],
-        detached: false,
-      });
+      const initProcess = this.createNpxProcess(spawnArgs);
 
       let hasResolved = false;
 
@@ -364,10 +368,7 @@ export class SillyTavernManager {
         config.port.toString(),
       ];
 
-      this.sillyTavernProcess = spawn('npx', sillyTavernArgs, {
-        stdio: ['pipe', 'pipe', 'pipe'],
-        detached: false,
-      });
+      this.sillyTavernProcess = this.createNpxProcess(sillyTavernArgs);
 
       if (this.sillyTavernProcess.stdout) {
         this.sillyTavernProcess.stdout.on('data', (data: Buffer) => {

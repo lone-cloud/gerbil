@@ -57,14 +57,47 @@ export interface DownloadItem {
   type: 'asset' | 'rocm';
 }
 
+export interface KoboldConfig {
+  gpulayers?: number;
+  contextsize?: number;
+  model_param?: string;
+  port?: number;
+  host?: string;
+  multiuser?: number;
+  multiplayer?: boolean;
+  remotetunnel?: boolean;
+  nocertify?: boolean;
+  websearch?: boolean;
+  noshift?: boolean;
+  flashattention?: boolean;
+  noavx2?: boolean;
+  failsafe?: boolean;
+  lowvram?: boolean;
+  quantmatmul?: boolean;
+  usemmap?: boolean;
+  usecuda?: boolean;
+  usevulkan?: boolean;
+  useclblast?: boolean | [number, number];
+  gpuDeviceSelection?: string;
+  tensorSplit?: string;
+  gpuPlatform?: number;
+  sdmodel?: string;
+  sdt5xxl?: string;
+  sdclipl?: string;
+  sdclipg?: string;
+  sdphotomaker?: string;
+  sdvae?: string;
+  sdlora?: string;
+  sdconvdirect?: string;
+  additionalArguments?: string;
+  autoGpuLayers?: boolean;
+  model?: string;
+  backend?: string;
+}
+
 export interface KoboldAPI {
   getInstalledVersions: () => Promise<InstalledVersion[]>;
-  getCurrentBinaryInfo: () => Promise<{
-    path: string;
-    filename: string;
-  } | null>;
   setCurrentVersion: (version: string) => Promise<boolean>;
-  getLatestRelease: () => Promise<DownloadItem[]>;
   getPlatform: () => Promise<PlatformInfo>;
   detectGPU: () => Promise<BasicGPUInfo>;
   detectCPU: () => Promise<CPUCapabilities>;
@@ -90,50 +123,17 @@ export interface KoboldAPI {
     path?: string;
     error?: string;
   }>;
-  getROCmDownload: () => Promise<DownloadItem | null>;
-  getLatestReleaseWithStatus: () => Promise<ReleaseWithStatus | null>;
   launchKoboldCpp: (
     args?: string[]
   ) => Promise<{ success: boolean; pid?: number; error?: string }>;
   getConfigFiles: () => Promise<{ name: string; path: string; size: number }[]>;
   saveConfigFile: (
     configName: string,
-    configData: {
-      gpulayers?: number;
-      contextsize?: number;
-      model_param?: string;
-      port?: number;
-      host?: string;
-      multiuser?: number;
-      multiplayer?: boolean;
-      remotetunnel?: boolean;
-      nocertify?: boolean;
-      websearch?: boolean;
-      noshift?: boolean;
-      flashattention?: boolean;
-      noavx2?: boolean;
-      failsafe?: boolean;
-      usemmap?: boolean;
-      usecuda?: boolean;
-      usevulkan?: boolean;
-      useclblast?: boolean;
-      sdmodel?: string;
-      sdt5xxl?: string;
-      sdclipl?: string;
-      sdclipg?: string;
-      sdphotomaker?: string;
-      sdvae?: string;
-      [key: string]: unknown;
-    }
+    configData: KoboldConfig
   ) => Promise<boolean>;
   getSelectedConfig: () => Promise<string | null>;
   setSelectedConfig: (configName: string) => Promise<boolean>;
-  parseConfigFile: (filePath: string) => Promise<{
-    gpulayers?: number;
-    contextsize?: number;
-    model_param?: string;
-    [key: string]: unknown;
-  } | null>;
+  parseConfigFile: (filePath: string) => Promise<KoboldConfig | null>;
   selectModelFile: () => Promise<string | null>;
   stopKoboldCpp: () => void;
   onDownloadProgress: (callback: (progress: number) => void) => void;
@@ -145,6 +145,7 @@ export interface KoboldAPI {
 
 export interface AppAPI {
   openExternal: (url: string) => Promise<void>;
+  getVersion: () => Promise<string>;
 }
 
 export interface ConfigAPI {

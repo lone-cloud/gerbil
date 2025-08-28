@@ -42,6 +42,7 @@ export const VersionsTab = () => {
     downloadProgress,
     loadRemoteVersions,
     handleDownload: sharedHandleDownload,
+    getLatestReleaseWithDownloadStatus,
   } = useKoboldVersions();
 
   const [installedVersions, setInstalledVersions] = useState<
@@ -104,8 +105,7 @@ export const VersionsTab = () => {
 
   const loadLatestRelease = useCallback(async () => {
     try {
-      const release =
-        await window.electronAPI.kobold.getLatestReleaseWithStatus();
+      const release = await getLatestReleaseWithDownloadStatus();
       setLatestRelease(release);
     } catch (error) {
       window.electronAPI.logs.logError(
@@ -113,7 +113,7 @@ export const VersionsTab = () => {
         error as Error
       );
     }
-  }, []);
+  }, [getLatestReleaseWithDownloadStatus]);
 
   useEffect(() => {
     loadInstalledVersions();

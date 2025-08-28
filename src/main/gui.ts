@@ -7,7 +7,6 @@ import { ConfigManager } from '@/main/managers/ConfigManager';
 import { LogManager } from '@/main/managers/LogManager';
 import { KoboldCppManager } from '@/main/managers/KoboldCppManager';
 import { SillyTavernManager } from '@/main/managers/SillyTavernManager';
-import { GitHubService } from '@/main/services/GitHubService';
 import { HardwareService } from '@/main/services/HardwareService';
 import { BinaryService } from '@/main/services/BinaryService';
 import { IPCHandlers } from '@/main/ipc';
@@ -16,11 +15,10 @@ import { homedir } from 'os';
 
 export class FriendlyKoboldApp {
   private windowManager: WindowManager;
+  private koboldManager: KoboldCppManager;
   private configManager: ConfigManager;
   private logManager: LogManager;
-  private koboldManager: KoboldCppManager;
   private sillyTavernManager: SillyTavernManager;
-  private githubService: GitHubService;
   private hardwareService: HardwareService;
   private binaryService: BinaryService;
   private ipcHandlers: IPCHandlers;
@@ -35,12 +33,10 @@ export class FriendlyKoboldApp {
     );
     this.ensureInstallDirectory();
     this.windowManager = new WindowManager();
-    this.githubService = new GitHubService(this.logManager);
     this.hardwareService = new HardwareService(this.logManager);
 
     this.koboldManager = new KoboldCppManager(
       this.configManager,
-      this.githubService,
       this.windowManager,
       this.logManager
     );
@@ -59,7 +55,6 @@ export class FriendlyKoboldApp {
     this.ipcHandlers = new IPCHandlers(
       this.koboldManager,
       this.configManager,
-      this.githubService,
       this.hardwareService,
       this.binaryService,
       this.logManager,

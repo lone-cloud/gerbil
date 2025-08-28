@@ -10,8 +10,9 @@ import {
   Image,
   Tooltip,
 } from '@mantine/core';
-import { Settings, ArrowLeft } from 'lucide-react';
+import { Settings, ArrowLeft, CircleFadingArrowUp } from 'lucide-react';
 import { soundAssets, playSound, initializeAudio } from '@/utils/sounds';
+import { useAppUpdateChecker } from '@/hooks/useAppUpdateChecker';
 import iconUrl from '/icon.png';
 import { FRONTENDS } from '@/constants';
 import type { InterfaceTab, FrontendPreference, Screen } from '@/types';
@@ -38,6 +39,7 @@ export const AppHeader = ({
   const [logoClickCount, setLogoClickCount] = useState(0);
   const [isElephantMode, setIsElephantMode] = useState(false);
   const [isMouseSqueaking, setIsMouseSqueaking] = useState(false);
+  const { hasUpdate, openReleasePage } = useAppUpdateChecker();
 
   const handleLogoClick = async () => {
     await initializeAudio();
@@ -148,8 +150,25 @@ export const AppHeader = ({
             minWidth: '6.25rem',
             display: 'flex',
             justifyContent: 'flex-end',
+            gap: '0.5rem',
+            alignItems: 'center',
           }}
         >
+          {hasUpdate && (
+            <Tooltip label="New release available" position="bottom">
+              <ActionIcon
+                variant="light"
+                color="orange"
+                size="xl"
+                onClick={openReleasePage}
+                aria-label="New release available"
+              >
+                <CircleFadingArrowUp
+                  style={{ width: rem(20), height: rem(20) }}
+                />
+              </ActionIcon>
+            </Tooltip>
+          )}
           <Tooltip label="Settings" position="bottom">
             <ActionIcon
               variant="subtle"

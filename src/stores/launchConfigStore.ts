@@ -87,7 +87,7 @@ interface LaunchConfigState {
 
 export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   gpuLayers: 0,
-  autoGpuLayers: false,
+  autoGpuLayers: true,
   contextSize: DEFAULT_CONTEXT_SIZE,
   modelPath: '',
   additionalArguments: '',
@@ -162,6 +162,12 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
 
     if (configData) {
       const updates: Partial<LaunchConfigState> = {};
+
+      if (typeof configData.autoGpuLayers === 'boolean') {
+        updates.autoGpuLayers = configData.autoGpuLayers;
+      } else {
+        updates.autoGpuLayers = true;
+      }
 
       if (typeof configData.gpulayers === 'number') {
         updates.gpuLayers = configData.gpulayers;

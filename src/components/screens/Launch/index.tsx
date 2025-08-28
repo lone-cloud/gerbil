@@ -163,6 +163,7 @@ export const LaunchScreen = ({
   };
 
   const buildConfigData = () => ({
+    autoGpuLayers: autoGpuLayers,
     gpulayers: gpuLayers,
     contextsize: contextSize,
     model: modelPath,
