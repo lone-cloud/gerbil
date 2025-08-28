@@ -85,7 +85,6 @@
     "execa": "^9.6.0",
     "got": "^14.4.7",
     "lucide-react": "^0.542.0",
-    "npm": "^11.5.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "systeminformation": "^5.27.8",
@@ -97,7 +96,7 @@
     "appId": "com.friendly-kobold.app",
     "productName": "Friendly Kobold",
     "compression": "normal",
-    "icon": "assets/icon.png",
+    "icon": "src/assets/icon.png",
     "publish": null,
     "electronLanguages": [
       "en-US"
@@ -107,18 +106,18 @@
     },
     "files": [
       "out/**/*",
-      "dist/**/*",
-      "assets/**/*"
+      "dist/**/*"
+    ],
+    "extraFiles": [
+      {
+        "from": "assets/friendly-kobold.desktop",
+        "to": "assets/friendly-kobold.desktop",
+        "filter": [
+          "**/*"
+        ]
+      }
     ],
     "extraResources": [
-      {
-        "from": "assets",
-        "to": "assets",
-        "filter": [
-          "**/*",
-          "!screenshots/**/*"
-        ]
-      },
       {
         "from": "src/main/templates",
         "to": "templates",
@@ -134,6 +133,12 @@
       "gatekeeperAssess": false,
       "entitlements": "assets/entitlements.mac.plist",
       "entitlementsInherit": "assets/entitlements.mac.plist",
+      "extraFiles": [
+        {
+          "from": "assets/entitlements.mac.plist",
+          "to": "assets/entitlements.mac.plist"
+        }
+      ],
       "target": [
         {
           "target": "dmg",

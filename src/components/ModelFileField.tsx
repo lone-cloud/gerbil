@@ -1,7 +1,7 @@
 import { Group, TextInput, Button } from '@mantine/core';
 import { File, Search } from 'lucide-react';
 import { LabelWithTooltip } from '@/components/LabelWithTooltip';
-import { getInputValidationState } from '@/utils';
+import { getInputValidationState } from '@/utils/validation';
 import styles from '@/styles/layout.module.css';
 
 interface ModelFileFieldProps {

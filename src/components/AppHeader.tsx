@@ -11,7 +11,7 @@ import {
   Tooltip,
 } from '@mantine/core';
 import { Settings, ArrowLeft } from 'lucide-react';
-import { soundAssets, playSound, initializeAudio } from '@/utils';
+import { soundAssets, playSound, initializeAudio } from '@/utils/sounds';
 import iconUrl from '/icon.png';
 import { FRONTENDS } from '@/constants';
 import type { InterfaceTab, FrontendPreference, Screen } from '@/types';

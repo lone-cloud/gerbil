@@ -73,7 +73,22 @@ export const WelcomeScreen = ({ onGetStarted }: WelcomeScreenProps) => (
                   - Use powerful AI models for free once downloaded
                 </Text>
               </List.Item>
+              <List.Item>
+                <Text>
+                  <Text component="span" fw={500}>
+                    Hardware acceleration
+                  </Text>{' '}
+                  - Supports CUDA, ROCm, Vulkan, and CLBlast backends for faster
+                  inference
+                </Text>
+              </List.Item>
             </List>
+
+            <Text size="xs" c="dimmed" ta="center" mt="sm">
+              Note: Hardware acceleration requires appropriate drivers to be
+              manually installed by the user (CUDA for NVIDIA GPUs, ROCm for AMD
+              GPUs, etc.)
+            </Text>
           </Stack>
 
           <Button size="lg" onClick={onGetStarted}>

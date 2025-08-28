@@ -7,6 +7,7 @@ import {
   Button,
   rem,
   Select,
+  Anchor,
 } from '@mantine/core';
 import { Folder, FolderOpen, Monitor } from 'lucide-react';
 import styles from '@/styles/layout.module.css';
@@ -17,11 +18,49 @@ export const GeneralTab = () => {
   const [installDir, setInstallDir] = useState<string>('');
   const [FrontendPreference, setFrontendPreference] =
     useState<FrontendPreference>('koboldcpp');
+  const [isNpxAvailable, setIsNpxAvailable] = useState<boolean>(true);
 
   useEffect(() => {
-    loadCurrentInstallDir();
-    loadFrontendPreference();
+    const initialize = async () => {
+      await Promise.all([loadCurrentInstallDir(), loadFrontendPreference()]);
+    };
+    initialize();
   }, []);
+
+  useEffect(() => {
+    const checkNpxAvailability = async () => {
+      try {
+        const available = await window.electronAPI.sillytavern.isNpxAvailable();
+        setIsNpxAvailable(available);
+
+        if (!available && FrontendPreference === 'sillytavern') {
+          await window.electronAPI.config.set(
+            'frontendPreference',
+            'koboldcpp'
+          );
+          setFrontendPreference('koboldcpp');
+        }
+      } catch (error) {
+        window.electronAPI.logs.logError(
+          'Failed to check npx availability:',
+          error as Error
+        );
+        setIsNpxAvailable(false);
+
+        if (FrontendPreference === 'sillytavern') {
+          await window.electronAPI.config.set(
+            'frontendPreference',
+            'koboldcpp'
+          );
+          setFrontendPreference('koboldcpp');
+        }
+      }
+    };
+
+    if (FrontendPreference) {
+      checkNpxAvailability();
+    }
+  }, [FrontendPreference]);
 
   const loadCurrentInstallDir = async () => {
     try {
@@ -112,12 +151,33 @@ export const GeneralTab = () => {
         <Text fw={500} mb="sm">
           Frontend Interface
         </Text>
-        <Text size="sm" c="dimmed" mb="md">
-          Choose which frontend interface to use for interacting with models
-        </Text>
+        {isNpxAvailable && (
+          <Text size="sm" c="dimmed" mb="md">
+            Choose which frontend interface to use for interacting with models
+          </Text>
+        )}
+
+        {!isNpxAvailable && (
+          <Text size="sm" c="red" mb="md">
+            Custom frontends require{' '}
+            <Anchor
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                window.electronAPI.app.openExternal('https://nodejs.org/');
+              }}
+              c="red"
+              td="underline"
+            >
+              Node.js
+            </Anchor>{' '}
+            to be installed on your system
+          </Text>
+        )}
         <Select
           value={FrontendPreference}
           onChange={handleFrontendPreferenceChange}
+          disabled={!isNpxAvailable}
           data={[
             { value: 'koboldcpp', label: 'KoboldCpp (Built-in)' },
             {

@@ -52,7 +52,7 @@ export class IPCHandlers {
           await this.sillyTavernManager.startFrontend(args);
         } catch (error) {
           this.logManager.logError(
-            'Failed to setup SillyTavern text frontend:',
+            'Failed to setup SillyTavern:',
             error as Error
           );
         }
@@ -246,6 +246,10 @@ export class IPCHandlers {
       (_event, message: string, error?: Error) => {
         this.logManager.logError(message, error);
       }
+    );
+
+    ipcMain.handle('sillytavern:isNpxAvailable', () =>
+      this.sillyTavernManager.isNpxAvailable()
     );
   }
 }

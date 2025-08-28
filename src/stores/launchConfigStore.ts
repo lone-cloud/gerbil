@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { ConfigFile, SdConvDirectMode } from '@/types';
-import type { ImageModelPreset } from '@/utils/imageModelPresets';
+import type { ImageModelPreset } from '@/constants/imageModelPresets';
 import { DEFAULT_CONTEXT_SIZE } from '@/constants';
 
 interface LaunchConfigState {

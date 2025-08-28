@@ -1,6 +1,5 @@
 import { spawn } from 'child_process';
 import { createServer, request, type Server } from 'http';
-import { app } from 'electron';
 import { homedir } from 'os';
 import { join } from 'path';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
@@ -9,7 +8,6 @@ import type { ChildProcess } from 'child_process';
 import { LogManager } from './LogManager';
 import { WindowManager } from './WindowManager';
 import { SILLYTAVERN } from '@/constants';
-import { getPlatformPathFromWindowsPath } from '@/utils/server';
 
 export interface SillyTavernConfig {
   name: string;
@@ -79,6 +77,31 @@ export class SillyTavernManager {
     }
   }
 
+  async isNpxAvailable(): Promise<boolean> {
+    try {
+      const testProcess = spawn('npx', ['--version'], { stdio: 'pipe' });
+
+      return new Promise<boolean>((resolve) => {
+        const timeout = setTimeout(() => {
+          testProcess.kill();
+          resolve(false);
+        }, 5000);
+
+        testProcess.on('exit', (code) => {
+          clearTimeout(timeout);
+          resolve(code === 0);
+        });
+
+        testProcess.on('error', () => {
+          clearTimeout(timeout);
+          resolve(false);
+        });
+      });
+    } catch {
+      return false;
+    }
+  }
+
   private async ensureSillyTavernSettings(): Promise<void> {
     const settingsPath = this.getSillyTavernSettingsPath();
 
@@ -91,22 +114,17 @@ export class SillyTavernManager {
       'SillyTavern settings not found, starting SillyTavern briefly to generate config...'
     );
 
-    const bundledNpxPath = getPlatformPathFromWindowsPath(
-      app.getAppPath(),
-      'npx.cmd'
+    const spawnArgs = ['sillytavern', '--browserLaunchEnabled', 'false'];
+
+    this.windowManager.sendKoboldOutput(
+      `Running command: npx ${spawnArgs.join(' ')}`
     );
 
-    this.windowManager.sendKoboldOutput(`Using bundled npx: ${bundledNpxPath}`);
-
     return new Promise((resolve, reject) => {
-      const initProcess = spawn(
-        bundledNpxPath,
-        ['sillytavern', '--browserLaunchEnabled', 'false'],
-        {
-          stdio: ['pipe', 'pipe', 'pipe'],
-          detached: false,
-        }
-      );
+      const initProcess = spawn('npx', spawnArgs, {
+        stdio: ['pipe', 'pipe', 'pipe'],
+        detached: false,
+      });
 
       let hasResolved = false;
 
@@ -127,8 +145,12 @@ export class SillyTavernManager {
         cleanupAndResolve();
       }, 20000);
 
-      initProcess.on('exit', () => {
+      initProcess.on('exit', (code: number | null, signal: string | null) => {
         clearTimeout(timeout);
+        const exitMessage = signal
+          ? `SillyTavern init process terminated with signal ${signal}`
+          : `SillyTavern init process exited with code ${code}`;
+        this.windowManager.sendKoboldOutput(exitMessage);
         cleanupAndResolve();
       });
 
@@ -140,6 +162,9 @@ export class SillyTavernManager {
             'Failed to initialize SillyTavern settings:',
             error
           );
+          this.windowManager.sendKoboldOutput(
+            `SillyTavern initialization error: ${error.message}`
+          );
           reject(error);
         }
       });
@@ -147,6 +172,9 @@ export class SillyTavernManager {
       if (initProcess.stdout) {
         initProcess.stdout.on('data', (data: Buffer) => {
           const output = data.toString();
+          this.windowManager.sendKoboldOutput(
+            `[SillyTavern stdout]: ${output.trim()}`
+          );
           if (output.includes('SillyTavern is listening')) {
             setTimeout(() => {
               if (!initProcess.killed && !hasResolved) {
@@ -158,6 +186,15 @@ export class SillyTavernManager {
         });
       }
 
+      if (initProcess.stderr) {
+        initProcess.stderr.on('data', (data: Buffer) => {
+          const output = data.toString();
+          this.windowManager.sendKoboldOutput(
+            `[SillyTavern stderr]: ${output.trim()}`
+          );
+        });
+      }
+
       setTimeout(() => {
         if (!initProcess.killed && !hasResolved) {
           this.windowManager.sendKoboldOutput(
@@ -166,7 +203,7 @@ export class SillyTavernManager {
           initProcess.kill('SIGTERM');
           cleanupAndResolve();
         }
-      }, 8000);
+      }, 10000);
     });
   }
 
@@ -331,16 +368,7 @@ export class SillyTavernManager {
         'false',
       ];
 
-      const bundledNpxPath = getPlatformPathFromWindowsPath(
-        app.getAppPath(),
-        'npx.cmd'
-      );
-
-      this.windowManager.sendKoboldOutput(
-        `Using bundled npx: ${bundledNpxPath}`
-      );
-
-      this.sillyTavernProcess = spawn(bundledNpxPath, sillyTavernArgs, {
+      this.sillyTavernProcess = spawn('npx', sillyTavernArgs, {
         stdio: ['pipe', 'pipe', 'pipe'],
         detached: false,
       });

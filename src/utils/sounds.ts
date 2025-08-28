@@ -1,9 +1,9 @@
-import elephantSoundUrl from '@/assets/sounds/elephant-trunk.mp3';
-import mouseSqueak1Url from '@/assets/sounds/mouse-squeak1.mp3';
-import mouseSqueak2Url from '@/assets/sounds/mouse-squeak2.mp3';
-import mouseSqueak3Url from '@/assets/sounds/mouse-squeak3.mp3';
-import mouseSqueak4Url from '@/assets/sounds/mouse-squeak4.mp3';
-import mouseSqueak5Url from '@/assets/sounds/mouse-squeak5.mp3';
+import elephantSoundUrl from '/sounds/elephant-trunk.mp3';
+import mouseSqueak1Url from '/sounds/mouse-squeak1.mp3';
+import mouseSqueak2Url from '/sounds/mouse-squeak2.mp3';
+import mouseSqueak3Url from '/sounds/mouse-squeak3.mp3';
+import mouseSqueak4Url from '/sounds/mouse-squeak4.mp3';
+import mouseSqueak5Url from '/sounds/mouse-squeak5.mp3';
 
 export const soundAssets = {
   elephant: elephantSoundUrl,

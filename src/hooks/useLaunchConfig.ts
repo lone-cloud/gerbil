@@ -1,8 +1,8 @@
 import { useLaunchConfigStore } from '@/stores/launchConfigStore';
 import {
-  IMAGE_MODEL_PRESETS,
   type ImageModelPreset,
-} from '@/utils/imageModelPresets';
+  IMAGE_MODEL_PRESETS,
+} from '@/constants/imageModelPresets';
 
 export const useLaunchConfig = () => {
   const state = useLaunchConfigStore();

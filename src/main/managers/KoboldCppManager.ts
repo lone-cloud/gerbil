@@ -22,7 +22,7 @@ import { LogManager } from '@/main/managers/LogManager';
 import { WindowManager } from '@/main/managers/WindowManager';
 import { ROCM, PRODUCT_NAME } from '@/constants';
 import { stripAssetExtensions } from '@/utils/versionUtils';
-import { compareVersions } from '@/utils';
+import { compareVersions } from '@/utils/downloadUtils';
 import type {
   DownloadItem,
   GitHubAsset,
