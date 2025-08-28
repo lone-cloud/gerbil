@@ -29,7 +29,7 @@ export const ServerTab = ({
           justifyContent: 'center',
         }}
       >
-        <Stack align="center" gap="md">
+        <Stack align="center" gap="md" mt="xl">
           <Text c="dimmed" size="lg">
             Waiting for the KoboldCpp server to start...
           </Text>
