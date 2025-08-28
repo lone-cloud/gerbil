@@ -43,13 +43,18 @@ export class IPCHandlers {
     error?: string;
   }> {
     try {
+      const finalArgs = [...args];
       const frontendPreference = (await this.configManager.get(
         'frontendPreference'
       )) as FrontendPreference | undefined;
 
+      if (frontendPreference !== 'koboldcpp' && !finalArgs.includes('--cli')) {
+        finalArgs.push('--cli');
+      }
+
       if (frontendPreference === 'sillytavern') {
         try {
-          await this.sillyTavernManager.startFrontend(args);
+          await this.sillyTavernManager.startFrontend(finalArgs);
         } catch (error) {
           this.logManager.logError(
             'Failed to setup SillyTavern:',
@@ -58,7 +63,7 @@ export class IPCHandlers {
         }
       }
 
-      return await this.koboldManager.launchKoboldCpp(args);
+      return await this.koboldManager.launchKoboldCpp(finalArgs);
     } catch (error) {
       this.logManager.logError('Error in enhanced launch:', error as Error);
       return {

@@ -77,6 +77,17 @@ export class SillyTavernManager {
     }
   }
 
+  private getSillyTavernBaseArgs(): string[] {
+    return [
+      'sillytavern',
+      '--listen',
+      '--browserLaunchEnabled',
+      'false',
+      '--securityOverride',
+      'true',
+    ];
+  }
+
   async isNpxAvailable(): Promise<boolean> {
     try {
       const testProcess = spawn('npx', ['--version'], { stdio: 'pipe' });
@@ -114,7 +125,7 @@ export class SillyTavernManager {
       'SillyTavern settings not found, starting SillyTavern briefly to generate config...'
     );
 
-    const spawnArgs = ['sillytavern', '--browserLaunchEnabled', 'false'];
+    const spawnArgs = this.getSillyTavernBaseArgs();
 
     this.windowManager.sendKoboldOutput(
       `Running command: npx ${spawnArgs.join(' ')}`
@@ -143,7 +154,7 @@ export class SillyTavernManager {
           initProcess.kill('SIGTERM');
         }
         cleanupAndResolve();
-      }, 20000);
+      }, 90000);
 
       initProcess.on('exit', (code: number | null, signal: string | null) => {
         clearTimeout(timeout);
@@ -156,6 +167,7 @@ export class SillyTavernManager {
 
       initProcess.on('error', (error) => {
         clearTimeout(timeout);
+
         if (!hasResolved) {
           hasResolved = true;
           this.logManager.logError(
@@ -172,9 +184,7 @@ export class SillyTavernManager {
       if (initProcess.stdout) {
         initProcess.stdout.on('data', (data: Buffer) => {
           const output = data.toString();
-          this.windowManager.sendKoboldOutput(
-            `[SillyTavern stdout]: ${output.trim()}`
-          );
+
           if (output.includes('SillyTavern is listening')) {
             setTimeout(() => {
               if (!initProcess.killed && !hasResolved) {
@@ -189,21 +199,17 @@ export class SillyTavernManager {
       if (initProcess.stderr) {
         initProcess.stderr.on('data', (data: Buffer) => {
           const output = data.toString();
-          this.windowManager.sendKoboldOutput(
-            `[SillyTavern stderr]: ${output.trim()}`
-          );
+          this.windowManager.sendKoboldOutput(output.trim());
         });
       }
 
       setTimeout(() => {
         if (!initProcess.killed && !hasResolved) {
           this.windowManager.sendKoboldOutput(
-            'SillyTavern initialization taking longer than expected, proceeding...'
+            'SillyTavern initialization taking longer than expected, please wait...'
           );
-          initProcess.kill('SIGTERM');
-          cleanupAndResolve();
         }
-      }, 10000);
+      }, 30000);
     });
   }
 
@@ -329,17 +335,13 @@ export class SillyTavernManager {
     });
   }
 
-  getDefaultSillyTavernConfig(): SillyTavernConfig {
-    return {
-      name: 'sillytavern',
-      port: SILLYTAVERN.PORT,
-      proxyPort: SILLYTAVERN.PROXY_PORT,
-    };
-  }
-
   async startFrontend(args: string[]): Promise<void> {
     try {
-      const config = this.getDefaultSillyTavernConfig();
+      const config = {
+        name: 'sillytavern',
+        port: SILLYTAVERN.PORT,
+        proxyPort: SILLYTAVERN.PROXY_PORT,
+      };
       const { host: koboldHost, port: koboldPort } =
         this.parseKoboldConfig(args);
 
@@ -357,14 +359,9 @@ export class SillyTavernManager {
       );
 
       const sillyTavernArgs = [
-        'sillytavern',
+        ...this.getSillyTavernBaseArgs(),
         '--port',
         config.port.toString(),
-        '--listen',
-        '--browserLaunchEnabled',
-        'false',
-        '--dataRoot',
-        this.getSillyTavernSettingsPath().replace('/settings.json', ''),
       ];
 
       this.sillyTavernProcess = spawn('npx', sillyTavernArgs, {
@@ -381,8 +378,7 @@ export class SillyTavernManager {
 
       if (this.sillyTavernProcess.stderr) {
         this.sillyTavernProcess.stderr.on('data', (data: Buffer) => {
-          const output = data.toString();
-          this.windowManager.sendKoboldOutput(output, true);
+          this.windowManager.sendKoboldOutput(data.toString(), true);
         });
       }
 
