@@ -76,7 +76,10 @@ export const InterfaceScreen = ({
           display: activeTab === 'terminal' ? 'block' : 'none',
         }}
       >
-        <TerminalTab onServerReady={handleServerReady} />
+        <TerminalTab
+          onServerReady={handleServerReady}
+          frontendPreference={frontendPreference}
+        />
       </div>
     </div>
   );

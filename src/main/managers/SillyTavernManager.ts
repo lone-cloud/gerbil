@@ -361,11 +361,10 @@ export class SillyTavernManager {
         '--port',
         config.port.toString(),
         '--listen',
-        '--corsProxy',
-        '--securityOverride',
-        '--disableCsrf',
         '--browserLaunchEnabled',
         'false',
+        '--dataRoot',
+        this.getSillyTavernSettingsPath().replace('/settings.json', ''),
       ];
 
       this.sillyTavernProcess = spawn('npx', sillyTavernArgs, {
