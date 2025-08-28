@@ -2,35 +2,26 @@
 import { spawn } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
+import { PRODUCT_NAME, CONFIG_FILE_NAME } from '@/constants';
 import { homedir } from 'os';
 
-const CONFIG_FILE_NAME = 'config.json';
-
 export class LightweightCliHandler {
-  private getConfigPath(): string {
+  private getConfigDir(appName: string): string {
     const platform = process.platform;
     const home = homedir();
 
     switch (platform) {
       case 'win32':
-        return join(
-          home,
-          'AppData',
-          'Roaming',
-          'Friendly Kobold',
-          CONFIG_FILE_NAME
-        );
+        return join(home, 'AppData', 'Roaming', appName);
       case 'darwin':
-        return join(
-          home,
-          'Library',
-          'Application Support',
-          'Friendly Kobold',
-          CONFIG_FILE_NAME
-        );
+        return join(home, 'Library', 'Application Support', appName);
       default:
-        return join(home, '.config', 'Friendly Kobold', CONFIG_FILE_NAME);
+        return join(home, '.config', appName);
     }
+  }
+
+  private getConfigPath(): string {
+    return join(this.getConfigDir(PRODUCT_NAME), CONFIG_FILE_NAME);
   }
 
   private getCurrentKoboldBinary(): string | null {

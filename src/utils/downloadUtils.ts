@@ -1,9 +1,9 @@
-import { KOBOLDAI_URLS } from '@/constants';
+import { ROCM } from '@/constants';
 
 export const formatDownloadSize = (size: number, url?: string): string => {
   if (!size) return '';
 
-  const isApproximateSize = url?.includes(KOBOLDAI_URLS.DOMAIN);
+  const isApproximateSize = url?.includes(ROCM.DOWNLOAD_URL);
 
   return isApproximateSize
     ? `~${formatFileSizeInMB(size)}`

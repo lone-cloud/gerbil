@@ -13,9 +13,7 @@ import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import { UI } from '@/constants';
 import type { DownloadItem } from '@/types/electron';
-import type { InterfaceTab } from '@/types';
-
-type Screen = 'welcome' | 'download' | 'launch' | 'interface';
+import type { InterfaceTab, FrontendPreference, Screen } from '@/types';
 
 export const App = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen | null>(null);
@@ -25,6 +23,8 @@ export const App = () => {
   const [activeInterfaceTab, setActiveInterfaceTab] =
     useState<InterfaceTab>('terminal');
   const [isImageGenerationMode, setIsImageGenerationMode] = useState(false);
+  const [frontendPreference, setFrontendPreference] =
+    useState<FrontendPreference>('koboldcpp');
 
   const {
     updateInfo: binaryUpdateInfo,
@@ -46,15 +46,19 @@ export const App = () => {
   useEffect(() => {
     const checkInstallation = async () => {
       try {
-        const [versions, currentBinaryPath, hasSeenWelcome] = await Promise.all(
-          [
+        const [versions, currentBinaryPath, hasSeenWelcome, preference] =
+          await Promise.all([
             window.electronAPI.kobold.getInstalledVersions(),
             window.electronAPI.config.get(
               'currentKoboldBinary'
             ) as Promise<string>,
             window.electronAPI.config.get('hasSeenWelcome') as Promise<boolean>,
-          ]
-        );
+            window.electronAPI.config.get(
+              'frontendPreference'
+            ) as Promise<FrontendPreference>,
+          ]);
+
+        setFrontendPreference(preference || 'koboldcpp');
 
         if (!hasSeenWelcome) {
           setCurrentScreenWithTransition('welcome');
@@ -214,106 +218,118 @@ export const App = () => {
   };
 
   return (
-    <>
-      <AppShell
-        header={{ height: currentScreen === 'welcome' ? 0 : UI.HEADER_HEIGHT }}
-        padding={currentScreen === 'interface' ? 0 : 'md'}
+    <AppShell
+      header={{ height: currentScreen === 'welcome' ? 0 : UI.HEADER_HEIGHT }}
+      padding={currentScreen === 'interface' ? 0 : 'md'}
+    >
+      {currentScreen !== 'welcome' && (
+        <AppHeader
+          currentScreen={currentScreen}
+          activeInterfaceTab={activeInterfaceTab}
+          setActiveInterfaceTab={setActiveInterfaceTab}
+          isImageGenerationMode={isImageGenerationMode}
+          frontendPreference={frontendPreference}
+          onEject={handleEject}
+          onSettingsOpen={() => setSettingsOpened(true)}
+        />
+      )}
+      <AppShell.Main
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          minHeight:
+            currentScreen === 'welcome'
+              ? '100vh'
+              : `calc(100vh - ${UI.HEADER_HEIGHT}px)`,
+        }}
       >
-        {currentScreen !== 'welcome' && (
-          <AppHeader
-            currentScreen={currentScreen}
-            activeInterfaceTab={activeInterfaceTab}
-            setActiveInterfaceTab={setActiveInterfaceTab}
-            isImageGenerationMode={isImageGenerationMode}
-            onEject={handleEject}
-            onSettingsOpen={() => setSettingsOpened(true)}
+        {currentScreen === null ? (
+          <Center h="100%" style={{ minHeight: '25rem' }}>
+            <Stack align="center" gap="lg">
+              <Loader size="xl" type="dots" />
+              <Text c="dimmed" size="lg">
+                Loading...
+              </Text>
+            </Stack>
+          </Center>
+        ) : (
+          <>
+            <ScreenTransition
+              isActive={currentScreen === 'welcome'}
+              shouldAnimate={hasInitialized}
+            >
+              <WelcomeScreen onGetStarted={handleWelcomeComplete} />
+            </ScreenTransition>
+
+            <ScreenTransition
+              isActive={currentScreen === 'download'}
+              shouldAnimate={hasInitialized}
+            >
+              <DownloadScreen onDownloadComplete={handleDownloadComplete} />
+            </ScreenTransition>
+
+            <ScreenTransition
+              isActive={currentScreen === 'launch'}
+              shouldAnimate={hasInitialized}
+            >
+              <LaunchScreen
+                onLaunch={handleLaunch}
+                onLaunchModeChange={setIsImageGenerationMode}
+              />
+            </ScreenTransition>
+
+            <ScreenTransition
+              isActive={currentScreen === 'interface'}
+              shouldAnimate={hasInitialized}
+            >
+              <InterfaceScreen
+                activeTab={activeInterfaceTab}
+                onTabChange={setActiveInterfaceTab}
+                isImageGenerationMode={isImageGenerationMode}
+              />
+            </ScreenTransition>
+          </>
+        )}
+
+        {showUpdateModal && binaryUpdateInfo && (
+          <UpdateAvailableModal
+            opened={showUpdateModal}
+            onClose={dismissUpdate}
+            currentVersion={binaryUpdateInfo.currentVersion}
+            availableUpdate={binaryUpdateInfo.availableUpdate}
+            onUpdate={handleBinaryUpdate}
+            isDownloading={
+              downloading === binaryUpdateInfo.availableUpdate.name
+            }
+            downloadProgress={
+              downloadProgress[binaryUpdateInfo.availableUpdate.name] || 0
+            }
           />
         )}
-        <AppShell.Main
-          style={{
-            position: 'relative',
-            overflow: 'hidden',
-            minHeight:
-              currentScreen === 'welcome'
-                ? '100vh'
-                : `calc(100vh - ${UI.HEADER_HEIGHT}px)`,
-          }}
-        >
-          {currentScreen === null ? (
-            <Center h="100%" style={{ minHeight: '25rem' }}>
-              <Stack align="center" gap="lg">
-                <Loader size="xl" type="dots" />
-                <Text c="dimmed" size="lg">
-                  Loading...
-                </Text>
-              </Stack>
-            </Center>
-          ) : (
-            <>
-              <ScreenTransition
-                isActive={currentScreen === 'welcome'}
-                shouldAnimate={hasInitialized}
-              >
-                <WelcomeScreen onGetStarted={handleWelcomeComplete} />
-              </ScreenTransition>
-
-              <ScreenTransition
-                isActive={currentScreen === 'download'}
-                shouldAnimate={hasInitialized}
-              >
-                <DownloadScreen onDownloadComplete={handleDownloadComplete} />
-              </ScreenTransition>
-
-              <ScreenTransition
-                isActive={currentScreen === 'launch'}
-                shouldAnimate={hasInitialized}
-              >
-                <LaunchScreen
-                  onLaunch={handleLaunch}
-                  onLaunchModeChange={setIsImageGenerationMode}
-                />
-              </ScreenTransition>
-
-              <ScreenTransition
-                isActive={currentScreen === 'interface'}
-                shouldAnimate={hasInitialized}
-              >
-                <InterfaceScreen
-                  activeTab={activeInterfaceTab}
-                  onTabChange={setActiveInterfaceTab}
-                  isImageGenerationMode={isImageGenerationMode}
-                />
-              </ScreenTransition>
-            </>
-          )}
-
-          {showUpdateModal && binaryUpdateInfo && (
-            <UpdateAvailableModal
-              opened={showUpdateModal}
-              onClose={dismissUpdate}
-              currentVersion={binaryUpdateInfo.currentVersion}
-              availableUpdate={binaryUpdateInfo.availableUpdate}
-              onUpdate={handleBinaryUpdate}
-              isDownloading={
-                downloading === binaryUpdateInfo.availableUpdate.name
-              }
-              downloadProgress={
-                downloadProgress[binaryUpdateInfo.availableUpdate.name] || 0
-              }
-            />
-          )}
-        </AppShell.Main>
-        <SettingsModal
-          opened={settingsOpened}
-          onClose={() => setSettingsOpened(false)}
-          currentScreen={currentScreen || undefined}
-        />
-        <EjectConfirmModal
-          opened={showEjectModal}
-          onClose={() => setShowEjectModal(false)}
-          onConfirm={handleEjectConfirm}
-        />
-      </AppShell>
-    </>
+      </AppShell.Main>
+      <SettingsModal
+        opened={settingsOpened}
+        onClose={async () => {
+          setSettingsOpened(false);
+          try {
+            const preference = (await window.electronAPI.config.get(
+              'frontendPreference'
+            )) as FrontendPreference;
+            setFrontendPreference(preference || 'koboldcpp');
+          } catch (error) {
+            window.electronAPI.logs.logError(
+              'Failed to load frontend preference:',
+              error as Error
+            );
+          }
+        }}
+        currentScreen={currentScreen || undefined}
+      />
+      <EjectConfirmModal
+        opened={showEjectModal}
+        onClose={() => setShowEjectModal(false)}
+        onConfirm={handleEjectConfirm}
+      />
+    </AppShell>
   );
 };

@@ -19,7 +19,8 @@ const koboldAPI: KoboldAPI = {
   detectGPUMemory: () => ipcRenderer.invoke('kobold:detectGPUMemory'),
   detectROCm: () => ipcRenderer.invoke('kobold:detectROCm'),
   detectBackendSupport: () => ipcRenderer.invoke('kobold:detectBackendSupport'),
-  getAvailableBackends: () => ipcRenderer.invoke('kobold:getAvailableBackends'),
+  getAvailableBackends: (includeDisabled?: boolean) =>
+    ipcRenderer.invoke('kobold:getAvailableBackends', includeDisabled),
   getCurrentInstallDir: () => ipcRenderer.invoke('kobold:getCurrentInstallDir'),
   selectInstallDirectory: () =>
     ipcRenderer.invoke('kobold:selectInstallDirectory'),

@@ -1,13 +1,10 @@
 import { Text, Group, Select, TextInput } from '@mantine/core';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
+import type { BackendOption } from '@/types';
 
 interface GpuDeviceSelectorProps {
-  availableBackends: Array<{
-    value: string;
-    label: string;
-    devices?: string[];
-  }>;
+  availableBackends: BackendOption[];
 }
 
 export const GpuDeviceSelector = ({

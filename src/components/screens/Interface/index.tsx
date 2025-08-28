@@ -1,7 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ServerTab } from '@/components/screens/Interface/ServerTab';
 import { TerminalTab } from '@/components/screens/Interface/TerminalTab';
-import type { InterfaceTab } from '@/types';
+import type { InterfaceTab, FrontendPreference } from '@/types';
 
 interface InterfaceScreenProps {
   activeTab?: InterfaceTab | null;
@@ -16,6 +16,26 @@ export const InterfaceScreen = ({
 }: InterfaceScreenProps) => {
   const [serverUrl, setServerUrl] = useState<string>('');
   const [isServerReady, setIsServerReady] = useState<boolean>(false);
+  const [frontendPreference, setFrontendPreference] =
+    useState<FrontendPreference>('koboldcpp');
+
+  useEffect(() => {
+    const loadFrontendPreference = async () => {
+      try {
+        const frontendPreference = (await window.electronAPI.config.get(
+          'frontendPreference'
+        )) as FrontendPreference;
+        setFrontendPreference(frontendPreference || 'koboldcpp');
+      } catch (error) {
+        window.electronAPI.logs.logError(
+          'Failed to load frontend preference:',
+          error as Error
+        );
+      }
+    };
+
+    loadFrontendPreference();
+  }, []);
 
   const handleServerReady = useCallback(
     (url: string) => {
@@ -47,6 +67,7 @@ export const InterfaceScreen = ({
           serverUrl={serverUrl}
           isServerReady={isServerReady}
           mode={isImageGenerationMode ? 'image-generation' : 'chat'}
+          frontendPreference={frontendPreference}
         />
       </div>
       <div

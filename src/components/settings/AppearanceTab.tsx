@@ -1,5 +1,12 @@
-import { Stack, Text, Group, SegmentedControl, rem } from '@mantine/core';
-import { useMantineColorScheme, useComputedColorScheme } from '@mantine/core';
+import {
+  Stack,
+  Text,
+  Group,
+  SegmentedControl,
+  rem,
+  useMantineColorScheme,
+  useComputedColorScheme,
+} from '@mantine/core';
 import { Sun, Moon, Monitor } from 'lucide-react';
 
 export const AppearanceTab = () => {

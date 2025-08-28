@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { LogManager } from '@/main/managers/LogManager';
+import type { FrontendPreference } from '@/types';
 
 type ConfigValue = string | number | boolean | unknown[] | undefined;
 
@@ -7,6 +8,7 @@ interface AppConfig {
   installDir?: string;
   currentKoboldBinary?: string;
   selectedConfig?: string;
+  frontendPreference?: FrontendPreference;
   [key: string]: ConfigValue;
 }
 

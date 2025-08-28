@@ -1,4 +1,5 @@
 export const APP_NAME = 'friendly-kobold';
+export const PRODUCT_NAME = 'Friendly Kobold';
 
 export const CONFIG_FILE_NAME = 'config.json';
 
@@ -32,14 +33,14 @@ export const ASSET_SUFFIXES = {
   OLDPC: 'oldpc',
 } as const;
 
-export const KOBOLDAI_URLS = {
-  STANDARD_DOWNLOAD: 'https://koboldai.org/cpp',
-  ROCM_DOWNLOAD: 'https://koboldai.org/cpplinuxrocm',
-  DOMAIN: 'koboldai.org',
-} as const;
-
 export const ROCM = {
   BINARY_NAME: 'koboldcpp-linux-x64-rocm',
-  DOWNLOAD_URL: KOBOLDAI_URLS.ROCM_DOWNLOAD,
+  DOWNLOAD_URL: 'https://koboldai.org/cpplinuxrocm',
   SIZE_BYTES_APPROX: 1024 * 1024 * 1024,
+} as const;
+
+export const FRONTENDS = {
+  KOBOLDAI_LITE: 'KoboldAI Lite',
+  STABLE_UI: 'Stable UI',
+  SILLYTAVERN: 'SillyTavern',
 } as const;

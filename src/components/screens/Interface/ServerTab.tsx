@@ -1,18 +1,20 @@
 import { useRef } from 'react';
 import { Box, Text, Stack } from '@mantine/core';
-import { UI } from '@/constants';
-import type { ServerTabMode } from '@/types';
+import { UI, SILLYTAVERN, FRONTENDS } from '@/constants';
+import type { ServerTabMode, FrontendPreference } from '@/types';
 
 interface ServerTabProps {
   serverUrl?: string;
   isServerReady?: boolean;
   mode: ServerTabMode;
+  frontendPreference?: FrontendPreference;
 }
 
 export const ServerTab = ({
   serverUrl,
   isServerReady,
   mode,
+  frontendPreference = 'koboldcpp',
 }: ServerTabProps) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -29,7 +31,7 @@ export const ServerTab = ({
       >
         <Stack align="center" gap="md">
           <Text c="dimmed" size="lg">
-            Waiting for KoboldCpp server to start...
+            Waiting for the KoboldCpp server to start...
           </Text>
           <Text c="dimmed" size="sm">
             The {mode === 'chat' ? 'chat' : 'image generation'} interface will
@@ -40,12 +42,19 @@ export const ServerTab = ({
     );
   }
 
-  const iframeUrl =
-    mode === 'image-generation' ? `${serverUrl}/sdui` : serverUrl;
-  const title =
-    mode === 'image-generation'
-      ? 'Stable UI Interface'
-      : 'KoboldAI Lite Interface';
+  let iframeUrl: string;
+  let title: string;
+
+  if (frontendPreference === 'sillytavern') {
+    iframeUrl = SILLYTAVERN.PROXY_URL;
+    title = FRONTENDS.SILLYTAVERN;
+  } else {
+    iframeUrl = mode === 'image-generation' ? `${serverUrl}/sdui` : serverUrl;
+    title =
+      mode === 'image-generation'
+        ? FRONTENDS.STABLE_UI
+        : FRONTENDS.KOBOLDAI_LITE;
+  }
 
   return (
     <Box

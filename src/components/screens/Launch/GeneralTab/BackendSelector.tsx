@@ -4,6 +4,7 @@ import { InfoTooltip } from '@/components/InfoTooltip';
 import { BackendSelectItem } from '@/components/screens/Launch/GeneralTab/BackendSelectItem';
 import { GpuDeviceSelector } from '@/components/screens/Launch/GeneralTab/GpuDeviceSelector';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
+import type { BackendOption } from '@/types';
 
 export const BackendSelector = () => {
   const {
@@ -15,88 +16,16 @@ export const BackendSelector = () => {
     handleAutoGpuLayersChange,
   } = useLaunchConfig();
 
-  const [availableBackends, setAvailableBackends] = useState<
-    Array<{
-      value: string;
-      label: string;
-      devices?: string[];
-      disabled?: boolean;
-    }>
-  >([]);
+  const [availableBackends, setAvailableBackends] = useState<BackendOption[]>(
+    []
+  );
   const hasInitialized = useRef(false);
 
   useEffect(() => {
     const loadBackends = async () => {
       try {
-        const [cpuCapabilitiesResult, binarySupport, gpuCapabilities] =
-          await Promise.all([
-            window.electronAPI.kobold.detectCPU(),
-            window.electronAPI.kobold.detectBackendSupport(),
-            window.electronAPI.kobold.detectGPUCapabilities(),
-          ]);
-
-        if (!binarySupport) {
-          setAvailableBackends([]);
-          hasInitialized.current = true;
-
-          return;
-        }
-
-        const backends: Array<{
-          value: string;
-          label: string;
-          devices?: string[];
-          disabled?: boolean;
-        }> = [];
-
-        if (binarySupport.cuda) {
-          backends.push({
-            value: 'cuda',
-            label: 'CUDA',
-            devices: gpuCapabilities.cuda.devices,
-            disabled: !gpuCapabilities.cuda.supported,
-          });
-        }
-
-        if (binarySupport.rocm) {
-          backends.push({
-            value: 'rocm',
-            label: 'ROCm',
-            devices: gpuCapabilities.rocm.devices,
-            disabled: !gpuCapabilities.rocm.supported,
-          });
-        }
-
-        if (binarySupport.vulkan) {
-          backends.push({
-            value: 'vulkan',
-            label: 'Vulkan',
-            devices: gpuCapabilities.vulkan.devices,
-            disabled: !gpuCapabilities.vulkan.supported,
-          });
-        }
-
-        if (binarySupport.clblast) {
-          backends.push({
-            value: 'clblast',
-            label: 'CLBlast',
-            devices: gpuCapabilities.clblast.devices,
-            disabled: !gpuCapabilities.clblast.supported,
-          });
-        }
-
-        backends.push({
-          value: 'cpu',
-          label: 'CPU',
-          devices: cpuCapabilitiesResult.devices,
-          disabled: false,
-        });
-
-        backends.sort((a, b) => {
-          if (a.disabled === b.disabled) return 0;
-          return a.disabled ? 1 : -1;
-        });
-
+        const backends =
+          await window.electronAPI.kobold.getAvailableBackends(true);
         setAvailableBackends(backends);
         hasInitialized.current = true;
       } catch (error) {

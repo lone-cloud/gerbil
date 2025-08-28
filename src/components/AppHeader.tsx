@@ -12,16 +12,16 @@ import {
 } from '@mantine/core';
 import { Settings, ArrowLeft } from 'lucide-react';
 import { soundAssets, playSound, initializeAudio } from '@/utils';
-import type { InterfaceTab } from '@/types';
 import iconUrl from '/icon.png';
-
-type Screen = 'welcome' | 'download' | 'launch' | 'interface';
+import { FRONTENDS } from '@/constants';
+import type { InterfaceTab, FrontendPreference, Screen } from '@/types';
 
 interface AppHeaderProps {
   currentScreen: Screen | null;
   activeInterfaceTab: InterfaceTab;
   setActiveInterfaceTab: (tab: InterfaceTab) => void;
   isImageGenerationMode: boolean;
+  frontendPreference: FrontendPreference;
   onEject: () => void;
   onSettingsOpen: () => void;
 }
@@ -31,6 +31,7 @@ export const AppHeader = ({
   activeInterfaceTab,
   setActiveInterfaceTab,
   isImageGenerationMode,
+  frontendPreference,
   onEject,
   onSettingsOpen,
 }: AppHeaderProps) => {
@@ -117,7 +118,12 @@ export const AppHeader = ({
             data={[
               {
                 value: 'chat',
-                label: isImageGenerationMode ? 'Stable UI' : 'KoboldAI Lite',
+                label:
+                  frontendPreference === 'sillytavern'
+                    ? FRONTENDS.SILLYTAVERN
+                    : isImageGenerationMode
+                      ? FRONTENDS.STABLE_UI
+                      : FRONTENDS.KOBOLDAI_LITE,
               },
               { value: 'terminal', label: 'Terminal' },
             ]}

@@ -1,4 +1,4 @@
-export const isValidUrl = (string: string): boolean => {
+const isValidUrl = (string: string): boolean => {
   try {
     const url = new URL(string);
     return url.protocol === 'http:' || url.protocol === 'https:';
@@ -7,7 +7,7 @@ export const isValidUrl = (string: string): boolean => {
   }
 };
 
-export const isValidFilePath = (path: string): boolean => {
+const isValidFilePath = (path: string): boolean => {
   if (!path.trim()) return false;
 
   const validExtensions = ['.gguf'];

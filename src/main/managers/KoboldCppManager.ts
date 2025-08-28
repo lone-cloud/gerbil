@@ -1,5 +1,5 @@
 /* eslint-disable no-comments/disallowComments */
-import { spawn, ChildProcess } from 'child_process';
+import { spawn, ChildProcess, exec as execCmd } from 'child_process';
 import { join } from 'path';
 import {
   existsSync,
@@ -20,50 +20,16 @@ import { GitHubService } from '@/main/services/GitHubService';
 import { ConfigManager } from '@/main/managers/ConfigManager';
 import { LogManager } from '@/main/managers/LogManager';
 import { WindowManager } from '@/main/managers/WindowManager';
-import { ROCM } from '@/constants';
+import { ROCM, PRODUCT_NAME } from '@/constants';
 import { stripAssetExtensions } from '@/utils/versionUtils';
 import { compareVersions } from '@/utils';
-import type { DownloadItem } from '@/types/electron';
-
-interface GitHubAsset {
-  name: string;
-  browser_download_url: string;
-  size: number;
-  created_at: string;
-  isUpdate?: boolean;
-  wasCurrentBinary?: boolean;
-}
-
-interface GitHubRelease {
-  tag_name: string;
-  name: string;
-  published_at: string;
-  body: string;
-  assets: GitHubAsset[];
-}
-
-interface UpdateInfo {
-  currentVersion: string;
-  latestVersion: string;
-  releaseInfo: GitHubRelease;
-  hasUpdate: boolean;
-}
-
-interface ReleaseWithStatus {
-  release: GitHubRelease;
-  availableAssets: Array<{
-    asset: GitHubAsset;
-    isDownloaded: boolean;
-    installedVersion?: string;
-  }>;
-}
-
-export interface InstalledVersion {
-  version: string;
-  path: string;
-  filename: string;
-  size?: number;
-}
+import type {
+  DownloadItem,
+  GitHubAsset,
+  UpdateInfo,
+  ReleaseWithStatus,
+  InstalledVersion,
+} from '@/types/electron';
 
 export class KoboldCppManager {
   private installDir: string;
@@ -155,10 +121,7 @@ export class KoboldCppManager {
           this.configManager.setCurrentKoboldBinary(launcherPath);
         }
 
-        const mainWindow = this.windowManager.getMainWindow();
-        if (mainWindow) {
-          mainWindow.webContents.send('versions-updated');
-        }
+        this.windowManager.sendToRenderer('versions-updated');
 
         return launcherPath;
       } else {
@@ -212,8 +175,7 @@ export class KoboldCppManager {
       }
 
       const items = readdirSync(this.installDir);
-      const launchers: Array<{ path: string; filename: string; size: number }> =
-        [];
+      const launchers: { path: string; filename: string; size: number }[] = [];
 
       for (const item of items) {
         const itemPath = join(this.installDir, item);
@@ -269,9 +231,9 @@ export class KoboldCppManager {
   }
 
   async getConfigFiles(): Promise<
-    Array<{ name: string; path: string; size: number }>
+    { name: string; path: string; size: number }[]
   > {
-    const configFiles: Array<{ name: string; path: string; size: number }> = [];
+    const configFiles: { name: string; path: string; size: number }[] = [];
 
     try {
       if (existsSync(this.installDir)) {
@@ -452,10 +414,7 @@ export class KoboldCppManager {
     if (existsSync(binaryPath)) {
       this.configManager.setCurrentKoboldBinary(binaryPath);
 
-      const mainWindow = this.windowManager.getMainWindow();
-      if (mainWindow) {
-        mainWindow.webContents.send('versions-updated');
-      }
+      this.windowManager.sendToRenderer('versions-updated');
 
       return true;
     }
@@ -511,7 +470,7 @@ export class KoboldCppManager {
   async selectInstallDirectory(): Promise<string | null> {
     const result = await dialog.showOpenDialog({
       properties: ['openDirectory', 'createDirectory'],
-      title: 'Select the Friendly Kobold Installation Directory',
+      title: `Select the ${PRODUCT_NAME} Installation Directory`,
       defaultPath: this.installDir,
       buttonLabel: 'Select Directory',
     });
@@ -520,10 +479,10 @@ export class KoboldCppManager {
       this.installDir = result.filePaths[0];
       this.configManager.setInstallDir(result.filePaths[0]);
 
-      const mainWindow = this.windowManager.getMainWindow();
-      if (mainWindow) {
-        mainWindow.webContents.send('install-dir-changed', result.filePaths[0]);
-      }
+      this.windowManager.sendToRenderer(
+        'install-dir-changed',
+        result.filePaths[0]
+      );
 
       return result.filePaths[0];
     }
@@ -715,10 +674,7 @@ export class KoboldCppManager {
             this.configManager.setCurrentKoboldBinary(launcherPath);
           }
 
-          const mainWindow = this.windowManager.getMainWindow();
-          if (mainWindow) {
-            mainWindow.webContents.send('versions-updated');
-          }
+          this.windowManager.sendToRenderer('versions-updated');
 
           return {
             success: true,
@@ -846,59 +802,45 @@ export class KoboldCppManager {
 
       this.koboldProcess = child;
 
-      const mainWindow = this.windowManager.getMainWindow();
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        const commandLine = `$ ${currentVersion.path} ${finalArgs.join(' ')}\n${'─'.repeat(60)}\n`;
+      const commandLine = `$ ${currentVersion.path} ${finalArgs.join(' ')}`;
 
-        setTimeout(() => {
-          if (mainWindow && !mainWindow.isDestroyed()) {
-            mainWindow.webContents.send('kobold-output', commandLine);
-          }
-        }, 200);
+      setTimeout(() => {
+        this.windowManager.sendKoboldOutput(commandLine);
+      }, 200);
 
-        child.stdout?.on('data', (data) => {
-          if (mainWindow && !mainWindow.isDestroyed()) {
-            const output = data.toString();
-            mainWindow.webContents.send('kobold-output', output);
-          }
-        });
+      child.stdout?.on('data', (data) => {
+        const output = data.toString();
+        this.windowManager.sendKoboldOutput(output, true);
+      });
 
-        child.stderr?.on('data', (data) => {
-          if (mainWindow && !mainWindow.isDestroyed()) {
-            const output = data.toString();
-            mainWindow.webContents.send('kobold-output', output);
-          }
-        });
+      child.stderr?.on('data', (data) => {
+        const output = data.toString();
+        this.windowManager.sendKoboldOutput(output, true);
+      });
 
-        child.on('exit', (code, signal) => {
-          if (mainWindow && !mainWindow.isDestroyed()) {
-            const displayMessage = signal
-              ? `\n[INFO] Process terminated with signal ${signal}\n`
-              : code === 0
-                ? `\n[INFO] Process exited successfully\n`
-                : code && (code > 1 || code < 0)
-                  ? `\n[ERROR] Process exited with code ${code}\n`
-                  : `\n[INFO] Process exited with code ${code}\n`;
-            mainWindow.webContents.send('kobold-output', displayMessage);
-          }
-          this.koboldProcess = null;
-        });
+      child.on('exit', (code, signal) => {
+        const displayMessage = signal
+          ? `\n[INFO] Process terminated with signal ${signal}`
+          : code === 0
+            ? `\n[INFO] Process exited successfully`
+            : code && (code > 1 || code < 0)
+              ? `\n[ERROR] Process exited with code ${code}`
+              : `\n[INFO] Process exited with code ${code}`;
+        this.windowManager.sendKoboldOutput(displayMessage);
+        this.koboldProcess = null;
+      });
 
-        child.on('error', (error) => {
-          this.logManager.logError(
-            `KoboldCpp process error: ${error.message}`,
-            error
-          );
+      child.on('error', (error) => {
+        this.logManager.logError(
+          `KoboldCpp process error: ${error.message}`,
+          error
+        );
 
-          if (mainWindow && !mainWindow.isDestroyed()) {
-            mainWindow.webContents.send(
-              'kobold-output',
-              `\n[ERROR] Process error: ${error.message}\n`
-            );
-          }
-          this.koboldProcess = null;
-        });
-      }
+        this.windowManager.sendKoboldOutput(
+          `\n[ERROR] Process error: ${error.message}\n`
+        );
+        this.koboldProcess = null;
+      });
 
       return { success: true, pid: child.pid };
     } catch (error) {
@@ -967,7 +909,6 @@ export class KoboldCppManager {
 
                 setTimeout(() => {
                   if (this.koboldProcess && !this.koboldProcess.killed) {
-                    const { exec: execCmd } = require('child_process');
                     execCmd(
                       `taskkill /pid ${pid} /t /f`,
                       (error: Error | null) => {
