@@ -27,7 +27,7 @@ export default defineConfig({
   },
   renderer: {
     root: '.',
-    publicDir: 'assets',
+    publicDir: 'src/assets',
     build: {
       outDir: 'dist',
       rollupOptions: {

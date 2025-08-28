@@ -1,7 +1,7 @@
 # Friendly Kobold
 
 A desktop app for running Large Language Models locally. <!-- markdownlint-disable MD033 -->
-<img src="assets/icon.png" alt="FriendlyKobold Icon" width="32" height="32">
+<img src="src/assets/icon.png" alt="FriendlyKobold Icon" width="32" height="32">
 
 <!-- markdownlint-enable MD033 -->
 

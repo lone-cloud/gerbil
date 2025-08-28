@@ -15,10 +15,9 @@ import { DownloadCard } from '@/components/DownloadCard';
 import { getAssetDescription, sortDownloadsByType } from '@/utils/assets';
 import {
   getDisplayNameFromPath,
-  formatDownloadSize,
   stripAssetExtensions,
-  compareVersions,
-} from '@/utils';
+} from '@/utils/versionUtils';
+import { formatDownloadSize, compareVersions } from '@/utils/downloadUtils';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import type { InstalledVersion, ReleaseWithStatus } from '@/types/electron';
 

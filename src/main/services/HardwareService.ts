@@ -1,6 +1,6 @@
 /* eslint-disable no-comments/disallowComments */
 import si from 'systeminformation';
-import { shortenDeviceName } from '@/utils/server';
+import { shortenDeviceName } from '@/utils/hardware';
 import { LogManager } from '@/main/managers/LogManager';
 import type {
   CPUCapabilities,

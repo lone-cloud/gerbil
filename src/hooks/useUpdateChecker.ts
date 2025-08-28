@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { getDisplayNameFromPath } from '@/utils/versionUtils';
-import { compareVersions } from '@/utils';
+import { compareVersions } from '@/utils/downloadUtils';
 import type { InstalledVersion, DownloadItem } from '@/types/electron';
 
 interface UpdateInfo {

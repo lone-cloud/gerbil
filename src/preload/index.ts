@@ -1,5 +1,11 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
-import type { KoboldAPI, AppAPI, ConfigAPI, LogsAPI } from '@/types/electron';
+import type {
+  KoboldAPI,
+  AppAPI,
+  ConfigAPI,
+  LogsAPI,
+  SillyTavernAPI,
+} from '@/types/electron';
 
 const koboldAPI: KoboldAPI = {
   getInstalledVersions: () => ipcRenderer.invoke('kobold:getInstalledVersions'),
@@ -116,9 +122,14 @@ const logsAPI: LogsAPI = {
     ipcRenderer.invoke('logs:logError', message, error),
 };
 
+const sillyTavernAPI: SillyTavernAPI = {
+  isNpxAvailable: () => ipcRenderer.invoke('sillytavern:isNpxAvailable'),
+};
+
 contextBridge.exposeInMainWorld('electronAPI', {
   kobold: koboldAPI,
   app: appAPI,
   config: configAPI,
   logs: logsAPI,
+  sillytavern: sillyTavernAPI,
 });

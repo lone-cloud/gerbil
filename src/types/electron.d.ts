@@ -156,6 +156,10 @@ export interface LogsAPI {
   logError: (message: string, error?: Error) => Promise<void>;
 }
 
+export interface SillyTavernAPI {
+  isNpxAvailable: () => Promise<boolean>;
+}
+
 declare global {
   interface Window {
     electronAPI: {
@@ -163,6 +167,7 @@ declare global {
       app: AppAPI;
       config: ConfigAPI;
       logs: LogsAPI;
+      sillytavern: SillyTavernAPI;
     };
   }
 }
