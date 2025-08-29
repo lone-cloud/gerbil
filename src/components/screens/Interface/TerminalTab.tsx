@@ -9,8 +9,7 @@ import {
 import { ChevronDown } from 'lucide-react';
 import styles from '@/styles/layout.module.css';
 import { UI } from '@/constants';
-import { handleTerminalOutput } from '@/utils/terminal';
-import { processTerminalContent } from '@/utils/linkifyTerminal';
+import { handleTerminalOutput, processTerminalContent } from '@/utils/terminal';
 import { useLaunchConfigStore } from '@/stores/launchConfigStore';
 import type { FrontendPreference } from '@/types';
 

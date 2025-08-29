@@ -1,4 +1,4 @@
-import { Stack, Text, Group, Button, Select, Badge } from '@mantine/core';
+import { Stack, Text, Group, Button, Select } from '@mantine/core';
 import { useState, useCallback } from 'react';
 import { Save, File, Plus, Check } from 'lucide-react';
 import type { ConfigFile } from '@/types';
@@ -13,33 +13,6 @@ interface ConfigFileManagerProps {
   onSaveConfig: () => Promise<boolean>;
   onLoadConfigFiles: () => Promise<void>;
 }
-
-interface SelectItemProps {
-  label: string;
-  extension: string;
-}
-
-const getBadgeColor = (extension: string) => {
-  switch (extension.toLowerCase()) {
-    case '.kcpps':
-      return 'blue';
-    case '.kcppt':
-      return 'green';
-    default:
-      return 'gray';
-  }
-};
-
-const SelectItem = ({ label, extension }: SelectItemProps) => (
-  <Group justify="space-between" wrap="nowrap">
-    <Text size="sm" truncate>
-      {label}
-    </Text>
-    <Badge size="xs" variant="light" color={getBadgeColor(extension)}>
-      {extension}
-    </Badge>
-  </Group>
-);
 
 export const ConfigFileManager = ({
   configFiles,
@@ -110,15 +83,6 @@ export const ConfigFileManager = ({
               leftSection={<File size={16} />}
               searchable
               clearable={false}
-              renderOption={({ option }) => {
-                const dataItem = selectData.find(
-                  (item) => item.value === option.value
-                );
-                const extension = dataItem?.extension || '';
-                return (
-                  <SelectItem label={option.label} extension={extension} />
-                );
-              }}
             />
           </div>
           <Button

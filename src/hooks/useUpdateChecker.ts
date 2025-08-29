@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { getDisplayNameFromPath } from '@/utils/versionUtils';
-import { compareVersions } from '@/utils/downloadUtils';
+import { getDisplayNameFromPath, compareVersions } from '@/utils/version';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import type { InstalledVersion, DownloadItem } from '@/types/electron';
 

@@ -2,8 +2,10 @@
 import { spawn } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { PRODUCT_NAME, CONFIG_FILE_NAME } from '@/constants';
 import { homedir } from 'os';
+
+import { PRODUCT_NAME, CONFIG_FILE_NAME } from '@/constants';
+import { terminateProcess } from '@/utils/process';
 
 export class LightweightCliHandler {
   private getConfigDir(appName: string): string {
@@ -95,16 +97,15 @@ export class LightweightCliHandler {
         reject(error);
       });
 
-      const handleSignal = () => {
+      const handleSignal = async () => {
         console.log('\nReceived termination signal, terminating KoboldCpp...');
         if (!child.killed) {
-          child.kill('SIGTERM');
-
-          setTimeout(() => {
-            if (!child.killed) {
-              child.kill('SIGKILL');
-            }
-          }, 5000);
+          await terminateProcess(child, {
+            timeoutMs: 5000,
+            logError: (message, error) => {
+              console.error(`${message} ${error.message}`);
+            },
+          });
         }
       };
 

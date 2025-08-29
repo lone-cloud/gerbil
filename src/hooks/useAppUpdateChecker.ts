@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { compareVersions } from '@/utils/downloadUtils';
+import { compareVersions } from '@/utils/version';
 import { GITHUB_API } from '@/constants';
 
 interface AppUpdateInfo {

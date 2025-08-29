@@ -8,7 +8,7 @@ import type { ChildProcess } from 'child_process';
 import { LogManager } from './LogManager';
 import { WindowManager } from './WindowManager';
 import { SILLYTAVERN } from '@/constants';
-import { terminateProcess, killProcessOnPort } from '@/utils/processUtils';
+import { terminateProcess } from '@/utils/process';
 
 export interface SillyTavernConfig {
   name: string;
@@ -109,15 +109,13 @@ export class SillyTavernManager {
     return join(this.getSillyTavernDataRoot(), 'default-user', 'settings.json');
   }
 
-  private getSillyTavernBaseArgs(): string[] {
-    return [
-      'sillytavern',
-      '--listen',
-      '--browserLaunchEnabled',
-      'false',
-      '--disableCsrf',
-    ];
-  }
+  private static readonly SILLYTAVERN_BASE_ARGS = [
+    'sillytavern',
+    '--listen',
+    '--browserLaunchEnabled',
+    'false',
+    '--disableCsrf',
+  ];
 
   async isNpxAvailable(): Promise<boolean> {
     try {
@@ -167,22 +165,19 @@ export class SillyTavernManager {
       'SillyTavern settings not found, starting SillyTavern briefly to generate config...'
     );
 
-    const spawnArgs = this.getSillyTavernBaseArgs();
-
-    this.windowManager.sendKoboldOutput(
-      `Running command: npx ${spawnArgs.join(' ')}`
-    );
-
     return new Promise((resolve, reject) => {
-      const initProcess = this.createNpxProcess(spawnArgs);
+      const initProcess = this.createNpxProcess(
+        SillyTavernManager.SILLYTAVERN_BASE_ARGS
+      );
 
       let hasResolved = false;
 
       initProcess.on('exit', (code: number | null, signal: string | null) => {
-        const exitMessage = signal
-          ? `SillyTavern init process terminated with signal ${signal}`
-          : `SillyTavern init process exited with code ${code}`;
-        this.windowManager.sendKoboldOutput(exitMessage);
+        this.windowManager.sendKoboldOutput(
+          signal
+            ? `SillyTavern init process terminated with signal ${signal}`
+            : `SillyTavern init process exited with code ${code}`
+        );
 
         if (!hasResolved) {
           hasResolved = true;
@@ -227,24 +222,29 @@ export class SillyTavernManager {
           const output = data.toString();
 
           if (output.includes('SillyTavern is listening')) {
-            setTimeout(() => {
+            setTimeout(async () => {
               if (!initProcess.killed && !hasResolved) {
                 hasResolved = true;
-                initProcess.kill('SIGTERM');
+
+                await terminateProcess(initProcess, {
+                  logError: (message, error) =>
+                    this.logManager.logError(message, error),
+                });
+
                 this.windowManager.sendKoboldOutput(
                   'SillyTavern settings should now be generated'
                 );
+
                 resolve();
               }
-            }, 1000);
+            }, 2000);
           }
         });
       }
 
       if (initProcess.stderr) {
         initProcess.stderr.on('data', (data: Buffer) => {
-          const output = data.toString();
-          this.windowManager.sendKoboldOutput(output.trim());
+          this.windowManager.sendKoboldOutput(data.toString().trim());
         });
       }
     });
@@ -296,7 +296,6 @@ export class SillyTavernManager {
       }
 
       const koboldUrl = `http://${koboldHost}:${koboldPort}`;
-      const koboldApiUrl = `${koboldUrl}/api`;
 
       if (!settings.power_user) settings.power_user = {};
       const powerUser = settings.power_user as Record<string, unknown>;
@@ -310,7 +309,7 @@ export class SillyTavernManager {
 
       if (!textgenSettings.server_urls) textgenSettings.server_urls = {};
       const serverUrls = textgenSettings.server_urls as Record<string, unknown>;
-      serverUrls.koboldcpp = koboldApiUrl;
+      serverUrls.koboldcpp = koboldUrl;
 
       settings.main_api = 'textgenerationwebui';
       textgenSettings.type = 'koboldcpp';
@@ -341,8 +340,7 @@ export class SillyTavernManager {
       }, 30000);
 
       const checkForOutput = (data: Buffer) => {
-        const output = data.toString();
-        if (output.includes('SillyTavern is listening')) {
+        if (data.toString().includes('SillyTavern is listening')) {
           clearTimeout(timeout);
           this.windowManager.sendKoboldOutput('SillyTavern is now running!');
           resolve();
@@ -414,8 +412,6 @@ export class SillyTavernManager {
 
       await this.stopFrontend();
 
-      await killProcessOnPort(config.port);
-
       this.windowManager.sendKoboldOutput(
         `Preparing SillyTavern to connect to KoboldCpp at ${koboldHost}:${koboldPort}...`
       );
@@ -428,7 +424,7 @@ export class SillyTavernManager {
       );
 
       const sillyTavernArgs = [
-        ...this.getSillyTavernBaseArgs(),
+        ...SillyTavernManager.SILLYTAVERN_BASE_ARGS,
         '--port',
         config.port.toString(),
       ];
@@ -436,14 +432,12 @@ export class SillyTavernManager {
       this.windowManager.sendKoboldOutput(
         'Final port check before starting SillyTavern...'
       );
-      await killProcessOnPort(config.port);
 
       this.sillyTavernProcess = this.createNpxProcess(sillyTavernArgs);
 
       if (this.sillyTavernProcess.stdout) {
         this.sillyTavernProcess.stdout.on('data', (data: Buffer) => {
-          const output = data.toString();
-          this.windowManager.sendKoboldOutput(output, true);
+          this.windowManager.sendKoboldOutput(data.toString(), true);
         });
       }
 
@@ -491,10 +485,6 @@ export class SillyTavernManager {
       this.windowManager.sendKoboldOutput(
         `Killing processes on port ${SILLYTAVERN.PORT}...`
       );
-      await killProcessOnPort(SILLYTAVERN.PORT);
-      this.windowManager.sendKoboldOutput(
-        `Port ${SILLYTAVERN.PORT} is now free`
-      );
     } catch (error) {
       this.logManager.logError(
         'Error killing processes on port:',
@@ -531,6 +521,7 @@ export class SillyTavernManager {
     await Promise.all(promises);
     this.windowManager.sendKoboldOutput('SillyTavern frontend stopped');
   }
+
   async cleanup(): Promise<void> {
     if (this.sillyTavernProcess) {
       try {

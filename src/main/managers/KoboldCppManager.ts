@@ -1,4 +1,3 @@
-/* eslint-disable no-comments/disallowComments */
 import { spawn, ChildProcess } from 'child_process';
 import { join } from 'path';
 import {
@@ -14,17 +13,17 @@ import {
 import { rm } from 'fs/promises';
 import { dialog } from 'electron';
 
-import { terminateProcess } from '@/utils/processUtils';
 import { execa } from 'execa';
+import { terminateProcess } from '@/utils/process';
+import { getROCmDownload } from '@/utils/rocm';
 import { got } from 'got';
 import { pipeline } from 'stream/promises';
 import { ConfigManager } from '@/main/managers/ConfigManager';
 import { LogManager } from '@/main/managers/LogManager';
 import { WindowManager } from '@/main/managers/WindowManager';
-import { ROCM, PRODUCT_NAME, GITHUB_API } from '@/constants';
-import { stripAssetExtensions } from '@/utils/versionUtils';
+import { PRODUCT_NAME } from '@/constants';
+import { stripAssetExtensions } from '@/utils/version';
 import type {
-  DownloadItem,
   GitHubAsset,
   InstalledVersion,
   KoboldConfig,
@@ -285,7 +284,9 @@ export class KoboldCppManager {
 
           if (
             statSync(filePath).isFile() &&
-            (file.endsWith('.kcpps') || file.endsWith('.kcppt'))
+            (file.endsWith('.kcpps') ||
+              file.endsWith('.kcppt') ||
+              file.endsWith('.json'))
           ) {
             const stats = statSync(filePath);
             configFiles.push({
@@ -323,7 +324,7 @@ export class KoboldCppManager {
   }
 
   async saveConfigFile(
-    configName: string,
+    configFileName: string,
     configData: KoboldConfig
   ): Promise<boolean> {
     try {
@@ -332,15 +333,7 @@ export class KoboldCppManager {
         return false;
       }
 
-      let configFileName = `${configName}.kcpps`;
-      let configPath = join(this.installDir, configFileName);
-
-      const kcpptPath = join(this.installDir, `${configName}.kcppt`);
-      if (existsSync(kcpptPath)) {
-        configFileName = `${configName}.kcppt`;
-        configPath = kcpptPath;
-      }
-
+      const configPath = join(this.installDir, configFileName);
       writeFileSync(configPath, JSON.stringify(configData, null, 2), 'utf-8');
       return true;
     } catch (error) {
@@ -555,81 +548,13 @@ export class KoboldCppManager {
     return this.koboldProcess !== null && !this.koboldProcess.killed;
   }
 
-  async getROCmDownload(): Promise<DownloadItem | null> {
-    const platform = process.platform;
-
-    if (platform === 'linux') {
-      try {
-        const response = await fetch(GITHUB_API.LATEST_RELEASE_URL);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const latestRelease = await response.json();
-        const version = latestRelease?.tag_name?.replace(/^v/, '') || 'unknown';
-
-        return {
-          name: ROCM.BINARY_NAME,
-          url: ROCM.DOWNLOAD_URL,
-          size: ROCM.SIZE_BYTES_APPROX,
-          version,
-          type: 'rocm',
-        };
-      } catch (error) {
-        this.logManager.logError(
-          'Failed to fetch ROCm version info:',
-          error as Error
-        );
-        return {
-          name: ROCM.BINARY_NAME,
-          url: ROCM.DOWNLOAD_URL,
-          size: ROCM.SIZE_BYTES_APPROX,
-          version: 'unknown',
-          type: 'rocm',
-        };
-      }
-    } else if (platform === 'win32') {
-      return null;
-      // The launcher doesn't exist in unpacked state yet.
-      // Enable when it's ready.
-      // try {
-      //   const response = await fetch(GITHUB_API.ROCM_LATEST_RELEASE_URL);
-      //   if (!response.ok) {
-      //     return null;
-      //   }
-
-      //   const release = await response.json();
-      //   const rocmAsset = release.assets?.find((asset: GitHubAsset) =>
-      //     asset.name.endsWith('rocm.exe')
-      //   );
-
-      //   if (rocmAsset) {
-      //     return {
-      //       name: rocmAsset.name,
-      //       url: rocmAsset.browser_download_url,
-      //       size: rocmAsset.size,
-      //       version: release.tag_name?.replace(/^v/, '') || 'unknown',
-      //       type: 'rocm',
-      //     };
-      //   }
-      // } catch (error) {
-      //   this.logManager.logError(
-      //     'Failed to fetch Windows ROCm release:',
-      //     error as Error
-      //   );
-      // }
-    }
-
-    return null;
-  }
-
   async downloadROCm(onProgress?: (progress: number) => void): Promise<{
     success: boolean;
     path?: string;
     error?: string;
   }> {
     try {
-      const rocmInfo = await this.getROCmDownload();
+      const rocmInfo = await getROCmDownload(process.platform);
       if (!rocmInfo) {
         return {
           success: false,
@@ -740,7 +665,7 @@ export class KoboldCppManager {
   ): Promise<{ success: boolean; pid?: number; error?: string }> {
     try {
       if (this.koboldProcess) {
-        this.stopKoboldCpp();
+        await this.stopKoboldCpp();
       }
 
       const currentVersion = await this.getCurrentVersion();
@@ -820,34 +745,13 @@ export class KoboldCppManager {
     }
   }
 
-  stopKoboldCpp(): void {
+  async stopKoboldCpp(): Promise<void> {
     if (this.koboldProcess) {
-      const pid = this.koboldProcess.pid;
-
-      try {
-        this.koboldProcess.kill('SIGTERM');
-
-        setTimeout(() => {
-          if (this.koboldProcess && !this.koboldProcess.killed) {
-            try {
-              this.koboldProcess.kill('SIGKILL');
-            } catch (error) {
-              this.logManager.logError(
-                'Error force-killing KoboldCpp process:',
-                error as Error
-              );
-            }
-          }
-        }, 5000);
-
-        this.koboldProcess = null;
-      } catch (error) {
-        this.logManager.logError(
-          `Error sending SIGTERM to KoboldCpp process (PID: ${pid}):`,
-          error as Error
-        );
-        this.koboldProcess = null;
-      }
+      await terminateProcess(this.koboldProcess, {
+        timeoutMs: 5000,
+        logError: (message, error) => this.logManager.logError(message, error),
+      });
+      this.koboldProcess = null;
     }
   }
 
