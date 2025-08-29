@@ -10,6 +10,7 @@ import { ImageGenerationTab } from '@/components/screens/Launch/ImageGenerationT
 import { WarningDisplay } from '@/components/WarningDisplay';
 import { ConfigFileManager } from '@/components/screens/Launch/ConfigFileManager';
 import { DEFAULT_MODEL_URL } from '@/constants';
+import { Logger } from '@/utils/logger';
 import type { ConfigFile } from '@/types';
 
 interface LaunchScreenProps {
@@ -83,23 +84,19 @@ export const LaunchScreen = ({
   });
 
   const setHappyDefaults = useCallback(async () => {
-    try {
-      const backends = await window.electronAPI.kobold.getAvailableBackends();
+    const backends = await Logger.safeExecute(
+      () => window.electronAPI.kobold.getAvailableBackends(),
+      'Failed to set defaults:'
+    );
 
-      if (!backend && backends.length > 0) {
-        handleBackendChange(backends[0].value);
-      }
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to set defaults:',
-        error as Error
-      );
+    if (!backend && backends && backends.length > 0) {
+      handleBackendChange(backends[0].value);
     }
   }, [backend, handleBackendChange]);
 
   const setInitialDefaults = useCallback(
     async (currentModelPath: string, currentSdModel: string) => {
-      try {
+      await Logger.tryExecute(async () => {
         if (
           !defaultsSetRef.current &&
           !currentModelPath.trim() &&
@@ -108,12 +105,7 @@ export const LaunchScreen = ({
           handleModelPathChange(DEFAULT_MODEL_URL);
           defaultsSetRef.current = true;
         }
-      } catch (error) {
-        window.electronAPI.logs.logError(
-          'Failed to set initial defaults:',
-          error as Error
-        );
-      }
+      }, 'Failed to set initial defaults:');
     },
     [handleModelPathChange]
   );
@@ -194,49 +186,43 @@ export const LaunchScreen = ({
   });
 
   const handleCreateNewConfig = async (configName: string) => {
-    try {
+    await Logger.safeExecute(async () => {
       const fullConfigName = `${configName}.json`;
-      const success = await window.electronAPI.kobold.saveConfigFile(
+      const saveSuccess = await window.electronAPI.kobold.saveConfigFile(
         fullConfigName,
         buildConfigData()
       );
 
-      if (success) {
+      if (saveSuccess) {
         await loadConfigFiles();
-
         setSelectedFile(fullConfigName);
         await window.electronAPI.kobold.setSelectedConfig(fullConfigName);
       } else {
-        window.electronAPI.logs.logError(
+        Logger.error(
           'Failed to create new configuration',
           new Error('Save operation failed')
         );
       }
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to create new configuration:',
-        error as Error
-      );
-    }
+    }, 'Failed to create new configuration:');
   };
 
   const handleSaveConfig = async () => {
     if (!selectedFile) {
-      window.electronAPI.logs.logError(
+      Logger.error(
         'No configuration file selected for saving',
         new Error('Selected file is null')
       );
       return false;
     }
 
-    try {
-      const success = await window.electronAPI.kobold.saveConfigFile(
+    const success = await Logger.safeExecute(async () => {
+      const saveSuccess = await window.electronAPI.kobold.saveConfigFile(
         selectedFile,
         buildConfigData()
       );
 
-      if (!success) {
-        window.electronAPI.logs.logError(
+      if (!saveSuccess) {
+        Logger.error(
           'Failed to save configuration',
           new Error('Save operation failed')
         );
@@ -244,13 +230,9 @@ export const LaunchScreen = ({
       }
 
       return true;
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to save configuration:',
-        error as Error
-      );
-      return false;
-    }
+    }, 'Failed to save configuration:');
+
+    return success ?? false;
   };
 
   useEffect(() => {

@@ -149,7 +149,7 @@ export class WindowManager {
   private setupContextMenu() {
     if (!this.mainWindow) return;
 
-    this.mainWindow.webContents.on('context-menu', (_event, params) => {
+    this.mainWindow.webContents.on('context-menu', (_, params) => {
       const hasLinkURL = !!params.linkURL;
       const isDev = this.isDevelopment();
 

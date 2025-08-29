@@ -10,6 +10,7 @@ import type {
   HardwareInfo,
   GPUMemoryInfo,
 } from '@/types/hardware';
+import { spawn } from 'child_process';
 
 export class HardwareService {
   private cpuCapabilitiesCache: CPUCapabilities | null = null;
@@ -147,7 +148,6 @@ export class HardwareService {
     devices: string[];
   }> {
     try {
-      const { spawn } = await import('child_process');
       const nvidia = spawn(
         'nvidia-smi',
         ['--query-gpu=name,memory.total,memory.free', '--format=csv,noheader'],
@@ -200,7 +200,6 @@ export class HardwareService {
     devices: string[];
   }> {
     try {
-      const { spawn } = await import('child_process');
       const rocminfo = spawn('rocminfo', [], { timeout: 5000 });
 
       let output = '';
@@ -278,7 +277,6 @@ export class HardwareService {
     devices: string[];
   }> {
     try {
-      const { spawn } = await import('child_process');
       const vulkaninfo = spawn('vulkaninfo', ['--summary'], { timeout: 5000 });
 
       let output = '';
@@ -390,7 +388,6 @@ export class HardwareService {
     devices: string[];
   }> {
     try {
-      const { spawn } = await import('child_process');
       const clinfo = spawn('clinfo', [], { timeout: 3000 });
 
       let output = '';

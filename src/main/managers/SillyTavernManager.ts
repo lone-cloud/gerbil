@@ -21,6 +21,14 @@ export class SillyTavernManager {
   private proxyServer: Server | null = null;
   private logManager: LogManager;
   private windowManager: WindowManager;
+  private static readonly SILLYTAVERN_BASE_ARGS = [
+    'sillytavern',
+    '--global',
+    '--listen',
+    '--browserLaunchEnabled',
+    'false',
+    '--disableCsrf',
+  ];
 
   constructor(logManager: LogManager, windowManager: WindowManager) {
     this.logManager = logManager;
@@ -109,14 +117,6 @@ export class SillyTavernManager {
     return join(this.getSillyTavernDataRoot(), 'default-user', 'settings.json');
   }
 
-  private static readonly SILLYTAVERN_BASE_ARGS = [
-    'sillytavern',
-    '--listen',
-    '--browserLaunchEnabled',
-    'false',
-    '--disableCsrf',
-  ];
-
   async isNpxAvailable(): Promise<boolean> {
     try {
       const testProcess = spawn('npx', ['--version'], { stdio: 'pipe' });
@@ -146,10 +146,6 @@ export class SillyTavernManager {
     return spawn('npx', args, {
       stdio: ['pipe', 'pipe', 'pipe'],
       detached: false,
-      env: {
-        ...process.env,
-        DATA_ROOT: this.getSillyTavernDataRoot(),
-      },
     });
   }
 
@@ -157,7 +153,9 @@ export class SillyTavernManager {
     const settingsPath = this.getSillyTavernSettingsPath();
 
     if (existsSync(settingsPath)) {
-      this.windowManager.sendKoboldOutput('SillyTavern settings found');
+      this.windowManager.sendKoboldOutput(
+        `SillyTavern settings found at ${settingsPath}`
+      );
       return;
     }
 
@@ -250,9 +248,14 @@ export class SillyTavernManager {
     });
   }
 
-  private parseKoboldConfig(args: string[]): { host: string; port: number } {
+  private parseKoboldConfig(args: string[]): {
+    host: string;
+    port: number;
+    isImageMode: boolean;
+  } {
     let host = 'localhost';
     let port = 5001;
+    let hasSdModel = false;
 
     for (let i = 0; i < args.length - 1; i++) {
       if (args[i] === '--hostname' || args[i] === '--host') {
@@ -262,23 +265,23 @@ export class SillyTavernManager {
         if (!isNaN(parsedPort)) {
           port = parsedPort;
         }
+      } else if (args[i] === '--sdmodel') {
+        hasSdModel = true;
       }
     }
 
-    return { host, port };
+    const isImageMode = hasSdModel;
+
+    return { host, port, isImageMode };
   }
 
   private async setupSillyTavernConfig(
     koboldHost: string,
-    koboldPort: number
+    koboldPort: number,
+    isImageMode: boolean
   ): Promise<void> {
     try {
       const configPath = this.getSillyTavernSettingsPath();
-
-      this.windowManager.sendKoboldOutput(
-        `Configuring SillyTavern settings at: ${configPath}`
-      );
-
       let settings: Record<string, unknown> = {};
 
       if (existsSync(configPath)) {
@@ -299,6 +302,18 @@ export class SillyTavernManager {
 
       if (!settings.power_user) settings.power_user = {};
       const powerUser = settings.power_user as Record<string, unknown>;
+      powerUser.auto_connect = true;
+
+      if (isImageMode) {
+        this.windowManager.sendKoboldOutput(
+          `Image generation mode detected. Please configure SillyTavern manually:\n` +
+            `1. Open SillyTavern and navigate to Settings (top-right gear icon)\n` +
+            `2. Go to 'Extensions' tab and enable 'Image Generation'\n` +
+            `3. In Image Generation settings, set Source to 'Stable Diffusion WebUI (AUTOMATIC1111)'\n` +
+            `4. Set API URL to: ${koboldUrl}\n` +
+            `5. Click 'Connect' to test the connection`
+        );
+      }
 
       if (!settings.textgenerationwebui_settings)
         settings.textgenerationwebui_settings = {};
@@ -313,7 +328,10 @@ export class SillyTavernManager {
 
       settings.main_api = 'textgenerationwebui';
       textgenSettings.type = 'koboldcpp';
-      powerUser.auto_connect = true;
+
+      this.windowManager.sendKoboldOutput(
+        `Configured SillyTavern for text generation with KoboldCpp at ${koboldUrl}`
+      );
 
       writeFileSync(configPath, JSON.stringify(settings, null, 2), 'utf-8');
 
@@ -407,8 +425,11 @@ export class SillyTavernManager {
         port: SILLYTAVERN.PORT,
         proxyPort: SILLYTAVERN.PROXY_PORT,
       };
-      const { host: koboldHost, port: koboldPort } =
-        this.parseKoboldConfig(args);
+      const {
+        host: koboldHost,
+        port: koboldPort,
+        isImageMode,
+      } = this.parseKoboldConfig(args);
 
       await this.stopFrontend();
 
@@ -417,7 +438,7 @@ export class SillyTavernManager {
       );
 
       await this.ensureSillyTavernSettings();
-      await this.setupSillyTavernConfig(koboldHost, koboldPort);
+      await this.setupSillyTavernConfig(koboldHost, koboldPort, isImageMode);
 
       this.windowManager.sendKoboldOutput(
         `Starting ${config.name} frontend on port ${config.port}...`
@@ -479,19 +500,6 @@ export class SillyTavernManager {
   }
 
   async stopFrontend(): Promise<void> {
-    this.windowManager.sendKoboldOutput('Stopping SillyTavern frontend...');
-
-    try {
-      this.windowManager.sendKoboldOutput(
-        `Killing processes on port ${SILLYTAVERN.PORT}...`
-      );
-    } catch (error) {
-      this.logManager.logError(
-        'Error killing processes on port:',
-        error as Error
-      );
-    }
-
     const promises: Promise<void>[] = [];
 
     if (this.sillyTavernProcess) {
@@ -501,7 +509,6 @@ export class SillyTavernManager {
             this.logManager.logError(message, error),
         }).then(() => {
           this.sillyTavernProcess = null;
-          this.windowManager.sendKoboldOutput('SillyTavern process terminated');
         })
       );
     }
@@ -511,7 +518,6 @@ export class SillyTavernManager {
         new Promise((resolve) => {
           this.proxyServer?.close(() => {
             this.proxyServer = null;
-            this.windowManager.sendKoboldOutput('Proxy server closed');
             resolve();
           });
         })
@@ -519,7 +525,6 @@ export class SillyTavernManager {
     }
 
     await Promise.all(promises);
-    this.windowManager.sendKoboldOutput('SillyTavern frontend stopped');
   }
 
   async cleanup(): Promise<void> {
