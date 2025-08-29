@@ -44,6 +44,20 @@ export class LogManager {
 
   public logError(message: string, error?: Error) {
     this.logger.error(message, { error });
+    this.flush();
+  }
+
+  public flush() {
+    const fileTransport = this.logger.transports.find(
+      (t) => t.constructor.name === 'DailyRotateFile'
+    );
+    if (
+      fileTransport &&
+      'flush' in fileTransport &&
+      typeof fileTransport.flush === 'function'
+    ) {
+      (fileTransport as { flush: () => void }).flush();
+    }
   }
 
   public logDebug(message: string) {

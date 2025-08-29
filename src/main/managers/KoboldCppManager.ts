@@ -1,5 +1,5 @@
 /* eslint-disable no-comments/disallowComments */
-import { spawn, ChildProcess, exec as execCmd } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
 import { join } from 'path';
 import {
   existsSync,
@@ -13,6 +13,8 @@ import {
 } from 'fs';
 import { rm } from 'fs/promises';
 import { dialog } from 'electron';
+
+import { terminateProcess } from '@/utils/processUtils';
 import { execa } from 'execa';
 import { got } from 'got';
 import { pipeline } from 'stream/promises';
@@ -46,6 +48,37 @@ export class KoboldCppManager {
     this.installDir = this.configManager.getInstallDir() || '';
   }
 
+  private async removeDirectoryWithRetry(
+    dirPath: string,
+    maxRetries = 3,
+    delayMs = 1000
+  ): Promise<void> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await rm(dirPath, { recursive: true, force: true });
+        return;
+      } catch (error) {
+        const isLastAttempt = attempt === maxRetries;
+        const isPermissionError =
+          (error as Error & { code?: string }).code === 'EPERM';
+
+        if (isLastAttempt) {
+          throw error;
+        }
+
+        if (isPermissionError && process.platform === 'win32') {
+          this.windowManager.sendKoboldOutput(
+            `Attempt ${attempt}/${maxRetries} failed (file in use), retrying in ${delayMs}ms...`
+          );
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+          delayMs *= 1.5;
+        } else {
+          throw error;
+        }
+      }
+    }
+  }
+
   async downloadRelease(
     asset: GitHubAsset,
     onProgress?: (progress: number) => void
@@ -56,11 +89,25 @@ export class KoboldCppManager {
 
     if (asset.isUpdate && existsSync(unpackedDirPath)) {
       try {
-        await rm(unpackedDirPath, { recursive: true, force: true });
+        if (this.koboldProcess && !this.koboldProcess.killed) {
+          this.windowManager.sendKoboldOutput(
+            'Stopping KoboldCpp process before update...'
+          );
+
+          await this.cleanup();
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        }
+
+        await this.removeDirectoryWithRetry(unpackedDirPath);
       } catch (error) {
         this.logManager.logError(
           'Failed to remove existing directory for update:',
           error as Error
+        );
+        throw new Error(
+          `Cannot update: Failed to remove existing installation. ` +
+            `Please ensure KoboldCpp is stopped and try again. ` +
+            `Error: ${(error as Error).message}`
         );
       }
     }
@@ -698,10 +745,15 @@ export class KoboldCppManager {
 
       const currentVersion = await this.getCurrentVersion();
       if (!currentVersion || !existsSync(currentVersion.path)) {
-        const error = 'KoboldCpp not found';
+        const rawPath = this.configManager.getCurrentKoboldBinary();
+        const error = currentVersion
+          ? `KoboldCpp binary file does not exist at path: ${currentVersion.path}`
+          : 'No KoboldCpp version configured';
+
         this.logManager.logError(
-          `Launch failed: ${error}. Current version: ${JSON.stringify(currentVersion)}`
+          `Launch failed: ${error}. Raw config path: "${rawPath}", Current version: ${JSON.stringify(currentVersion)}`
         );
+
         return {
           success: false,
           error,
@@ -801,75 +853,10 @@ export class KoboldCppManager {
 
   async cleanup(): Promise<void> {
     if (this.koboldProcess) {
-      await new Promise<void>((resolve) => {
-        if (!this.koboldProcess) {
-          resolve();
-          return;
-        }
-
-        const cleanup = () => {
-          this.koboldProcess = null;
-          resolve();
-        };
-
-        this.koboldProcess.once('exit', cleanup);
-        this.koboldProcess.once('error', cleanup);
-
-        try {
-          if (process.platform === 'win32') {
-            const pid = this.koboldProcess.pid;
-            if (pid) {
-              try {
-                this.koboldProcess.kill('SIGTERM');
-
-                setTimeout(() => {
-                  if (this.koboldProcess && !this.koboldProcess.killed) {
-                    execCmd(
-                      `taskkill /pid ${pid} /t /f`,
-                      (error: Error | null) => {
-                        if (error) {
-                          this.logManager.logError(
-                            'Error force-killing process:',
-                            error
-                          );
-                        }
-                        cleanup();
-                      }
-                    );
-                  } else {
-                    cleanup();
-                  }
-                }, 2000);
-              } catch (error) {
-                this.logManager.logError(
-                  'Error during Windows cleanup:',
-                  error as Error
-                );
-                cleanup();
-              }
-            } else {
-              cleanup();
-            }
-          } else {
-            // Unix-like systems
-            this.koboldProcess.kill('SIGTERM');
-
-            setTimeout(() => {
-              if (this.koboldProcess && !this.koboldProcess.killed) {
-                try {
-                  this.koboldProcess.kill('SIGKILL');
-                } catch {
-                  void 0;
-                }
-              }
-              cleanup();
-            }, 3000);
-          }
-        } catch (error) {
-          this.logManager.logError('Error during cleanup:', error as Error);
-          cleanup();
-        }
+      await terminateProcess(this.koboldProcess, {
+        logError: (message, error) => this.logManager.logError(message, error),
       });
+      this.koboldProcess = null;
     }
   }
 }

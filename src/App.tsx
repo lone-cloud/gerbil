@@ -98,27 +98,17 @@ export const App = () => {
     };
 
     checkInstallation();
-
-    const cleanupInstallDirListener =
-      window.electronAPI.kobold.onInstallDirChanged(() => {
-        checkInstallation();
-      });
-
-    const cleanupVersionsListener = window.electronAPI.kobold.onVersionsUpdated(
-      () => {
-        checkInstallation();
-      }
-    );
-
-    return () => {
-      cleanupInstallDirListener();
-      cleanupVersionsListener();
-    };
-  }, [checkForUpdates]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleBinaryUpdate = async (download: DownloadItem) => {
     try {
-      const success = await sharedHandleDownload('asset', download, true, true);
+      const success = await sharedHandleDownload({
+        type: 'asset',
+        item: download,
+        isUpdate: true,
+        wasCurrentBinary: true,
+      });
 
       if (success) {
         dismissUpdate();
@@ -286,6 +276,7 @@ export const App = () => {
                 activeTab={activeInterfaceTab}
                 onTabChange={setActiveInterfaceTab}
                 isImageGenerationMode={isImageGenerationMode}
+                frontendPreference={frontendPreference}
               />
             </ScreenTransition>
           </>

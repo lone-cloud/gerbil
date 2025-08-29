@@ -209,12 +209,12 @@ export const VersionsTab = () => {
         throw new Error('Download not found');
       }
 
-      const success = await sharedHandleDownload(
-        'asset',
-        download,
-        false,
-        false
-      );
+      const success = await sharedHandleDownload({
+        type: 'asset',
+        item: download,
+        isUpdate: false,
+        wasCurrentBinary: false,
+      });
 
       if (success) {
         await loadInstalledVersions();
@@ -231,13 +231,12 @@ export const VersionsTab = () => {
         throw new Error('Download not found');
       }
 
-      const wasCurrentBinary = version.isCurrent;
-      const success = await sharedHandleDownload(
-        'asset',
-        download,
-        true,
-        wasCurrentBinary
-      );
+      const success = await sharedHandleDownload({
+        type: 'asset',
+        item: download,
+        isUpdate: true,
+        wasCurrentBinary: version.isCurrent,
+      });
 
       if (success) {
         await loadInstalledVersions();

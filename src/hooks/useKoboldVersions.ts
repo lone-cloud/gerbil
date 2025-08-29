@@ -20,6 +20,13 @@ interface CachedReleaseData {
   timestamp: number;
 }
 
+interface HandleDownloadParams {
+  type: 'asset' | 'rocm';
+  item?: DownloadItem;
+  isUpdate?: boolean;
+  wasCurrentBinary?: boolean;
+}
+
 const CACHE_KEY = 'kobold-releases-cache';
 const CACHE_DURATION = 60000;
 
@@ -182,12 +189,7 @@ interface UseKoboldVersionsReturn {
   downloadProgress: Record<string, number>;
   loadRemoteVersions: () => Promise<void>;
   refresh: () => Promise<void>;
-  handleDownload: (
-    type: 'asset' | 'rocm',
-    item?: DownloadItem,
-    isUpdate?: boolean,
-    wasCurrentBinary?: boolean
-  ) => Promise<boolean>;
+  handleDownload: (params: HandleDownloadParams) => Promise<boolean>;
   setDownloading: (value: string | null) => void;
   setDownloadProgress: (
     value:
@@ -310,12 +312,12 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
   }, [platformInfo.platform]);
 
   const handleDownload = useCallback(
-    async (
-      type: 'asset' | 'rocm',
-      item?: DownloadItem,
+    async ({
+      type,
+      item,
       isUpdate = false,
-      wasCurrentBinary = false
-    ): Promise<boolean> => {
+      wasCurrentBinary = false,
+    }: HandleDownloadParams): Promise<boolean> => {
       if (type === 'asset' && !item) return false;
 
       const downloadName = item?.name || 'download';

@@ -269,9 +269,10 @@ export const useLaunchLogic = ({
             onLaunchModeChange(isImageMode);
           }
         } else {
+          const errorMessage = result.error || 'Unknown launch error';
           window.electronAPI.logs.logError(
             'Launch failed:',
-            new Error(result.error)
+            new Error(errorMessage)
           );
         }
       } catch (error) {

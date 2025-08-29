@@ -61,7 +61,8 @@ export class ConfigManager {
   }
 
   getCurrentKoboldBinary(): string | undefined {
-    return this.config.currentKoboldBinary as string | undefined;
+    const path = this.config.currentKoboldBinary as string | undefined;
+    return path ? path.trim() : path;
   }
 
   setCurrentKoboldBinary(binaryPath: string) {

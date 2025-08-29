@@ -30,6 +30,8 @@ export const AdvancedTab = () => {
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const isGpuBackend = backend === 'cuda' || backend === 'rocm';
+
   useEffect(() => {
     const detectBackendSupport = async () => {
       try {
@@ -99,27 +101,27 @@ export const AdvancedTab = () => {
 
           <Group gap="lg" align="flex-start" wrap="nowrap">
             <CheckboxWithTooltip
-              checked={quantmatmul}
+              checked={quantmatmul && isGpuBackend}
               onChange={handleQuantmatmulChange}
               label="QuantMatMul"
               tooltip={
-                backend !== 'cuda' && backend !== 'rocm'
+                !isGpuBackend
                   ? 'QuantMatMul is only available for CUDA and ROCm backends.'
                   : 'Enable MMQ mode to use finetuned kernels instead of default CuBLAS/HipBLAS for prompt processing.'
               }
-              disabled={backend !== 'cuda' && backend !== 'rocm'}
+              disabled={!isGpuBackend}
             />
 
             <CheckboxWithTooltip
-              checked={lowvram}
+              checked={lowvram && isGpuBackend}
               onChange={handleLowvramChange}
               label="Low VRAM"
               tooltip={
-                backend !== 'cuda' && backend !== 'rocm'
+                !isGpuBackend
                   ? 'Low VRAM mode is only available for CUDA and ROCm backends.'
                   : 'Avoid offloading KV Cache or scratch buffers to VRAM. Allows more layers to fit, but may result in a speed loss.'
               }
-              disabled={backend !== 'cuda' && backend !== 'rocm'}
+              disabled={!isGpuBackend}
             />
           </Group>
         </Stack>

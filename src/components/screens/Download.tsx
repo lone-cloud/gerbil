@@ -34,12 +34,12 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
       setDownloadingAsset(download.name);
 
       try {
-        const success = await sharedHandleDownload(
-          'asset',
-          download,
-          false,
-          false
-        );
+        const success = await sharedHandleDownload({
+          type: 'asset',
+          item: download,
+          isUpdate: false,
+          wasCurrentBinary: false,
+        });
 
         if (success) {
           onDownloadComplete();
