@@ -1,14 +1,24 @@
-import { ROCM } from '@/constants';
+import type { InstalledVersion } from '@/types';
 
-export const formatDownloadSize = (size: number, url?: string): string => {
-  if (!size) return '';
+export const getDisplayNameFromPath = (
+  installedVersion: InstalledVersion
+): string => {
+  const pathParts = installedVersion.path.split(/[/\\]/);
+  const launcherIndex = pathParts.findIndex(
+    (part) => part === 'koboldcpp-launcher' || part === 'koboldcpp-launcher.exe'
+  );
 
-  const isApproximateSize = url?.includes(ROCM.DOWNLOAD_URL);
+  if (launcherIndex > 0) {
+    return pathParts[launcherIndex - 1];
+  }
 
-  return isApproximateSize
-    ? `~${formatFileSizeInMB(size)}`
-    : formatFileSizeInMB(size);
+  return installedVersion.filename;
 };
+
+export const stripAssetExtensions = (assetName: string): string =>
+  assetName
+    .replace(/\.(tar\.gz|zip|exe|dmg|AppImage)$/i, '')
+    .replace(/\.packed$/, '');
 
 export const compareVersions = (versionA: string, versionB: string): number => {
   const cleanVersion = (version: string): string =>
@@ -33,10 +43,4 @@ export const compareVersions = (versionA: string, versionB: string): number => {
   }
 
   return 0;
-};
-
-const formatFileSizeInMB = (bytes: number) => {
-  if (bytes === 0) return '0 MB';
-  const mb = bytes / (1024 * 1024);
-  return parseFloat(mb.toFixed(1)) + ' MB';
 };

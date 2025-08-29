@@ -83,7 +83,6 @@
     "@mantine/core": "^8.2.7",
     "@mantine/hooks": "^8.2.7",
     "execa": "^9.6.0",
-    "fkill": "^9.0.0",
     "got": "^14.4.7",
     "lucide-react": "^0.542.0",
     "react": "^19.1.1",

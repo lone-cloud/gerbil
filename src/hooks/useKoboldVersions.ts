@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { GITHUB_API, ROCM } from '@/constants';
+import { getROCmDownload } from '@/utils/rocm';
+import { GITHUB_API } from '@/constants';
 import { filterAssetsByPlatform } from '@/utils/platform';
 import type {
   DownloadItem,
@@ -89,44 +90,6 @@ const fetchLatestReleaseFromAPI = async (
 
   const release: GitHubRelease = await response.json();
   return transformReleaseToDownloadItems(release, platform);
-};
-
-const getROCmDownload = async (
-  platform: string
-): Promise<DownloadItem | null> => {
-  if (platform !== 'linux') {
-    return null;
-  }
-
-  try {
-    const response = await fetch(GITHUB_API.LATEST_RELEASE_URL);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const latestRelease = await response.json();
-    const version = latestRelease?.tag_name?.replace(/^v/, '') || 'unknown';
-
-    return {
-      name: ROCM.BINARY_NAME,
-      url: ROCM.DOWNLOAD_URL,
-      size: ROCM.SIZE_BYTES_APPROX,
-      version,
-      type: 'rocm',
-    };
-  } catch (error) {
-    window.electronAPI.logs.logError(
-      'Failed to fetch ROCm version info:',
-      error as Error
-    );
-    return {
-      name: ROCM.BINARY_NAME,
-      url: ROCM.DOWNLOAD_URL,
-      size: ROCM.SIZE_BYTES_APPROX,
-      version: 'unknown',
-      type: 'rocm',
-    };
-  }
 };
 
 const getLatestReleaseWithDownloadStatus =

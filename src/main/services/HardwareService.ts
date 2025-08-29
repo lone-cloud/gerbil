@@ -2,6 +2,7 @@
 import si from 'systeminformation';
 import { shortenDeviceName } from '@/utils/hardware';
 import { LogManager } from '@/main/managers/LogManager';
+import { terminateProcess } from '@/utils/process';
 import type {
   CPUCapabilities,
   GPUCapabilities,
@@ -184,12 +185,8 @@ export class HardwareService {
           resolve({ supported: false, devices: [] });
         });
 
-        setTimeout(() => {
-          try {
-            nvidia.kill('SIGTERM');
-          } catch {
-            void 0;
-          }
+        setTimeout(async () => {
+          await terminateProcess(nvidia);
           resolve({ supported: false, devices: [] });
         }, 5000);
       });
@@ -266,12 +263,8 @@ export class HardwareService {
           resolve({ supported: false, devices: [] });
         });
 
-        setTimeout(() => {
-          try {
-            rocminfo.kill('SIGTERM');
-          } catch {
-            void 0;
-          }
+        setTimeout(async () => {
+          await terminateProcess(rocminfo);
           resolve({ supported: false, devices: [] });
         }, 5000);
       });
@@ -325,12 +318,8 @@ export class HardwareService {
           resolve({ supported: false, devices: [] });
         });
 
-        setTimeout(() => {
-          try {
-            vulkaninfo.kill('SIGTERM');
-          } catch {
-            void 0;
-          }
+        setTimeout(async () => {
+          await terminateProcess(vulkaninfo);
           resolve({ supported: false, devices: [] });
         }, 5000);
       });
@@ -426,12 +415,8 @@ export class HardwareService {
           resolve({ supported: false, devices: [] });
         });
 
-        setTimeout(() => {
-          try {
-            clinfo.kill('SIGTERM');
-          } catch {
-            void 0;
-          }
+        setTimeout(async () => {
+          await terminateProcess(clinfo);
           resolve({ supported: false, devices: [] });
         }, 3000);
       });

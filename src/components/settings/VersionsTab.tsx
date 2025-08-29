@@ -16,8 +16,10 @@ import { getAssetDescription, sortDownloadsByType } from '@/utils/assets';
 import {
   getDisplayNameFromPath,
   stripAssetExtensions,
-} from '@/utils/versionUtils';
-import { formatDownloadSize, compareVersions } from '@/utils/downloadUtils';
+  compareVersions,
+} from '@/utils/version';
+import { formatDownloadSize } from '@/utils/download';
+
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import type { InstalledVersion, ReleaseWithStatus } from '@/types/electron';
 

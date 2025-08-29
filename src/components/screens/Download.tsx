@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { Card, Text, Title, Loader, Stack, Container } from '@mantine/core';
 import { DownloadCard } from '@/components/DownloadCard';
 import { getPlatformDisplayName } from '@/utils/platform';
-import { formatDownloadSize } from '@/utils/downloadUtils';
+import { formatDownloadSize } from '@/utils/download';
 import { getAssetDescription, sortDownloadsByType } from '@/utils/assets';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import type { DownloadItem } from '@/types/electron';

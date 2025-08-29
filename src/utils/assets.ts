@@ -1,5 +1,5 @@
 import { ASSET_SUFFIXES } from '@/constants';
-import { stripAssetExtensions } from '@/utils/versionUtils';
+import { stripAssetExtensions } from '@/utils/version';
 
 export const getAssetDescription = (assetName: string): string => {
   const name = stripAssetExtensions(assetName).toLowerCase();

@@ -195,16 +195,17 @@ export const LaunchScreen = ({
 
   const handleCreateNewConfig = async (configName: string) => {
     try {
+      const fullConfigName = `${configName}.json`;
       const success = await window.electronAPI.kobold.saveConfigFile(
-        configName,
+        fullConfigName,
         buildConfigData()
       );
 
       if (success) {
         await loadConfigFiles();
-        const newFileName = `${configName}.kcpps`;
-        setSelectedFile(newFileName);
-        await window.electronAPI.kobold.setSelectedConfig(newFileName);
+
+        setSelectedFile(fullConfigName);
+        await window.electronAPI.kobold.setSelectedConfig(fullConfigName);
       } else {
         window.electronAPI.logs.logError(
           'Failed to create new configuration',
@@ -229,10 +230,8 @@ export const LaunchScreen = ({
     }
 
     try {
-      const configName = selectedFile.replace(/\.(kcpps|kcppt)$/, '');
-
       const success = await window.electronAPI.kobold.saveConfigFile(
-        configName,
+        selectedFile,
         buildConfigData()
       );
 

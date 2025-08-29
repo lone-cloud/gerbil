@@ -12,7 +12,7 @@ import {
 import { Download, X, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 import type { InstalledVersion, DownloadItem } from '@/types/electron';
-import { getDisplayNameFromPath } from '@/utils/versionUtils';
+import { getDisplayNameFromPath } from '@/utils/version';
 import { GITHUB_API } from '@/constants';
 
 interface UpdateAvailableModalProps {

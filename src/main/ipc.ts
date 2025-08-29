@@ -30,22 +30,16 @@ export class IPCHandlers {
     this.binaryService = binaryService;
   }
 
-  private async launchKoboldCppWithCustomFrontends(
-    args: string[] = []
-  ): Promise<{
-    success: boolean;
-    pid?: number;
-    error?: string;
-  }> {
+  private async launchKoboldCppWithCustomFrontends(args: string[] = []) {
     try {
       const frontendPreference =
         await this.configManager.get('frontendPreference');
 
-      if (frontendPreference === 'sillytavern') {
-        await this.sillyTavernManager.startFrontend(args);
-      }
+      this.koboldManager.launchKoboldCpp(args);
 
-      return await this.koboldManager.launchKoboldCpp(args);
+      if (frontendPreference === 'sillytavern') {
+        this.sillyTavernManager.startFrontend(args);
+      }
     } catch (error) {
       this.logManager.logError('Error in enhanced launch:', error as Error);
       return {
@@ -164,11 +158,10 @@ export class IPCHandlers {
 
     ipcMain.handle('kobold:stopKoboldCpp', async () => {
       try {
-        this.koboldManager.stopKoboldCpp();
-        await this.sillyTavernManager.cleanup();
+        await this.koboldManager.stopKoboldCpp();
+        return { success: true };
       } catch (error) {
-        this.logManager.logError('Error during stop/cleanup:', error as Error);
-        throw error;
+        return { success: false, error: (error as Error).message };
       }
     });
 
