@@ -11,7 +11,8 @@ export class WindowManager {
 
   private getIconPath(): string {
     if (process.env.NODE_ENV === 'development') {
-      return join(__dirname, '../../assets/icon.png');
+      const projectRoot = join(__dirname, '../..');
+      return join(projectRoot, 'src/assets/icon.png');
     }
     return join(process.resourcesPath, 'assets/icon.png');
   }

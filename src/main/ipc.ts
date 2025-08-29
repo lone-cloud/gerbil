@@ -5,7 +5,6 @@ import type { LogManager } from '@/main/managers/LogManager';
 import type { SillyTavernManager } from '@/main/managers/SillyTavernManager';
 import { HardwareService } from '@/main/services/HardwareService';
 import { BinaryService } from '@/main/services/BinaryService';
-import type { FrontendPreference } from '@/types';
 
 export class IPCHandlers {
   private koboldManager: KoboldCppManager;
@@ -39,27 +38,14 @@ export class IPCHandlers {
     error?: string;
   }> {
     try {
-      const finalArgs = [...args];
-      const frontendPreference = (await this.configManager.get(
-        'frontendPreference'
-      )) as FrontendPreference | undefined;
-
-      if (frontendPreference !== 'koboldcpp' && !finalArgs.includes('--cli')) {
-        finalArgs.push('--cli');
-      }
+      const frontendPreference =
+        await this.configManager.get('frontendPreference');
 
       if (frontendPreference === 'sillytavern') {
-        try {
-          await this.sillyTavernManager.startFrontend(finalArgs);
-        } catch (error) {
-          this.logManager.logError(
-            'Failed to setup SillyTavern:',
-            error as Error
-          );
-        }
+        await this.sillyTavernManager.startFrontend(args);
       }
 
-      return await this.koboldManager.launchKoboldCpp(finalArgs);
+      return await this.koboldManager.launchKoboldCpp(args);
     } catch (error) {
       this.logManager.logError('Error in enhanced launch:', error as Error);
       return {
@@ -147,7 +133,7 @@ export class IPCHandlers {
 
     ipcMain.handle(
       'kobold:getAvailableBackends',
-      (_event, includeDisabled = false) =>
+      (_, includeDisabled = false) =>
         this.binaryService.getAvailableBackends(includeDisabled)
     );
 
@@ -176,9 +162,15 @@ export class IPCHandlers {
       this.launchKoboldCppWithCustomFrontends(args)
     );
 
-    ipcMain.handle('kobold:stopKoboldCpp', () =>
-      this.koboldManager.stopKoboldCpp()
-    );
+    ipcMain.handle('kobold:stopKoboldCpp', async () => {
+      try {
+        this.koboldManager.stopKoboldCpp();
+        await this.sillyTavernManager.cleanup();
+      } catch (error) {
+        this.logManager.logError('Error during stop/cleanup:', error as Error);
+        throw error;
+      }
+    });
 
     ipcMain.handle('kobold:parseConfigFile', (_event, filePath) =>
       this.koboldManager.parseConfigFile(filePath)

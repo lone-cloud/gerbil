@@ -55,7 +55,7 @@ export const DownloadCard = ({
     const buttons = [];
 
     if (!isInstalled) {
-      buttons.push(
+      return (
         <Button
           key="download"
           variant="filled"
@@ -76,7 +76,7 @@ export const DownloadCard = ({
       );
     }
 
-    if (isInstalled && !isCurrent && onMakeCurrent) {
+    if (!isCurrent && onMakeCurrent) {
       buttons.push(
         <Button
           key="makeCurrent"

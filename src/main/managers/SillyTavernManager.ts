@@ -8,6 +8,7 @@ import type { ChildProcess } from 'child_process';
 import { LogManager } from './LogManager';
 import { WindowManager } from './WindowManager';
 import { SILLYTAVERN } from '@/constants';
+import { terminateProcess, killProcessOnPort } from '@/utils/processUtils';
 
 export interface SillyTavernConfig {
   name: string;
@@ -38,43 +39,74 @@ export class SillyTavernManager {
     });
   }
 
-  private getSillyTavernSettingsPath(): string {
+  private detectedDataRoot: string | null = null;
+
+  private getFallbackDataRoot(): string {
     const platform = process.platform;
     const home = homedir();
 
     switch (platform) {
       case 'win32':
-        return join(
-          home,
-          'AppData',
-          'Roaming',
-          'SillyTavern',
-          'data',
-          'default-user',
-          'settings.json'
-        );
+        return join(home, 'AppData', 'Local', 'SillyTavern', 'Data', 'data');
       case 'darwin':
         return join(
           home,
           'Library',
           'Application Support',
           'SillyTavern',
-          'data',
-          'default-user',
-          'settings.json'
+          'data'
         );
       case 'linux':
       default:
-        return join(
-          home,
-          '.local',
-          'share',
-          'SillyTavern',
-          'data',
-          'default-user',
-          'settings.json'
-        );
+        return join(home, '.local', 'share', 'SillyTavern', 'data');
     }
+  }
+
+  private getSillyTavernDataRoot(): string {
+    if (this.detectedDataRoot) {
+      return this.detectedDataRoot;
+    }
+
+    const fallback = this.getFallbackDataRoot();
+
+    if (existsSync(fallback)) {
+      this.detectedDataRoot = fallback;
+      return fallback;
+    }
+
+    const platform = process.platform;
+    const home = homedir();
+    const alternatePaths = [];
+
+    switch (platform) {
+      case 'win32':
+        alternatePaths.push(
+          join(home, 'AppData', 'Local', 'SillyTavern', 'data'),
+          join(home, '.sillytavern', 'data')
+        );
+        break;
+      case 'darwin':
+        alternatePaths.push(join(home, '.sillytavern', 'data'));
+        break;
+      case 'linux':
+      default:
+        alternatePaths.push(join(home, '.sillytavern', 'data'));
+        break;
+    }
+
+    for (const path of alternatePaths) {
+      if (existsSync(path)) {
+        this.detectedDataRoot = path;
+        return path;
+      }
+    }
+
+    this.detectedDataRoot = fallback;
+    return fallback;
+  }
+
+  private getSillyTavernSettingsPath(): string {
+    return join(this.getSillyTavernDataRoot(), 'default-user', 'settings.json');
   }
 
   private getSillyTavernBaseArgs(): string[] {
@@ -83,8 +115,7 @@ export class SillyTavernManager {
       '--listen',
       '--browserLaunchEnabled',
       'false',
-      '--securityOverride',
-      'true',
+      '--disableCsrf',
     ];
   }
 
@@ -117,6 +148,10 @@ export class SillyTavernManager {
     return spawn('npx', args, {
       stdio: ['pipe', 'pipe', 'pipe'],
       detached: false,
+      env: {
+        ...process.env,
+        DATA_ROOT: this.getSillyTavernDataRoot(),
+      },
     });
   }
 
@@ -143,35 +178,37 @@ export class SillyTavernManager {
 
       let hasResolved = false;
 
-      const cleanupAndResolve = () => {
-        if (!hasResolved) {
-          hasResolved = true;
-          this.windowManager.sendKoboldOutput(
-            'SillyTavern settings should now be generated'
-          );
-          resolve();
-        }
-      };
-
-      const timeout = setTimeout(() => {
-        if (!initProcess.killed) {
-          initProcess.kill('SIGTERM');
-        }
-        cleanupAndResolve();
-      }, 90000);
-
       initProcess.on('exit', (code: number | null, signal: string | null) => {
-        clearTimeout(timeout);
         const exitMessage = signal
           ? `SillyTavern init process terminated with signal ${signal}`
           : `SillyTavern init process exited with code ${code}`;
         this.windowManager.sendKoboldOutput(exitMessage);
-        cleanupAndResolve();
+
+        if (!hasResolved) {
+          hasResolved = true;
+
+          if (code !== 0) {
+            const errorMsg =
+              code === 4294963214
+                ? 'SillyTavern failed to install due to EBUSY error (resource busy or locked). This is a critical error.'
+                : `SillyTavern initialization failed with exit code ${code}`;
+
+            this.logManager.logError(
+              'SillyTavern initialization failed:',
+              new Error(errorMsg)
+            );
+            this.windowManager.sendKoboldOutput(`CRITICAL ERROR: ${errorMsg}`);
+            reject(new Error(errorMsg));
+          } else {
+            this.windowManager.sendKoboldOutput(
+              'SillyTavern settings should now be generated'
+            );
+            resolve();
+          }
+        }
       });
 
       initProcess.on('error', (error) => {
-        clearTimeout(timeout);
-
         if (!hasResolved) {
           hasResolved = true;
           this.logManager.logError(
@@ -192,8 +229,12 @@ export class SillyTavernManager {
           if (output.includes('SillyTavern is listening')) {
             setTimeout(() => {
               if (!initProcess.killed && !hasResolved) {
+                hasResolved = true;
                 initProcess.kill('SIGTERM');
-                cleanupAndResolve();
+                this.windowManager.sendKoboldOutput(
+                  'SillyTavern settings should now be generated'
+                );
+                resolve();
               }
             }, 1000);
           }
@@ -206,14 +247,6 @@ export class SillyTavernManager {
           this.windowManager.sendKoboldOutput(output.trim());
         });
       }
-
-      setTimeout(() => {
-        if (!initProcess.killed && !hasResolved) {
-          this.windowManager.sendKoboldOutput(
-            'SillyTavern initialization taking longer than expected, please wait...'
-          );
-        }
-      }, 30000);
     });
   }
 
@@ -277,7 +310,7 @@ export class SillyTavernManager {
 
       if (!textgenSettings.server_urls) textgenSettings.server_urls = {};
       const serverUrls = textgenSettings.server_urls as Record<string, unknown>;
-      serverUrls.koboldcpp = koboldUrl;
+      serverUrls.koboldcpp = koboldApiUrl;
 
       settings.main_api = 'textgenerationwebui';
       textgenSettings.type = 'koboldcpp';
@@ -288,9 +321,6 @@ export class SillyTavernManager {
       this.windowManager.sendKoboldOutput(
         `SillyTavern configuration updated successfully!`
       );
-      this.windowManager.sendKoboldOutput(
-        `KoboldCpp will auto-connect to: ${koboldApiUrl}`
-      );
     } catch (error) {
       this.logManager.logError(
         'Failed to setup SillyTavern config:',
@@ -300,6 +330,39 @@ export class SillyTavernManager {
         `Failed to configure SillyTavern: ${error instanceof Error ? error.message : String(error)}`
       );
     }
+  }
+
+  private async waitForSillyTavernToStart(_port: number): Promise<void> {
+    this.windowManager.sendKoboldOutput('Waiting for SillyTavern to start...');
+
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('SillyTavern failed to start within 30 seconds'));
+      }, 30000);
+
+      const checkForOutput = (data: Buffer) => {
+        const output = data.toString();
+        if (output.includes('SillyTavern is listening')) {
+          clearTimeout(timeout);
+          this.windowManager.sendKoboldOutput('SillyTavern is now running!');
+          resolve();
+
+          if (this.sillyTavernProcess?.stdout) {
+            this.sillyTavernProcess.stdout.removeListener(
+              'data',
+              checkForOutput
+            );
+          }
+        }
+      };
+
+      if (this.sillyTavernProcess?.stdout) {
+        this.sillyTavernProcess.stdout.on('data', checkForOutput);
+      } else {
+        clearTimeout(timeout);
+        reject(new Error('SillyTavern process stdout not available'));
+      }
+    });
   }
 
   private createProxyServer(targetPort: number, proxyPort: number): void {
@@ -351,6 +414,8 @@ export class SillyTavernManager {
 
       await this.stopFrontend();
 
+      await killProcessOnPort(config.port);
+
       this.windowManager.sendKoboldOutput(
         `Preparing SillyTavern to connect to KoboldCpp at ${koboldHost}:${koboldPort}...`
       );
@@ -367,6 +432,11 @@ export class SillyTavernManager {
         '--port',
         config.port.toString(),
       ];
+
+      this.windowManager.sendKoboldOutput(
+        'Final port check before starting SillyTavern...'
+      );
+      await killProcessOnPort(config.port);
 
       this.sillyTavernProcess = this.createNpxProcess(sillyTavernArgs);
 
@@ -403,16 +473,8 @@ export class SillyTavernManager {
         this.sillyTavernProcess = null;
       });
 
-      if (config.proxyPort) {
-        this.createProxyServer(config.port, config.proxyPort);
-        this.windowManager.sendKoboldOutput(
-          `SillyTavern proxy starting at http://localhost:${config.proxyPort} (forwarding to port ${config.port})`
-        );
-      } else {
-        this.windowManager.sendKoboldOutput(
-          `SillyTavern starting at http://localhost:${config.port}`
-        );
-      }
+      await this.waitForSillyTavernToStart(config.port);
+      this.createProxyServer(config.port, config.proxyPort);
     } catch (error) {
       this.logManager.logError(
         `Failed to start SillyTavern: ${error instanceof Error ? error.message : String(error)}`,
@@ -423,26 +485,33 @@ export class SillyTavernManager {
   }
 
   async stopFrontend(): Promise<void> {
+    this.windowManager.sendKoboldOutput('Stopping SillyTavern frontend...');
+
+    try {
+      this.windowManager.sendKoboldOutput(
+        `Killing processes on port ${SILLYTAVERN.PORT}...`
+      );
+      await killProcessOnPort(SILLYTAVERN.PORT);
+      this.windowManager.sendKoboldOutput(
+        `Port ${SILLYTAVERN.PORT} is now free`
+      );
+    } catch (error) {
+      this.logManager.logError(
+        'Error killing processes on port:',
+        error as Error
+      );
+    }
+
     const promises: Promise<void>[] = [];
 
     if (this.sillyTavernProcess) {
       promises.push(
-        new Promise((resolve) => {
-          const timeout = setTimeout(() => {
-            this.logManager.logError(
-              'SillyTavern did not close within timeout',
-              new Error('Process close timeout')
-            );
-            this.sillyTavernProcess = null;
-            resolve();
-          }, 5000);
-
-          this.sillyTavernProcess?.kill('SIGTERM');
-          this.sillyTavernProcess?.once('exit', () => {
-            clearTimeout(timeout);
-            this.sillyTavernProcess = null;
-            resolve();
-          });
+        terminateProcess(this.sillyTavernProcess, {
+          logError: (message, error) =>
+            this.logManager.logError(message, error),
+        }).then(() => {
+          this.sillyTavernProcess = null;
+          this.windowManager.sendKoboldOutput('SillyTavern process terminated');
         })
       );
     }
@@ -452,6 +521,7 @@ export class SillyTavernManager {
         new Promise((resolve) => {
           this.proxyServer?.close(() => {
             this.proxyServer = null;
+            this.windowManager.sendKoboldOutput('Proxy server closed');
             resolve();
           });
         })
@@ -459,8 +529,8 @@ export class SillyTavernManager {
     }
 
     await Promise.all(promises);
+    this.windowManager.sendKoboldOutput('SillyTavern frontend stopped');
   }
-
   async cleanup(): Promise<void> {
     if (this.sillyTavernProcess) {
       try {
