@@ -70,8 +70,8 @@ export class LogManager {
       this.logError('Uncaught Exception:', error);
     });
 
-    process.on('unhandledRejection', (reason, promise) => {
-      const message = `Unhandled Promise Rejection at: ${promise}`;
+    process.on('unhandledRejection', (reason, _promise) => {
+      const message = `Unhandled Promise Rejection`;
       const error =
         reason instanceof Error ? reason : new Error(String(reason));
       this.logError(message, error);

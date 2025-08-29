@@ -9,6 +9,11 @@ export const UI = {
 
 export const { HEADER_HEIGHT } = UI;
 
+export const SERVER_READY_SIGNALS = {
+  KOBOLDCPP: 'Please connect to custom endpoint at',
+  SILLYTAVERN: 'SillyTavern is listening on',
+} as const;
+
 export * from './defaults';
 
 export const GITHUB_API = {

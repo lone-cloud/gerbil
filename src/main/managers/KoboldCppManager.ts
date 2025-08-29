@@ -21,7 +21,7 @@ import { pipeline } from 'stream/promises';
 import { ConfigManager } from '@/main/managers/ConfigManager';
 import { LogManager } from '@/main/managers/LogManager';
 import { WindowManager } from '@/main/managers/WindowManager';
-import { PRODUCT_NAME } from '@/constants';
+import { PRODUCT_NAME, SERVER_READY_SIGNALS } from '@/constants';
 import { stripAssetExtensions } from '@/utils/version';
 import type {
   GitHubAsset,
@@ -700,14 +700,47 @@ export class KoboldCppManager {
         this.windowManager.sendKoboldOutput(commandLine);
       }, 200);
 
+      let readyResolve:
+        | ((value: { success: boolean; pid?: number; error?: string }) => void)
+        | null = null;
+      let _readyReject: ((error: Error) => void) | null = null;
+      let isReady = false;
+
+      const readyPromise = new Promise<{
+        success: boolean;
+        pid?: number;
+        error?: string;
+      }>((resolve, reject) => {
+        readyResolve = resolve;
+        _readyReject = reject;
+
+        setTimeout(() => {
+          if (!isReady) {
+            reject(
+              new Error('Timeout waiting for KoboldCpp ready signal (30s)')
+            );
+          }
+        }, 30000);
+      });
+
       child.stdout?.on('data', (data) => {
         const output = data.toString();
         this.windowManager.sendKoboldOutput(output, true);
+
+        if (!isReady && output.includes(SERVER_READY_SIGNALS.KOBOLDCPP)) {
+          isReady = true;
+          readyResolve?.({ success: true, pid: child.pid });
+        }
       });
 
       child.stderr?.on('data', (data) => {
         const output = data.toString();
         this.windowManager.sendKoboldOutput(output, true);
+
+        if (!isReady && output.includes(SERVER_READY_SIGNALS.KOBOLDCPP)) {
+          isReady = true;
+          readyResolve?.({ success: true, pid: child.pid });
+        }
       });
 
       child.on('exit', (code, signal) => {
@@ -720,6 +753,14 @@ export class KoboldCppManager {
               : `\n[INFO] Process exited with code ${code}`;
         this.windowManager.sendKoboldOutput(displayMessage);
         this.koboldProcess = null;
+
+        if (!isReady) {
+          _readyReject?.(
+            new Error(
+              `Process exited before ready signal (code: ${code}, signal: ${signal})`
+            )
+          );
+        }
       });
 
       child.on('error', (error) => {
@@ -732,9 +773,13 @@ export class KoboldCppManager {
           `\n[ERROR] Process error: ${error.message}\n`
         );
         this.koboldProcess = null;
+
+        if (!isReady) {
+          _readyReject?.(error);
+        }
       });
 
-      return { success: true, pid: child.pid };
+      return await readyPromise;
     } catch (error) {
       const errorMessage = (error as Error).message;
       this.logManager.logError(

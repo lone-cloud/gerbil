@@ -12,6 +12,7 @@ import { AppHeader } from '@/components/AppHeader';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import { UI } from '@/constants';
+import { Logger } from '@/utils/logger';
 import type { DownloadItem } from '@/types/electron';
 import type { InterfaceTab, FrontendPreference, Screen } from '@/types';
 
@@ -45,7 +46,7 @@ export const App = () => {
 
   useEffect(() => {
     const checkInstallation = async () => {
-      try {
+      await Logger.safeExecute(async () => {
         const [versions, currentBinaryPath, hasSeenWelcome, preference] =
           await Promise.all([
             window.electronAPI.kobold.getInstalledVersions(),
@@ -81,20 +82,14 @@ export const App = () => {
           setCurrentScreenWithTransition('download');
         }
 
-        setHasInitialized(true);
-
         if (versions.length > 0) {
           setTimeout(() => {
             checkForUpdates();
           }, 2000);
         }
-      } catch (error) {
-        window.electronAPI.logs.logError(
-          'Error checking installation:',
-          error as Error
-        );
-        setHasInitialized(true);
-      }
+      }, 'Error checking installation:');
+
+      setHasInitialized(true);
     };
 
     checkInstallation();
@@ -102,7 +97,7 @@ export const App = () => {
   }, []);
 
   const handleBinaryUpdate = async (download: DownloadItem) => {
-    try {
+    await Logger.safeExecute(async () => {
       const success = await sharedHandleDownload({
         type: 'asset',
         item: download,
@@ -113,16 +108,11 @@ export const App = () => {
       if (success) {
         dismissUpdate();
       }
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to update binary:',
-        error as Error
-      );
-    }
+    }, 'Failed to update binary:');
   };
 
   const handleDownloadComplete = async () => {
-    try {
+    await Logger.safeExecute(async () => {
       const [versions, currentBinaryPath] = await Promise.all([
         window.electronAPI.kobold.getInstalledVersions(),
         window.electronAPI.config.get('currentKoboldBinary') as Promise<string>,
@@ -143,12 +133,7 @@ export const App = () => {
           }
         }
       }
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Error refreshing versions after download:',
-        error as Error
-      );
-    }
+    }, 'Error refreshing versions after download:');
 
     setTimeout(() => {
       setCurrentScreenWithTransition('launch');
@@ -176,16 +161,8 @@ export const App = () => {
     }
   };
 
-  const performEject = async () => {
-    try {
-      await window.electronAPI.kobold.stopKoboldCpp();
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Error stopping KoboldCpp:',
-        error as Error
-      );
-    }
-
+  const performEject = () => {
+    window.electronAPI.kobold.stopKoboldCpp();
     handleBackToLaunch();
   };
 
@@ -302,17 +279,14 @@ export const App = () => {
         opened={settingsOpened}
         onClose={async () => {
           setSettingsOpened(false);
-          try {
-            const preference = (await window.electronAPI.config.get(
-              'frontendPreference'
-            )) as FrontendPreference;
-            setFrontendPreference(preference || 'koboldcpp');
-          } catch (error) {
-            window.electronAPI.logs.logError(
-              'Failed to load frontend preference:',
-              error as Error
-            );
-          }
+          const preference = await Logger.safeExecute(
+            () =>
+              window.electronAPI.config.get(
+                'frontendPreference'
+              ) as Promise<FrontendPreference>,
+            'Failed to load frontend preference:'
+          );
+          setFrontendPreference(preference || 'koboldcpp');
         }}
         currentScreen={currentScreen || undefined}
       />

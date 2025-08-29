@@ -13,6 +13,7 @@ import { Folder, FolderOpen, Monitor } from 'lucide-react';
 import styles from '@/styles/layout.module.css';
 import type { FrontendPreference } from '@/types';
 import { FRONTENDS } from '@/constants';
+import { Logger } from '@/utils/logger';
 
 export const GeneralTab = () => {
   const [installDir, setInstallDir] = useState<string>('');
@@ -29,31 +30,21 @@ export const GeneralTab = () => {
 
   useEffect(() => {
     const checkNpxAvailability = async () => {
-      try {
-        const available = await window.electronAPI.sillytavern.isNpxAvailable();
-        setIsNpxAvailable(available);
+      const available = await Logger.safeExecute(
+        () => window.electronAPI.sillytavern.isNpxAvailable(),
+        'Failed to check npx availability:'
+      );
 
-        if (!available && FrontendPreference === 'sillytavern') {
-          await window.electronAPI.config.set(
-            'frontendPreference',
-            'koboldcpp'
-          );
-          setFrontendPreference('koboldcpp');
-        }
-      } catch (error) {
-        window.electronAPI.logs.logError(
-          'Failed to check npx availability:',
-          error as Error
+      const isAvailable = available ?? false;
+      setIsNpxAvailable(isAvailable);
+
+      if (!isAvailable && FrontendPreference === 'sillytavern') {
+        await Logger.tryExecute(
+          () =>
+            window.electronAPI.config.set('frontendPreference', 'koboldcpp'),
+          'Failed to reset frontend preference:'
         );
-        setIsNpxAvailable(false);
-
-        if (FrontendPreference === 'sillytavern') {
-          await window.electronAPI.config.set(
-            'frontendPreference',
-            'koboldcpp'
-          );
-          setFrontendPreference('koboldcpp');
-        }
+        setFrontendPreference('koboldcpp');
       }
     };
 
@@ -63,58 +54,46 @@ export const GeneralTab = () => {
   }, [FrontendPreference]);
 
   const loadCurrentInstallDir = async () => {
-    try {
-      const currentDir = await window.electronAPI.kobold.getCurrentInstallDir();
+    const currentDir = await Logger.safeExecute(
+      () => window.electronAPI.kobold.getCurrentInstallDir(),
+      'Failed to load install directory:'
+    );
+    if (currentDir) {
       setInstallDir(currentDir);
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to load install directory:',
-        error as Error
-      );
     }
   };
 
   const loadFrontendPreference = async () => {
-    try {
-      const frontendPreference = (await window.electronAPI.config.get(
-        'frontendPreference'
-      )) as FrontendPreference;
-      setFrontendPreference(frontendPreference || 'koboldcpp');
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to load frontend preference:',
-        error as Error
+    const frontendPreference = await Logger.safeExecute(
+      () => window.electronAPI.config.get('frontendPreference'),
+      'Failed to load frontend preference:'
+    );
+    if (frontendPreference) {
+      setFrontendPreference(
+        (frontendPreference as FrontendPreference) || 'koboldcpp'
       );
     }
   };
 
   const handleSelectInstallDir = async () => {
-    try {
-      const selectedDir =
-        await window.electronAPI.kobold.selectInstallDirectory();
-
-      if (selectedDir) {
-        setInstallDir(selectedDir);
-      }
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to select install directory:',
-        error as Error
-      );
+    const selectedDir = await Logger.safeExecute(
+      () => window.electronAPI.kobold.selectInstallDirectory(),
+      'Failed to select install directory:'
+    );
+    if (selectedDir) {
+      setInstallDir(selectedDir);
     }
   };
 
   const handleFrontendPreferenceChange = async (value: string | null) => {
     if (!value || (value !== 'koboldcpp' && value !== 'sillytavern')) return;
 
-    try {
-      await window.electronAPI.config.set('frontendPreference', value);
+    const success = await Logger.tryExecute(
+      () => window.electronAPI.config.set('frontendPreference', value),
+      'Failed to save frontend preference:'
+    );
+    if (success) {
       setFrontendPreference(value);
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to save frontend preference:',
-        error as Error
-      );
     }
   };
 

@@ -32,14 +32,16 @@ export class IPCHandlers {
 
   private async launchKoboldCppWithCustomFrontends(args: string[] = []) {
     try {
+      const result = await this.koboldManager.launchKoboldCpp(args);
+
       const frontendPreference =
         await this.configManager.get('frontendPreference');
-
-      this.koboldManager.launchKoboldCpp(args);
 
       if (frontendPreference === 'sillytavern') {
         this.sillyTavernManager.startFrontend(args);
       }
+
+      return result;
     } catch (error) {
       this.logManager.logError('Error in enhanced launch:', error as Error);
       return {
@@ -50,7 +52,7 @@ export class IPCHandlers {
   }
 
   setupHandlers() {
-    ipcMain.handle('kobold:downloadRelease', async (_event, asset) => {
+    ipcMain.handle('kobold:downloadRelease', async (_, asset) => {
       try {
         const mainWindow = this.koboldManager
           .getWindowManager()
@@ -79,21 +81,19 @@ export class IPCHandlers {
       this.koboldManager.getConfigFiles()
     );
 
-    ipcMain.handle(
-      'kobold:saveConfigFile',
-      async (_event, configName, configData) =>
-        this.koboldManager.saveConfigFile(configName, configData)
+    ipcMain.handle('kobold:saveConfigFile', async (_, configName, configData) =>
+      this.koboldManager.saveConfigFile(configName, configData)
     );
 
     ipcMain.handle('kobold:getSelectedConfig', () =>
       this.configManager.getSelectedConfig()
     );
 
-    ipcMain.handle('kobold:setSelectedConfig', (_event, configName) =>
+    ipcMain.handle('kobold:setSelectedConfig', (_, configName) =>
       this.configManager.setSelectedConfig(configName)
     );
 
-    ipcMain.handle('kobold:setCurrentVersion', (_event, version) =>
+    ipcMain.handle('kobold:setCurrentVersion', (_, version) =>
       this.koboldManager.setCurrentVersion(version)
     );
 
@@ -152,20 +152,16 @@ export class IPCHandlers {
       }
     });
 
-    ipcMain.handle('kobold:launchKoboldCpp', (_event, args) =>
+    ipcMain.handle('kobold:launchKoboldCpp', (_, args) =>
       this.launchKoboldCppWithCustomFrontends(args)
     );
 
-    ipcMain.handle('kobold:stopKoboldCpp', async () => {
-      try {
-        await this.koboldManager.stopKoboldCpp();
-        return { success: true };
-      } catch (error) {
-        return { success: false, error: (error as Error).message };
-      }
+    ipcMain.handle('kobold:stopKoboldCpp', () => {
+      this.koboldManager.stopKoboldCpp();
+      this.sillyTavernManager.stopFrontend();
     });
 
-    ipcMain.handle('kobold:parseConfigFile', (_event, filePath) =>
+    ipcMain.handle('kobold:parseConfigFile', (_, filePath) =>
       this.koboldManager.parseConfigFile(filePath)
     );
 
@@ -173,15 +169,15 @@ export class IPCHandlers {
       this.koboldManager.selectModelFile()
     );
 
-    ipcMain.handle('config:get', (_event, key) => this.configManager.get(key));
+    ipcMain.handle('config:get', (_, key) => this.configManager.get(key));
 
-    ipcMain.handle('config:set', (_event, key, value) =>
+    ipcMain.handle('config:set', (_, key, value) =>
       this.configManager.set(key, value)
     );
 
     ipcMain.handle('app:getVersion', () => app.getVersion());
 
-    ipcMain.handle('app:openExternal', async (_event, url) => {
+    ipcMain.handle('app:openExternal', async (_, url) => {
       try {
         await shell.openExternal(url);
         return { success: true };
@@ -190,12 +186,9 @@ export class IPCHandlers {
       }
     });
 
-    ipcMain.handle(
-      'logs:logError',
-      (_event, message: string, error?: Error) => {
-        this.logManager.logError(message, error);
-      }
-    );
+    ipcMain.handle('logs:logError', (_, message: string, error?: Error) => {
+      this.logManager.logError(message, error);
+    });
 
     ipcMain.handle('sillytavern:isNpxAvailable', () =>
       this.sillyTavernManager.isNpxAvailable()

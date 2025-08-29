@@ -8,7 +8,7 @@ import {
 } from '@mantine/core';
 import { ChevronDown } from 'lucide-react';
 import styles from '@/styles/layout.module.css';
-import { UI } from '@/constants';
+import { UI, SERVER_READY_SIGNALS } from '@/constants';
 import { handleTerminalOutput, processTerminalContent } from '@/utils/terminal';
 import { useLaunchConfigStore } from '@/stores/launchConfigStore';
 import type { FrontendPreference } from '@/types';
@@ -69,14 +69,14 @@ export const TerminalTab = ({
           const serverPort = port || 5001;
 
           if (frontendPreference === 'sillytavern') {
-            if (newData.includes('SillyTavern is listening on')) {
+            if (newData.includes(SERVER_READY_SIGNALS.SILLYTAVERN)) {
               setTimeout(
                 () => onServerReady(`http://${serverHost}:${serverPort}`),
                 1500
               );
             }
           } else {
-            if (newData.includes('Please connect to custom endpoint at')) {
+            if (newData.includes(SERVER_READY_SIGNALS.KOBOLDCPP)) {
               setTimeout(
                 () => onServerReady(`http://${serverHost}:${serverPort}`),
                 1500

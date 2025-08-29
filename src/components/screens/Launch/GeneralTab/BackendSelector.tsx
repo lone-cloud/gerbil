@@ -4,6 +4,7 @@ import { InfoTooltip } from '@/components/InfoTooltip';
 import { BackendSelectItem } from '@/components/screens/Launch/GeneralTab/BackendSelectItem';
 import { GpuDeviceSelector } from '@/components/screens/Launch/GeneralTab/GpuDeviceSelector';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
+import { Logger } from '@/utils/logger';
 import type { BackendOption } from '@/types';
 
 export const BackendSelector = () => {
@@ -19,22 +20,19 @@ export const BackendSelector = () => {
   const [availableBackends, setAvailableBackends] = useState<BackendOption[]>(
     []
   );
+  const [isLoadingBackends, setIsLoadingBackends] = useState(false);
   const hasInitialized = useRef(false);
 
   useEffect(() => {
     const loadBackends = async () => {
-      try {
-        const backends =
-          await window.electronAPI.kobold.getAvailableBackends(true);
-        setAvailableBackends(backends);
-        hasInitialized.current = true;
-      } catch (error) {
-        window.electronAPI.logs.logError(
-          'Failed to detect available backends:',
-          error as Error
-        );
-        setAvailableBackends([]);
-      }
+      setIsLoadingBackends(true);
+      const backends = await Logger.safeExecute(
+        () => window.electronAPI.kobold.getAvailableBackends(true),
+        'Failed to detect available backends:'
+      );
+      setAvailableBackends(backends || []);
+      setIsLoadingBackends(false);
+      hasInitialized.current = true;
     };
 
     if (!hasInitialized.current) {
@@ -60,7 +58,9 @@ export const BackendSelector = () => {
             <InfoTooltip label="Select a backend to use. CUDA runs on NVIDIA GPUs, and is much faster. ROCm is the AMD equivalent. Vulkan and CLBlast work on all GPUs." />
           </Group>
           <Select
-            placeholder="Select backend"
+            placeholder={
+              isLoadingBackends ? 'Loading backends...' : 'Select backend'
+            }
             value={backend}
             onChange={(value) => {
               if (value) {
@@ -72,7 +72,7 @@ export const BackendSelector = () => {
               label: b.label,
               disabled: b.disabled,
             }))}
-            disabled={availableBackends.length === 0}
+            disabled={isLoadingBackends || availableBackends.length === 0}
             renderOption={({ option }) => {
               const backendData = availableBackends.find(
                 (b) => b.value === option.value

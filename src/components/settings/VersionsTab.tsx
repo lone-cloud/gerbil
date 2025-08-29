@@ -18,6 +18,7 @@ import {
   stripAssetExtensions,
   compareVersions,
 } from '@/utils/version';
+import { Logger } from '@/utils/logger';
 import { formatDownloadSize } from '@/utils/download';
 
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
@@ -62,7 +63,7 @@ export const VersionsTab = () => {
   const loadInstalledVersions = useCallback(async () => {
     setLoadingInstalled(true);
 
-    try {
+    await Logger.safeExecute(async () => {
       const [versions, currentBinaryPath] = await Promise.all([
         window.electronAPI.kobold.getInstalledVersions(),
         window.electronAPI.config.get('currentKoboldBinary') as Promise<string>,
@@ -95,25 +96,18 @@ export const VersionsTab = () => {
           await window.electronAPI.config.set('currentKoboldBinary', '');
         }
       }
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to load installed versions:',
-        error as Error
-      );
-    } finally {
-      setLoadingInstalled(false);
-    }
+    }, 'Failed to load installed versions:');
+
+    setLoadingInstalled(false);
   }, []);
 
   const loadLatestRelease = useCallback(async () => {
-    try {
-      const release = await getLatestReleaseWithDownloadStatus();
+    const release = await Logger.safeExecute(
+      () => getLatestReleaseWithDownloadStatus(),
+      'Failed to load latest release:'
+    );
+    if (release) {
       setLatestRelease(release);
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to load latest release:',
-        error as Error
-      );
     }
   }, [getLatestReleaseWithDownloadStatus]);
 
@@ -205,7 +199,7 @@ export const VersionsTab = () => {
   }, [downloading]);
 
   const handleDownload = async (version: VersionInfo) => {
-    try {
+    await Logger.safeExecute(async () => {
       const download = availableDownloads.find((d) => d.name === version.name);
       if (!download) {
         throw new Error('Download not found');
@@ -221,13 +215,11 @@ export const VersionsTab = () => {
       if (success) {
         await loadInstalledVersions();
       }
-    } catch (error) {
-      window.electronAPI.logs.logError('Failed to download:', error as Error);
-    }
+    }, 'Failed to download:');
   };
 
   const handleUpdate = async (version: VersionInfo) => {
-    try {
+    await Logger.safeExecute(async () => {
       const download = availableDownloads.find((d) => d.name === version.name);
       if (!download) {
         throw new Error('Download not found');
@@ -243,23 +235,21 @@ export const VersionsTab = () => {
       if (success) {
         await loadInstalledVersions();
       }
-    } catch (error) {
-      window.electronAPI.logs.logError('Failed to update:', error as Error);
-    }
+    }, 'Failed to update:');
   };
 
   const makeCurrent = async (version: VersionInfo) => {
     if (!version.installedPath) return;
 
-    try {
+    await Logger.safeExecute(async () => {
       const success = await window.electronAPI.kobold.setCurrentVersion(
-        version.installedPath
+        version.installedPath!
       );
 
       if (success) {
         await window.electronAPI.config.set(
           'currentKoboldBinary',
-          version.installedPath
+          version.installedPath!
         );
 
         const newCurrentVersion = installedVersions.find(
@@ -269,12 +259,7 @@ export const VersionsTab = () => {
           setCurrentVersion(newCurrentVersion);
         }
       }
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to set current version:',
-        error as Error
-      );
-    }
+    }, 'Failed to set current version:');
   };
 
   const isLoading = loadingInstalled || loadingPlatform || loadingRemote;

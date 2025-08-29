@@ -5,6 +5,7 @@ import { getPlatformDisplayName } from '@/utils/platform';
 import { formatDownloadSize } from '@/utils/download';
 import { getAssetDescription, sortDownloadsByType } from '@/utils/assets';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
+import { Logger } from '@/utils/logger';
 import type { DownloadItem } from '@/types/electron';
 
 interface DownloadScreenProps {
@@ -33,7 +34,7 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
     async (download: DownloadItem) => {
       setDownloadingAsset(download.name);
 
-      try {
+      await Logger.safeExecute(async () => {
         const success = await sharedHandleDownload({
           type: 'asset',
           item: download,
@@ -48,14 +49,9 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
             setDownloadingAsset(null);
           }, 200);
         }
-      } catch (error) {
-        window.electronAPI.logs.logError(
-          `Failed to download ${download.name}:`,
-          error as Error
-        );
-      } finally {
-        setDownloadingAsset(null);
-      }
+      }, `Failed to download ${download.name}:`);
+
+      setDownloadingAsset(null);
     },
     [sharedHandleDownload, onDownloadComplete]
   );
