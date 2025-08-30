@@ -6,8 +6,8 @@ import { ConfigManager } from '@/main/managers/ConfigManager';
 import { LogManager } from '@/main/managers/LogManager';
 import { KoboldCppManager } from '@/main/managers/KoboldCppManager';
 import { SillyTavernManager } from '@/main/managers/SillyTavernManager';
-import { HardwareService } from '@/main/services/HardwareService';
-import { BinaryService } from '@/main/services/BinaryService';
+import { HardwareManager } from '@/main/managers/HardwareManager';
+import { BinaryManager } from '@/main/managers/BinaryManager';
 import { IPCHandlers } from '@/main/ipc';
 import { PRODUCT_NAME, CONFIG_FILE_NAME } from '@/constants';
 import { homedir } from 'os';
@@ -19,8 +19,8 @@ export class GerbilApp {
   private configManager: ConfigManager;
   private logManager: LogManager;
   private sillyTavernManager: SillyTavernManager;
-  private hardwareService: HardwareService;
-  private binaryService: BinaryService;
+  private hardwareManager: HardwareManager;
+  private binaryManager: BinaryManager;
   private ipcHandlers: IPCHandlers;
 
   constructor() {
@@ -32,7 +32,7 @@ export class GerbilApp {
       this.logManager
     );
     this.windowManager = new WindowManager();
-    this.hardwareService = new HardwareService(this.logManager);
+    this.hardwareManager = new HardwareManager(this.logManager);
 
     this.koboldManager = new KoboldCppManager(
       this.configManager,
@@ -40,10 +40,10 @@ export class GerbilApp {
       this.logManager
     );
 
-    this.binaryService = new BinaryService(
+    this.binaryManager = new BinaryManager(
       this.logManager,
       this.koboldManager,
-      this.hardwareService
+      this.hardwareManager
     );
 
     this.sillyTavernManager = new SillyTavernManager(
@@ -54,8 +54,8 @@ export class GerbilApp {
     this.ipcHandlers = new IPCHandlers(
       this.koboldManager,
       this.configManager,
-      this.hardwareService,
-      this.binaryService,
+      this.hardwareManager,
+      this.binaryManager,
       this.logManager,
       this.sillyTavernManager
     );

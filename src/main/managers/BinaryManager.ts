@@ -1,7 +1,7 @@
 import { join, dirname } from 'path';
 import { LogManager } from '@/main/managers/LogManager';
 import type { KoboldCppManager } from '@/main/managers/KoboldCppManager';
-import type { HardwareService } from '@/main/services/HardwareService';
+import type { HardwareManager } from '@/main/managers/HardwareManager';
 import type { BackendOption } from '@/types';
 import { pathExists } from '@/utils/fs';
 
@@ -14,21 +14,21 @@ export interface BackendSupport {
   cuda: boolean;
 }
 
-export class BinaryService {
+export class BinaryManager {
   private backendSupportCache = new Map<string, BackendSupport>();
   private availableBackendsCache = new Map<string, BackendOption[]>();
   private logManager: LogManager;
   private koboldManager: KoboldCppManager;
-  private hardwareService: HardwareService;
+  private hardwareManager: HardwareManager;
 
   constructor(
     logManager: LogManager,
     koboldManager: KoboldCppManager,
-    hardwareService: HardwareService
+    hardwareManager: HardwareManager
   ) {
     this.logManager = logManager;
     this.koboldManager = koboldManager;
-    this.hardwareService = hardwareService;
+    this.hardwareManager = hardwareManager;
   }
 
   private async detectBackendSupportFromPath(
@@ -113,9 +113,9 @@ export class BinaryService {
       const [currentBinaryInfo, hardwareCapabilities, cpuCapabilities] =
         await Promise.all([
           this.koboldManager.getCurrentBinaryInfo(),
-          this.hardwareService.detectGPUCapabilities(),
+          this.hardwareManager.detectGPUCapabilities(),
           includeDisabled
-            ? this.hardwareService.detectCPU()
+            ? this.hardwareManager.detectCPU()
             : Promise.resolve(null),
         ]);
 
