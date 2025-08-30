@@ -132,7 +132,8 @@ export const GeneralTab = () => {
         </Text>
         {isNpxAvailable && (
           <Text size="sm" c="dimmed" mb="md">
-            Choose which frontend interface to use for interacting with models
+            Choose which frontend interface to use for interacting with AI
+            models
           </Text>
         )}
 

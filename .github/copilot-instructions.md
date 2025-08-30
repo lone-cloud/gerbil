@@ -1,4 +1,4 @@
-# Copilot Instructions for FriendlyKobold
+# Copilot Instructions for Gerbil
 
 ### General Coding
 

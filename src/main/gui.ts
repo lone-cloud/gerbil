@@ -13,7 +13,7 @@ import { PRODUCT_NAME, CONFIG_FILE_NAME } from '@/constants';
 import { homedir } from 'os';
 import { ensureDir } from '@/utils/fs';
 
-export class FriendlyKoboldApp {
+export class GerbilApp {
   private windowManager: WindowManager;
   private koboldManager: KoboldCppManager;
   private configManager: ConfigManager;
@@ -97,7 +97,7 @@ export class FriendlyKoboldApp {
     await this.ensureInstallDirectory();
 
     if (process.platform === 'linux') {
-      app.setAppUserModelId('com.friendly-kobold.app');
+      app.setAppUserModelId('com.gerbil.app');
     }
 
     this.windowManager.setupApplicationMenu();

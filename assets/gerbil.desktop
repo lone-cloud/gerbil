@@ -1,9 +1,9 @@
 [Desktop Entry]
-Name=Friendly Kobold
+Name=Gerbil
 Comment=A desktop app for running Large Language Models locally
-Exec=friendly-kobold %U
+Exec=gerbil %U
 Terminal=false
 Type=Application
-Icon=friendly-kobold
+Icon=gerbil
 Categories=Utility;
-StartupWMClass=Friendly Kobold
+StartupWMClass=Gerbil
