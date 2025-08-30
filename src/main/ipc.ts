@@ -61,6 +61,10 @@ export class IPCHandlers {
       this.koboldManager.getInstalledVersions()
     );
 
+    ipcMain.handle('kobold:getCurrentVersion', () =>
+      this.koboldManager.getCurrentVersion()
+    );
+
     ipcMain.handle('kobold:getConfigFiles', () =>
       this.koboldManager.getConfigFiles()
     );

@@ -1,7 +1,9 @@
 import { spawn, ChildProcess } from 'child_process';
+import { createWriteStream } from 'fs';
 import { join } from 'path';
-import { rm, readdir, stat } from 'fs/promises';
+import { rm, readdir, stat, unlink, rename, mkdir, chmod } from 'fs/promises';
 import { dialog } from 'electron';
+import axios from 'axios';
 
 import { execa } from 'execa';
 import { terminateProcess } from '@/utils/process';
@@ -9,8 +11,8 @@ import { ConfigManager } from '@/main/managers/ConfigManager';
 import { LogManager } from '@/main/managers/LogManager';
 import { WindowManager } from '@/main/managers/WindowManager';
 import { PRODUCT_NAME, SERVER_READY_SIGNALS } from '@/constants';
-import { downloadAndUnpackBinary } from '@/utils/server/download';
 import { pathExists, readJsonFile, writeJsonFile } from '@/utils/fs';
+import { stripAssetExtensions } from '@/utils/version';
 import type {
   GitHubAsset,
   InstalledVersion,
@@ -68,40 +70,165 @@ export class KoboldCppManager {
     }
   }
 
-  async downloadRelease(asset: GitHubAsset): Promise<string> {
-    const result = await downloadAndUnpackBinary(
-      {
-        name: asset.name,
-        url: asset.browser_download_url,
-        size: asset.size,
-        version: asset.version,
-      },
-      {
-        installDir: this.installDir,
-        onProgress: (progress: number) => {
-          const mainWindow = this.windowManager.getMainWindow();
-          if (mainWindow) {
-            mainWindow.webContents.send('download-progress', progress);
-          }
-        },
-        isUpdate: asset.isUpdate,
-        wasCurrentBinary: asset.wasCurrentBinary,
-        logManager: this.logManager,
-        configManager: this.configManager,
-        windowManager: this.windowManager,
-        unpackFunction: this.unpackKoboldCpp.bind(this),
-        getLauncherPath: this.getLauncherPath.bind(this),
-        removeDirectoryWithRetry: this.removeDirectoryWithRetry.bind(this),
-        cleanup: this.cleanup.bind(this),
-        koboldProcess: this.koboldProcess || undefined,
-      }
-    );
-
-    if (!result.success) {
-      throw new Error(result.error || 'Download failed');
+  private async handleExistingDirectory(
+    unpackedDirPath: string,
+    isUpdate: boolean
+  ): Promise<void> {
+    if (!isUpdate || !(await pathExists(unpackedDirPath))) {
+      return;
     }
 
-    return result.path!;
+    try {
+      if (this.koboldProcess && !this.koboldProcess.killed) {
+        this.windowManager.sendKoboldOutput(
+          'Stopping KoboldCpp process before update...'
+        );
+        await this.cleanup();
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+
+      await this.removeDirectoryWithRetry(unpackedDirPath);
+    } catch (error) {
+      this.logManager.logError(
+        'Failed to remove existing directory for update:',
+        error as Error
+      );
+      throw new Error(
+        `Cannot update: Failed to remove existing installation. ` +
+          `Please ensure KoboldCpp is stopped and try again. ` +
+          `Error: ${(error as Error).message}`
+      );
+    }
+  }
+
+  private async downloadFile(
+    asset: GitHubAsset,
+    tempPackedFilePath: string
+  ): Promise<void> {
+    const writer = createWriteStream(tempPackedFilePath);
+    let downloadedBytes = 0;
+
+    const response = await axios({
+      method: 'GET',
+      url: asset.browser_download_url,
+      responseType: 'stream',
+      timeout: 30000,
+      maxRedirects: 5,
+    });
+
+    const totalBytes = asset.size;
+
+    response.data.on('data', (chunk: Buffer) => {
+      downloadedBytes += chunk.length;
+      if (totalBytes > 0) {
+        const progress = (downloadedBytes / totalBytes) * 100;
+        const mainWindow = this.windowManager.getMainWindow();
+        if (mainWindow) {
+          mainWindow.webContents.send('download-progress', progress);
+        }
+      }
+    });
+
+    response.data.pipe(writer);
+
+    await new Promise<void>((resolve, reject) => {
+      writer.on('finish', async () => {
+        if (process.platform !== 'win32') {
+          try {
+            await chmod(tempPackedFilePath, 0o755);
+          } catch (error) {
+            this.logManager.logError(
+              'Failed to make binary executable:',
+              error as Error
+            );
+          }
+        }
+        resolve();
+      });
+      writer.on('error', reject);
+      response.data.on('error', reject);
+    });
+  }
+
+  private async setupLauncher(
+    tempPackedFilePath: string,
+    unpackedDirPath: string
+  ): Promise<string> {
+    let launcherPath = await this.getLauncherPath(unpackedDirPath);
+
+    if (!launcherPath || !(await pathExists(launcherPath))) {
+      const expectedLauncherName =
+        process.platform === 'win32'
+          ? 'koboldcpp-launcher.exe'
+          : 'koboldcpp-launcher';
+      const newLauncherPath = join(unpackedDirPath, expectedLauncherName);
+
+      if (await pathExists(tempPackedFilePath)) {
+        try {
+          await rename(tempPackedFilePath, newLauncherPath);
+          launcherPath = newLauncherPath;
+        } catch (error) {
+          this.logManager.logError(
+            'Failed to rename binary as launcher:',
+            error as Error
+          );
+        }
+      }
+    } else {
+      try {
+        await unlink(tempPackedFilePath);
+      } catch (error) {
+        this.logManager.logError(
+          'Failed to cleanup packed file:',
+          error as Error
+        );
+      }
+    }
+
+    if (!launcherPath || !(await pathExists(launcherPath))) {
+      throw new Error('Failed to find or create koboldcpp launcher');
+    }
+
+    return launcherPath;
+  }
+
+  async downloadRelease(asset: GitHubAsset): Promise<string> {
+    const tempPackedFilePath = join(this.installDir, `${asset.name}.packed`);
+    const baseFilename = stripAssetExtensions(asset.name);
+    const folderName = asset.version
+      ? `${baseFilename}-${asset.version}`
+      : baseFilename;
+    const unpackedDirPath = join(this.installDir, folderName);
+
+    try {
+      await this.handleExistingDirectory(
+        unpackedDirPath,
+        Boolean(asset.isUpdate)
+      );
+      await this.downloadFile(asset, tempPackedFilePath);
+      await mkdir(unpackedDirPath, { recursive: true });
+      await this.unpackKoboldCpp(tempPackedFilePath, unpackedDirPath);
+      const launcherPath = await this.setupLauncher(
+        tempPackedFilePath,
+        unpackedDirPath
+      );
+
+      const currentBinary = this.configManager.getCurrentKoboldBinary();
+      if (!currentBinary || (asset.isUpdate && asset.wasCurrentBinary)) {
+        await this.configManager.setCurrentKoboldBinary(launcherPath);
+      }
+
+      this.windowManager.sendToRenderer('versions-updated');
+      return launcherPath;
+    } catch (error) {
+      this.logManager.logError(
+        'Failed to download or unpack binary:',
+        error as Error
+      );
+      throw new Error(
+        `Failed to download or unpack binary: ${(error as Error).message}`
+      );
+    }
   }
 
   private async unpackKoboldCpp(
@@ -362,7 +489,9 @@ export class KoboldCppManager {
 
       const folderName = launcherPath.split(/[/\\]/).slice(-2, -1)[0];
       if (folderName) {
-        const versionMatch = folderName.match(/-(\d+\.\d+(?:\.\d+)?)$/);
+        const versionMatch = folderName.match(
+          /-(\d+\.\d+(?:\.\d+)?(?:\.[a-zA-Z0-9]+)*(?:-[a-zA-Z0-9]+)*)$/
+        );
         if (versionMatch) {
           return versionMatch[1];
         }

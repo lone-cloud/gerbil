@@ -47,42 +47,25 @@ export const App = () => {
   useEffect(() => {
     const checkInstallation = async () => {
       await Logger.safeExecute(async () => {
-        const [versions, currentBinaryPath, hasSeenWelcome, preference] =
-          await Promise.all([
-            window.electronAPI.kobold.getInstalledVersions(),
-            window.electronAPI.config.get(
-              'currentKoboldBinary'
-            ) as Promise<string>,
-            window.electronAPI.config.get('hasSeenWelcome') as Promise<boolean>,
-            window.electronAPI.config.get(
-              'frontendPreference'
-            ) as Promise<FrontendPreference>,
-          ]);
+        const [currentVersion, hasSeenWelcome, preference] = await Promise.all([
+          window.electronAPI.kobold.getCurrentVersion(),
+          window.electronAPI.config.get('hasSeenWelcome') as Promise<boolean>,
+          window.electronAPI.config.get(
+            'frontendPreference'
+          ) as Promise<FrontendPreference>,
+        ]);
 
         setFrontendPreference(preference || 'koboldcpp');
 
         if (!hasSeenWelcome) {
           setCurrentScreenWithTransition('welcome');
-        } else if (versions.length > 0) {
-          let current = null;
-          if (currentBinaryPath) {
-            current = versions.find((v) => v.path === currentBinaryPath);
-          }
-          if (!current) {
-            current = versions[0];
-            if (current) {
-              await window.electronAPI.config.set(
-                'currentKoboldBinary',
-                current.path
-              );
-            }
-          }
+        } else if (currentVersion) {
           setCurrentScreenWithTransition('launch');
         } else {
           setCurrentScreenWithTransition('download');
         }
 
-        if (versions.length > 0) {
+        if (currentVersion) {
           setTimeout(() => {
             checkForUpdates();
           }, 2000);
@@ -112,26 +95,7 @@ export const App = () => {
 
   const handleDownloadComplete = async () => {
     await Logger.safeExecute(async () => {
-      const [versions, currentBinaryPath] = await Promise.all([
-        window.electronAPI.kobold.getInstalledVersions(),
-        window.electronAPI.config.get('currentKoboldBinary') as Promise<string>,
-      ]);
-
-      if (versions.length > 0) {
-        let current = null;
-        if (currentBinaryPath) {
-          current = versions.find((v) => v.path === currentBinaryPath);
-        }
-        if (!current) {
-          current = versions[0];
-          if (current) {
-            await window.electronAPI.config.set(
-              'currentKoboldBinary',
-              current.path
-            );
-          }
-        }
-      }
+      await window.electronAPI.kobold.getCurrentVersion();
     }, 'Error refreshing versions after download:');
 
     setTimeout(() => {

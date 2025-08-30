@@ -316,9 +316,13 @@ Node.js: ${nodeVersion}
 V8: ${v8Version}
 OS: ${osInfo}`;
 
+    const iconPath = this.getIconPath();
+    const iconImage = nativeImage.createFromPath(iconPath);
+
     const aboutWindow = new BrowserWindow({
-      width: 500,
-      height: 400,
+      width: 400,
+      height: 450,
+      icon: iconImage,
       modal: true,
       parent: this.mainWindow!,
       resizable: false,
@@ -334,7 +338,7 @@ OS: ${osInfo}`;
 
     aboutWindow.setMenu(null);
 
-    const htmlPath = this.getTemplatePath('about-dialog.html');
+    const htmlPath = this.getTemplatePath('about-modal.html');
     await aboutWindow.loadFile(htmlPath);
 
     aboutWindow.webContents.executeJavaScript(

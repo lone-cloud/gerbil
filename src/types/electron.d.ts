@@ -95,6 +95,7 @@ export interface KoboldConfig {
 
 export interface KoboldAPI {
   getInstalledVersions: () => Promise<InstalledVersion[]>;
+  getCurrentVersion: () => Promise<InstalledVersion | null>;
   setCurrentVersion: (version: string) => Promise<boolean>;
   getPlatform: () => Promise<string>;
   detectGPU: () => Promise<BasicGPUInfo>;

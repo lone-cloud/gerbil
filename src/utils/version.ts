@@ -9,16 +9,20 @@ export const getDisplayNameFromPath = (
   );
 
   if (launcherIndex > 0) {
-    return pathParts[launcherIndex - 1];
+    return stripVersionSuffix(pathParts[launcherIndex - 1]);
   }
 
   return installedVersion.filename;
 };
 
 export const stripAssetExtensions = (assetName: string): string =>
-  assetName
-    .replace(/\.(tar\.gz|zip|exe|dmg|AppImage)$/i, '')
-    .replace(/\.packed$/, '');
+  assetName.replace(/\.(tar\.gz|zip|exe|dmg|AppImage)$/i, '');
+
+const stripVersionSuffix = (displayName: string): string =>
+  displayName.replace(
+    /-(\d+\.\d+(?:\.\d+)?(?:\.[a-zA-Z0-9]+)*(?:-[a-zA-Z0-9]+)*)$/,
+    ''
+  );
 
 export const compareVersions = (versionA: string, versionB: string): number => {
   const cleanVersion = (version: string): string =>
