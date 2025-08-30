@@ -84,7 +84,7 @@ export const AppHeader = ({
             <Group gap="sm" align="center">
               <Image
                 src={iconUrl}
-                alt="Friendly Kobold"
+                alt="Gerbil"
                 w={28}
                 h={28}
                 style={{
@@ -105,7 +105,7 @@ export const AppHeader = ({
                 onClick={handleLogoClick}
               />
               <Title order={4} fw={500}>
-                Friendly Kobold
+                Gerbil
               </Title>
             </Group>
           )}

@@ -29,12 +29,12 @@ export class LogManager {
       ),
       transports: [
         new winston.transports.DailyRotateFile({
-          filename: join(logsDir, 'friendly-kobold-%DATE%.log'),
+          filename: join(logsDir, 'gerbil-%DATE%.log'),
           datePattern: 'YYYY-MM-DD',
           maxSize: '10m',
           maxFiles: '5d',
           createSymlink: true,
-          symlinkName: 'friendly-kobold.log',
+          symlinkName: 'gerbil.log',
         }),
       ],
     });
@@ -79,7 +79,7 @@ export class LogManager {
   }
 
   public getLogFilePath(): string {
-    return join(app.getPath('userData'), 'logs', 'friendly-kobold.log');
+    return join(app.getPath('userData'), 'logs', 'gerbil.log');
   }
 
   public getLogsDirectory(): string {

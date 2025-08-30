@@ -1,6 +1,6 @@
 {
-  "name": "friendly-kobold",
-  "productName": "Friendly Kobold",
+  "name": "gerbil",
+  "productName": "Gerbil",
   "version": "1.0.0",
   "description": "A desktop app for running Large Language Models locally",
   "main": "out/main/index.js",
@@ -11,9 +11,9 @@
   },
   "volta": {
     "node": "22.18.0",
-    "yarn": "4.9.3"
+    "yarn": "4.9.4"
   },
-  "packageManager": "yarn@4.9.3",
+  "packageManager": "yarn@4.9.4",
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
@@ -93,8 +93,8 @@
     "zustand": "^5.0.8"
   },
   "build": {
-    "appId": "com.friendly-kobold.app",
-    "productName": "Friendly Kobold",
+    "appId": "com.gerbil.app",
+    "productName": "Gerbil",
     "compression": "normal",
     "icon": "src/assets/icon.png",
     "publish": null,
@@ -110,8 +110,8 @@
     ],
     "extraFiles": [
       {
-        "from": "assets/friendly-kobold.desktop",
-        "to": "assets/friendly-kobold.desktop",
+        "from": "assets/gerbil.desktop",
+        "to": "assets/gerbil.desktop",
         "filter": [
           "**/*"
         ]
@@ -171,7 +171,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Friendly Kobold"
+      "shortcutName": "Gerbil"
     },
     "portable": {
       "artifactName": "${productName}-Portable-${version}.${ext}"
@@ -181,10 +181,10 @@
       "category": "Utility",
       "desktop": {
         "entry": {
-          "Name": "Friendly Kobold",
+          "Name": "Gerbil",
           "Comment": "A desktop app for running Large Language Models locally",
           "Categories": "Utility;",
-          "StartupWMClass": "Friendly Kobold"
+          "StartupWMClass": "Gerbil"
         }
       },
       "target": [

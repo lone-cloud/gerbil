@@ -50,7 +50,7 @@ jobs:
             const version = tag.replace(/^v/, '');
             const authorName = packageJson.author.name;
             const authorEmail = packageJson.author.email;
-            const appImageUrl = `https://github.com/lone-cloud/friendly-kobold/releases/download/${tag}/Friendly.Kobold-${version}.AppImage`;
+            const appImageUrl = `https://github.com/lone-cloud/gerbil/releases/download/${tag}/Friendly.Kobold-${version}.AppImage`;
 
             core.setOutput('version', version);
             core.setOutput('tag', tag);
@@ -97,7 +97,7 @@ jobs:
           # Download AppImage with retry
           for attempt in $(seq 1 $max_attempts); do
             echo "Attempt $attempt: Downloading AppImage..."
-            if curl -L -o "friendly-kobold-${{ steps.release_info.outputs.version }}.AppImage" "${{ steps.release_info.outputs.appimage_url }}"; then
+            if curl -L -o "gerbil-${{ steps.release_info.outputs.version }}.AppImage" "${{ steps.release_info.outputs.appimage_url }}"; then
               echo "✅ AppImage downloaded successfully"
               break
             else
@@ -113,7 +113,7 @@ jobs:
           # Download desktop file with retry
           for attempt in $(seq 1 $max_attempts); do
             echo "Attempt $attempt: Downloading desktop file..."
-            if curl -L -o "friendly-kobold.desktop" "https://raw.githubusercontent.com/lone-cloud/friendly-kobold/${{ inputs.tag }}/assets/friendly-kobold.desktop"; then
+            if curl -L -o "gerbil.desktop" "https://raw.githubusercontent.com/lone-cloud/gerbil/${{ inputs.tag }}/assets/gerbil.desktop"; then
               echo "✅ Desktop file downloaded successfully"
               break
             else
@@ -127,15 +127,15 @@ jobs:
           done
 
           # Verify file sizes
-          appimage_size=$(stat -c%s "friendly-kobold-${{ steps.release_info.outputs.version }}.AppImage")
+          appimage_size=$(stat -c%s "gerbil-${{ steps.release_info.outputs.version }}.AppImage")
           echo "AppImage size: $appimage_size bytes"
           if [ $appimage_size -lt 50000000 ]; then  # Less than 50MB is suspicious
             echo "❌ AppImage seems too small ($appimage_size bytes), possible download issue"
             exit 1
           fi
 
-          SHA256_APPIMAGE=$(sha256sum "friendly-kobold-${{ steps.release_info.outputs.version }}.AppImage" | cut -d' ' -f1)
-          SHA256_DESKTOP=$(sha256sum "friendly-kobold.desktop" | cut -d' ' -f1)
+          SHA256_APPIMAGE=$(sha256sum "gerbil-${{ steps.release_info.outputs.version }}.AppImage" | cut -d' ' -f1)
+          SHA256_DESKTOP=$(sha256sum "gerbil.desktop" | cut -d' ' -f1)
 
           echo "sha256_appimage=$SHA256_APPIMAGE" >> $GITHUB_OUTPUT
           echo "sha256_desktop=$SHA256_DESKTOP" >> $GITHUB_OUTPUT
@@ -147,62 +147,62 @@ jobs:
         run: |
           cat > PKGBUILD << 'EOF'
           # Maintainer: ${{ steps.release_info.outputs.author_name }} <${{ steps.release_info.outputs.author_email }}>
-          pkgname=friendly-kobold
+          pkgname=gerbil
           pkgver=${{ steps.release_info.outputs.version }}
           pkgrel=${{ inputs.pkgrel || '1' }}
           pkgdesc="A desktop app for running Large Language Models locally"
           arch=('x86_64')
-          url="https://github.com/lone-cloud/friendly-kobold"
+          url="https://github.com/lone-cloud/gerbil"
           license=('AGPL-3.0-or-later')
           depends=('gtk3' 'nss')
           optdepends=('alsa-lib: Audio support for sound effects'
                      'libxss: Screen saver detection support')
-          provides=('friendly-kobold')
-          conflicts=('friendly-kobold-git')
-          source=("friendly-kobold-${pkgver}.AppImage::${{ steps.release_info.outputs.appimage_url }}"
-                  "friendly-kobold.desktop::https://raw.githubusercontent.com/lone-cloud/friendly-kobold/${{ steps.release_info.outputs.tag }}/assets/friendly-kobold.desktop")
+          provides=('gerbil')
+          conflicts=('gerbil-git')
+          source=("gerbil-${pkgver}.AppImage::${{ steps.release_info.outputs.appimage_url }}"
+                  "gerbil.desktop::https://raw.githubusercontent.com/lone-cloud/gerbil/${{ steps.release_info.outputs.tag }}/assets/gerbil.desktop")
           sha256sums=('${{ steps.sha_calc.outputs.sha256_appimage }}'
                       '${{ steps.sha_calc.outputs.sha256_desktop }}')
 
           prepare() {
-              chmod +x "friendly-kobold-${pkgver}.AppImage"
-              "./friendly-kobold-${pkgver}.AppImage" --appimage-extract
+              chmod +x "gerbil-${pkgver}.AppImage"
+              "./gerbil-${pkgver}.AppImage" --appimage-extract
           }
 
           package() {
               # Install the application
-              install -dm755 "${pkgdir}/opt/friendly-kobold"
-              cp -r squashfs-root/* "${pkgdir}/opt/friendly-kobold/"
+              install -dm755 "${pkgdir}/opt/gerbil"
+              cp -r squashfs-root/* "${pkgdir}/opt/gerbil/"
               
               # Fix permissions on extracted files
-              chmod -R 755 "${pkgdir}/opt/friendly-kobold/"
+              chmod -R 755 "${pkgdir}/opt/gerbil/"
               
               # Create executable wrapper
               install -dm755 "${pkgdir}/usr/bin"
-              cat > "${pkgdir}/usr/bin/friendly-kobold" << 'WRAPPER'
+              cat > "${pkgdir}/usr/bin/gerbil" << 'WRAPPER'
           #!/bin/bash
-          exec "/opt/friendly-kobold/Friendly Kobold" "$@"
+          exec "/opt/gerbil/Gerbil" "$@"
           WRAPPER
-              chmod +x "${pkgdir}/usr/bin/friendly-kobold"
+              chmod +x "${pkgdir}/usr/bin/gerbil"
               
               # Install desktop file from assets
               install -dm755 "${pkgdir}/usr/share/applications"
-              cp "${srcdir}/friendly-kobold.desktop" "${pkgdir}/usr/share/applications/"
+              cp "${srcdir}/gerbil.desktop" "${pkgdir}/usr/share/applications/"
               
               # Install icon to hicolor theme directory and pixmaps as fallback
               install -dm755 "${pkgdir}/usr/share/icons/hicolor/512x512/apps"
               install -dm755 "${pkgdir}/usr/share/pixmaps"
               
               # Try different possible icon locations
-              if [ -f "${pkgdir}/opt/friendly-kobold/resources/assets/icon.png" ]; then
-                  cp "${pkgdir}/opt/friendly-kobold/resources/assets/icon.png" "${pkgdir}/usr/share/icons/hicolor/512x512/apps/friendly-kobold.png"
-                  cp "${pkgdir}/opt/friendly-kobold/resources/assets/icon.png" "${pkgdir}/usr/share/pixmaps/friendly-kobold.png"
-              elif [ -f "${pkgdir}/opt/friendly-kobold/assets/icon.png" ]; then
-                  cp "${pkgdir}/opt/friendly-kobold/assets/icon.png" "${pkgdir}/usr/share/icons/hicolor/512x512/apps/friendly-kobold.png"
-                  cp "${pkgdir}/opt/friendly-kobold/assets/icon.png" "${pkgdir}/usr/share/pixmaps/friendly-kobold.png"
-              elif [ -f "${pkgdir}/opt/friendly-kobold/icon.png" ]; then
-                  cp "${pkgdir}/opt/friendly-kobold/icon.png" "${pkgdir}/usr/share/icons/hicolor/512x512/apps/friendly-kobold.png"
-                  cp "${pkgdir}/opt/friendly-kobold/icon.png" "${pkgdir}/usr/share/pixmaps/friendly-kobold.png"
+              if [ -f "${pkgdir}/opt/gerbil/resources/assets/icon.png" ]; then
+                  cp "${pkgdir}/opt/gerbil/resources/assets/icon.png" "${pkgdir}/usr/share/icons/hicolor/512x512/apps/gerbil.png"
+                  cp "${pkgdir}/opt/gerbil/resources/assets/icon.png" "${pkgdir}/usr/share/pixmaps/gerbil.png"
+              elif [ -f "${pkgdir}/opt/gerbil/assets/icon.png" ]; then
+                  cp "${pkgdir}/opt/gerbil/assets/icon.png" "${pkgdir}/usr/share/icons/hicolor/512x512/apps/gerbil.png"
+                  cp "${pkgdir}/opt/gerbil/assets/icon.png" "${pkgdir}/usr/share/pixmaps/gerbil.png"
+              elif [ -f "${pkgdir}/opt/gerbil/icon.png" ]; then
+                  cp "${pkgdir}/opt/gerbil/icon.png" "${pkgdir}/usr/share/icons/hicolor/512x512/apps/gerbil.png"
+                  cp "${pkgdir}/opt/gerbil/icon.png" "${pkgdir}/usr/share/pixmaps/gerbil.png"
               else
                   echo "Warning: Could not find icon.png in expected locations"
               fi
@@ -213,31 +213,31 @@ jobs:
         run: |
           # Create .SRCINFO file (required for AUR)
           cat > .SRCINFO << 'EOF'
-          pkgbase = friendly-kobold
+          pkgbase = gerbil
           	pkgdesc = A desktop app for running Large Language Models locally
           	pkgver = ${{ steps.release_info.outputs.version }}
           	pkgrel = ${{ inputs.pkgrel || '1' }}
-          	url = https://github.com/lone-cloud/friendly-kobold
+          	url = https://github.com/lone-cloud/gerbil
           	arch = x86_64
           	license = AGPL-3.0-or-later
           	depends = gtk3
           	depends = nss
           	optdepends = alsa-lib: Audio support for sound effects
           	optdepends = libxss: Screen saver detection support
-          	provides = friendly-kobold
-          	conflicts = friendly-kobold-git
-          	source = friendly-kobold-${{ steps.release_info.outputs.version }}.AppImage::${{ steps.release_info.outputs.appimage_url }}
-          	source = friendly-kobold.desktop::https://raw.githubusercontent.com/lone-cloud/friendly-kobold/${{ steps.release_info.outputs.tag }}/assets/friendly-kobold.desktop
+          	provides = gerbil
+          	conflicts = gerbil-git
+          	source = gerbil-${{ steps.release_info.outputs.version }}.AppImage::${{ steps.release_info.outputs.appimage_url }}
+          	source = gerbil.desktop::https://raw.githubusercontent.com/lone-cloud/gerbil/${{ steps.release_info.outputs.tag }}/assets/gerbil.desktop
           	sha256sums = ${{ steps.sha_calc.outputs.sha256_appimage }}
           	sha256sums = ${{ steps.sha_calc.outputs.sha256_desktop }}
 
-          pkgname = friendly-kobold
+          pkgname = gerbil
           EOF
 
       - name: Publish to AUR
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.2
         with:
-          pkgname: friendly-kobold
+          pkgname: gerbil
           pkgbuild: ./PKGBUILD
           commit_username: ${{ steps.release_info.outputs.author_name }}
           commit_email: ${{ steps.release_info.outputs.author_email }}
@@ -249,16 +249,16 @@ jobs:
         run: |
           echo "## AUR Release Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📦 **Package**: friendly-kobold" >> $GITHUB_STEP_SUMMARY
+          echo "📦 **Package**: gerbil" >> $GITHUB_STEP_SUMMARY
           echo "🔖 **Version**: ${{ steps.release_info.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "🔗 **AUR Page**: https://aur.archlinux.org/packages/friendly-kobold" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 **AUR Page**: https://aur.archlinux.org/packages/gerbil" >> $GITHUB_STEP_SUMMARY
           echo "✅ **Status**: Successfully published to AUR" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Installation" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
           echo "# Using yay" >> $GITHUB_STEP_SUMMARY
-          echo "yay -S friendly-kobold" >> $GITHUB_STEP_SUMMARY
+          echo "yay -S gerbil" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "# Using paru" >> $GITHUB_STEP_SUMMARY
-          echo "paru -S friendly-kobold" >> $GITHUB_STEP_SUMMARY
+          echo "paru -S gerbil" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY

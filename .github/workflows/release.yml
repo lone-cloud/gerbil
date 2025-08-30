@@ -118,7 +118,7 @@ jobs:
       - name: Create Release
         run: |
           gh release create ${{ steps.tag.outputs.tag }} \
-            --title "FriendlyKobold ${{ steps.tag.outputs.tag }}" \
+            --title "Gerbil ${{ steps.tag.outputs.tag }}" \
             --generate-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

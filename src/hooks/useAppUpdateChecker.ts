@@ -21,7 +21,7 @@ export const useAppUpdateChecker = () => {
       const currentVersion = await window.electronAPI.app.getVersion();
 
       const response = await fetch(
-        `${GITHUB_API.BASE_URL}/repos/${GITHUB_API.FRIENDLY_KOBOLD_REPO}/releases/latest`
+        `${GITHUB_API.BASE_URL}/repos/${GITHUB_API.GERBIL_REPO}/releases/latest`
       );
 
       if (!response.ok) {

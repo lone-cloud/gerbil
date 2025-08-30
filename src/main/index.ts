@@ -20,10 +20,10 @@ if (isCliMode) {
     });
 } else {
   import('./gui').then((guiModule) => {
-    const app = new guiModule.FriendlyKoboldApp();
+    const app = new guiModule.GerbilApp();
     app.initialize().catch((error: unknown) => {
       // eslint-disable-next-line no-console
-      console.error('Failed to initialize FriendlyKobold:', error);
+      console.error('Failed to initialize Gerbil:', error);
     });
   });
 }

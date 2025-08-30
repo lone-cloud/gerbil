@@ -1,7 +1,8 @@
-# Friendly Kobold
+# Gerbil
 
-A desktop app for running Large Language Models locally. <!-- markdownlint-disable MD033 -->
-<img src="src/assets/icon.png" alt="FriendlyKobold Icon" width="32" height="32">
+A simple desktop app to easily run Large Language Models locally through KoboldCpp.
+
+<img src="src/assets/icon.png" alt="Gerbil Icon" width="32" height="32">
 
 <!-- markdownlint-enable MD033 -->
 
@@ -20,12 +21,12 @@ A desktop app for running Large Language Models locally. <!-- markdownlint-disab
 
 ### Pre-built Binaries
 
-Download the latest release for your platform from the [GitHub Releases page](https://github.com/lone-cloud/friendly-kobold/releases/latest):
+Download the latest release for your platform from the [GitHub Releases page](https://github.com/lone-cloud/gerbil/releases/latest):
 
-- **Windows**: `Friendly.Kobold-Portable-X.X.X.exe` (portable executable)
-- **Windows**: `Friendly.Kobold-Setup-X.X.X.exe` (installer executable)
-- **macOS**: `Friendly.Kobold-X.X.X.dmg` (disk image)
-- **Linux**: `Friendly.Kobold-X.X.X.AppImage` (portable application)
+- **Windows**: `Gerbil-Portable-X.X.X.exe` (portable executable)
+- **Windows**: `Gerbil-Setup-X.X.X.exe` (installer executable)
+- **macOS**: `Gerbil-X.X.X.dmg` (disk image)
+- **Linux**: `Gerbil-X.X.X.AppImage` (portable application)
 
 #### Linux - AUR (Arch Linux)
 
@@ -33,18 +34,18 @@ For Arch Linux users, install from the AUR using your preferred AUR helper:
 
 ```bash
 # Using yay
-yay -S friendly-kobold
+yay -S gerbil
 
 # Using paru
-paru -S friendly-kobold
+paru -S gerbil
 
 # Manual installation
-git clone https://aur.archlinux.org/friendly-kobold.git
-cd friendly-kobold
+git clone https://aur.archlinux.org/gerbil.git
+cd gerbil
 makepkg -si
 ```
 
-The AUR package automatically handles installation, desktop integration, and system updates. This is the ideal way to run Friendly Kobold on Linux.
+The AUR package automatically handles installation, desktop integration, and system updates. This is the ideal way to run Gerbil on Linux.
 
 ## Screenshots
 
@@ -80,11 +81,11 @@ Not all koboldcpp features have currently been ported over to the UI. As a worka
 
 ## CLI Mode
 
-The `--cli` argument allows you to use the Friendly Kobold binary as a proxy to the downloaded KoboldCpp binary. This enables you to run KoboldCpp from the command line using the same binary that the GUI has downloaded.
+The `--cli` argument allows you to use the Gerbil binary as a proxy to the downloaded KoboldCpp binary. This enables you to run KoboldCpp from the command line using the same binary that the GUI has downloaded.
 
 ### Considerations
 
-You might want to run CLI Mode if you're looking to use a different frontend, such as OpenWebUI, than the ones bundled (eg. KoboldAI Lite, Stable UI) with KoboldCpp AND you're looking to minimize any resource utilization of this app. Note that at the time of this writing, Friendly Kobold only takes about ~200MB of RAM and ~100MB of VRAM for its Chromium-based UI. When running in CLI Mode, Friendly Kobold will still take about 1/3 of those RAM and VRAM numbers.
+You might want to run CLI Mode if you're looking to use a different frontend, such as OpenWebUI, than the ones bundled (eg. KoboldAI Lite, Stable UI) with KoboldCpp AND you're looking to minimize any resource utilization of this app. Note that at the time of this writing, Gerbil only takes about ~200MB of RAM and ~100MB of VRAM for its Chromium-based UI. When running in CLI Mode, Gerbil will still take about 1/3 of those RAM and VRAM numbers.
 
 ### Usage
 
@@ -92,25 +93,25 @@ You might want to run CLI Mode if you're looking to use a different frontend, su
 
 ```bash
 # Basic usage - launch KoboldCpp launcher with no arguments
-friendly-kobold --cli
+gerbil --cli
 
 # Pass arguments to KoboldCpp
-friendly-kobold --cli --help
-friendly-kobold --cli --port 5001 --model /path/to/model.gguf
+gerbil --cli --help
+gerbil --cli --port 5001 --model /path/to/model.gguf
 
 # Any KoboldCpp arguments are supported
-friendly-kobold --cli --model /path/to/model.gguf --port 5001 --host 0.0.0.0 --multiuser 2
+gerbil --cli --model /path/to/model.gguf --port 5001 --host 0.0.0.0 --multiuser 2
 
-# CLI inception (friendly kobold CLI calling KoboldCpp CLI mode)
+# CLI inception (Gerbil CLI calling KoboldCpp CLI mode)
 # This is the ideal way to run a custom frontend
-friendly-kobold --cli --cli --model /path/to/model.gguf --gpulayers 57 --contextsize 8192 --port 5001 --multiuser 1 --flashattention --usemmap --usevulkan
+gerbil --cli --cli --model /path/to/model.gguf --gpulayers 57 --contextsize 8192 --port 5001 --multiuser 1 --flashattention --usemmap --usevulkan
 ```
 
 **Windows:**
 
-CLI mode will only work correctly on Windows if you install Friendly Kobold using the Setup.exe from the github releases. Otherwise there is currently a technical limitation with the Windows portable .exe which will cause it to not display the terminal output correctly nor will it be killable through the standard terminal (Ctrl+C) commands.
+CLI mode will only work correctly on Windows if you install Gerbil using the Setup.exe from the github releases. Otherwise there is currently a technical limitation with the Windows portable .exe which will cause it to not display the terminal output correctly nor will it be killable through the standard terminal (Ctrl+C) commands.
 
-You can use the CLI mode on Windows in exactly the same way as in the Linux/macOS examples above, except you'll be calling the "Friendly Kobold.exe". Note that it will not be on your system PATH by default, so you'll need to manually specify the full path to it when callig it from the Windows terminal.
+You can use the CLI mode on Windows in exactly the same way as in the Linux/macOS examples above, except you'll be calling the "Gerbil.exe". Note that it will not be on your system PATH by default, so you'll need to manually specify the full path to it when callig it from the Windows terminal.
 
 ## For Local Dev
 

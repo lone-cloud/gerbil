@@ -23,7 +23,7 @@ export const WelcomeScreen = ({ onGetStarted }: WelcomeScreenProps) => (
         <Stack gap="lg" align="center">
           <Stack gap="md" align="center">
             <Title order={1} ta="center">
-              Friendly Kobold
+              Gerbil
             </Title>
             <Text size="lg" c="dimmed" ta="center" maw={600}>
               A desktop app for running Large Language Models locally
@@ -117,14 +117,14 @@ export const WelcomeScreen = ({ onGetStarted }: WelcomeScreenProps) => (
               onClick={(e) => {
                 e.preventDefault();
                 window.electronAPI.app.openExternal(
-                  'https://github.com/lone-cloud/friendly-kobold'
+                  'https://github.com/lone-cloud/gerbil'
                 );
               }}
               size="sm"
               c="dimmed"
             >
               <Group gap={4} align="center">
-                <span>About Friendly Kobold</span>
+                <span>About Gerbil</span>
                 <ExternalLink size={12} />
               </Group>
             </Anchor>
