@@ -1,8 +1,8 @@
 {
   "name": "gerbil",
   "productName": "Gerbil",
-  "version": "1.0.0",
-  "description": "A desktop app for running Large Language Models locally",
+  "version": "0.9.0",
+  "description": "Run Large Language Models locally",
   "main": "out/main/index.js",
   "homepage": "./",
   "engines": {
@@ -182,7 +182,7 @@
       "desktop": {
         "entry": {
           "Name": "Gerbil",
-          "Comment": "A desktop app for running Large Language Models locally",
+          "Comment": "Run Large Language Models locally",
           "Categories": "Utility;",
           "StartupWMClass": "Gerbil"
         }

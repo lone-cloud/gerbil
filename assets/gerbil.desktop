@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Gerbil
-Comment=A desktop app for running Large Language Models locally
+Comment=Run Large Language Models locally
 Exec=gerbil %U
 Terminal=false
 Type=Application

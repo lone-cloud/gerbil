@@ -150,7 +150,7 @@ jobs:
           pkgname=gerbil
           pkgver=${{ steps.release_info.outputs.version }}
           pkgrel=${{ inputs.pkgrel || '1' }}
-          pkgdesc="A desktop app for running Large Language Models locally"
+          pkgdesc="Run Large Language Models locally"
           arch=('x86_64')
           url="https://github.com/lone-cloud/gerbil"
           license=('AGPL-3.0-or-later')
@@ -214,7 +214,7 @@ jobs:
           # Create .SRCINFO file (required for AUR)
           cat > .SRCINFO << 'EOF'
           pkgbase = gerbil
-          	pkgdesc = A desktop app for running Large Language Models locally
+          	pkgdesc = Run Large Language Models locally
           	pkgver = ${{ steps.release_info.outputs.version }}
           	pkgrel = ${{ inputs.pkgrel || '1' }}
           	url = https://github.com/lone-cloud/gerbil
