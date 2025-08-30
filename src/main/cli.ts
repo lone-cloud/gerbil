@@ -1,11 +1,11 @@
 /* eslint-disable no-console */
 import { spawn } from 'child_process';
-import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 
 import { PRODUCT_NAME, CONFIG_FILE_NAME } from '@/constants';
 import { terminateProcess } from '@/utils/process';
+import { pathExists, readJsonFile } from '@/utils/fs';
 
 export class LightweightCliHandler {
   private getConfigDir(appName: string): string {
@@ -26,22 +26,24 @@ export class LightweightCliHandler {
     return join(this.getConfigDir(PRODUCT_NAME), CONFIG_FILE_NAME);
   }
 
-  private getCurrentKoboldBinary(): string | null {
+  private async getCurrentKoboldBinary(): Promise<string | null> {
     try {
       const configPath = this.getConfigPath();
-      if (!existsSync(configPath)) {
+      if (!(await pathExists(configPath))) {
         return null;
       }
 
-      const config = JSON.parse(readFileSync(configPath, 'utf8'));
-      return config.currentKoboldBinary || null;
+      const config = await readJsonFile<{ currentKoboldBinary?: string }>(
+        configPath
+      );
+      return config?.currentKoboldBinary || null;
     } catch {
       return null;
     }
   }
 
   async handleCliMode(args: string[]): Promise<void> {
-    const currentBinary = this.getCurrentKoboldBinary();
+    const currentBinary = await this.getCurrentKoboldBinary();
 
     if (!currentBinary) {
       console.error(
@@ -50,7 +52,7 @@ export class LightweightCliHandler {
       process.exit(1);
     }
 
-    if (!existsSync(currentBinary)) {
+    if (!(await pathExists(currentBinary))) {
       console.error(`Error: KoboldCpp binary not found at: ${currentBinary}`);
       console.error('Please run the GUI to download or reconfigure KoboldCpp.');
       process.exit(1);

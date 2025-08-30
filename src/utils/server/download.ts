@@ -1,25 +1,26 @@
-import { createWriteStream, chmodSync, existsSync } from 'fs';
-import { unlink, rename, mkdir } from 'fs/promises';
+import { createWriteStream } from 'fs';
+import { unlink, rename, mkdir, chmod } from 'fs/promises';
 import { join } from 'path';
-import { pipeline } from 'stream/promises';
-import got from 'got';
+import axios from 'axios';
 import type { LogManager } from '@/main/managers/LogManager';
 import type { ConfigManager } from '@/main/managers/ConfigManager';
 import type { WindowManager } from '@/main/managers/WindowManager';
 import type { DownloadItem } from '@/types/electron';
 import { stripAssetExtensions } from '@/utils/version';
 import type { ChildProcess } from 'child_process';
+import { pathExists } from '@/utils/fs';
 
 export interface DownloadOptions {
   installDir: string;
   onProgress?: (progress: number) => void;
   isUpdate?: boolean;
   wasCurrentBinary?: boolean;
+  version?: string;
   logManager: LogManager;
   configManager: ConfigManager;
   windowManager: WindowManager;
   unpackFunction: (packedPath: string, unpackDir: string) => Promise<void>;
-  getLauncherPath: (unpackedDir: string) => string | null;
+  getLauncherPath: (unpackedDir: string) => Promise<string | null>;
   removeDirectoryWithRetry?: (dirPath: string) => Promise<void>;
   cleanup?: () => Promise<void>;
   koboldProcess?: ChildProcess;
@@ -40,7 +41,7 @@ async function handleExistingDirectory(
   removeDirectoryWithRetry: ((dirPath: string) => Promise<void>) | undefined,
   logManager: LogManager
 ): Promise<{ success: boolean; error?: string }> {
-  if (!isUpdate || !existsSync(unpackedDirPath)) {
+  if (!isUpdate || !(await pathExists(unpackedDirPath))) {
     return { success: true };
   }
 
@@ -81,41 +82,55 @@ async function downloadFile(
   onProgress: ((progress: number) => void) | undefined,
   logManager: LogManager
 ): Promise<{ success: boolean; error?: string }> {
-  const writer = createWriteStream(tempPackedFilePath);
-  let downloadedBytes = 0;
-  const totalBytes = item.size;
-
   try {
-    await pipeline(
-      got.stream(item.url).on('downloadProgress', (progress) => {
-        downloadedBytes = progress.transferred;
-        if (onProgress && totalBytes > 0) {
-          onProgress((downloadedBytes / totalBytes) * 100);
-        }
-      }),
-      writer
-    );
+    const writer = createWriteStream(tempPackedFilePath);
+    let downloadedBytes = 0;
 
-    if (process.platform !== 'win32') {
-      try {
-        chmodSync(tempPackedFilePath, 0o755);
-      } catch (error) {
-        logManager.logError(
-          'Failed to make binary executable:',
-          error as Error
-        );
+    const response = await axios({
+      method: 'GET',
+      url: item.url,
+      responseType: 'stream',
+      timeout: 30000,
+      maxRedirects: 5,
+    });
+
+    const totalBytes = item.size;
+
+    response.data.on('data', (chunk: Buffer) => {
+      downloadedBytes += chunk.length;
+      if (onProgress && totalBytes > 0) {
+        onProgress((downloadedBytes / totalBytes) * 100);
       }
-    }
+    });
 
-    return { success: true };
+    response.data.pipe(writer);
+
+    return new Promise((resolve, reject) => {
+      writer.on('finish', async () => {
+        if (process.platform !== 'win32') {
+          try {
+            await chmod(tempPackedFilePath, 0o755);
+          } catch (error) {
+            logManager.logError(
+              'Failed to make binary executable:',
+              error as Error
+            );
+          }
+        }
+        resolve({ success: true });
+      });
+      writer.on('error', (error) => {
+        reject(error);
+      });
+
+      response.data.on('error', (error: Error) => {
+        reject(error);
+      });
+    });
   } catch (error) {
-    return {
-      success: false,
-      error: `Download failed: ${(error as Error).message}`,
-    };
+    return { success: false, error: (error as Error).message };
   }
 }
-
 export async function downloadAndUnpackBinary(
   item: DownloadItem,
   options: DownloadOptions
@@ -125,6 +140,7 @@ export async function downloadAndUnpackBinary(
     onProgress,
     isUpdate,
     wasCurrentBinary,
+    version,
     logManager,
     configManager,
     windowManager,
@@ -137,7 +153,8 @@ export async function downloadAndUnpackBinary(
 
   const tempPackedFilePath = join(installDir, `${item.name}.packed`);
   const baseFilename = stripAssetExtensions(item.name);
-  const unpackedDirPath = join(installDir, baseFilename);
+  const folderName = version ? `${baseFilename}-${version}` : baseFilename;
+  const unpackedDirPath = join(installDir, folderName);
 
   const dirResult = await handleExistingDirectory(
     unpackedDirPath,
@@ -167,16 +184,16 @@ export async function downloadAndUnpackBinary(
     await mkdir(unpackedDirPath, { recursive: true });
     await unpackFunction(tempPackedFilePath, unpackedDirPath);
 
-    let launcherPath = getLauncherPath(unpackedDirPath);
+    let launcherPath = await getLauncherPath(unpackedDirPath);
 
-    if (!launcherPath || !existsSync(launcherPath)) {
+    if (!launcherPath || !(await pathExists(launcherPath))) {
       const expectedLauncherName =
         process.platform === 'win32'
           ? 'koboldcpp-launcher.exe'
           : 'koboldcpp-launcher';
       const newLauncherPath = join(unpackedDirPath, expectedLauncherName);
 
-      if (existsSync(tempPackedFilePath)) {
+      if (await pathExists(tempPackedFilePath)) {
         try {
           await rename(tempPackedFilePath, newLauncherPath);
           launcherPath = newLauncherPath;
@@ -195,10 +212,10 @@ export async function downloadAndUnpackBinary(
       }
     }
 
-    if (launcherPath && existsSync(launcherPath)) {
+    if (launcherPath && (await pathExists(launcherPath))) {
       const currentBinary = configManager.getCurrentKoboldBinary();
       if (!currentBinary || (isUpdate && wasCurrentBinary)) {
-        configManager.setCurrentKoboldBinary(launcherPath);
+        await configManager.setCurrentKoboldBinary(launcherPath);
       }
 
       windowManager.sendToRenderer('versions-updated');

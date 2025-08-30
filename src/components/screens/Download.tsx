@@ -14,7 +14,7 @@ interface DownloadScreenProps {
 
 export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
   const {
-    platformInfo,
+    platform,
     availableDownloads,
     loadingPlatform,
     loadingRemote,
@@ -36,7 +36,6 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
 
       await Logger.safeExecute(async () => {
         const success = await sharedHandleDownload({
-          type: 'asset',
           item: download,
           isUpdate: false,
           wasCurrentBinary: false,
@@ -126,7 +125,7 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
                           <Text fw={500}>No downloads available</Text>
                           <Text size="sm">
                             No downloads available for your platform (
-                            {getPlatformDisplayName(platformInfo.platform)}).
+                            {getPlatformDisplayName(platform)}).
                           </Text>
                         </Stack>
                       </Card>

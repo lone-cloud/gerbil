@@ -18,7 +18,7 @@ export interface GitHubAsset {
   name: string;
   browser_download_url: string;
   size: number;
-  created_at: string;
+  version?: string;
 }
 
 export interface GitHubRelease {

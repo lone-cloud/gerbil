@@ -2,7 +2,6 @@ import type {
   CPUCapabilities,
   GPUCapabilities,
   BasicGPUInfo,
-  PlatformInfo,
   GPUMemoryInfo,
 } from '@/types/hardware';
 import type { BackendOption } from '@/types';
@@ -11,7 +10,7 @@ export interface GitHubAsset {
   name: string;
   browser_download_url: string;
   size: number;
-  created_at: string;
+  version?: string;
   isUpdate?: boolean;
   wasCurrentBinary?: boolean;
 }
@@ -54,7 +53,6 @@ export interface DownloadItem {
   url: string;
   size: number;
   version?: string;
-  type: 'asset' | 'rocm';
 }
 
 export interface KoboldConfig {
@@ -98,7 +96,7 @@ export interface KoboldConfig {
 export interface KoboldAPI {
   getInstalledVersions: () => Promise<InstalledVersion[]>;
   setCurrentVersion: (version: string) => Promise<boolean>;
-  getPlatform: () => Promise<PlatformInfo>;
+  getPlatform: () => Promise<string>;
   detectGPU: () => Promise<BasicGPUInfo>;
   detectCPU: () => Promise<CPUCapabilities>;
   detectGPUCapabilities: () => Promise<GPUCapabilities>;
@@ -118,11 +116,6 @@ export interface KoboldAPI {
   downloadRelease: (
     asset: GitHubAsset
   ) => Promise<{ success: boolean; path?: string; error?: string }>;
-  downloadROCm: () => Promise<{
-    success: boolean;
-    path?: string;
-    error?: string;
-  }>;
   launchKoboldCpp: (
     args?: string[]
   ) => Promise<{ success: boolean; pid?: number; error?: string }>;

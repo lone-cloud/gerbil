@@ -10,20 +10,13 @@ import type {
   InstalledVersion,
 } from '@/types/electron';
 
-interface PlatformInfo {
-  platform: string;
-  hasAMDGPU: boolean;
-  hasROCm: boolean;
-}
-
 interface CachedReleaseData {
   releases: DownloadItem[];
   timestamp: number;
 }
 
 interface HandleDownloadParams {
-  type: 'asset' | 'rocm';
-  item?: DownloadItem;
+  item: DownloadItem;
   isUpdate?: boolean;
   wasCurrentBinary?: boolean;
 }
@@ -72,7 +65,6 @@ const transformReleaseToDownloadItems = (
     url: asset.browser_download_url,
     size: asset.size,
     version,
-    type: 'asset' as const,
   }));
 };
 
@@ -144,7 +136,7 @@ const getLatestReleaseWithDownloadStatus =
   };
 
 interface UseKoboldVersionsReturn {
-  platformInfo: PlatformInfo;
+  platform: string;
   availableDownloads: DownloadItem[];
   loadingPlatform: boolean;
   loadingRemote: boolean;
@@ -159,16 +151,11 @@ interface UseKoboldVersionsReturn {
       | Record<string, number>
       | ((prev: Record<string, number>) => Record<string, number>)
   ) => void;
-  getROCmDownload: (platform?: string) => Promise<DownloadItem | null>;
   getLatestReleaseWithDownloadStatus: () => Promise<ReleaseWithStatus | null>;
 }
 
 export const useKoboldVersions = (): UseKoboldVersionsReturn => {
-  const [platformInfo, setPlatformInfo] = useState<PlatformInfo>({
-    platform: '',
-    hasAMDGPU: false,
-    hasROCm: false,
-  });
+  const [platform, setPlatform] = useState('');
 
   const [availableDownloads, setAvailableDownloads] = useState<DownloadItem[]>(
     []
@@ -182,54 +169,24 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
     Record<string, number>
   >({});
 
-  const loadPlatformInfo = useCallback(async () => {
+  const loadPlatform = useCallback(async () => {
     setLoadingPlatform(true);
 
-    try {
-      const platform = await window.electronAPI.kobold.getPlatform();
+    const platform = await window.electronAPI.kobold.getPlatform();
 
-      let hasAMDGPU = false;
-      let hasROCm = false;
-
-      try {
-        const gpuInfo = await window.electronAPI.kobold.detectGPU();
-        hasAMDGPU = gpuInfo.hasAMD;
-
-        if (gpuInfo.hasAMD) {
-          const rocmInfo = await window.electronAPI.kobold.detectROCm();
-          hasROCm = rocmInfo.supported;
-        }
-      } catch (gpuError) {
-        window.electronAPI.logs.logError(
-          'GPU detection failed:',
-          gpuError as Error
-        );
-      }
-
-      setPlatformInfo({
-        platform: platform.platform,
-        hasAMDGPU,
-        hasROCm,
-      });
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to load platform info:',
-        error as Error
-      );
-    } finally {
-      setLoadingPlatform(false);
-    }
+    setPlatform(platform);
+    setLoadingPlatform(false);
   }, []);
 
   const loadRemoteVersions = useCallback(async () => {
-    if (!platformInfo.platform) return;
+    if (!platform) return;
 
     setLoadingRemote(true);
 
     try {
       const cached = loadFromCache();
       if (cached) {
-        const rocm = await getROCmDownload(platformInfo.platform);
+        const rocm = await getROCmDownload();
         const allDownloads: DownloadItem[] = [...cached.releases];
         if (rocm) {
           allDownloads.push(rocm);
@@ -240,8 +197,8 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
       }
 
       const [releases, rocm] = await Promise.all([
-        fetchLatestReleaseFromAPI(platformInfo.platform),
-        getROCmDownload(platformInfo.platform),
+        fetchLatestReleaseFromAPI(platform),
+        getROCmDownload(),
       ]);
 
       saveToCache(releases);
@@ -260,9 +217,7 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
 
       const cached = loadFromCache();
       if (cached) {
-        const rocm = await getROCmDownload(platformInfo.platform).catch(
-          () => null
-        );
+        const rocm = await getROCmDownload().catch(() => null);
         const allDownloads: DownloadItem[] = [...cached.releases];
         if (rocm) {
           allDownloads.push(rocm);
@@ -272,39 +227,33 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
     } finally {
       setLoadingRemote(false);
     }
-  }, [platformInfo.platform]);
+  }, [platform]);
 
   const handleDownload = useCallback(
     async ({
-      type,
       item,
       isUpdate = false,
       wasCurrentBinary = false,
     }: HandleDownloadParams): Promise<boolean> => {
-      if (type === 'asset' && !item) return false;
-
-      const downloadName = item?.name || 'download';
+      const downloadName = item.name;
 
       setDownloading(downloadName);
       setDownloadProgress((prev) => ({ ...prev, [downloadName]: 0 }));
 
       try {
-        const result =
-          type === 'rocm'
-            ? await window.electronAPI.kobold.downloadROCm()
-            : await window.electronAPI.kobold.downloadRelease({
-                name: item!.name,
-                browser_download_url: item!.url,
-                size: item!.size,
-                created_at: new Date().toISOString(),
-                isUpdate,
-                wasCurrentBinary,
-              });
+        const result = await window.electronAPI.kobold.downloadRelease({
+          name: item.name,
+          browser_download_url: item.url,
+          size: item.size,
+          version: item.version,
+          isUpdate,
+          wasCurrentBinary,
+        });
 
         return result.success !== false;
       } catch (error) {
         window.electronAPI.logs.logError(
-          `Failed to download ${type}:`,
+          `Failed to download ${item.name}:`,
           error as Error
         );
         return false;
@@ -326,14 +275,14 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
   }, [loadRemoteVersions]);
 
   useEffect(() => {
-    loadPlatformInfo();
-  }, [loadPlatformInfo]);
+    loadPlatform();
+  }, [loadPlatform]);
 
   useEffect(() => {
-    if (platformInfo.platform) {
+    if (platform) {
       loadRemoteVersions();
     }
-  }, [platformInfo.platform, loadRemoteVersions]);
+  }, [platform, loadRemoteVersions]);
 
   useEffect(() => {
     const handleProgress = (progress: number) => {
@@ -353,7 +302,7 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
   }, [downloading]);
 
   return {
-    platformInfo,
+    platform,
     availableDownloads,
     loadingPlatform,
     loadingRemote,
@@ -364,8 +313,6 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
     handleDownload,
     setDownloading,
     setDownloadProgress,
-    getROCmDownload: (platform?: string) =>
-      getROCmDownload(platform || platformInfo.platform),
     getLatestReleaseWithDownloadStatus,
   };
 };

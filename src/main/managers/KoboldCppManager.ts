@@ -1,23 +1,16 @@
 import { spawn, ChildProcess } from 'child_process';
 import { join } from 'path';
-import {
-  existsSync,
-  readdirSync,
-  statSync,
-  readFileSync,
-  writeFileSync,
-} from 'fs';
-import { rm } from 'fs/promises';
+import { rm, readdir, stat } from 'fs/promises';
 import { dialog } from 'electron';
 
 import { execa } from 'execa';
 import { terminateProcess } from '@/utils/process';
-import { getROCmDownload } from '@/utils/rocm';
 import { ConfigManager } from '@/main/managers/ConfigManager';
 import { LogManager } from '@/main/managers/LogManager';
 import { WindowManager } from '@/main/managers/WindowManager';
 import { PRODUCT_NAME, SERVER_READY_SIGNALS } from '@/constants';
 import { downloadAndUnpackBinary } from '@/utils/server/download';
+import { pathExists, readJsonFile, writeJsonFile } from '@/utils/fs';
 import type {
   GitHubAsset,
   InstalledVersion,
@@ -25,7 +18,6 @@ import type {
 } from '@/types/electron';
 
 export class KoboldCppManager {
-  private installDir: string;
   private koboldProcess: ChildProcess | null = null;
   private configManager: ConfigManager;
   private logManager: LogManager;
@@ -39,7 +31,10 @@ export class KoboldCppManager {
     this.configManager = configManager;
     this.logManager = logManager;
     this.windowManager = windowManager;
-    this.installDir = this.configManager.getInstallDir() || '';
+  }
+
+  private get installDir(): string {
+    return this.configManager.getInstallDir() || '';
   }
 
   private async removeDirectoryWithRetry(
@@ -73,20 +68,22 @@ export class KoboldCppManager {
     }
   }
 
-  async downloadRelease(
-    asset: GitHubAsset,
-    onProgress?: (progress: number) => void
-  ): Promise<string> {
+  async downloadRelease(asset: GitHubAsset): Promise<string> {
     const result = await downloadAndUnpackBinary(
       {
         name: asset.name,
         url: asset.browser_download_url,
         size: asset.size,
-        type: 'asset' as const,
+        version: asset.version,
       },
       {
         installDir: this.installDir,
-        onProgress,
+        onProgress: (progress: number) => {
+          const mainWindow = this.windowManager.getMainWindow();
+          if (mainWindow) {
+            mainWindow.webContents.send('download-progress', progress);
+          }
+        },
         isUpdate: asset.isUpdate,
         wasCurrentBinary: asset.wasCurrentBinary,
         logManager: this.logManager,
@@ -128,13 +125,13 @@ export class KoboldCppManager {
     }
   }
 
-  private getLauncherPath(unpackedDir: string): string | null {
+  private async getLauncherPath(unpackedDir: string): Promise<string | null> {
     const extensions =
       process.platform === 'win32' ? ['.exe', ''] : ['', '.exe'];
 
     for (const ext of extensions) {
       const launcherPath = join(unpackedDir, `koboldcpp-launcher${ext}`);
-      if (existsSync(launcherPath)) {
+      if (await pathExists(launcherPath)) {
         return launcherPath;
       }
     }
@@ -144,21 +141,21 @@ export class KoboldCppManager {
 
   async getInstalledVersions(): Promise<InstalledVersion[]> {
     try {
-      if (!existsSync(this.installDir)) {
+      if (!(await pathExists(this.installDir))) {
         return [];
       }
 
-      const items = readdirSync(this.installDir);
+      const items = await readdir(this.installDir);
       const launchers: { path: string; filename: string; size: number }[] = [];
 
       for (const item of items) {
         const itemPath = join(this.installDir, item);
-        const stats = statSync(itemPath);
+        const stats = await stat(itemPath);
 
         if (stats.isDirectory()) {
-          const launcherPath = this.getLauncherPath(itemPath);
-          if (launcherPath && existsSync(launcherPath)) {
-            const launcherStats = statSync(launcherPath);
+          const launcherPath = await this.getLauncherPath(itemPath);
+          if (launcherPath && (await pathExists(launcherPath))) {
+            const launcherStats = await stat(launcherPath);
             const launcherFilename = launcherPath.split(/[/\\]/).pop() || '';
             launchers.push({
               path: launcherPath,
@@ -210,19 +207,19 @@ export class KoboldCppManager {
     const configFiles: { name: string; path: string; size: number }[] = [];
 
     try {
-      if (existsSync(this.installDir)) {
-        const files = readdirSync(this.installDir);
+      if (await pathExists(this.installDir)) {
+        const files = await readdir(this.installDir);
 
         for (const file of files) {
           const filePath = join(this.installDir, file);
 
+          const stats = await stat(filePath);
           if (
-            statSync(filePath).isFile() &&
+            stats.isFile() &&
             (file.endsWith('.kcpps') ||
               file.endsWith('.kcppt') ||
               file.endsWith('.json'))
           ) {
-            const stats = statSync(filePath);
             configFiles.push({
               name: file,
               path: filePath,
@@ -243,14 +240,12 @@ export class KoboldCppManager {
 
   async parseConfigFile(filePath: string): Promise<KoboldConfig | null> {
     try {
-      if (!existsSync(filePath)) {
+      if (!(await pathExists(filePath))) {
         return null;
       }
 
-      const content = readFileSync(filePath, 'utf-8');
-      const config = JSON.parse(content);
-
-      return config;
+      const config = await readJsonFile(filePath);
+      return config as KoboldConfig;
     } catch (error) {
       this.logManager.logError('Error parsing config file:', error as Error);
       return null;
@@ -268,7 +263,7 @@ export class KoboldCppManager {
       }
 
       const configPath = join(this.installDir, configFileName);
-      writeFileSync(configPath, JSON.stringify(configData, null, 2), 'utf-8');
+      await writeJsonFile(configPath, configData);
       return true;
     } catch (error) {
       this.logManager.logError('Error saving config file:', error as Error);
@@ -307,7 +302,7 @@ export class KoboldCppManager {
     const currentBinaryPath = this.configManager.getCurrentKoboldBinary();
     const versions = await this.getInstalledVersions();
 
-    if (currentBinaryPath && existsSync(currentBinaryPath)) {
+    if (currentBinaryPath && (await pathExists(currentBinaryPath))) {
       const currentVersion = versions.find((v) => v.path === currentBinaryPath);
       if (currentVersion) {
         return currentVersion;
@@ -316,12 +311,12 @@ export class KoboldCppManager {
 
     const firstVersion = versions[0];
     if (firstVersion) {
-      this.configManager.setCurrentKoboldBinary(firstVersion.path);
+      await this.configManager.setCurrentKoboldBinary(firstVersion.path);
       return firstVersion;
     }
 
     if (currentBinaryPath) {
-      this.configManager.setCurrentKoboldBinary('');
+      await this.configManager.setCurrentKoboldBinary('');
     }
 
     return null;
@@ -348,8 +343,8 @@ export class KoboldCppManager {
   }
 
   async setCurrentVersion(binaryPath: string): Promise<boolean> {
-    if (existsSync(binaryPath)) {
-      this.configManager.setCurrentKoboldBinary(binaryPath);
+    if (await pathExists(binaryPath)) {
+      await this.configManager.setCurrentKoboldBinary(binaryPath);
 
       this.windowManager.sendToRenderer('versions-updated');
 
@@ -359,13 +354,21 @@ export class KoboldCppManager {
     return false;
   }
 
-  async getVersionFromBinary(binaryPath: string): Promise<string | null> {
+  async getVersionFromBinary(launcherPath: string): Promise<string | null> {
     try {
-      if (!existsSync(binaryPath)) {
+      if (!(await pathExists(launcherPath))) {
         return null;
       }
 
-      const result = await execa(binaryPath, ['--version'], {
+      const folderName = launcherPath.split(/[/\\]/).slice(-2, -1)[0];
+      if (folderName) {
+        const versionMatch = folderName.match(/-(\d+\.\d+(?:\.\d+)?)$/);
+        if (versionMatch) {
+          return versionMatch[1];
+        }
+      }
+
+      const result = await execa(launcherPath, ['--version'], {
         timeout: 10000,
         stdio: ['ignore', 'pipe', 'pipe'],
       });
@@ -413,8 +416,7 @@ export class KoboldCppManager {
     });
 
     if (!result.canceled && result.filePaths.length > 0) {
-      this.installDir = result.filePaths[0];
-      this.configManager.setInstallDir(result.filePaths[0]);
+      await this.configManager.setInstallDir(result.filePaths[0]);
 
       this.windowManager.sendToRenderer(
         'install-dir-changed',
@@ -438,7 +440,7 @@ export class KoboldCppManager {
       this.koboldProcess = null;
     }
 
-    if (!existsSync(versionPath)) {
+    if (!(await pathExists(versionPath))) {
       throw new Error('Selected version file does not exist');
     }
     this.koboldProcess = spawn(versionPath, args, {
@@ -482,45 +484,6 @@ export class KoboldCppManager {
     return this.koboldProcess !== null && !this.koboldProcess.killed;
   }
 
-  async downloadROCm(onProgress?: (progress: number) => void): Promise<{
-    success: boolean;
-    path?: string;
-    error?: string;
-  }> {
-    try {
-      const rocmInfo = await getROCmDownload(process.platform);
-      if (!rocmInfo) {
-        return {
-          success: false,
-          error: 'ROCm version not available for this platform',
-        };
-      }
-
-      return await downloadAndUnpackBinary(
-        {
-          name: rocmInfo.name,
-          url: rocmInfo.url,
-          size: rocmInfo.size,
-          type: 'rocm' as const,
-        },
-        {
-          installDir: this.installDir,
-          onProgress,
-          logManager: this.logManager,
-          configManager: this.configManager,
-          windowManager: this.windowManager,
-          unpackFunction: this.unpackKoboldCpp.bind(this),
-          getLauncherPath: this.getLauncherPath.bind(this),
-        }
-      );
-    } catch (error) {
-      return {
-        success: false,
-        error: (error as Error).message,
-      };
-    }
-  }
-
   async getInstalledVersion(): Promise<string | undefined> {
     const currentVersion = await this.getCurrentVersion();
     return currentVersion?.version;
@@ -535,7 +498,7 @@ export class KoboldCppManager {
       }
 
       const currentVersion = await this.getCurrentVersion();
-      if (!currentVersion || !existsSync(currentVersion.path)) {
+      if (!currentVersion || !(await pathExists(currentVersion.path))) {
         const rawPath = this.configManager.getCurrentKoboldBinary();
         const error = currentVersion
           ? `KoboldCpp binary file does not exist at path: ${currentVersion.path}`
@@ -645,7 +608,7 @@ export class KoboldCppManager {
         }
       });
 
-      return await readyPromise;
+      return readyPromise;
     } catch (error) {
       const errorMessage = (error as Error).message;
       this.logManager.logError(

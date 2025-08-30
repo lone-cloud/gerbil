@@ -10,7 +10,7 @@ export class Logger {
     errorMessage: string
   ): Promise<T | null> {
     try {
-      return await operation();
+      return operation();
     } catch (error) {
       this.logError(errorMessage, error as Error);
       return null;

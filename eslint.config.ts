@@ -24,12 +24,20 @@ const config = [
   },
   {
     files: ['**/*.{js,mjs,cjs,ts,tsx}'],
+    ignores: [
+      '*.config.*',
+      'vite.config.*',
+      'eslint.config.*',
+      'postcss.config.*',
+    ],
     languageOptions: {
       ecmaVersion: 2020,
       parser: tsParser,
       parserOptions: {
         ecmaVersion: 2020,
         sourceType: 'module',
+        projectService: true,
+        allowDefaultProject: true,
         ecmaFeatures: {
           jsx: true,
         },
@@ -100,7 +108,22 @@ const config = [
               message:
                 'Import specific React hooks/utilities instead of default React import. Use automatic JSX transform.',
             },
+            {
+              group: ['fs'],
+              importNames: ['readFileSync', 'writeFileSync', 'existsSync'],
+              message:
+                'Use async file operations instead: readFile, writeFile, access from fs/promises',
+            },
           ],
+        },
+      ],
+
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'CallExpression[callee.name=/.*Sync$/]',
+          message:
+            'Synchronous file operations are forbidden. Use async alternatives.',
         },
       ],
 
@@ -120,6 +143,7 @@ const config = [
       '@typescript-eslint/no-inferrable-types': 'warn',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
+      '@typescript-eslint/return-await': ['error', 'never'],
 
       'sonarjs/cognitive-complexity': ['warn', 25],
 
@@ -141,8 +165,20 @@ const config = [
       'eslint.config.*',
       'postcss.config.*',
     ],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        sourceType: 'module',
+      },
+      globals: {
+        ...globals.node,
+      },
+    },
     rules: {
       'import/no-default-export': 'off',
+      '@typescript-eslint/return-await': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
   {
