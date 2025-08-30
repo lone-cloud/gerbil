@@ -74,12 +74,6 @@ The AUR package automatically handles installation, desktop integration, and sys
 </div>
 <!-- markdownlint-enable MD033 -->
 
-### Windows ROCm Support
-
-There is ROCm Windows support maintained by YellowRoseCx in a separate fork.
-Unfortunately it does not properly support unpacking, which would greatly diminish its performance and provide a poor UX when used alongside this app.
-For Friendly Kobold to work with this fork, [this issue must be fixed first](https://github.com/YellowRoseCx/koboldcpp-rocm/issues/129).
-
 ### Future features
 
 Not all koboldcpp features have currently been ported over to the UI. As a workaround one may use the "Additional arguments" on the "Advanced" tab of the launcher to provide additional command line arguments if you know them.
