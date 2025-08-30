@@ -12,7 +12,7 @@ import type {
 } from '@/types/hardware';
 import { spawn } from 'child_process';
 
-export class HardwareService {
+export class HardwareManager {
   private cpuCapabilitiesCache: CPUCapabilities | null = null;
   private basicGPUInfoCache: BasicGPUInfo | null = null;
   private gpuCapabilitiesCache: GPUCapabilities | null = null;

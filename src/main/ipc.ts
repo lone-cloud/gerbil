@@ -3,22 +3,22 @@ import type { KoboldCppManager } from '@/main/managers/KoboldCppManager';
 import type { ConfigManager } from '@/main/managers/ConfigManager';
 import type { LogManager } from '@/main/managers/LogManager';
 import type { SillyTavernManager } from '@/main/managers/SillyTavernManager';
-import { HardwareService } from '@/main/services/HardwareService';
-import { BinaryService } from '@/main/services/BinaryService';
+import { HardwareManager } from '@/main/managers/HardwareManager';
+import { BinaryManager } from '@/main/managers/BinaryManager';
 
 export class IPCHandlers {
   private koboldManager: KoboldCppManager;
   private configManager: ConfigManager;
   private logManager: LogManager;
   private sillyTavernManager: SillyTavernManager;
-  private hardwareService: HardwareService;
-  private binaryService: BinaryService;
+  private hardwareManager: HardwareManager;
+  private binaryManager: BinaryManager;
 
   constructor(
     koboldManager: KoboldCppManager,
     configManager: ConfigManager,
-    hardwareService: HardwareService,
-    binaryService: BinaryService,
+    hardwareManager: HardwareManager,
+    binaryManager: BinaryManager,
     logManager: LogManager,
     sillyTavernManager: SillyTavernManager
   ) {
@@ -26,8 +26,8 @@ export class IPCHandlers {
     this.configManager = configManager;
     this.logManager = logManager;
     this.sillyTavernManager = sillyTavernManager;
-    this.hardwareService = hardwareService;
-    this.binaryService = binaryService;
+    this.hardwareManager = hardwareManager;
+    this.binaryManager = binaryManager;
   }
 
   private async launchKoboldCppWithCustomFrontends(args: string[] = []) {
@@ -93,30 +93,30 @@ export class IPCHandlers {
       this.koboldManager.selectInstallDirectory()
     );
 
-    ipcMain.handle('kobold:detectGPU', () => this.hardwareService.detectGPU());
+    ipcMain.handle('kobold:detectGPU', () => this.hardwareManager.detectGPU());
 
-    ipcMain.handle('kobold:detectCPU', () => this.hardwareService.detectCPU());
+    ipcMain.handle('kobold:detectCPU', () => this.hardwareManager.detectCPU());
 
     ipcMain.handle('kobold:detectGPUCapabilities', () =>
-      this.hardwareService.detectGPUCapabilities()
+      this.hardwareManager.detectGPUCapabilities()
     );
 
     ipcMain.handle('kobold:detectGPUMemory', () =>
-      this.hardwareService.detectGPUMemory()
+      this.hardwareManager.detectGPUMemory()
     );
 
     ipcMain.handle('kobold:detectROCm', () =>
-      this.hardwareService.detectROCm()
+      this.hardwareManager.detectROCm()
     );
 
     ipcMain.handle('kobold:detectBackendSupport', () =>
-      this.binaryService.detectBackendSupport()
+      this.binaryManager.detectBackendSupport()
     );
 
     ipcMain.handle(
       'kobold:getAvailableBackends',
       (_, includeDisabled = false) =>
-        this.binaryService.getAvailableBackends(includeDisabled)
+        this.binaryManager.getAvailableBackends(includeDisabled)
     );
 
     ipcMain.handle('kobold:getPlatform', () => process.platform);
