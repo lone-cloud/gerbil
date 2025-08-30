@@ -64,38 +64,13 @@ export const VersionsTab = () => {
     setLoadingInstalled(true);
 
     await Logger.safeExecute(async () => {
-      const [versions, currentBinaryPath] = await Promise.all([
+      const [versions, currentVersion] = await Promise.all([
         window.electronAPI.kobold.getInstalledVersions(),
-        window.electronAPI.config.get('currentKoboldBinary') as Promise<string>,
+        window.electronAPI.kobold.getCurrentVersion(),
       ]);
 
       setInstalledVersions(versions);
-
-      if (currentBinaryPath && versions.length > 0) {
-        const current = versions.find((v) => v.path === currentBinaryPath);
-
-        if (current) {
-          setCurrentVersion(current);
-        } else {
-          setCurrentVersion(versions[0]);
-          await window.electronAPI.config.set(
-            'currentKoboldBinary',
-            versions[0].path
-          );
-        }
-      } else if (versions.length > 0) {
-        setCurrentVersion(versions[0]);
-
-        await window.electronAPI.config.set(
-          'currentKoboldBinary',
-          versions[0].path
-        );
-      } else {
-        setCurrentVersion(null);
-        if (currentBinaryPath) {
-          await window.electronAPI.config.set('currentKoboldBinary', '');
-        }
-      }
+      setCurrentVersion(currentVersion);
     }, 'Failed to load installed versions:');
 
     setLoadingInstalled(false);
@@ -245,17 +220,7 @@ export const VersionsTab = () => {
       );
 
       if (success) {
-        await window.electronAPI.config.set(
-          'currentKoboldBinary',
-          version.installedPath!
-        );
-
-        const newCurrentVersion = installedVersions.find(
-          (v) => v.path === version.installedPath
-        );
-        if (newCurrentVersion) {
-          setCurrentVersion(newCurrentVersion);
-        }
+        await loadInstalledVersions();
       }
     }, 'Failed to set current version:');
   };

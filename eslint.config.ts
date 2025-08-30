@@ -125,6 +125,18 @@ const config = [
           message:
             'Synchronous file operations are forbidden. Use async alternatives.',
         },
+        {
+          selector:
+            'CallExpression[callee.object.object.object.name="window"][callee.object.object.property.name="electronAPI"][callee.object.property.name="config"][callee.property.name="get"] Literal[value="currentKoboldBinary"]',
+          message:
+            'Direct access to currentKoboldBinary config is forbidden. Use window.electronAPI.kobold.getCurrentVersion() instead to get proper fallback logic.',
+        },
+        {
+          selector:
+            'CallExpression[callee.object.object.object.name="window"][callee.object.object.property.name="electronAPI"][callee.object.property.name="config"][callee.property.name="set"] Literal[value="currentKoboldBinary"]',
+          message:
+            'Direct setting of currentKoboldBinary config is forbidden. Use window.electronAPI.kobold.setCurrentVersion() instead.',
+        },
       ],
 
       'import/no-default-export': 'error',

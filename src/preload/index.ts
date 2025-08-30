@@ -10,6 +10,7 @@ import type {
 
 const koboldAPI: KoboldAPI = {
   getInstalledVersions: () => ipcRenderer.invoke('kobold:getInstalledVersions'),
+  getCurrentVersion: () => ipcRenderer.invoke('kobold:getCurrentVersion'),
   setCurrentVersion: (version: string) =>
     ipcRenderer.invoke('kobold:setCurrentVersion', version),
   getPlatform: () => ipcRenderer.invoke('kobold:getPlatform'),

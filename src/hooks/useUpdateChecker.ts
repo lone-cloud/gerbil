@@ -1,5 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
-import { getDisplayNameFromPath, compareVersions } from '@/utils/version';
+import {
+  getDisplayNameFromPath,
+  compareVersions,
+  stripAssetExtensions,
+} from '@/utils/version';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import { getROCmDownload } from '@/utils/rocm';
 import type { InstalledVersion, DownloadItem } from '@/types/electron';
@@ -64,22 +68,14 @@ export const useUpdateChecker = () => {
     setIsChecking(true);
 
     try {
-      const [currentBinaryPath, installedVersionsResult, rocmDownload] =
-        await Promise.all([
-          window.electronAPI.config.get(
-            'currentKoboldBinary'
-          ) as Promise<string>,
-          window.electronAPI.kobold.getInstalledVersions(),
-          getROCmDownload(),
-        ]);
+      const [currentVersion, rocmDownload] = await Promise.all([
+        window.electronAPI.kobold.getCurrentVersion(),
+        getROCmDownload(),
+      ]);
 
-      if (!currentBinaryPath || installedVersionsResult.length === 0) {
+      if (!currentVersion) {
         return;
       }
-
-      const currentVersion = installedVersionsResult.find(
-        (v: InstalledVersion) => v.path === currentBinaryPath
-      );
       if (!currentVersion) {
         return;
       }
@@ -93,9 +89,7 @@ export const useUpdateChecker = () => {
 
       const matchingDownload = availableDownloads.find(
         (download: DownloadItem) => {
-          const downloadBaseName = download.name
-            .replace(/\.(tar\.gz|zip|exe)$/i, '')
-            .replace(/\.packed$/, '');
+          const downloadBaseName = stripAssetExtensions(download.name);
           return downloadBaseName === currentDisplayName;
         }
       );
