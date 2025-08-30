@@ -39,9 +39,11 @@ export const ASSET_SUFFIXES = {
 } as const;
 
 export const ROCM = {
-  BINARY_NAME: 'koboldcpp-linux-x64-rocm',
-  DOWNLOAD_URL: 'https://koboldai.org/cpplinuxrocm',
-  SIZE_BYTES_APPROX: 1024 * 1024 * 1024,
+  LINUX: {
+    BINARY_NAME: 'koboldcpp-linux-x64-rocm',
+    DOWNLOAD_URL: 'https://koboldai.org/cpplinuxrocm',
+    SIZE_BYTES_APPROX: 1024 * 1024 * 1024,
+  },
 } as const;
 
 export const FRONTENDS = {

@@ -3,7 +3,7 @@ import { ROCM } from '@/constants';
 export const formatDownloadSize = (size: number, url?: string): string => {
   if (!size) return '';
 
-  const isApproximateSize = url?.includes(ROCM.DOWNLOAD_URL);
+  const isApproximateSize = url?.includes(ROCM.LINUX.DOWNLOAD_URL);
 
   return isApproximateSize
     ? `~${formatFileSizeInMB(size)}`

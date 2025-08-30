@@ -4,11 +4,8 @@ import {
   existsSync,
   readdirSync,
   statSync,
-  createWriteStream,
-  chmodSync,
   readFileSync,
   writeFileSync,
-  unlinkSync,
 } from 'fs';
 import { rm } from 'fs/promises';
 import { dialog } from 'electron';
@@ -16,13 +13,11 @@ import { dialog } from 'electron';
 import { execa } from 'execa';
 import { terminateProcess } from '@/utils/process';
 import { getROCmDownload } from '@/utils/rocm';
-import { got } from 'got';
-import { pipeline } from 'stream/promises';
 import { ConfigManager } from '@/main/managers/ConfigManager';
 import { LogManager } from '@/main/managers/LogManager';
 import { WindowManager } from '@/main/managers/WindowManager';
 import { PRODUCT_NAME, SERVER_READY_SIGNALS } from '@/constants';
-import { stripAssetExtensions } from '@/utils/version';
+import { downloadAndUnpackBinary } from '@/utils/server/download';
 import type {
   GitHubAsset,
   InstalledVersion,
@@ -82,95 +77,34 @@ export class KoboldCppManager {
     asset: GitHubAsset,
     onProgress?: (progress: number) => void
   ): Promise<string> {
-    const tempPackedFilePath = join(this.installDir, `${asset.name}.packed`);
-    const baseFilename = stripAssetExtensions(asset.name);
-    const unpackedDirPath = join(this.installDir, baseFilename);
-
-    if (asset.isUpdate && existsSync(unpackedDirPath)) {
-      try {
-        if (this.koboldProcess && !this.koboldProcess.killed) {
-          this.windowManager.sendKoboldOutput(
-            'Stopping KoboldCpp process before update...'
-          );
-
-          await this.cleanup();
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-        }
-
-        await this.removeDirectoryWithRetry(unpackedDirPath);
-      } catch (error) {
-        this.logManager.logError(
-          'Failed to remove existing directory for update:',
-          error as Error
-        );
-        throw new Error(
-          `Cannot update: Failed to remove existing installation. ` +
-            `Please ensure KoboldCpp is stopped and try again. ` +
-            `Error: ${(error as Error).message}`
-        );
+    const result = await downloadAndUnpackBinary(
+      {
+        name: asset.name,
+        url: asset.browser_download_url,
+        size: asset.size,
+        type: 'asset' as const,
+      },
+      {
+        installDir: this.installDir,
+        onProgress,
+        isUpdate: asset.isUpdate,
+        wasCurrentBinary: asset.wasCurrentBinary,
+        logManager: this.logManager,
+        configManager: this.configManager,
+        windowManager: this.windowManager,
+        unpackFunction: this.unpackKoboldCpp.bind(this),
+        getLauncherPath: this.getLauncherPath.bind(this),
+        removeDirectoryWithRetry: this.removeDirectoryWithRetry.bind(this),
+        cleanup: this.cleanup.bind(this),
+        koboldProcess: this.koboldProcess || undefined,
       }
+    );
+
+    if (!result.success) {
+      throw new Error(result.error || 'Download failed');
     }
 
-    const writer = createWriteStream(tempPackedFilePath);
-    let downloadedBytes = 0;
-    const totalBytes = asset.size;
-
-    try {
-      await pipeline(
-        got
-          .stream(asset.browser_download_url)
-          .on('downloadProgress', (progress) => {
-            downloadedBytes = progress.transferred;
-            if (onProgress && totalBytes > 0) {
-              onProgress((downloadedBytes / totalBytes) * 100);
-            }
-          }),
-        writer
-      );
-    } catch (error) {
-      throw new Error(`Download failed: ${(error as Error).message}`);
-    }
-
-    if (process.platform !== 'win32') {
-      try {
-        chmodSync(tempPackedFilePath, 0o755);
-      } catch (error) {
-        this.logManager.logError(
-          'Failed to make binary executable:',
-          error as Error
-        );
-      }
-    }
-
-    try {
-      await this.unpackKoboldCpp(tempPackedFilePath, unpackedDirPath);
-
-      try {
-        unlinkSync(tempPackedFilePath);
-      } catch (error) {
-        this.logManager.logError(
-          'Failed to cleanup packed file:',
-          error as Error
-        );
-      }
-
-      const launcherPath = this.getLauncherPath(unpackedDirPath);
-      if (launcherPath && existsSync(launcherPath)) {
-        const currentBinary = this.configManager.getCurrentKoboldBinary();
-        if (!currentBinary || (asset.isUpdate && asset.wasCurrentBinary)) {
-          this.configManager.setCurrentKoboldBinary(launcherPath);
-        }
-
-        this.windowManager.sendToRenderer('versions-updated');
-
-        return launcherPath;
-      } else {
-        throw new Error('Failed to find koboldcpp-launcher after unpacking');
-      }
-    } catch (error) {
-      this.logManager.logError('Failed to unpack KoboldCpp:', error as Error);
-      throw error;
-    }
+    return result.path!;
   }
 
   private async unpackKoboldCpp(
@@ -562,91 +496,23 @@ export class KoboldCppManager {
         };
       }
 
-      const tempPackedFilePath = join(
-        this.installDir,
-        `${rocmInfo.name}.packed`
+      return await downloadAndUnpackBinary(
+        {
+          name: rocmInfo.name,
+          url: rocmInfo.url,
+          size: rocmInfo.size,
+          type: 'rocm' as const,
+        },
+        {
+          installDir: this.installDir,
+          onProgress,
+          logManager: this.logManager,
+          configManager: this.configManager,
+          windowManager: this.windowManager,
+          unpackFunction: this.unpackKoboldCpp.bind(this),
+          getLauncherPath: this.getLauncherPath.bind(this),
+        }
       );
-      const baseFilename = stripAssetExtensions(rocmInfo.name);
-      const unpackedDirPath = join(this.installDir, baseFilename);
-
-      const response = await fetch(rocmInfo.url);
-      if (!response.ok) {
-        return {
-          success: false,
-          error: `Failed to download: ${response.statusText}`,
-        };
-      }
-
-      const writer = createWriteStream(tempPackedFilePath);
-      let downloadedBytes = 0;
-      const totalBytes = rocmInfo.size;
-
-      try {
-        await pipeline(
-          got.stream(rocmInfo.url).on('downloadProgress', (progress) => {
-            downloadedBytes = progress.transferred;
-            if (onProgress && totalBytes > 0) {
-              onProgress((downloadedBytes / totalBytes) * 100);
-            }
-          }),
-          writer
-        );
-      } catch (error) {
-        return {
-          success: false,
-          error: `Download failed: ${(error as Error).message}`,
-        };
-      }
-
-      if (process.platform !== 'win32') {
-        try {
-          chmodSync(tempPackedFilePath, 0o755);
-        } catch (error) {
-          this.logManager.logError(
-            'Failed to make ROCm binary executable:',
-            error as Error
-          );
-        }
-      }
-
-      try {
-        await this.unpackKoboldCpp(tempPackedFilePath, unpackedDirPath);
-
-        try {
-          unlinkSync(tempPackedFilePath);
-        } catch (error) {
-          this.logManager.logError(
-            'Failed to cleanup packed ROCm file:',
-            error as Error
-          );
-        }
-
-        const launcherPath = this.getLauncherPath(unpackedDirPath);
-        if (launcherPath && existsSync(launcherPath)) {
-          const currentBinary = this.configManager.getCurrentKoboldBinary();
-          if (!currentBinary) {
-            this.configManager.setCurrentKoboldBinary(launcherPath);
-          }
-
-          this.windowManager.sendToRenderer('versions-updated');
-
-          return {
-            success: true,
-            path: launcherPath,
-          };
-        } else {
-          return {
-            success: false,
-            error: 'Failed to find koboldcpp-launcher after unpacking ROCm',
-          };
-        }
-      } catch (error) {
-        this.logManager.logError('Failed to unpack ROCm:', error as Error);
-        return {
-          success: false,
-          error: `Failed to unpack ROCm: ${(error as Error).message}`,
-        };
-      }
     } catch (error) {
       return {
         success: false,
