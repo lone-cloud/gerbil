@@ -1,9 +1,9 @@
-import { existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { LogManager } from '@/main/managers/LogManager';
 import type { KoboldCppManager } from '@/main/managers/KoboldCppManager';
 import type { HardwareService } from '@/main/services/HardwareService';
 import type { BackendOption } from '@/types';
+import { pathExists } from '@/utils/fs';
 
 export interface BackendSupport {
   rocm: boolean;
@@ -31,9 +31,9 @@ export class BinaryService {
     this.hardwareService = hardwareService;
   }
 
-  private detectBackendSupportFromPath(
+  private async detectBackendSupportFromPath(
     koboldBinaryPath: string
-  ): BackendSupport {
+  ): Promise<BackendSupport> {
     if (this.backendSupportCache.has(koboldBinaryPath)) {
       return this.backendSupportCache.get(koboldBinaryPath)!;
     }
@@ -54,28 +54,28 @@ export class BinaryService {
       const platform = process.platform;
       const libExtension = platform === 'win32' ? '.dll' : '.so';
 
-      const hasKoboldCppLib = (name: string) => {
+      const hasKoboldCppLib = async (name: string): Promise<boolean> => {
         const filename = `${name}${libExtension}`;
 
         if (platform === 'win32') {
           return (
-            existsSync(join(binaryDir, filename)) ||
-            existsSync(join(internalDir, filename))
+            (await pathExists(join(binaryDir, filename))) ||
+            (await pathExists(join(internalDir, filename)))
           );
         } else {
           return (
-            existsSync(join(internalDir, filename)) ||
-            existsSync(join(binaryDir, filename))
+            (await pathExists(join(internalDir, filename))) ||
+            (await pathExists(join(binaryDir, filename)))
           );
         }
       };
 
-      support.rocm = hasKoboldCppLib('koboldcpp_hipblas');
-      support.vulkan = hasKoboldCppLib('koboldcpp_vulkan');
-      support.clblast = hasKoboldCppLib('koboldcpp_clblast');
-      support.noavx2 = hasKoboldCppLib('koboldcpp_noavx2');
-      support.failsafe = hasKoboldCppLib('koboldcpp_failsafe');
-      support.cuda = hasKoboldCppLib('koboldcpp_cublas');
+      support.rocm = await hasKoboldCppLib('koboldcpp_hipblas');
+      support.vulkan = await hasKoboldCppLib('koboldcpp_vulkan');
+      support.clblast = await hasKoboldCppLib('koboldcpp_clblast');
+      support.noavx2 = await hasKoboldCppLib('koboldcpp_noavx2');
+      support.failsafe = await hasKoboldCppLib('koboldcpp_failsafe');
+      support.cuda = await hasKoboldCppLib('koboldcpp_cublas');
     } catch (error) {
       this.logManager.logError(
         'Error detecting backend support:',

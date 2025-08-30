@@ -2,9 +2,9 @@ import { GITHUB_API, ROCM } from '@/constants';
 import type { DownloadItem } from '@/types/electron';
 import type { GitHubAsset } from '@/types';
 
-export async function getROCmDownload(
-  platform: string
-): Promise<DownloadItem | null> {
+export async function getROCmDownload(): Promise<DownloadItem | null> {
+  const platform = await window.electronAPI.kobold.getPlatform();
+
   if (platform === 'linux') {
     return getLinuxROCmDownload();
   } else if (platform === 'win32') {
@@ -29,7 +29,6 @@ async function getLinuxROCmDownload(): Promise<DownloadItem | null> {
       url: ROCM.LINUX.DOWNLOAD_URL,
       size: ROCM.LINUX.SIZE_BYTES_APPROX,
       version,
-      type: 'rocm',
     };
   } catch {
     return {
@@ -37,7 +36,6 @@ async function getLinuxROCmDownload(): Promise<DownloadItem | null> {
       url: ROCM.LINUX.DOWNLOAD_URL,
       size: ROCM.LINUX.SIZE_BYTES_APPROX,
       version: 'unknown',
-      type: 'rocm',
     };
   }
 }
@@ -66,11 +64,10 @@ async function getWindowsROCmDownload(): Promise<DownloadItem | null> {
     }
 
     return {
-      name: windowsAsset.name.replace('.exe', ''),
+      name: windowsAsset.name,
       url: windowsAsset.browser_download_url,
       size: windowsAsset.size,
       version,
-      type: 'rocm',
     };
   } catch {
     return null;

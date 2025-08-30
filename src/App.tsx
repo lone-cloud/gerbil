@@ -99,7 +99,6 @@ export const App = () => {
   const handleBinaryUpdate = async (download: DownloadItem) => {
     await Logger.safeExecute(async () => {
       const success = await sharedHandleDownload({
-        type: 'asset',
         item: download,
         isUpdate: true,
         wasCurrentBinary: true,

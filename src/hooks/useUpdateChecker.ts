@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { getDisplayNameFromPath, compareVersions } from '@/utils/version';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
+import { getROCmDownload } from '@/utils/rocm';
 import type { InstalledVersion, DownloadItem } from '@/types/electron';
 
 interface UpdateInfo {
@@ -17,7 +18,7 @@ export const useUpdateChecker = () => {
   );
   const [dismissedUpdatesLoaded, setDismissedUpdatesLoaded] = useState(false);
 
-  const { availableDownloads: releases, getROCmDownload } = useKoboldVersions();
+  const { availableDownloads: releases } = useKoboldVersions();
 
   useEffect(() => {
     const loadDismissedUpdates = async () => {
@@ -71,6 +72,7 @@ export const useUpdateChecker = () => {
           window.electronAPI.kobold.getInstalledVersions(),
           getROCmDownload(),
         ]);
+
       if (!currentBinaryPath || installedVersionsResult.length === 0) {
         return;
       }
@@ -122,7 +124,7 @@ export const useUpdateChecker = () => {
     } finally {
       setIsChecking(false);
     }
-  }, [dismissedUpdates, dismissedUpdatesLoaded, releases, getROCmDownload]);
+  }, [dismissedUpdates, dismissedUpdatesLoaded, releases]);
 
   const dismissUpdate = useCallback(async () => {
     if (updateInfo) {

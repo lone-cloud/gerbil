@@ -206,7 +206,6 @@ export const VersionsTab = () => {
       }
 
       const success = await sharedHandleDownload({
-        type: 'asset',
         item: download,
         isUpdate: false,
         wasCurrentBinary: false,
@@ -226,7 +225,6 @@ export const VersionsTab = () => {
       }
 
       const success = await sharedHandleDownload({
-        type: 'asset',
         item: download,
         isUpdate: true,
         wasCurrentBinary: version.isCurrent,

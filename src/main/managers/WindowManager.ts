@@ -1,10 +1,10 @@
 import { BrowserWindow, app, Menu, shell, nativeImage } from 'electron';
 import * as os from 'os';
 import { join } from 'path';
-import { readFileSync } from 'fs';
 import { stripVTControlCharacters } from 'util';
 import { GITHUB_API, PRODUCT_NAME } from '../../constants';
 import type { IPCChannel, IPCChannelPayloads } from '@/types/ipc';
+import { readTextFile } from '@/utils/fs';
 
 export class WindowManager {
   private mainWindow: BrowserWindow | null = null;
@@ -301,7 +301,8 @@ export class WindowManager {
 
   private async showAboutDialog() {
     const packagePath = join(app.getAppPath(), 'package.json');
-    const packageInfo = JSON.parse(readFileSync(packagePath, 'utf8'));
+    const packageContent = await readTextFile(packagePath);
+    const packageInfo = packageContent ? JSON.parse(packageContent) : {};
     const electronVersion = process.versions.electron;
     const chromeVersion = process.versions.chrome;
     const nodeVersion = process.versions.node;

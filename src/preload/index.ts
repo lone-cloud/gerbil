@@ -12,7 +12,6 @@ const koboldAPI: KoboldAPI = {
   getInstalledVersions: () => ipcRenderer.invoke('kobold:getInstalledVersions'),
   setCurrentVersion: (version: string) =>
     ipcRenderer.invoke('kobold:setCurrentVersion', version),
-  downloadROCm: () => ipcRenderer.invoke('kobold:downloadROCm'),
   getPlatform: () => ipcRenderer.invoke('kobold:getPlatform'),
   detectGPU: () => ipcRenderer.invoke('kobold:detectGPU'),
   detectCPU: () => ipcRenderer.invoke('kobold:detectCPU'),

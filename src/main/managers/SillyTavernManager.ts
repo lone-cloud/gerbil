@@ -2,13 +2,13 @@ import { spawn } from 'child_process';
 import { createServer, request, type Server } from 'http';
 import { homedir } from 'os';
 import { join } from 'path';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
 import type { ChildProcess } from 'child_process';
 
 import { LogManager } from './LogManager';
 import { WindowManager } from './WindowManager';
 import { SILLYTAVERN } from '@/constants';
 import { terminateProcess } from '@/utils/process';
+import { pathExists, readJsonFile, writeJsonFile } from '@/utils/fs';
 
 export interface SillyTavernConfig {
   name: string;
@@ -70,14 +70,14 @@ export class SillyTavernManager {
     }
   }
 
-  private getSillyTavernDataRoot(): string {
+  private async getSillyTavernDataRoot(): Promise<string> {
     if (this.detectedDataRoot) {
       return this.detectedDataRoot;
     }
 
     const fallback = this.getFallbackDataRoot();
 
-    if (existsSync(fallback)) {
+    if (await pathExists(fallback)) {
       this.detectedDataRoot = fallback;
       return fallback;
     }
@@ -103,7 +103,7 @@ export class SillyTavernManager {
     }
 
     for (const path of alternatePaths) {
-      if (existsSync(path)) {
+      if (await pathExists(path)) {
         this.detectedDataRoot = path;
         return path;
       }
@@ -113,8 +113,9 @@ export class SillyTavernManager {
     return fallback;
   }
 
-  private getSillyTavernSettingsPath(): string {
-    return join(this.getSillyTavernDataRoot(), 'default-user', 'settings.json');
+  private async getSillyTavernSettingsPath(): Promise<string> {
+    const dataRoot = await this.getSillyTavernDataRoot();
+    return join(dataRoot, 'default-user', 'settings.json');
   }
 
   async isNpxAvailable(): Promise<boolean> {
@@ -150,9 +151,9 @@ export class SillyTavernManager {
   }
 
   private async ensureSillyTavernSettings(): Promise<void> {
-    const settingsPath = this.getSillyTavernSettingsPath();
+    const settingsPath = await this.getSillyTavernSettingsPath();
 
-    if (existsSync(settingsPath)) {
+    if (await pathExists(settingsPath)) {
       this.windowManager.sendKoboldOutput(
         `SillyTavern settings found at ${settingsPath}`
       );
@@ -281,16 +282,19 @@ export class SillyTavernManager {
     isImageMode: boolean
   ): Promise<void> {
     try {
-      const configPath = this.getSillyTavernSettingsPath();
+      const configPath = await this.getSillyTavernSettingsPath();
       let settings: Record<string, unknown> = {};
 
-      if (existsSync(configPath)) {
+      if (await pathExists(configPath)) {
         try {
-          const content = readFileSync(configPath, 'utf-8');
-          settings = JSON.parse(content) as Record<string, unknown>;
-          this.windowManager.sendKoboldOutput(
-            `Loaded existing SillyTavern settings`
-          );
+          const existingSettings =
+            await readJsonFile<Record<string, unknown>>(configPath);
+          if (existingSettings) {
+            settings = existingSettings;
+            this.windowManager.sendKoboldOutput(
+              `Loaded existing SillyTavern settings`
+            );
+          }
         } catch {
           this.windowManager.sendKoboldOutput(
             `Could not read existing settings, creating new ones`
@@ -333,7 +337,7 @@ export class SillyTavernManager {
         `Configured SillyTavern for text generation with KoboldCpp at ${koboldUrl}`
       );
 
-      writeFileSync(configPath, JSON.stringify(settings, null, 2), 'utf-8');
+      await writeJsonFile(configPath, settings);
 
       this.windowManager.sendKoboldOutput(
         `SillyTavern configuration updated successfully!`

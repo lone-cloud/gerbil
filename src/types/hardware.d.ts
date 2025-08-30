@@ -40,12 +40,7 @@ export interface HardwareInfo {
   gpuCapabilities?: GPUCapabilities;
 }
 
-export interface PlatformInfo {
-  platform: string;
-  arch: string;
-}
-
 export interface SystemCapabilities {
   hardware: HardwareInfo;
-  platform: PlatformInfo;
+  platform: string;
 }

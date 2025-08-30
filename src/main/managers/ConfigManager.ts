@@ -1,5 +1,5 @@
-import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { LogManager } from '@/main/managers/LogManager';
+import { readJsonFile, writeJsonFile } from '@/utils/fs';
 import type { FrontendPreference } from '@/types';
 
 type ConfigValue = string | number | boolean | unknown[] | undefined;
@@ -20,23 +20,25 @@ export class ConfigManager {
   constructor(configPath: string, logManager: LogManager) {
     this.configPath = configPath;
     this.logManager = logManager;
-    this.config = this.loadConfig();
   }
 
-  private loadConfig(): AppConfig {
+  async initialize(): Promise<void> {
+    this.config = await this.loadConfig();
+  }
+
+  private async loadConfig(): Promise<AppConfig> {
     try {
-      if (existsSync(this.configPath)) {
-        return JSON.parse(readFileSync(this.configPath, 'utf8'));
-      }
+      const config = await readJsonFile<AppConfig>(this.configPath);
+      return config || {};
     } catch (error) {
       this.logManager.logError('Error loading config:', error as Error);
+      return {};
     }
-    return {};
   }
 
-  private saveConfig() {
+  private async saveConfig(): Promise<void> {
     try {
-      writeFileSync(this.configPath, JSON.stringify(this.config, null, 2));
+      await writeJsonFile(this.configPath, this.config);
     } catch (error) {
       this.logManager.logError('Error saving config:', error as Error);
     }
@@ -46,18 +48,18 @@ export class ConfigManager {
     return this.config[key];
   }
 
-  set(key: string, value: ConfigValue): void {
+  async set(key: string, value: ConfigValue): Promise<void> {
     this.config[key] = value;
-    this.saveConfig();
+    await this.saveConfig();
   }
 
   getInstallDir(): string | undefined {
     return this.config.installDir;
   }
 
-  setInstallDir(dir: string) {
+  async setInstallDir(dir: string): Promise<void> {
     this.config.installDir = dir;
-    this.saveConfig();
+    await this.saveConfig();
   }
 
   getCurrentKoboldBinary(): string | undefined {
@@ -65,17 +67,17 @@ export class ConfigManager {
     return path ? path.trim() : path;
   }
 
-  setCurrentKoboldBinary(binaryPath: string) {
+  async setCurrentKoboldBinary(binaryPath: string): Promise<void> {
     this.config.currentKoboldBinary = binaryPath;
-    this.saveConfig();
+    await this.saveConfig();
   }
 
   getSelectedConfig(): string | undefined {
     return this.config.selectedConfig;
   }
 
-  setSelectedConfig(configName: string) {
+  async setSelectedConfig(configName: string): Promise<void> {
     this.config.selectedConfig = configName;
-    this.saveConfig();
+    await this.saveConfig();
   }
 }

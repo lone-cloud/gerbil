@@ -52,26 +52,10 @@ export class IPCHandlers {
   }
 
   setupHandlers() {
-    ipcMain.handle('kobold:downloadRelease', async (_, asset) => {
-      try {
-        const mainWindow = this.koboldManager
-          .getWindowManager()
-          .getMainWindow();
-
-        const filePath = await this.koboldManager.downloadRelease(
-          asset,
-          (progress: number) => {
-            if (mainWindow) {
-              mainWindow.webContents.send('download-progress', progress);
-            }
-          }
-        );
-
-        return { success: true, path: filePath };
-      } catch (error) {
-        return { success: false, error: (error as Error).message };
-      }
-    });
+    ipcMain.handle('kobold:downloadRelease', async (_, asset) => ({
+      success: true,
+      path: await this.koboldManager.downloadRelease(asset),
+    }));
 
     ipcMain.handle('kobold:getInstalledVersions', () =>
       this.koboldManager.getInstalledVersions()
@@ -131,26 +115,7 @@ export class IPCHandlers {
         this.binaryService.getAvailableBackends(includeDisabled)
     );
 
-    ipcMain.handle('kobold:getPlatform', () => ({
-      platform: process.platform,
-      arch: process.arch,
-    }));
-
-    ipcMain.handle('kobold:downloadROCm', async () => {
-      try {
-        const mainWindow = this.koboldManager
-          .getWindowManager()
-          .getMainWindow();
-
-        return await this.koboldManager.downloadROCm((progress: number) => {
-          if (mainWindow) {
-            mainWindow.webContents.send('download-progress', progress);
-          }
-        });
-      } catch (error) {
-        return { success: false, error: (error as Error).message };
-      }
-    });
+    ipcMain.handle('kobold:getPlatform', () => process.platform);
 
     ipcMain.handle('kobold:launchKoboldCpp', (_, args) =>
       this.launchKoboldCppWithCustomFrontends(args)

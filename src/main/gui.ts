@@ -1,6 +1,5 @@
 import { app } from 'electron';
 import { join } from 'path';
-import { existsSync, mkdirSync } from 'fs';
 
 import { WindowManager } from '@/main/managers/WindowManager';
 import { ConfigManager } from '@/main/managers/ConfigManager';
@@ -12,6 +11,7 @@ import { BinaryService } from '@/main/services/BinaryService';
 import { IPCHandlers } from '@/main/ipc';
 import { PRODUCT_NAME, CONFIG_FILE_NAME } from '@/constants';
 import { homedir } from 'os';
+import { ensureDir } from '@/utils/fs';
 
 export class FriendlyKoboldApp {
   private windowManager: WindowManager;
@@ -31,7 +31,6 @@ export class FriendlyKoboldApp {
       this.getConfigPath(),
       this.logManager
     );
-    this.ensureInstallDirectory();
     this.windowManager = new WindowManager();
     this.hardwareService = new HardwareService(this.logManager);
 
@@ -80,22 +79,22 @@ export class FriendlyKoboldApp {
     }
   }
 
-  private ensureInstallDirectory() {
+  private async ensureInstallDirectory(): Promise<void> {
     const installDir =
       this.configManager.getInstallDir() ||
       this.getDefaultInstallDir(PRODUCT_NAME);
 
     if (!this.configManager.getInstallDir()) {
-      this.configManager.setInstallDir(installDir);
+      await this.configManager.setInstallDir(installDir);
     }
 
-    if (!existsSync(installDir)) {
-      mkdirSync(installDir, { recursive: true });
-    }
+    await ensureDir(installDir);
   }
 
   async initialize(): Promise<void> {
     await app.whenReady();
+    await this.configManager.initialize();
+    await this.ensureInstallDirectory();
 
     if (process.platform === 'linux') {
       app.setAppUserModelId('com.friendly-kobold.app');
