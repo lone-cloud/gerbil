@@ -26,7 +26,7 @@ export const WelcomeScreen = ({ onGetStarted }: WelcomeScreenProps) => (
               Gerbil
             </Title>
             <Text size="lg" c="dimmed" ta="center" maw={600}>
-              A desktop app for running Large Language Models locally
+              Run Large Language Models locally
             </Text>
           </Stack>
 

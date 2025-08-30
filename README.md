@@ -1,6 +1,6 @@
 # Gerbil
 
-A simple desktop app to easily run Large Language Models locally through KoboldCpp.
+A desktop app to easily run Large Language Models locally.
 
 <img src="src/assets/icon.png" alt="Gerbil Icon" width="32" height="32">
 
@@ -8,7 +8,7 @@ A simple desktop app to easily run Large Language Models locally through KoboldC
 
 ## Core Features
 
-- **Run LLMs locally** with an intuitive interface powered by [KoboldCpp](https://github.com/LostRuins/koboldcpp)
+- **Run LLMs locally** powered by [KoboldCpp](https://github.com/LostRuins/koboldcpp)
 - **Cross-platform desktop app** - Native support for Windows, macOS, and Linux (including Wayland)
 - **Automatic updates** - Download and keep your KoboldCpp binary up-to-date effortlessly
 - **Smart process management** - Prevents runaway background processes and system resource waste
