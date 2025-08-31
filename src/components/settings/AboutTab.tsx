@@ -12,6 +12,7 @@ import {
   rem,
 } from '@mantine/core';
 import { Github, FolderOpen } from 'lucide-react';
+import { safeExecute } from '@/utils/logger';
 import type { VersionInfo } from '@/types/electron';
 import { PRODUCT_NAME } from '@/constants';
 import iconUrl from '/icon.png';
@@ -19,14 +20,12 @@ export const AboutTab = () => {
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   useEffect(() => {
     const loadVersionInfo = async () => {
-      try {
-        const info = await window.electronAPI.app.getVersionInfo();
+      const info = await safeExecute(
+        () => window.electronAPI.app.getVersionInfo(),
+        'Failed to load version info'
+      );
+      if (info) {
         setVersionInfo(info);
-      } catch (error) {
-        window.electronAPI.logs.logError(
-          'Failed to load version info',
-          error as Error
-        );
       }
     };
     loadVersionInfo();
@@ -106,14 +105,10 @@ export const AboutTab = () => {
                   <FolderOpen style={{ width: rem(16), height: rem(16) }} />
                 }
                 onClick={async () => {
-                  try {
-                    await window.electronAPI.app.showLogsFolder();
-                  } catch (error) {
-                    window.electronAPI.logs.logError(
-                      'Failed to open logs folder',
-                      error as Error
-                    );
-                  }
+                  await safeExecute(
+                    () => window.electronAPI.app.showLogsFolder(),
+                    'Failed to open logs folder'
+                  );
                 }}
               >
                 Show Logs

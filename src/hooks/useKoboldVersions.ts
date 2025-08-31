@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { error } from '@/utils/logger';
 import { getROCmDownload } from '@/utils/rocm';
 import { GITHUB_API } from '@/constants';
 import { filterAssetsByPlatform } from '@/utils/platform';
@@ -45,11 +46,8 @@ const saveToCache = (releases: DownloadItem[]) => {
       timestamp: Date.now(),
     };
     localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-  } catch (error) {
-    window.electronAPI.logs.logError(
-      'Failed to save releases to cache',
-      error as Error
-    );
+  } catch (err) {
+    error('Failed to save releases to cache', err as Error);
   }
 };
 
@@ -126,11 +124,8 @@ const getLatestReleaseWithDownloadStatus =
         release: latestRelease,
         availableAssets,
       };
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to fetch latest release with status:',
-        error as Error
-      );
+    } catch (err) {
+      error('Failed to fetch latest release with status:', err as Error);
       return null;
     }
   };
@@ -209,12 +204,8 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
       }
 
       setAvailableDownloads(allDownloads);
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to load remote versions:',
-        error as Error
-      );
-
+    } catch (err) {
+      error('Failed to load remote versions:', err as Error);
       const cached = loadFromCache();
       if (cached) {
         const rocm = await getROCmDownload().catch(() => null);
@@ -251,11 +242,8 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
         });
 
         return result.success !== false;
-      } catch (error) {
-        window.electronAPI.logs.logError(
-          `Failed to download ${item.name}:`,
-          error as Error
-        );
+      } catch (err) {
+        error('Failed to download ${item.name}:', err as Error);
         return false;
       } finally {
         setDownloading(null);

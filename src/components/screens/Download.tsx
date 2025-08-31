@@ -5,7 +5,7 @@ import { getPlatformDisplayName } from '@/utils/platform';
 import { formatDownloadSize } from '@/utils/download';
 import { getAssetDescription, sortDownloadsByType } from '@/utils/assets';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
-import { Logger } from '@/utils/logger';
+import { safeExecute } from '@/utils/logger';
 import type { DownloadItem } from '@/types/electron';
 
 interface DownloadScreenProps {
@@ -34,7 +34,7 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
     async (download: DownloadItem) => {
       setDownloadingAsset(download.name);
 
-      await Logger.safeExecute(async () => {
+      await safeExecute(async () => {
         const success = await sharedHandleDownload({
           item: download,
           isUpdate: false,

@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { error } from '@/utils/logger';
 import {
   getDisplayNameFromPath,
   compareVersions,
@@ -34,11 +35,8 @@ export const useUpdateChecker = () => {
           setDismissedUpdates(new Set(dismissed));
         }
         setDismissedUpdatesLoaded(true);
-      } catch (error) {
-        window.electronAPI.logs.logError(
-          'Failed to load dismissed updates:',
-          error as Error
-        );
+      } catch (err) {
+        error('Failed to load dismissed updates:', err as Error);
         setDismissedUpdatesLoaded(true);
       }
     };
@@ -52,11 +50,8 @@ export const useUpdateChecker = () => {
         'dismissedUpdates',
         Array.from(updates)
       );
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to save dismissed updates:',
-        error as Error
-      );
+    } catch (err) {
+      error('Failed to save dismissed updates:', err as Error);
     }
   }, []);
 
@@ -110,11 +105,8 @@ export const useUpdateChecker = () => {
           }
         }
       }
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to check for updates:',
-        error as Error
-      );
+    } catch (err) {
+      error('Failed to check for updates:', err as Error);
     } finally {
       setIsChecking(false);
     }

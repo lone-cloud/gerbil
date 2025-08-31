@@ -1,56 +1,54 @@
-export class Logger {
-  private static logError(message: string, error: Error): void {
-    if (window.electronAPI?.logs?.logError) {
-      window.electronAPI.logs.logError(message, error);
-    }
+const logError = (message: string, error: Error): void => {
+  if (window.electronAPI?.logs?.logError) {
+    window.electronAPI.logs.logError(message, error);
   }
+};
 
-  static async safeExecute<T>(
-    operation: () => Promise<T>,
-    errorMessage: string
-  ): Promise<T | null> {
-    try {
-      return operation();
-    } catch (error) {
-      this.logError(errorMessage, error as Error);
-      return null;
-    }
+export const safeExecute = async <T>(
+  operation: () => Promise<T>,
+  errorMessage: string
+): Promise<T | null> => {
+  try {
+    return operation();
+  } catch (error) {
+    logError(errorMessage, error as Error);
+    return null;
   }
+};
 
-  static safeExecuteSync<T>(
-    operation: () => T,
-    errorMessage: string
-  ): T | null {
-    try {
-      return operation();
-    } catch (error) {
-      this.logError(errorMessage, error as Error);
-      return null;
-    }
+export const safeExecuteSync = <T>(
+  operation: () => T,
+  errorMessage: string
+): T | null => {
+  try {
+    return operation();
+  } catch (error) {
+    logError(errorMessage, error as Error);
+    return null;
   }
+};
 
-  static async tryExecute(
-    operation: () => Promise<void>,
-    errorMessage: string
-  ): Promise<boolean> {
-    try {
-      await operation();
-      return true;
-    } catch (error) {
-      this.logError(errorMessage, error as Error);
-      return false;
-    }
+export const tryExecute = async (
+  operation: () => Promise<void>,
+  errorMessage: string
+): Promise<boolean> => {
+  try {
+    await operation();
+    return true;
+  } catch (error) {
+    logError(errorMessage, error as Error);
+    return false;
   }
+};
 
-  static withErrorHandling<TArgs extends unknown[], TReturn>(
+export const withErrorHandling =
+  <TArgs extends unknown[], TReturn>(
     fn: (...args: TArgs) => Promise<TReturn>,
     errorMessage: string
-  ): (...args: TArgs) => Promise<TReturn | null> {
-    return async (...args: TArgs) =>
-      this.safeExecute(() => fn(...args), errorMessage);
-  }
+  ): ((...args: TArgs) => Promise<TReturn | null>) =>
+  async (...args: TArgs) =>
+    safeExecute(() => fn(...args), errorMessage);
 
-  static error(message: string, error: Error): void {
-    this.logError(message, error);
-  }
-}
+export const error = (message: string, error: Error): void => {
+  logError(message, error);
+};

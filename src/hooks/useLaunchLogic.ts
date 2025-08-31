@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { error } from '@/utils/logger';
 import type { SdConvDirectMode } from '@/types';
 
 interface UseLaunchLogicProps {
@@ -285,11 +286,8 @@ export const useLaunchLogic = ({
             new Error(errorMessage)
           );
         }
-      } catch (error) {
-        window.electronAPI.logs.logError(
-          'Error launching KoboldCpp:',
-          error as Error
-        );
+      } catch (err) {
+        error('Error launching KoboldCpp:', err as Error);
       } finally {
         setIsLaunching(false);
       }

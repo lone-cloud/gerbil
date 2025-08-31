@@ -1,4 +1,5 @@
 import { useMemo, useEffect, useState, useCallback } from 'react';
+import { safeExecute } from '@/utils/logger';
 import type { BackendOption } from '@/types';
 
 export interface Warning {
@@ -100,8 +101,12 @@ const checkVramWarnings = async (backend: string): Promise<Warning[]> => {
   const isGpuBackend = ['cuda', 'rocm', 'vulkan', 'clblast'].includes(backend);
 
   if (isGpuBackend) {
-    try {
-      const gpuMemoryInfo = await window.electronAPI.kobold.detectGPUMemory();
+    const gpuMemoryInfo = await safeExecute(
+      () => window.electronAPI.kobold.detectGPUMemory(),
+      'Failed to detect GPU memory:'
+    );
+
+    if (gpuMemoryInfo) {
       const lowVramGpus = gpuMemoryInfo.filter(
         (gpu) =>
           typeof gpu.totalMemoryMB === 'number' && gpu.totalMemoryMB < 8192
@@ -120,11 +125,6 @@ const checkVramWarnings = async (backend: string): Promise<Warning[]> => {
             )}). Consider using smaller models, reducing GPU layers, or enabling the "Low VRAM" option on the Advanced tab.`,
         });
       }
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to detect GPU memory:',
-        error as Error
-      );
     }
   }
 
@@ -186,7 +186,7 @@ const checkBackendWarnings = async (params?: {
 }): Promise<Warning[]> => {
   const warnings: Warning[] = [];
 
-  try {
+  const result = await safeExecute(async () => {
     const [backendSupport, gpuCapabilities, gpuInfo] = await Promise.all([
       window.electronAPI.kobold.detectBackendSupport(),
       window.electronAPI.kobold.detectGPUCapabilities(),
@@ -224,13 +224,9 @@ const checkBackendWarnings = async (params?: {
     }
 
     return warnings;
-  } catch (error) {
-    window.electronAPI.logs.logError(
-      'Failed to check backend warnings:',
-      error as Error
-    );
-    return warnings;
-  }
+  }, 'Failed to check backend warnings:');
+
+  return result || warnings;
 };
 
 export const useWarnings = ({
@@ -254,7 +250,7 @@ export const useWarnings = ({
       return;
     }
 
-    try {
+    const result = await safeExecute(async () => {
       const [cpuCapabilitiesResult, availableBackends] = await Promise.all([
         window.electronAPI.kobold.detectCPU(),
         window.electronAPI.kobold.getAvailableBackends(),
@@ -265,21 +261,16 @@ export const useWarnings = ({
         avx2: cpuCapabilitiesResult.avx2,
       };
 
-      const warnings = await checkBackendWarnings({
+      return checkBackendWarnings({
         backend,
         cpuCapabilities,
         noavx2,
         failsafe,
         availableBackends,
       });
-      setBackendWarnings(warnings);
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to check backend warnings:',
-        error as Error
-      );
-      setBackendWarnings([]);
-    }
+    }, 'Failed to check backend warnings:');
+
+    setBackendWarnings(result || []);
   }, [backend, noavx2, failsafe]);
 
   useEffect(() => {

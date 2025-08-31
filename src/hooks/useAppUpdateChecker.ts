@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { error } from '@/utils/logger';
 import { compareVersions } from '@/utils/version';
 import { GITHUB_API } from '@/constants';
 
@@ -48,11 +49,8 @@ export const useAppUpdateChecker = () => {
       setLastChecked(new Date());
 
       return updateInfo;
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to check for app updates:',
-        error as Error
-      );
+    } catch (err) {
+      error('Failed to check for app updates:', err as Error);
       return null;
     } finally {
       setIsChecking(false);

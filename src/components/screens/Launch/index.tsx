@@ -1,5 +1,6 @@
 import { Card, Container, Stack, Tabs, Group, Button } from '@mantine/core';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { tryExecute, error, safeExecute } from '@/utils/logger';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 import { useLaunchLogic } from '@/hooks/useLaunchLogic';
 import { useWarnings } from '@/hooks/useWarnings';
@@ -10,7 +11,6 @@ import { ImageGenerationTab } from '@/components/screens/Launch/ImageGenerationT
 import { WarningDisplay } from '@/components/WarningDisplay';
 import { ConfigFileManager } from '@/components/screens/Launch/ConfigFileManager';
 import { DEFAULT_MODEL_URL } from '@/constants';
-import { Logger } from '@/utils/logger';
 import type { ConfigFile } from '@/types';
 
 interface LaunchScreenProps {
@@ -86,7 +86,7 @@ export const LaunchScreen = ({
   });
 
   const setHappyDefaults = useCallback(async () => {
-    const backends = await Logger.safeExecute(
+    const backends = await safeExecute(
       () => window.electronAPI.kobold.getAvailableBackends(),
       'Failed to set defaults:'
     );
@@ -98,7 +98,7 @@ export const LaunchScreen = ({
 
   const setInitialDefaults = useCallback(
     async (currentModelPath: string, currentSdModel: string) => {
-      await Logger.tryExecute(async () => {
+      await tryExecute(async () => {
         if (
           !defaultsSetRef.current &&
           !currentModelPath.trim() &&
@@ -190,7 +190,7 @@ export const LaunchScreen = ({
   });
 
   const handleCreateNewConfig = async (configName: string) => {
-    await Logger.safeExecute(async () => {
+    await safeExecute(async () => {
       const fullConfigName = `${configName}.json`;
       const saveSuccess = await window.electronAPI.kobold.saveConfigFile(
         fullConfigName,
@@ -202,7 +202,7 @@ export const LaunchScreen = ({
         setSelectedFile(fullConfigName);
         await window.electronAPI.kobold.setSelectedConfig(fullConfigName);
       } else {
-        Logger.error(
+        error(
           'Failed to create new configuration',
           new Error('Save operation failed')
         );
@@ -212,21 +212,21 @@ export const LaunchScreen = ({
 
   const handleSaveConfig = async () => {
     if (!selectedFile) {
-      Logger.error(
+      error(
         'No configuration file selected for saving',
         new Error('Selected file is null')
       );
       return false;
     }
 
-    const success = await Logger.safeExecute(async () => {
+    const success = await safeExecute(async () => {
       const saveSuccess = await window.electronAPI.kobold.saveConfigFile(
         selectedFile,
         buildConfigData()
       );
 
       if (!saveSuccess) {
-        Logger.error(
+        error(
           'Failed to save configuration',
           new Error('Save operation failed')
         );

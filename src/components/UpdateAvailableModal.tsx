@@ -14,7 +14,7 @@ import { useState } from 'react';
 import type { InstalledVersion, DownloadItem } from '@/types/electron';
 import { getDisplayNameFromPath } from '@/utils/version';
 import { GITHUB_API } from '@/constants';
-import { Logger } from '@/utils/logger';
+import { safeExecute } from '@/utils/logger';
 
 interface UpdateAvailableModalProps {
   opened: boolean;
@@ -39,7 +39,7 @@ export const UpdateAvailableModal = ({
 
   const handleUpdate = async () => {
     setIsUpdating(true);
-    await Logger.safeExecute(async () => {
+    await safeExecute(async () => {
       await onUpdate(availableUpdate);
       onClose();
     }, 'Failed to update:');

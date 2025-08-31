@@ -18,7 +18,7 @@ import {
   stripAssetExtensions,
   compareVersions,
 } from '@/utils/version';
-import { Logger } from '@/utils/logger';
+import { safeExecute } from '@/utils/logger';
 import { formatDownloadSize } from '@/utils/download';
 
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
@@ -63,7 +63,7 @@ export const VersionsTab = () => {
   const loadInstalledVersions = useCallback(async () => {
     setLoadingInstalled(true);
 
-    await Logger.safeExecute(async () => {
+    await safeExecute(async () => {
       const [versions, currentVersion] = await Promise.all([
         window.electronAPI.kobold.getInstalledVersions(),
         window.electronAPI.kobold.getCurrentVersion(),
@@ -77,7 +77,7 @@ export const VersionsTab = () => {
   }, []);
 
   const loadLatestRelease = useCallback(async () => {
-    const release = await Logger.safeExecute(
+    const release = await safeExecute(
       () => getLatestReleaseWithDownloadStatus(),
       'Failed to load latest release:'
     );
@@ -174,7 +174,7 @@ export const VersionsTab = () => {
   }, [downloading]);
 
   const handleDownload = async (version: VersionInfo) => {
-    await Logger.safeExecute(async () => {
+    await safeExecute(async () => {
       const download = availableDownloads.find((d) => d.name === version.name);
       if (!download) {
         throw new Error('Download not found');
@@ -193,7 +193,7 @@ export const VersionsTab = () => {
   };
 
   const handleUpdate = async (version: VersionInfo) => {
-    await Logger.safeExecute(async () => {
+    await safeExecute(async () => {
       const download = availableDownloads.find((d) => d.name === version.name);
       if (!download) {
         throw new Error('Download not found');
@@ -214,7 +214,7 @@ export const VersionsTab = () => {
   const makeCurrent = async (version: VersionInfo) => {
     if (!version.installedPath) return;
 
-    await Logger.safeExecute(async () => {
+    await safeExecute(async () => {
       const success = await window.electronAPI.kobold.setCurrentVersion(
         version.installedPath!
       );

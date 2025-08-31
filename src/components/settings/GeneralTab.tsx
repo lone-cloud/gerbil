@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tryExecute, safeExecute } from '@/utils/logger';
 import {
   Stack,
   Text,
@@ -13,7 +14,6 @@ import { Folder, FolderOpen, Monitor } from 'lucide-react';
 import styles from '@/styles/layout.module.css';
 import type { FrontendPreference } from '@/types';
 import { FRONTENDS } from '@/constants';
-import { Logger } from '@/utils/logger';
 
 export const GeneralTab = () => {
   const [installDir, setInstallDir] = useState<string>('');
@@ -30,7 +30,7 @@ export const GeneralTab = () => {
 
   useEffect(() => {
     const checkNpxAvailability = async () => {
-      const available = await Logger.safeExecute(
+      const available = await safeExecute(
         () => window.electronAPI.sillytavern.isNpxAvailable(),
         'Failed to check npx availability:'
       );
@@ -39,7 +39,7 @@ export const GeneralTab = () => {
       setIsNpxAvailable(isAvailable);
 
       if (!isAvailable && FrontendPreference === 'sillytavern') {
-        await Logger.tryExecute(
+        await tryExecute(
           () =>
             window.electronAPI.config.set('frontendPreference', 'koboldcpp'),
           'Failed to reset frontend preference:'
@@ -54,7 +54,7 @@ export const GeneralTab = () => {
   }, [FrontendPreference]);
 
   const loadCurrentInstallDir = async () => {
-    const currentDir = await Logger.safeExecute(
+    const currentDir = await safeExecute(
       () => window.electronAPI.kobold.getCurrentInstallDir(),
       'Failed to load install directory:'
     );
@@ -64,7 +64,7 @@ export const GeneralTab = () => {
   };
 
   const loadFrontendPreference = async () => {
-    const frontendPreference = await Logger.safeExecute(
+    const frontendPreference = await safeExecute(
       () => window.electronAPI.config.get('frontendPreference'),
       'Failed to load frontend preference:'
     );
@@ -76,7 +76,7 @@ export const GeneralTab = () => {
   };
 
   const handleSelectInstallDir = async () => {
-    const selectedDir = await Logger.safeExecute(
+    const selectedDir = await safeExecute(
       () => window.electronAPI.kobold.selectInstallDirectory(),
       'Failed to select install directory:'
     );
@@ -88,7 +88,7 @@ export const GeneralTab = () => {
   const handleFrontendPreferenceChange = async (value: string | null) => {
     if (!value || (value !== 'koboldcpp' && value !== 'sillytavern')) return;
 
-    const success = await Logger.tryExecute(
+    const success = await tryExecute(
       () => window.electronAPI.config.set('frontendPreference', value),
       'Failed to save frontend preference:'
     );

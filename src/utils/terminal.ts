@@ -1,3 +1,5 @@
+import { error } from '@/utils/logger';
+
 export const handleTerminalOutput = (
   prevContent: string,
   newData: string
@@ -19,8 +21,8 @@ export const handleTerminalOutput = (
     }
 
     return prevContent + newData;
-  } catch (error) {
-    window.electronAPI.logs.logError('Terminal Basic Error', error as Error);
+  } catch (err) {
+    error('Terminal Basic Error', err as Error);
     return prevContent + newData;
   }
 };
