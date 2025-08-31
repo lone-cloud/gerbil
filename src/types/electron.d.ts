@@ -4,7 +4,7 @@ import type {
   BasicGPUInfo,
   GPUMemoryInfo,
 } from '@/types/hardware';
-import type { BackendOption } from '@/types';
+import type { BackendOption, BackendSupport } from '@/types';
 
 export interface GitHubAsset {
   name: string;
@@ -43,7 +43,6 @@ export interface ReleaseWithStatus {
 export interface InstalledVersion {
   version: string;
   path: string;
-  type: 'github' | 'rocm';
   filename: string;
   size?: number;
 }
@@ -103,14 +102,7 @@ export interface KoboldAPI {
   detectGPUCapabilities: () => Promise<GPUCapabilities>;
   detectGPUMemory: () => Promise<GPUMemoryInfo[]>;
   detectROCm: () => Promise<{ supported: boolean; devices: string[] }>;
-  detectBackendSupport: () => Promise<{
-    rocm: boolean;
-    vulkan: boolean;
-    clblast: boolean;
-    noavx2: boolean;
-    failsafe: boolean;
-    cuda: boolean;
-  } | null>;
+  detectBackendSupport: () => Promise<BackendSupport | null>;
   getAvailableBackends: (includeDisabled?: boolean) => Promise<BackendOption[]>;
   getCurrentInstallDir: () => Promise<string>;
   selectInstallDirectory: () => Promise<string | null>;

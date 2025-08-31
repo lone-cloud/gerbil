@@ -119,7 +119,8 @@ jobs:
         run: |
           gh release create ${{ steps.tag.outputs.tag }} \
             --title "Gerbil ${{ steps.tag.outputs.tag }}" \
-            --generate-notes
+            --generate-notes \
+            --prerelease
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

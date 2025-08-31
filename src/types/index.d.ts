@@ -52,3 +52,12 @@ export interface BackendOption extends SelectOption {
   devices?: string[];
   disabled?: boolean;
 }
+
+export interface BackendSupport {
+  rocm: boolean;
+  vulkan: boolean;
+  clblast: boolean;
+  noavx2: boolean;
+  failsafe: boolean;
+  cuda: boolean;
+}
