@@ -1,9 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Modal, Tabs, Text, Group, rem, Button, Box } from '@mantine/core';
-import { Settings, Palette, SlidersHorizontal, GitBranch } from 'lucide-react';
+import {
+  Settings,
+  Palette,
+  SlidersHorizontal,
+  GitBranch,
+  Info,
+} from 'lucide-react';
 import { GeneralTab } from '@/components/settings/GeneralTab';
 import { VersionsTab } from '@/components/settings/VersionsTab';
 import { AppearanceTab } from '@/components/settings/AppearanceTab';
+import { AboutTab } from '@/components/settings/AboutTab';
 import type { Screen } from '@/types';
 
 interface SettingsModalProps {
@@ -92,6 +99,10 @@ export const SettingsModal = ({
             paddingLeft: '24px',
             paddingRight: '24px',
           },
+          tabLabel: {
+            textAlign: 'left',
+            justifyContent: 'flex-start',
+          },
         }}
       >
         <Tabs.List>
@@ -121,6 +132,12 @@ export const SettingsModal = ({
           >
             Appearance
           </Tabs.Tab>
+          <Tabs.Tab
+            value="about"
+            leftSection={<Info style={{ width: rem(16), height: rem(16) }} />}
+          >
+            About
+          </Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="general">
@@ -136,12 +153,16 @@ export const SettingsModal = ({
         <Tabs.Panel value="appearance">
           <AppearanceTab />
         </Tabs.Panel>
+
+        <Tabs.Panel value="about">
+          <AboutTab />
+        </Tabs.Panel>
       </Tabs>
 
       <Box
         style={{
           backgroundColor: 'var(--mantine-color-body)',
-          padding: '1.5rem',
+          padding: '0.5rem 1.5rem 1.5rem',
           display: 'flex',
           justifyContent: 'flex-end',
           flexShrink: 0,

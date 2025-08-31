@@ -1,13 +1,15 @@
-import { BrowserWindow, app, Menu, shell, nativeImage, screen } from 'electron';
-import * as os from 'os';
+import { BrowserWindow, app, shell, nativeImage, screen, Menu } from 'electron';
 import { join } from 'path';
 import { stripVTControlCharacters } from 'util';
-import { GITHUB_API, PRODUCT_NAME } from '../../constants';
+import { PRODUCT_NAME } from '../../constants';
 import type { IPCChannel, IPCChannelPayloads } from '@/types/ipc';
-import { readTextFile } from '@/utils/fs';
 
 export class WindowManager {
   private mainWindow: BrowserWindow | null = null;
+
+  private isDevelopment(): boolean {
+    return process.env.NODE_ENV === 'development' || !app.isPackaged;
+  }
 
   private getIconPath(): string {
     if (process.env.NODE_ENV === 'development') {
@@ -17,20 +19,17 @@ export class WindowManager {
     return join(process.resourcesPath, 'assets/icon.png');
   }
 
-  private isDevelopment(): boolean {
-    return process.env.NODE_ENV === 'development' || !app.isPackaged;
-  }
-
   createMainWindow(): BrowserWindow {
     const iconPath = this.getIconPath();
     const iconImage = nativeImage.createFromPath(iconPath);
 
     const { workAreaSize } = screen.getPrimaryDisplay();
-    const windowHeight = Math.floor(workAreaSize.height * 0.9);
+    const windowHeight = Math.floor(workAreaSize.height * 0.85);
 
     this.mainWindow = new BrowserWindow({
       width: 1000,
       height: windowHeight,
+      frame: false,
       icon: iconImage,
       title: PRODUCT_NAME,
       show: false,
@@ -47,29 +46,6 @@ export class WindowManager {
 
     if (process.platform === 'linux') {
       this.mainWindow.setIcon(iconImage);
-
-      if (
-        process.env.WAYLAND_DISPLAY ||
-        process.env.XDG_SESSION_TYPE === 'wayland'
-      ) {
-        this.mainWindow.setRepresentedFilename('');
-
-        const retrySetIcon = () => {
-          if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-            this.mainWindow.setIcon(iconImage);
-          }
-        };
-
-        setTimeout(retrySetIcon, 50);
-        setTimeout(retrySetIcon, 100);
-        setTimeout(retrySetIcon, 250);
-        setTimeout(retrySetIcon, 500);
-        setTimeout(retrySetIcon, 1000);
-
-        this.mainWindow.on('show', retrySetIcon);
-        this.mainWindow.on('focus', retrySetIcon);
-        this.mainWindow.on('restore', retrySetIcon);
-      }
     }
 
     this.mainWindow.once('ready-to-show', () => {
@@ -119,34 +95,8 @@ export class WindowManager {
     });
 
     this.setupContextMenu();
+
     return this.mainWindow;
-  }
-
-  getMainWindow(): BrowserWindow | null {
-    return this.mainWindow;
-  }
-
-  sendToRenderer<T extends IPCChannel>(
-    channel: T,
-    ...args: IPCChannelPayloads[T]
-  ): void {
-    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-      this.mainWindow.webContents.send(channel, ...args);
-    }
-  }
-
-  sendKoboldOutput(message: string, raw?: boolean): void {
-    const cleanMessage = stripVTControlCharacters(message);
-    this.sendToRenderer(
-      'kobold-output',
-      raw ? cleanMessage : `${cleanMessage}\n`
-    );
-  }
-
-  public cleanup() {
-    if (this.mainWindow) {
-      this.mainWindow.removeAllListeners();
-    }
   }
 
   private setupContextMenu() {
@@ -191,172 +141,30 @@ export class WindowManager {
     });
   }
 
-  setupApplicationMenu() {
-    const isDev = this.isDevelopment();
-
-    const template = [
-      {
-        label: 'File',
-        submenu: [
-          {
-            label: 'Quit',
-            accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
-            click: () => {
-              app.quit();
-            },
-          },
-        ],
-      },
-      {
-        label: 'Edit',
-        submenu: [
-          { label: 'Undo', accelerator: 'CmdOrCtrl+Z', role: 'undo' },
-          { label: 'Redo', accelerator: 'Shift+CmdOrCtrl+Z', role: 'redo' },
-          { type: 'separator' },
-          { label: 'Cut', accelerator: 'CmdOrCtrl+X', role: 'cut' },
-          { label: 'Copy', accelerator: 'CmdOrCtrl+C', role: 'copy' },
-          { label: 'Paste', accelerator: 'CmdOrCtrl+V', role: 'paste' },
-        ],
-      },
-      {
-        label: 'View',
-        submenu: [
-          ...(isDev
-            ? [
-                {
-                  label: 'Reload',
-                  accelerator: 'CmdOrCtrl+R',
-                  role: 'reload' as const,
-                },
-                {
-                  label: 'Force Reload',
-                  accelerator: 'CmdOrCtrl+Shift+R',
-                  role: 'forceReload' as const,
-                },
-                {
-                  label: 'Toggle Developer Tools',
-                  accelerator: 'F12',
-                  click: () => {
-                    if (this.mainWindow) {
-                      this.mainWindow.webContents.toggleDevTools();
-                    }
-                  },
-                },
-                { type: 'separator' as const },
-              ]
-            : []),
-          {
-            label: 'Actual Size',
-            accelerator: 'CmdOrCtrl+0',
-            role: 'resetZoom',
-          },
-          { label: 'Zoom In', accelerator: 'CmdOrCtrl+Plus', role: 'zoomIn' },
-          { label: 'Zoom Out', accelerator: 'CmdOrCtrl+-', role: 'zoomOut' },
-          { type: 'separator' },
-          {
-            label: 'Toggle Fullscreen',
-            accelerator: 'F11',
-            role: 'togglefullscreen',
-          },
-        ],
-      },
-      {
-        label: 'Window',
-        submenu: [
-          { label: 'Minimize', accelerator: 'CmdOrCtrl+M', role: 'minimize' },
-          { label: 'Close', accelerator: 'CmdOrCtrl+W', role: 'close' },
-        ],
-      },
-      {
-        label: 'Help',
-        submenu: [
-          {
-            label: 'KoboldCpp Wiki',
-            click: () => {
-              shell.openExternal(
-                `https://github.com/${GITHUB_API.KOBOLDCPP_REPO}/wiki`
-              );
-            },
-          },
-          {
-            label: 'View Error Logs',
-            click: () => {
-              const logsDir = join(app.getPath('userData'), 'logs');
-              shell.openPath(logsDir);
-            },
-          },
-          { type: 'separator' },
-          {
-            label: 'About',
-            click: async () => {
-              await this.showAboutDialog();
-            },
-          },
-        ],
-      },
-    ];
-
-    const menu = Menu.buildFromTemplate(
-      template as Parameters<typeof Menu.buildFromTemplate>[0]
-    );
-    Menu.setApplicationMenu(menu);
+  getMainWindow(): BrowserWindow | null {
+    return this.mainWindow;
   }
 
-  private async showAboutDialog() {
-    const packagePath = join(app.getAppPath(), 'package.json');
-    const packageContent = await readTextFile(packagePath);
-    const packageInfo = packageContent ? JSON.parse(packageContent) : {};
-    const electronVersion = process.versions.electron;
-    const chromeVersion = process.versions.chrome;
-    const nodeVersion = process.versions.node;
-    const v8Version = process.versions.v8;
-    const osInfo = `${process.platform} ${process.arch} ${os.release()}`;
-
-    const versionText = `Version: ${packageInfo.version}
-Electron: ${electronVersion}
-Chromium: ${chromeVersion}
-Node.js: ${nodeVersion}
-V8: ${v8Version}
-OS: ${osInfo}`;
-
-    const iconPath = this.getIconPath();
-    const iconImage = nativeImage.createFromPath(iconPath);
-
-    const aboutWindow = new BrowserWindow({
-      width: 400,
-      height: 450,
-      icon: iconImage,
-      modal: true,
-      parent: this.mainWindow!,
-      resizable: false,
-      minimizable: false,
-      maximizable: false,
-      show: false,
-      webPreferences: {
-        nodeIntegration: false,
-        contextIsolation: true,
-        preload: join(__dirname, '../preload/index.js'),
-      },
-    });
-
-    aboutWindow.setMenu(null);
-
-    const htmlPath = this.getTemplatePath('about-modal.html');
-    await aboutWindow.loadFile(htmlPath);
-
-    aboutWindow.webContents.executeJavaScript(
-      `setVersionInfo(\`${versionText}\`)`
-    );
-
-    aboutWindow.once('ready-to-show', () => {
-      aboutWindow.show();
-    });
-  }
-
-  private getTemplatePath(filename: string): string {
-    if (process.env.NODE_ENV === 'development') {
-      return join(__dirname, '../../src/main/templates', filename);
+  sendToRenderer<T extends IPCChannel>(
+    channel: T,
+    ...args: IPCChannelPayloads[T]
+  ): void {
+    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+      this.mainWindow.webContents.send(channel, ...args);
     }
-    return join(process.resourcesPath, 'templates', filename);
+  }
+
+  sendKoboldOutput(message: string, raw?: boolean): void {
+    const cleanMessage = stripVTControlCharacters(message);
+    this.sendToRenderer(
+      'kobold-output',
+      raw ? cleanMessage : `${cleanMessage}\n`
+    );
+  }
+
+  public cleanup() {
+    if (this.mainWindow) {
+      this.mainWindow.removeAllListeners();
+    }
   }
 }
