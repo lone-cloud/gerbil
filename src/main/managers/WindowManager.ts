@@ -1,4 +1,12 @@
-import { BrowserWindow, app, shell, nativeImage, screen, Menu } from 'electron';
+import {
+  BrowserWindow,
+  app,
+  shell,
+  nativeImage,
+  screen,
+  Menu,
+  clipboard,
+} from 'electron';
 import { join } from 'path';
 import { stripVTControlCharacters } from 'util';
 import { PRODUCT_NAME } from '../../constants';
@@ -104,40 +112,96 @@ export class WindowManager {
 
     this.mainWindow.webContents.on('context-menu', (_, params) => {
       const hasLinkURL = !!params.linkURL;
+      const hasSelection = !!params.selectionText;
+      const isEditable = params.isEditable;
       const isDev = this.isDevelopment();
 
-      const menuTemplate = [
-        ...(isDev
-          ? [
-              {
-                label: 'Inspect Element',
-                click: () => {
-                  this.mainWindow?.webContents.inspectElement(
-                    params.x,
-                    params.y
-                  );
-                },
-              },
-              { type: 'separator' as const },
-            ]
-          : []),
-        { label: 'Cut', role: 'cut' as const },
-        { label: 'Copy', role: 'copy' as const },
-        { label: 'Paste', role: 'paste' as const },
-        ...(hasLinkURL ? [{ type: 'separator' as const }] : []),
-        {
+      const canCut = hasSelection && isEditable;
+      const canCopy = hasSelection;
+      const canPaste = isEditable;
+      const canSelectAll = isEditable || params.mediaType === 'none';
+      const canUndo = isEditable && params.editFlags?.canUndo;
+      const canRedo = isEditable && params.editFlags?.canRedo;
+      const hasEditOperations =
+        canCut || canCopy || canPaste || canSelectAll || canUndo || canRedo;
+
+      const menuItems = [];
+
+      if (isDev) {
+        menuItems.push({
+          label: 'Inspect Element',
+          click: () => {
+            this.mainWindow?.webContents.inspectElement(params.x, params.y);
+          },
+        });
+      }
+
+      if (hasEditOperations) {
+        if (isDev) {
+          menuItems.push({ type: 'separator' as const });
+        }
+
+        if (canUndo) {
+          menuItems.push({ label: 'Undo', role: 'undo' as const });
+        }
+        if (canRedo) {
+          menuItems.push({ label: 'Redo', role: 'redo' as const });
+        }
+
+        if (
+          (canUndo || canRedo) &&
+          (canCut || canCopy || canPaste || canSelectAll)
+        ) {
+          menuItems.push({ type: 'separator' as const });
+        }
+
+        if (canCut) {
+          menuItems.push({ label: 'Cut', role: 'cut' as const });
+        }
+        if (canCopy) {
+          menuItems.push({ label: 'Copy', role: 'copy' as const });
+        }
+        if (canPaste) {
+          menuItems.push({ label: 'Paste', role: 'paste' as const });
+        }
+
+        if ((canCut || canCopy || canPaste) && canSelectAll) {
+          menuItems.push({ type: 'separator' as const });
+        }
+
+        if (canSelectAll) {
+          menuItems.push({ label: 'Select All', role: 'selectAll' as const });
+        }
+      }
+
+      if (hasLinkURL) {
+        if (isDev || hasEditOperations) {
+          menuItems.push({ type: 'separator' as const });
+        }
+
+        menuItems.push({
           label: 'Open Link in Browser',
-          visible: hasLinkURL,
           click: () => {
             if (params.linkURL) {
               shell.openExternal(params.linkURL);
             }
           },
-        },
-      ];
+        });
 
-      const menu = Menu.buildFromTemplate(menuTemplate);
-      menu.popup({ window: this.mainWindow! });
+        menuItems.push({
+          label: 'Copy Link Address',
+          click: () => {
+            if (params.linkURL) {
+              clipboard.writeText(params.linkURL);
+            }
+          },
+        });
+      }
+
+      if (menuItems.length > 0) {
+        const menu = Menu.buildFromTemplate(menuItems);
+        menu.popup({ window: this.mainWindow! });
+      }
     });
   }
 

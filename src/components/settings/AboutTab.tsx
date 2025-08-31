@@ -8,9 +8,10 @@ import {
   Image,
   Center,
   Badge,
+  Button,
   rem,
 } from '@mantine/core';
-import { Github } from 'lucide-react';
+import { Github, FolderOpen } from 'lucide-react';
 import type { VersionInfo } from '@/types/electron';
 import { PRODUCT_NAME } from '@/constants';
 import iconUrl from '/icon.png';
@@ -76,26 +77,48 @@ export const AboutTab = () => {
               </Badge>
             </Group>
             <Text size="sm" c="dimmed" mt="xs">
-              A desktop app to easily run Large Language Models locally.
+              Run Large Language Models locally
             </Text>
-            <Anchor
-              href="https://github.com/lone-cloud/gerbil"
-              target="_blank"
-              onClick={(e) => {
-                e.preventDefault();
-                window.electronAPI.app.openExternal(
-                  'https://github.com/lone-cloud/gerbil'
-                );
-              }}
-              style={{ textDecoration: 'none' }}
-            >
-              <Group gap="xs" align="center">
-                <Github style={{ width: rem(16), height: rem(16) }} />
-                <Text size="sm" fw={500}>
-                  GitHub
-                </Text>
-              </Group>
-            </Anchor>
+            <Group gap="md" mt="md">
+              <Anchor
+                href="https://github.com/lone-cloud/gerbil"
+                target="_blank"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.electronAPI.app.openExternal(
+                    'https://github.com/lone-cloud/gerbil'
+                  );
+                }}
+                style={{ textDecoration: 'none' }}
+              >
+                <Group gap="xs" align="center">
+                  <Github style={{ width: rem(16), height: rem(16) }} />
+                  <Text size="sm" fw={500}>
+                    GitHub
+                  </Text>
+                </Group>
+              </Anchor>
+
+              <Button
+                variant="light"
+                size="compact-sm"
+                leftSection={
+                  <FolderOpen style={{ width: rem(16), height: rem(16) }} />
+                }
+                onClick={async () => {
+                  try {
+                    await window.electronAPI.app.showLogsFolder();
+                  } catch (error) {
+                    window.electronAPI.logs.logError(
+                      'Failed to open logs folder',
+                      error as Error
+                    );
+                  }
+                }}
+              >
+                Show Logs
+              </Button>
+            </Group>
           </div>
         </Group>
       </Card>

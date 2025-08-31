@@ -144,6 +144,7 @@ export interface VersionInfo {
 
 export interface AppAPI {
   openExternal: (url: string) => Promise<void>;
+  showLogsFolder: () => Promise<void>;
   getVersion: () => Promise<string>;
   getVersionInfo: () => Promise<VersionInfo>;
   minimizeWindow: () => void;

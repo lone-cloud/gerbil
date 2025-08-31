@@ -27,6 +27,7 @@ interface TitleBarProps {
   onTabChange?: (tab: InterfaceTab) => void;
   onEject?: () => void;
   onOpenSettings?: () => void;
+  isModalOpen?: boolean;
 }
 
 export const TitleBar = ({
@@ -35,6 +36,7 @@ export const TitleBar = ({
   onTabChange,
   onEject,
   onOpenSettings,
+  isModalOpen = false,
 }: TitleBarProps) => {
   const computedColorScheme = useComputedColorScheme('light', {
     getInitialValueInEffect: false,
@@ -97,7 +99,7 @@ export const TitleBar = ({
             ? 'var(--mantine-color-dark-7)'
             : 'var(--mantine-color-gray-0)',
         borderBottom: '1px solid var(--mantine-color-default-border)',
-        WebkitAppRegion: 'drag',
+        WebkitAppRegion: isModalOpen ? 'no-drag' : 'drag',
         userSelect: 'none',
         position: 'relative',
       }}
