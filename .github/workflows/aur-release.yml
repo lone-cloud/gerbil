@@ -50,7 +50,7 @@ jobs:
             const version = tag.replace(/^v/, '');
             const authorName = packageJson.author.name;
             const authorEmail = packageJson.author.email;
-            const appImageUrl = `https://github.com/lone-cloud/gerbil/releases/download/${tag}/Friendly.Kobold-${version}.AppImage`;
+            const appImageUrl = `https://github.com/lone-cloud/gerbil/releases/download/${tag}/Gerbil-${version}.AppImage`;
 
             core.setOutput('version', version);
             core.setOutput('tag', tag);
