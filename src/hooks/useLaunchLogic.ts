@@ -38,6 +38,8 @@ interface LaunchArgs {
   sdvae: string;
   sdlora: string;
   sdconvdirect: SdConvDirectMode;
+  moecpu: number;
+  moeexperts: number;
 }
 
 const buildModelArgs = (
@@ -123,6 +125,14 @@ const buildConfigArgs = (
       if (value) args.push(value);
     }
   });
+
+  if (launchArgs.moeexperts !== -1) {
+    args.push('--moeexperts', launchArgs.moeexperts.toString());
+  }
+
+  if (launchArgs.moecpu > 0) {
+    args.push('--moecpu', launchArgs.moecpu.toString());
+  }
 
   return args;
 };

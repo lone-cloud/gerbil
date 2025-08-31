@@ -1,4 +1,4 @@
-import { BrowserWindow, app, Menu, shell, nativeImage } from 'electron';
+import { BrowserWindow, app, Menu, shell, nativeImage, screen } from 'electron';
 import * as os from 'os';
 import { join } from 'path';
 import { stripVTControlCharacters } from 'util';
@@ -25,9 +25,12 @@ export class WindowManager {
     const iconPath = this.getIconPath();
     const iconImage = nativeImage.createFromPath(iconPath);
 
+    const { workAreaSize } = screen.getPrimaryDisplay();
+    const windowHeight = Math.floor(workAreaSize.height * 0.9);
+
     this.mainWindow = new BrowserWindow({
       width: 1000,
-      height: 600,
+      height: windowHeight,
       icon: iconImage,
       title: PRODUCT_NAME,
       show: false,

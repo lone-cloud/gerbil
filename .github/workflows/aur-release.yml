@@ -193,11 +193,18 @@ jobs:
               install -dm755 "${pkgdir}/usr/share/icons/hicolor/512x512/apps"
               install -dm755 "${pkgdir}/usr/share/pixmaps"
               
-              if [ -f "${pkgdir}/opt/gerbil/usr/share/icons/hicolor/513x513/apps/gerbil.png" ]; then
-                  cp "${pkgdir}/opt/gerbil/usr/share/icons/hicolor/513x513/apps/gerbil.png" "${pkgdir}/usr/share/icons/hicolor/512x512/apps/gerbil.png"
-                  cp "${pkgdir}/opt/gerbil/usr/share/icons/hicolor/513x513/apps/gerbil.png" "${pkgdir}/usr/share/pixmaps/gerbil.png"
+              if [ -f "${pkgdir}/opt/gerbil/usr/share/icons/hicolor/513x513/apps/Gerbil.png" ]; then
+                  cp "${pkgdir}/opt/gerbil/usr/share/icons/hicolor/513x513/apps/Gerbil.png" "${pkgdir}/usr/share/icons/hicolor/512x512/apps/gerbil.png"
+                  cp "${pkgdir}/opt/gerbil/usr/share/icons/hicolor/513x513/apps/Gerbil.png" "${pkgdir}/usr/share/pixmaps/gerbil.png"
               else
-                  echo "Warning: Could not find icon.png in expected locations"
+                  echo "Warning: Could not find Gerbil.png in expected locations"
+                  find "${pkgdir}/opt/gerbil" -name "*erbil*.png" -type f | head -1 | while read icon_file; do
+                      if [ -n "$icon_file" ]; then
+                          echo "Found icon at: $icon_file"
+                          cp "$icon_file" "${pkgdir}/usr/share/icons/hicolor/512x512/apps/gerbil.png"
+                          cp "$icon_file" "${pkgdir}/usr/share/pixmaps/gerbil.png"
+                      fi
+                  done
               fi
           }
           EOF

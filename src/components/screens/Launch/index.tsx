@@ -51,8 +51,8 @@ export const LaunchScreen = ({
     usemmap,
     backend,
     gpuDeviceSelection,
-    tensorSplit,
     gpuPlatform,
+    tensorSplit,
     sdmodel,
     sdt5xxl,
     sdclipl,
@@ -61,6 +61,8 @@ export const LaunchScreen = ({
     sdvae,
     sdlora,
     sdconvdirect,
+    moecpu,
+    moeexperts,
     parseAndApplyConfigFile,
     loadConfigFromFile,
     handleModelPathChange,
@@ -172,6 +174,8 @@ export const LaunchScreen = ({
     noavx2,
     failsafe,
     usemmap,
+    moecpu,
+    moeexperts,
     usecuda: backend === 'cuda' || backend === 'rocm',
     usevulkan: backend === 'vulkan',
     useclblast: backend === 'clblast',
@@ -280,6 +284,8 @@ export const LaunchScreen = ({
       sdvae,
       sdlora,
       sdconvdirect,
+      moecpu,
+      moeexperts,
     });
   };
 
@@ -303,7 +309,23 @@ export const LaunchScreen = ({
               onLoadConfigFiles={loadConfigFiles}
             />
 
-            <Tabs value={activeTab} onChange={setActiveTab}>
+            <Tabs
+              value={activeTab}
+              onChange={setActiveTab}
+              styles={{
+                root: {
+                  maxHeight: '22rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                },
+                panel: {
+                  flex: 1,
+                  overflow: 'auto',
+                  paddingTop: '1rem',
+                  paddingRight: '0.5rem',
+                },
+              }}
+            >
               <Tabs.List>
                 <Tabs.Tab value="general">General</Tabs.Tab>
                 <Tabs.Tab value="image">Image Generation</Tabs.Tab>
@@ -311,23 +333,21 @@ export const LaunchScreen = ({
                 <Tabs.Tab value="advanced">Advanced</Tabs.Tab>
               </Tabs.List>
 
-              <div>
-                <Tabs.Panel value="general" pt="md">
-                  <GeneralTab />
-                </Tabs.Panel>
+              <Tabs.Panel value="general">
+                <GeneralTab />
+              </Tabs.Panel>
 
-                <Tabs.Panel value="advanced" pt="md">
-                  <AdvancedTab />
-                </Tabs.Panel>
+              <Tabs.Panel value="advanced">
+                <AdvancedTab />
+              </Tabs.Panel>
 
-                <Tabs.Panel value="network" pt="md">
-                  <NetworkTab />
-                </Tabs.Panel>
+              <Tabs.Panel value="network">
+                <NetworkTab />
+              </Tabs.Panel>
 
-                <Tabs.Panel value="image" pt="md">
-                  <ImageGenerationTab />
-                </Tabs.Panel>
-              </div>
+              <Tabs.Panel value="image">
+                <ImageGenerationTab />
+              </Tabs.Panel>
             </Tabs>
 
             <Group justify="flex-end" pt="md">
