@@ -11,7 +11,7 @@ import { ScreenTransition } from '@/components/ScreenTransition';
 import { TitleBar } from '@/components/TitleBar';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
-import { Logger } from '@/utils/logger';
+import { safeExecute } from '@/utils/logger';
 import { TITLEBAR_HEIGHT } from '@/constants';
 import type { DownloadItem } from '@/types/electron';
 import type { InterfaceTab, FrontendPreference, Screen } from '@/types';
@@ -46,7 +46,7 @@ export const App = () => {
 
   useEffect(() => {
     const checkInstallation = async () => {
-      await Logger.safeExecute(async () => {
+      await safeExecute(async () => {
         const [currentVersion, hasSeenWelcome, preference] = await Promise.all([
           window.electronAPI.kobold.getCurrentVersion(),
           window.electronAPI.config.get('hasSeenWelcome') as Promise<boolean>,
@@ -80,7 +80,7 @@ export const App = () => {
   }, []);
 
   const handleBinaryUpdate = async (download: DownloadItem) => {
-    await Logger.safeExecute(async () => {
+    await safeExecute(async () => {
       const success = await sharedHandleDownload({
         item: download,
         isUpdate: true,
@@ -94,7 +94,7 @@ export const App = () => {
   };
 
   const handleDownloadComplete = async () => {
-    await Logger.safeExecute(async () => {
+    await safeExecute(async () => {
       await window.electronAPI.kobold.getCurrentVersion();
     }, 'Error refreshing versions after download:');
 
@@ -241,7 +241,7 @@ export const App = () => {
         opened={settingsOpened}
         onClose={async () => {
           setSettingsOpened(false);
-          const preference = await Logger.safeExecute(
+          const preference = await safeExecute(
             () =>
               window.electronAPI.config.get(
                 'frontendPreference'

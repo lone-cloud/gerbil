@@ -110,6 +110,7 @@ export class WindowManager {
   private setupContextMenu() {
     if (!this.mainWindow) return;
 
+    // eslint-disable-next-line sonarjs/cognitive-complexity
     this.mainWindow.webContents.on('context-menu', (_, params) => {
       const hasLinkURL = !!params.linkURL;
       const hasSelection = !!params.selectionText;
