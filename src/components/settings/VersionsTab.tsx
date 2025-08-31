@@ -246,11 +246,10 @@ export const VersionsTab = () => {
 
   return (
     <>
-      <Group justify="space-between" align="center" mb="lg">
+      <Group justify="space-between" align="center" mb="sm">
         <div>
-          <Text fw={500}>Available Versions</Text>
           {latestRelease && (
-            <Group gap="xs" mt={4}>
+            <Group gap="xs">
               <Text size="sm" c="dimmed">
                 Latest release: {latestRelease.release.tag_name}
               </Text>

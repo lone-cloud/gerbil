@@ -87,6 +87,8 @@ export interface KoboldConfig {
   sdlora?: string;
   sdconvdirect?: string;
   additionalArguments?: string;
+  moecpu?: number;
+  moeexperts?: number;
   autoGpuLayers?: boolean;
   model?: string;
   backend?: string;

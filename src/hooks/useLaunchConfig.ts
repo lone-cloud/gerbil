@@ -39,6 +39,8 @@ export const useLaunchConfig = () => {
     sdvae: state.sdvae,
     sdlora: state.sdlora,
     sdconvdirect: state.sdconvdirect,
+    moecpu: state.moecpu,
+    moeexperts: state.moeexperts,
 
     handleGpuLayersChange: state.setGpuLayers,
     handleAutoGpuLayersChange: state.setAutoGpuLayers,
@@ -71,6 +73,8 @@ export const useLaunchConfig = () => {
     handleSdvaeChange: state.setSdvae,
     handleSdloraChange: state.setSdlora,
     handleSdconvdirectChange: state.setSdconvdirect,
+    handleMoecpuChange: state.setMoecpu,
+    handleMoeexpertsChange: state.setMoeexperts,
 
     parseAndApplyConfigFile: state.parseAndApplyConfigFile,
     loadConfigFromFile: state.loadConfigFromFile,

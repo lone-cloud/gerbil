@@ -35,6 +35,8 @@ interface LaunchConfigState {
   sdvae: string;
   sdlora: string;
   sdconvdirect: SdConvDirectMode;
+  moecpu: number;
+  moeexperts: number;
 
   setGpuLayers: (layers: number) => void;
   setAutoGpuLayers: (auto: boolean) => void;
@@ -67,6 +69,8 @@ interface LaunchConfigState {
   setSdvae: (vae: string) => void;
   setSdlora: (loraModel: string) => void;
   setSdconvdirect: (mode: SdConvDirectMode) => void;
+  setMoecpu: (moecpu: number) => void;
+  setMoeexperts: (moeexperts: number) => void;
 
   parseAndApplyConfigFile: (configPath: string) => Promise<void>;
   loadConfigFromFile: (
@@ -117,6 +121,8 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   sdvae: '',
   sdlora: '',
   sdconvdirect: 'off' as const,
+  moecpu: 0,
+  moeexperts: -1,
 
   setGpuLayers: (layers) => set({ gpuLayers: layers }),
   setAutoGpuLayers: (auto) => set({ autoGpuLayers: auto }),
@@ -154,6 +160,8 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   setSdvae: (vae) => set({ sdvae: vae }),
   setSdlora: (loraModel) => set({ sdlora: loraModel }),
   setSdconvdirect: (mode) => set({ sdconvdirect: mode }),
+  setMoecpu: (moeCpu) => set({ moecpu: moeCpu }),
+  setMoeexperts: (moeExperts) => set({ moeexperts: moeExperts }),
 
   // eslint-disable-next-line sonarjs/cognitive-complexity
   parseAndApplyConfigFile: async (configPath: string) => {
@@ -338,6 +346,18 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
         ['off', 'vaeonly', 'full'].includes(configData.sdconvdirect)
       ) {
         updates.sdconvdirect = configData.sdconvdirect as SdConvDirectMode;
+      }
+
+      if (typeof configData.moecpu === 'number') {
+        updates.moecpu = configData.moecpu;
+      } else {
+        updates.moecpu = 0;
+      }
+
+      if (typeof configData.moeexperts === 'number') {
+        updates.moeexperts = configData.moeexperts;
+      } else {
+        updates.moeexperts = -1;
       }
 
       set(updates);

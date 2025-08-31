@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, Tabs, Text, Group, rem } from '@mantine/core';
+import { Modal, Tabs, Text, Group, rem, Button, Box } from '@mantine/core';
 import { Settings, Palette, SlidersHorizontal, GitBranch } from 'lucide-react';
 import { GeneralTab } from '@/components/settings/GeneralTab';
 import { VersionsTab } from '@/components/settings/VersionsTab';
@@ -61,11 +61,15 @@ export const SettingsModal = ({
       lockScroll={false}
       styles={{
         body: {
-          height: '400px',
+          height: '440px',
           padding: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'relative',
         },
         content: {
           height: '500px',
+          paddingBottom: 0,
         },
       }}
       transitionProps={{
@@ -79,7 +83,8 @@ export const SettingsModal = ({
         variant="pills"
         styles={{
           root: {
-            height: '100%',
+            flex: 1,
+            minHeight: 0,
           },
           panel: {
             height: '100%',
@@ -123,7 +128,7 @@ export const SettingsModal = ({
         </Tabs.Panel>
 
         {showVersionsTab && (
-          <Tabs.Panel value="versions" style={{ overflow: 'visible' }}>
+          <Tabs.Panel value="versions">
             <VersionsTab />
           </Tabs.Panel>
         )}
@@ -132,6 +137,20 @@ export const SettingsModal = ({
           <AppearanceTab />
         </Tabs.Panel>
       </Tabs>
+
+      <Box
+        style={{
+          backgroundColor: 'var(--mantine-color-body)',
+          padding: '1.5rem',
+          display: 'flex',
+          justifyContent: 'flex-end',
+          flexShrink: 0,
+        }}
+      >
+        <Button onClick={onClose} variant="filled">
+          Done
+        </Button>
+      </Box>
     </Modal>
   );
 };

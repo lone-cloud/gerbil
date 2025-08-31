@@ -91,3 +91,12 @@ body {
     transform: scale(1) rotate(0deg);
   }
 }
+
+.mantine-Tooltip-tooltip {
+  background-color: var(--mantine-color-dark-6) !important;
+  color: var(--mantine-color-white) !important;
+}
+
+.mantine-Tooltip-arrow {
+  background-color: var(--mantine-color-dark-6) !important;
+}

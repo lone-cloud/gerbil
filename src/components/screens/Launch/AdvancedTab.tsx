@@ -1,4 +1,4 @@
-import { Stack, Group, Text, TextInput } from '@mantine/core';
+import { Stack, Group, Text, TextInput, NumberInput } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
@@ -16,6 +16,8 @@ export const AdvancedTab = () => {
     quantmatmul,
     usemmap,
     backend,
+    moecpu,
+    moeexperts,
     handleAdditionalArgumentsChange,
     handleNoshiftChange,
     handleFlashattentionChange,
@@ -24,6 +26,8 @@ export const AdvancedTab = () => {
     handleLowvramChange,
     handleQuantmatmulChange,
     handleUsemmapChange,
+    handleMoecpuChange,
+    handleMoeexpertsChange,
   } = useLaunchConfig();
   const [backendSupport, setBackendSupport] = useState<{
     noavx2: boolean;
@@ -120,6 +124,55 @@ export const AdvancedTab = () => {
               }
               disabled={!isGpuBackend}
             />
+          </Group>
+        </Stack>
+      </div>
+
+      <div>
+        <Group gap="xs" align="center" mb="md">
+          <Text size="sm" fw={600}>
+            Mixture of Experts (MoE) Settings
+          </Text>
+        </Group>
+        <Stack gap="md">
+          <Group gap="lg" align="flex-start" wrap="nowrap">
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <Group gap="xs" align="center" mb="xs">
+                <Text size="sm" fw={500}>
+                  MoE Experts
+                </Text>
+                <InfoTooltip label="How many experts to use for MoE models. Set to -1 to follow GGUF metadata (default), or specify a specific number of experts." />
+              </Group>
+              <NumberInput
+                value={moeexperts}
+                onChange={(value) =>
+                  handleMoeexpertsChange(Number(value) || -1)
+                }
+                min={-1}
+                max={128}
+                step={1}
+                size="sm"
+                placeholder="-1"
+              />
+            </div>
+
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <Group gap="xs" align="center" mb="xs">
+                <Text size="sm" fw={500}>
+                  MoE CPU Layers
+                </Text>
+                <InfoTooltip label="Keep the Mixture of Experts (MoE) weights of the first N layers in the CPU. Set to 0 to disable (default), or specify the number of layers to keep on CPU." />
+              </Group>
+              <NumberInput
+                value={moecpu}
+                onChange={(value) => handleMoecpuChange(Number(value) || 0)}
+                min={0}
+                max={999}
+                step={1}
+                size="sm"
+                placeholder="0"
+              />
+            </div>
           </Group>
         </Stack>
       </div>
