@@ -169,7 +169,7 @@ export const SettingsModal = ({
         }}
       >
         <Button onClick={onClose} variant="filled">
-          Done
+          Close
         </Button>
       </Box>
     </Modal>

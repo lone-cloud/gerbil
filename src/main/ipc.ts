@@ -171,6 +171,16 @@ export class IPCHandlers {
       }
     });
 
+    ipcMain.handle('app:showLogsFolder', async () => {
+      try {
+        const logsDir = this.logManager.getLogsDirectory();
+        await shell.openPath(logsDir);
+        return { success: true };
+      } catch (error) {
+        return { success: false, error: (error as Error).message };
+      }
+    });
+
     ipcMain.handle('app:minimizeWindow', () => {
       const mainWindow = this.windowManager.getMainWindow();
       mainWindow?.minimize();

@@ -147,6 +147,8 @@ export const App = () => {
     }
   };
 
+  const isAnyModalOpen = settingsOpened || showEjectModal || showUpdateModal;
+
   return (
     <AppShell
       header={{ height: TITLEBAR_HEIGHT }}
@@ -159,6 +161,7 @@ export const App = () => {
           onTabChange={setActiveInterfaceTab}
           onEject={handleEject}
           onOpenSettings={() => setSettingsOpened(true)}
+          isModalOpen={isAnyModalOpen}
         />
       </AppShell.Header>
       <AppShell.Main
