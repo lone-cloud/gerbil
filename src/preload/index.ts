@@ -78,6 +78,10 @@ const koboldAPI: KoboldAPI = {
 const appAPI: AppAPI = {
   openExternal: (url) => ipcRenderer.invoke('app:openExternal', url),
   getVersion: () => ipcRenderer.invoke('app:getVersion'),
+  getVersionInfo: () => ipcRenderer.invoke('app:getVersionInfo'),
+  minimizeWindow: () => ipcRenderer.invoke('app:minimizeWindow'),
+  maximizeWindow: () => ipcRenderer.invoke('app:maximizeWindow'),
+  closeWindow: () => ipcRenderer.invoke('app:closeWindow'),
 };
 
 const configAPI: ConfigAPI = {

@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Box, Text, Stack } from '@mantine/core';
-import { UI, SILLYTAVERN, FRONTENDS } from '@/constants';
+import { SILLYTAVERN, FRONTENDS } from '@/constants';
 import type { ServerTabMode, FrontendPreference } from '@/types';
 
 interface ServerTabProps {
@@ -60,7 +60,7 @@ export const ServerTab = ({
     <Box
       style={{
         width: '100%',
-        height: `calc(100vh - ${UI.HEADER_HEIGHT}px)`,
+        height: 'calc(100vh - 2rem)',
         overflow: 'hidden',
       }}
     >

@@ -55,7 +55,8 @@ export class GerbilApp {
       this.hardwareManager,
       this.binaryManager,
       this.logManager,
-      this.sillyTavernManager
+      this.sillyTavernManager,
+      this.windowManager
     );
   }
 
@@ -93,7 +94,6 @@ export class GerbilApp {
       app.setAppUserModelId('com.gerbil.app');
     }
 
-    this.windowManager.setupApplicationMenu();
     this.windowManager.createMainWindow();
     this.ipcHandlers.setupHandlers();
 

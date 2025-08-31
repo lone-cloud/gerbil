@@ -314,7 +314,7 @@ export const LaunchScreen = ({
               onChange={setActiveTab}
               styles={{
                 root: {
-                  maxHeight: '22rem',
+                  maxHeight: '24rem',
                   display: 'flex',
                   flexDirection: 'column',
                 },
@@ -350,7 +350,7 @@ export const LaunchScreen = ({
               </Tabs.Panel>
             </Tabs>
 
-            <Group justify="flex-end" pt="md">
+            <Group justify="flex-end">
               <WarningDisplay warnings={combinedWarnings}>
                 <Button
                   radius="md"

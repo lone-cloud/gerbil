@@ -8,7 +8,7 @@ import {
 } from '@mantine/core';
 import { ChevronDown } from 'lucide-react';
 import styles from '@/styles/layout.module.css';
-import { UI, SERVER_READY_SIGNALS } from '@/constants';
+import { SERVER_READY_SIGNALS } from '@/constants';
 import { handleTerminalOutput, processTerminalContent } from '@/utils/terminal';
 import { useLaunchConfigStore } from '@/stores/launchConfigStore';
 import type { FrontendPreference } from '@/types';
@@ -104,7 +104,7 @@ export const TerminalTab = ({
   return (
     <Box
       style={{
-        height: `calc(100vh - ${UI.HEADER_HEIGHT}px)`,
+        height: 'calc(100vh - 2rem)',
         display: 'flex',
         flexDirection: 'column',
         backgroundColor: isDark

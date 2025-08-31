@@ -55,6 +55,7 @@ export const GeneralTab = () => {
           max={131072}
           step={1}
           onChange={handleContextSizeChangeWithStep}
+          style={{ marginBottom: '0.5rem' }}
         />
       </div>
     </Stack>

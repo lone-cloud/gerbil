@@ -131,9 +131,24 @@ export interface KoboldAPI {
   removeAllListeners: (channel: string) => void;
 }
 
+export interface VersionInfo {
+  appVersion: string;
+  electronVersion: string;
+  nodeVersion: string;
+  chromeVersion: string;
+  v8Version: string;
+  osVersion: string;
+  platform: string;
+  arch: string;
+}
+
 export interface AppAPI {
   openExternal: (url: string) => Promise<void>;
   getVersion: () => Promise<string>;
+  getVersionInfo: () => Promise<VersionInfo>;
+  minimizeWindow: () => void;
+  maximizeWindow: () => void;
+  closeWindow: () => void;
 }
 
 export interface ConfigAPI {

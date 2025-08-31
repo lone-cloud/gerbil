@@ -1,8 +1,10 @@
 import { ipcMain, shell, app } from 'electron';
+import * as os from 'os';
 import type { KoboldCppManager } from '@/main/managers/KoboldCppManager';
 import type { ConfigManager } from '@/main/managers/ConfigManager';
 import type { LogManager } from '@/main/managers/LogManager';
 import type { SillyTavernManager } from '@/main/managers/SillyTavernManager';
+import type { WindowManager } from '@/main/managers/WindowManager';
 import { HardwareManager } from '@/main/managers/HardwareManager';
 import { BinaryManager } from '@/main/managers/BinaryManager';
 
@@ -13,6 +15,7 @@ export class IPCHandlers {
   private sillyTavernManager: SillyTavernManager;
   private hardwareManager: HardwareManager;
   private binaryManager: BinaryManager;
+  private windowManager: WindowManager;
 
   constructor(
     koboldManager: KoboldCppManager,
@@ -20,7 +23,8 @@ export class IPCHandlers {
     hardwareManager: HardwareManager,
     binaryManager: BinaryManager,
     logManager: LogManager,
-    sillyTavernManager: SillyTavernManager
+    sillyTavernManager: SillyTavernManager,
+    windowManager: WindowManager
   ) {
     this.koboldManager = koboldManager;
     this.configManager = configManager;
@@ -28,6 +32,7 @@ export class IPCHandlers {
     this.sillyTavernManager = sillyTavernManager;
     this.hardwareManager = hardwareManager;
     this.binaryManager = binaryManager;
+    this.windowManager = windowManager;
   }
 
   private async launchKoboldCppWithCustomFrontends(args: string[] = []) {
@@ -146,6 +151,17 @@ export class IPCHandlers {
 
     ipcMain.handle('app:getVersion', () => app.getVersion());
 
+    ipcMain.handle('app:getVersionInfo', () => ({
+      appVersion: app.getVersion(),
+      electronVersion: process.versions.electron,
+      nodeVersion: process.versions.node,
+      chromeVersion: process.versions.chrome,
+      v8Version: process.versions.v8,
+      osVersion: os.release(),
+      platform: process.platform,
+      arch: process.arch,
+    }));
+
     ipcMain.handle('app:openExternal', async (_, url) => {
       try {
         await shell.openExternal(url);
@@ -153,6 +169,25 @@ export class IPCHandlers {
       } catch (error) {
         return { success: false, error: (error as Error).message };
       }
+    });
+
+    ipcMain.handle('app:minimizeWindow', () => {
+      const mainWindow = this.windowManager.getMainWindow();
+      mainWindow?.minimize();
+    });
+
+    ipcMain.handle('app:maximizeWindow', () => {
+      const mainWindow = this.windowManager.getMainWindow();
+      if (mainWindow?.isMaximized()) {
+        mainWindow.restore();
+      } else {
+        mainWindow?.maximize();
+      }
+    });
+
+    ipcMain.handle('app:closeWindow', () => {
+      const mainWindow = this.windowManager.getMainWindow();
+      mainWindow?.close();
     });
 
     ipcMain.handle('logs:logError', (_, message: string, error?: Error) => {

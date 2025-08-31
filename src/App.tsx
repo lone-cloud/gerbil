@@ -8,11 +8,11 @@ import { UpdateAvailableModal } from '@/components/UpdateAvailableModal';
 import { SettingsModal } from '@/components/settings/SettingsModal';
 import { EjectConfirmModal } from '@/components/EjectConfirmModal';
 import { ScreenTransition } from '@/components/ScreenTransition';
-import { AppHeader } from '@/components/AppHeader';
+import { TitleBar } from '@/components/TitleBar';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
-import { UI } from '@/constants';
 import { Logger } from '@/utils/logger';
+import { TITLEBAR_HEIGHT } from '@/constants';
 import type { DownloadItem } from '@/types/electron';
 import type { InterfaceTab, FrontendPreference, Screen } from '@/types';
 
@@ -149,28 +149,24 @@ export const App = () => {
 
   return (
     <AppShell
-      header={{ height: currentScreen === 'welcome' ? 0 : UI.HEADER_HEIGHT }}
+      header={{ height: TITLEBAR_HEIGHT }}
       padding={currentScreen === 'interface' ? 0 : 'md'}
     >
-      {currentScreen !== 'welcome' && (
-        <AppHeader
-          currentScreen={currentScreen}
-          activeInterfaceTab={activeInterfaceTab}
-          setActiveInterfaceTab={setActiveInterfaceTab}
-          isImageGenerationMode={isImageGenerationMode}
-          frontendPreference={frontendPreference}
+      <AppShell.Header style={{ display: 'flex', flexDirection: 'column' }}>
+        <TitleBar
+          currentScreen={currentScreen || 'welcome'}
+          currentTab={activeInterfaceTab}
+          onTabChange={setActiveInterfaceTab}
           onEject={handleEject}
-          onSettingsOpen={() => setSettingsOpened(true)}
+          onOpenSettings={() => setSettingsOpened(true)}
         />
-      )}
+      </AppShell.Header>
       <AppShell.Main
         style={{
           position: 'relative',
           overflow: 'hidden',
           minHeight:
-            currentScreen === 'welcome'
-              ? '100vh'
-              : `calc(100vh - ${UI.HEADER_HEIGHT}px)`,
+            currentScreen === 'welcome' ? '100vh' : 'calc(100vh - 2rem)',
         }}
       >
         {currentScreen === null ? (

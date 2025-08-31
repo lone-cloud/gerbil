@@ -2,11 +2,7 @@ export const PRODUCT_NAME = 'Gerbil';
 
 export const CONFIG_FILE_NAME = 'config.json';
 
-export const UI = {
-  HEADER_HEIGHT: 60,
-} as const;
-
-export const { HEADER_HEIGHT } = UI;
+export const TITLEBAR_HEIGHT = '2.5rem';
 
 export const SERVER_READY_SIGNALS = {
   KOBOLDCPP: 'Please connect to custom endpoint at',

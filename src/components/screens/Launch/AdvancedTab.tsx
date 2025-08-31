@@ -125,6 +125,32 @@ export const AdvancedTab = () => {
               disabled={!isGpuBackend}
             />
           </Group>
+
+          <Group gap="lg" align="flex-start" wrap="nowrap">
+            <CheckboxWithTooltip
+              checked={noavx2}
+              onChange={handleNoavx2Change}
+              label="Disable AVX2"
+              tooltip={
+                !backendSupport?.noavx2 && !isLoading
+                  ? 'This binary does not support the no-AVX2 mode.'
+                  : 'Do not use AVX2 instructions, a slower compatibility mode for older devices.'
+              }
+              disabled={isLoading || !backendSupport?.noavx2}
+            />
+
+            <CheckboxWithTooltip
+              checked={failsafe}
+              onChange={handleFailsafeChange}
+              label="Failsafe"
+              tooltip={
+                !backendSupport?.failsafe && !isLoading
+                  ? 'This binary does not support failsafe mode.'
+                  : 'Use failsafe mode, extremely slow CPU only compatibility mode that should work on all devices. Can be combined with useclblast if your device supports OpenCL.'
+              }
+              disabled={isLoading || !backendSupport?.failsafe}
+            />
+          </Group>
         </Stack>
       </div>
 
@@ -173,41 +199,6 @@ export const AdvancedTab = () => {
                 placeholder="0"
               />
             </div>
-          </Group>
-        </Stack>
-      </div>
-
-      <div>
-        <Group gap="xs" align="center" mb="md">
-          <Text size="sm" fw={600}>
-            Hardware Compatibility
-          </Text>
-        </Group>
-        <Stack gap="md">
-          <Group gap="lg" align="flex-start" wrap="nowrap">
-            <CheckboxWithTooltip
-              checked={noavx2}
-              onChange={handleNoavx2Change}
-              label="Disable AVX2"
-              tooltip={
-                !backendSupport?.noavx2 && !isLoading
-                  ? 'This binary does not support the no-AVX2 mode.'
-                  : 'Do not use AVX2 instructions, a slower compatibility mode for older devices.'
-              }
-              disabled={isLoading || !backendSupport?.noavx2}
-            />
-
-            <CheckboxWithTooltip
-              checked={failsafe}
-              onChange={handleFailsafeChange}
-              label="Failsafe"
-              tooltip={
-                !backendSupport?.failsafe && !isLoading
-                  ? 'This binary does not support failsafe mode.'
-                  : 'Use failsafe mode, extremely slow CPU only compatibility mode that should work on all devices. Can be combined with useclblast if your device supports OpenCL.'
-              }
-              disabled={isLoading || !backendSupport?.failsafe}
-            />
           </Group>
         </Stack>
       </div>

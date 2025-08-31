@@ -1,3 +1,4 @@
+import { PRODUCT_NAME } from '@/constants';
 import {
   Container,
   Card,
@@ -23,7 +24,7 @@ export const WelcomeScreen = ({ onGetStarted }: WelcomeScreenProps) => (
         <Stack gap="lg" align="center">
           <Stack gap="md" align="center">
             <Title order={1} ta="center">
-              Gerbil
+              {PRODUCT_NAME}
             </Title>
             <Text size="lg" c="dimmed" ta="center" maw={600}>
               Run Large Language Models locally
