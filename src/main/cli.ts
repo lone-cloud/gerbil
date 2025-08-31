@@ -1,34 +1,14 @@
 /* eslint-disable no-console */
 import { spawn } from 'child_process';
-import { join } from 'path';
-import { homedir } from 'os';
 
-import { PRODUCT_NAME, CONFIG_FILE_NAME } from '@/constants';
 import { terminateProcess } from '@/utils/process';
 import { pathExists, readJsonFile } from '@/utils/fs';
+import { getConfigDir } from '@/utils/path';
 
 export class LightweightCliHandler {
-  private getConfigDir(appName: string): string {
-    const platform = process.platform;
-    const home = homedir();
-
-    switch (platform) {
-      case 'win32':
-        return join(home, 'AppData', 'Roaming', appName);
-      case 'darwin':
-        return join(home, 'Library', 'Application Support', appName);
-      default:
-        return join(home, '.config', appName);
-    }
-  }
-
-  private getConfigPath(): string {
-    return join(this.getConfigDir(PRODUCT_NAME), CONFIG_FILE_NAME);
-  }
-
   private async getCurrentKoboldBinary(): Promise<string | null> {
     try {
-      const configPath = this.getConfigPath();
+      const configPath = getConfigDir();
       if (!(await pathExists(configPath))) {
         return null;
       }

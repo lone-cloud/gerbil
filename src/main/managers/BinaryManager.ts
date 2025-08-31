@@ -1,18 +1,9 @@
 import { join, dirname } from 'path';
+import { pathExists } from '@/utils/fs';
 import { LogManager } from '@/main/managers/LogManager';
 import type { KoboldCppManager } from '@/main/managers/KoboldCppManager';
 import type { HardwareManager } from '@/main/managers/HardwareManager';
-import type { BackendOption } from '@/types';
-import { pathExists } from '@/utils/fs';
-
-export interface BackendSupport {
-  rocm: boolean;
-  vulkan: boolean;
-  clblast: boolean;
-  noavx2: boolean;
-  failsafe: boolean;
-  cuda: boolean;
-}
+import type { BackendOption, BackendSupport } from '@/types';
 
 export class BinaryManager {
   private backendSupportCache = new Map<string, BackendSupport>();

@@ -1,4 +1,3 @@
-export const APP_NAME = 'gerbil';
 export const PRODUCT_NAME = 'Gerbil';
 
 export const CONFIG_FILE_NAME = 'config.json';

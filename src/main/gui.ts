@@ -9,9 +9,10 @@ import { SillyTavernManager } from '@/main/managers/SillyTavernManager';
 import { HardwareManager } from '@/main/managers/HardwareManager';
 import { BinaryManager } from '@/main/managers/BinaryManager';
 import { IPCHandlers } from '@/main/ipc';
-import { PRODUCT_NAME, CONFIG_FILE_NAME } from '@/constants';
+import { PRODUCT_NAME } from '@/constants';
 import { homedir } from 'os';
 import { ensureDir } from '@/utils/fs';
+import { getConfigDir } from '@/utils/path';
 
 export class GerbilApp {
   private windowManager: WindowManager;
@@ -27,10 +28,7 @@ export class GerbilApp {
     this.logManager = new LogManager();
     this.logManager.setupGlobalErrorHandlers();
 
-    this.configManager = new ConfigManager(
-      this.getConfigPath(),
-      this.logManager
-    );
+    this.configManager = new ConfigManager(getConfigDir(), this.logManager);
     this.windowManager = new WindowManager();
     this.hardwareManager = new HardwareManager(this.logManager);
 
@@ -61,28 +59,23 @@ export class GerbilApp {
     );
   }
 
-  private getConfigPath() {
-    return join(app.getPath('userData'), CONFIG_FILE_NAME);
-  }
-
-  private getDefaultInstallDir(appName: string): string {
+  private getDefaultInstallDir(): string {
     const platform = process.platform;
     const home = homedir();
 
     switch (platform) {
       case 'win32':
-        return join(home, appName);
+        return join(home, PRODUCT_NAME);
       case 'darwin':
-        return join(home, 'Applications', appName);
+        return join(home, 'Applications', PRODUCT_NAME);
       default:
-        return join(home, '.local', 'share', appName);
+        return join(home, '.local', 'share', PRODUCT_NAME);
     }
   }
 
   private async ensureInstallDirectory(): Promise<void> {
     const installDir =
-      this.configManager.getInstallDir() ||
-      this.getDefaultInstallDir(PRODUCT_NAME);
+      this.configManager.getInstallDir() || this.getDefaultInstallDir();
 
     if (!this.configManager.getInstallDir()) {
       await this.configManager.setInstallDir(installDir);
