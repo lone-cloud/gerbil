@@ -103,8 +103,8 @@ export const TitleBar = ({
           justifyContent: 'space-between',
           backgroundColor:
             computedColorScheme === 'dark'
-              ? 'var(--mantine-color-dark-7)'
-              : 'var(--mantine-color-gray-0)',
+              ? 'var(--mantine-color-dark-8)'
+              : 'var(--mantine-color-gray-1)',
           borderBottom: '1px solid var(--mantine-color-default-border)',
           WebkitAppRegion:
             isAnyModalOpen() || isSelectOpen ? 'no-drag' : 'drag',
