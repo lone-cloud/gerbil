@@ -1,8 +1,17 @@
-import { Stack, Group, Text, TextInput, NumberInput } from '@mantine/core';
+import {
+  Stack,
+  Group,
+  Text,
+  TextInput,
+  NumberInput,
+  Button,
+} from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
+import { CommandLineArgumentsModal } from '@/components/CommandLineArgumentsModal';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
+import { useModalStore } from '@/stores/modal';
 import { safeExecute } from '@/utils/logger';
 
 export const AdvancedTab = () => {
@@ -29,11 +38,20 @@ export const AdvancedTab = () => {
     handleMoecpuChange,
     handleMoeexpertsChange,
   } = useLaunchConfig();
+  const { modals, setModalOpen } = useModalStore();
   const [backendSupport, setBackendSupport] = useState<{
     noavx2: boolean;
     failsafe: boolean;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const handleAddArgument = (newArgument: string) => {
+    const currentArgs = additionalArguments.trim();
+    const updatedArgs = currentArgs
+      ? `${currentArgs} ${newArgument}`
+      : newArgument;
+    handleAdditionalArgumentsChange(updatedArgs);
+  };
 
   const isGpuBackend = backend === 'cuda' || backend === 'rocm';
 
@@ -62,11 +80,6 @@ export const AdvancedTab = () => {
   return (
     <Stack gap="md">
       <div>
-        <Group gap="xs" align="center" mb="md">
-          <Text size="sm" fw={600}>
-            Performance Options
-          </Text>
-        </Group>
         <Stack gap="md">
           <Group gap="lg" align="flex-start" wrap="nowrap">
             <CheckboxWithTooltip
@@ -155,11 +168,6 @@ export const AdvancedTab = () => {
       </div>
 
       <div>
-        <Group gap="xs" align="center" mb="md">
-          <Text size="sm" fw={600}>
-            Mixture of Experts (MoE) Settings
-          </Text>
-        </Group>
         <Stack gap="md">
           <Group gap="lg" align="flex-start" wrap="nowrap">
             <div style={{ flex: 1, minWidth: 200 }}>
@@ -204,11 +212,20 @@ export const AdvancedTab = () => {
       </div>
 
       <div>
-        <Group gap="xs" align="center" mb="xs">
-          <Text size="sm" fw={500}>
-            Additional arguments
-          </Text>
-          <InfoTooltip label="Additional command line arguments to pass to the KoboldCPP binary. Leave this empty if you don't know what they are." />
+        <Group mb="md" justify="space-between">
+          <Group>
+            <Text size="sm" fw={500}>
+              Additional arguments
+            </Text>
+            <InfoTooltip label="Additional command line arguments to pass to the KoboldCPP binary. Leave this empty if you don't know what they are." />
+          </Group>
+          <Button
+            size="xs"
+            variant="light"
+            onClick={() => setModalOpen('commandLineArguments', true)}
+          >
+            View Available Arguments
+          </Button>
         </Group>
         <TextInput
           placeholder="Additional command line arguments"
@@ -218,6 +235,12 @@ export const AdvancedTab = () => {
           }
         />
       </div>
+
+      <CommandLineArgumentsModal
+        opened={modals.commandLineArguments}
+        onClose={() => setModalOpen('commandLineArguments', false)}
+        onAddArgument={handleAddArgument}
+      />
     </Stack>
   );
 };

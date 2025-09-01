@@ -1,4 +1,4 @@
-import { useLaunchConfigStore } from '@/stores/launchConfigStore';
+import { useLaunchConfigStore } from '@/stores/launchConfig';
 import {
   type ImageModelPreset,
   IMAGE_MODEL_PRESETS,
