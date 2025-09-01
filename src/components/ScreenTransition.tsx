@@ -22,11 +22,6 @@ export const ScreenTransition = ({
       <div
         style={{
           ...styles,
-          position: isActive ? 'static' : 'absolute',
-          width: '100%',
-          top: 0,
-          left: 0,
-          zIndex: isActive ? 1 : 0,
         }}
       >
         {children}

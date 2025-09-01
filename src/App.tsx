@@ -22,7 +22,6 @@ export const App = () => {
   const [hasInitialized, setHasInitialized] = useState(false);
   const [activeInterfaceTab, setActiveInterfaceTab] =
     useState<InterfaceTab>('terminal');
-  const [isImageGenerationMode, setIsImageGenerationMode] = useState(false);
   const [frontendPreference, setFrontendPreference] =
     useState<FrontendPreference>('koboldcpp');
 
@@ -159,6 +158,7 @@ export const App = () => {
         onTabChange={setActiveInterfaceTab}
         onEject={handleEject}
         onOpenSettings={() => setModalOpen('settings', true)}
+        frontendPreference={frontendPreference}
       />
 
       <AppShell.Main>
@@ -191,10 +191,7 @@ export const App = () => {
               isActive={currentScreen === 'launch'}
               shouldAnimate={hasInitialized}
             >
-              <LaunchScreen
-                onLaunch={handleLaunch}
-                onLaunchModeChange={setIsImageGenerationMode}
-              />
+              <LaunchScreen onLaunch={handleLaunch} />
             </ScreenTransition>
 
             <ScreenTransition
@@ -204,28 +201,25 @@ export const App = () => {
               <InterfaceScreen
                 activeTab={activeInterfaceTab}
                 onTabChange={setActiveInterfaceTab}
-                isImageGenerationMode={isImageGenerationMode}
                 frontendPreference={frontendPreference}
               />
             </ScreenTransition>
           </>
         )}
 
-        {showUpdateModal && binaryUpdateInfo && (
-          <UpdateAvailableModal
-            opened={showUpdateModal}
-            onClose={dismissUpdate}
-            currentVersion={binaryUpdateInfo.currentVersion}
-            availableUpdate={binaryUpdateInfo.availableUpdate}
-            onUpdate={handleBinaryUpdate}
-            isDownloading={
-              downloading === binaryUpdateInfo.availableUpdate.name
-            }
-            downloadProgress={
-              downloadProgress[binaryUpdateInfo.availableUpdate.name] || 0
-            }
-          />
-        )}
+        <UpdateAvailableModal
+          opened={showUpdateModal && !!binaryUpdateInfo}
+          onClose={dismissUpdate}
+          currentVersion={binaryUpdateInfo?.currentVersion}
+          availableUpdate={binaryUpdateInfo?.availableUpdate}
+          onUpdate={handleBinaryUpdate}
+          isDownloading={downloading === binaryUpdateInfo?.availableUpdate.name}
+          downloadProgress={
+            binaryUpdateInfo
+              ? downloadProgress[binaryUpdateInfo.availableUpdate.name] || 0
+              : 0
+          }
+        />
       </AppShell.Main>
       <SettingsModal
         opened={modals.settings}

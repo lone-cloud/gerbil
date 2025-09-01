@@ -3,10 +3,9 @@ import { error } from '@/utils/logger';
 import type { SdConvDirectMode } from '@/types';
 
 interface UseLaunchLogicProps {
-  modelPath: string;
+  model: string;
   sdmodel: string;
   onLaunch: () => void;
-  onLaunchModeChange?: (isImageMode: boolean) => void;
 }
 
 interface LaunchArgs {
@@ -45,7 +44,7 @@ interface LaunchArgs {
 
 const buildModelArgs = (
   isImageMode: boolean,
-  modelPath: string,
+  model: string,
   sdmodel: string,
   launchArgs: LaunchArgs
 ): string[] => {
@@ -77,7 +76,7 @@ const buildModelArgs = (
       args.push('--sdconvdirect', launchArgs.sdconvdirect);
     }
   } else {
-    args.push('--model', modelPath);
+    args.push('--model', model);
   }
 
   return args;
@@ -239,17 +238,16 @@ function parseCLBlastDevice(deviceString: string): {
 }
 
 export const useLaunchLogic = ({
-  modelPath,
+  model,
   sdmodel,
   onLaunch,
-  onLaunchModeChange,
 }: UseLaunchLogicProps) => {
   const [isLaunching, setIsLaunching] = useState(false);
 
   const handleLaunch = useCallback(
     async (launchArgs: LaunchArgs) => {
       const isImageMode = sdmodel.trim() !== '';
-      const isTextMode = modelPath.trim() !== '';
+      const isTextMode = model.trim() !== '';
 
       if (isLaunching || (!isImageMode && !isTextMode)) {
         return;
@@ -261,7 +259,7 @@ export const useLaunchLogic = ({
 
       try {
         const args: string[] = [
-          ...buildModelArgs(isImageMode, modelPath, sdmodel, launchArgs),
+          ...buildModelArgs(isImageMode, model, sdmodel, launchArgs),
           ...buildConfigArgs(isImageMode, launchArgs),
           ...buildBackendArgs(launchArgs),
         ];
@@ -276,9 +274,7 @@ export const useLaunchLogic = ({
         const result = await window.electronAPI.kobold.launchKoboldCpp(args);
 
         if (result.success) {
-          if (onLaunchModeChange) {
-            onLaunchModeChange(isImageMode);
-          }
+          onLaunch();
         } else {
           const errorMessage = result.error || 'Unknown launch error';
           window.electronAPI.logs.logError(
@@ -292,7 +288,7 @@ export const useLaunchLogic = ({
         setIsLaunching(false);
       }
     },
-    [modelPath, sdmodel, isLaunching, onLaunch, onLaunchModeChange]
+    [model, sdmodel, isLaunching, onLaunch]
   );
 
   return {

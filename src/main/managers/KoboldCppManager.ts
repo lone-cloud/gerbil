@@ -398,7 +398,7 @@ export class KoboldCppManager {
     }
   }
 
-  async selectModelFile(): Promise<string | null> {
+  async selectModelFile(title = 'Select Model File'): Promise<string | null> {
     try {
       const mainWindow = this.windowManager.getMainWindow();
       if (!mainWindow) {
@@ -406,9 +406,12 @@ export class KoboldCppManager {
       }
 
       const result = await dialog.showOpenDialog(mainWindow, {
-        title: 'Select Model File',
+        title,
         filters: [
-          { name: 'GGUF Files', extensions: ['gguf'] },
+          {
+            name: 'Model Files',
+            extensions: ['gguf', 'safetensors'],
+          },
           { name: 'All Files', extensions: ['*'] },
         ],
         properties: ['openFile'],

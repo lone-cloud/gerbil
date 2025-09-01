@@ -549,10 +549,12 @@ export const CommandLineArgumentsModal = ({
     >
       <Group gap="xs" wrap="wrap" justify="space-between">
         <Group gap="xs" wrap="wrap" style={{ flex: 1 }}>
-          <Code style={{ fontSize: '14px', fontWeight: 600 }}>{arg.flag}</Code>
+          <Code style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+            {arg.flag}
+          </Code>
           {arg.aliases &&
             arg.aliases.map((alias) => (
-              <Code key={alias} style={{ fontSize: '12px' }} c="dimmed">
+              <Code key={alias} style={{ fontSize: '0.75em' }} c="dimmed">
                 {alias}
               </Code>
             ))}

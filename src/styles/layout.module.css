@@ -9,6 +9,6 @@
 .terminalScrollArea {
   flex: 1;
   font-family: Monaco, Menlo, 'Ubuntu Mono', monospace;
-  font-size: 14px;
+  font-size: 0.875em;
   line-height: 1.4;
 }

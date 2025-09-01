@@ -68,14 +68,14 @@ export const SettingsModal = ({
       lockScroll={false}
       styles={{
         body: {
-          height: '440px',
+          height: '27.5rem',
           padding: 0,
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',
         },
         content: {
-          height: '500px',
+          height: '31.25rem',
           paddingBottom: 0,
         },
       }}
@@ -96,8 +96,8 @@ export const SettingsModal = ({
           panel: {
             height: '100%',
             overflow: 'auto',
-            paddingLeft: '24px',
-            paddingRight: '24px',
+            paddingLeft: '1.5rem',
+            paddingRight: '1.5rem',
           },
           tabLabel: {
             textAlign: 'left',

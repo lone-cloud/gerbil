@@ -6,7 +6,7 @@
   position: relative !important;
   top: 2.5rem !important;
   margin-top: 0 !important;
-  padding-top: 1rem !important;
+  padding-top: 0 !important;
   padding-bottom: 0 !important;
   min-height: calc(100vh - 2.5rem) !important;
 }

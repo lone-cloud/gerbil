@@ -46,3 +46,12 @@ export const FRONTENDS = {
   STABLE_UI: 'Stable UI',
   SILLYTAVERN: 'SillyTavern',
 } as const;
+
+export const ZOOM = {
+  MIN_LEVEL: -5,
+  MAX_LEVEL: 5,
+  MIN_PERCENTAGE: 25,
+  MAX_PERCENTAGE: 500,
+  DEFAULT_LEVEL: 0,
+  DEFAULT_PERCENTAGE: 100,
+} as const;

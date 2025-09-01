@@ -8,7 +8,7 @@ import {
 } from '@mantine/core';
 import { ChevronDown } from 'lucide-react';
 import styles from '@/styles/layout.module.css';
-import { SERVER_READY_SIGNALS } from '@/constants';
+import { SERVER_READY_SIGNALS, TITLEBAR_HEIGHT } from '@/constants';
 import { handleTerminalOutput, processTerminalContent } from '@/utils/terminal';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 import type { FrontendPreference } from '@/types';
@@ -104,7 +104,7 @@ export const TerminalTab = ({
   return (
     <Box
       style={{
-        height: 'calc(100vh - 2rem)',
+        height: `calc(100vh - ${TITLEBAR_HEIGHT})`,
         display: 'flex',
         flexDirection: 'column',
         backgroundColor: isDark
@@ -133,7 +133,7 @@ export const TerminalTab = ({
                 margin: 0,
                 fontFamily:
                   'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-                fontSize: '14px',
+                fontSize: '0.875rem',
                 lineHeight: 1.4,
                 color: isDark
                   ? 'var(--mantine-color-gray-0)'
@@ -158,10 +158,10 @@ export const TerminalTab = ({
           onClick={scrollToBottom}
           style={{
             position: 'absolute',
-            bottom: '20px',
-            right: '20px',
+            bottom: '1.25rem',
+            right: '1.25rem',
             zIndex: 10,
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+            boxShadow: '0 0.125rem 0.5rem rgba(0, 0, 0, 0.3)',
           }}
           aria-label="Scroll to bottom"
         >
