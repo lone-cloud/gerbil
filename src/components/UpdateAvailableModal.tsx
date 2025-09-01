@@ -19,8 +19,8 @@ import { safeExecute } from '@/utils/logger';
 interface UpdateAvailableModalProps {
   opened: boolean;
   onClose: () => void;
-  currentVersion: InstalledVersion;
-  availableUpdate: DownloadItem;
+  currentVersion?: InstalledVersion;
+  availableUpdate?: DownloadItem;
   onUpdate: (download: DownloadItem) => Promise<void>;
   isDownloading?: boolean;
   downloadProgress?: number;
@@ -38,11 +38,13 @@ export const UpdateAvailableModal = ({
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleUpdate = async () => {
-    setIsUpdating(true);
-    await safeExecute(async () => {
-      await onUpdate(availableUpdate);
-      onClose();
-    }, 'Failed to update:');
+    if (availableUpdate) {
+      setIsUpdating(true);
+      await safeExecute(async () => {
+        await onUpdate(availableUpdate);
+        onClose();
+      }, 'Failed to update:');
+    }
     setIsUpdating(false);
   };
 
@@ -65,7 +67,7 @@ export const UpdateAvailableModal = ({
                   Current Version
                 </Text>
                 <Text fw={500} size="sm">
-                  {currentVersion.version}
+                  {currentVersion?.version}
                 </Text>
               </div>
 
@@ -78,14 +80,16 @@ export const UpdateAvailableModal = ({
                   Available Version
                 </Text>
                 <Text fw={500} size="sm" c="orange">
-                  {availableUpdate.version}
+                  {availableUpdate?.version}
                 </Text>
               </div>
             </Group>
 
-            <Text size="xs" c="dimmed">
-              Binary: {getDisplayNameFromPath(currentVersion)}
-            </Text>
+            {currentVersion && (
+              <Text size="xs" c="dimmed">
+                Binary: {getDisplayNameFromPath(currentVersion)}
+              </Text>
+            )}
 
             <Group gap="xs" align="center" mt="xs">
               <Text size="xs" c="dimmed">
@@ -93,17 +97,17 @@ export const UpdateAvailableModal = ({
               </Text>
               <Anchor
                 size="xs"
-                href={`https://github.com/${GITHUB_API.KOBOLDCPP_REPO}/releases/tag/v${availableUpdate.version}`}
+                href={`https://github.com/${GITHUB_API.KOBOLDCPP_REPO}/releases/tag/v${availableUpdate?.version}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() =>
                   window.electronAPI.app.openExternal(
-                    `https://github.com/${GITHUB_API.KOBOLDCPP_REPO}/releases/tag/v${availableUpdate.version}`
+                    `https://github.com/${GITHUB_API.KOBOLDCPP_REPO}/releases/tag/v${availableUpdate?.version}`
                   )
                 }
               >
                 <Group gap={4} align="center">
-                  <span>v{availableUpdate.version}</span>
+                  <span>v{availableUpdate?.version}</span>
                   <ExternalLink size={12} />
                 </Group>
               </Anchor>

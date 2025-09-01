@@ -57,7 +57,6 @@ export interface DownloadItem {
 export interface KoboldConfig {
   gpulayers?: number;
   contextsize?: number;
-  model_param?: string;
   port?: number;
   host?: string;
   multiuser?: number;
@@ -122,7 +121,7 @@ export interface KoboldAPI {
   getSelectedConfig: () => Promise<string | null>;
   setSelectedConfig: (configName: string) => Promise<boolean>;
   parseConfigFile: (filePath: string) => Promise<KoboldConfig | null>;
-  selectModelFile: () => Promise<string | null>;
+  selectModelFile: (title?: string) => Promise<string | null>;
   stopKoboldCpp: () => void;
   onDownloadProgress: (callback: (progress: number) => void) => void;
   onInstallDirChanged: (callback: (newPath: string) => void) => () => void;
@@ -150,6 +149,8 @@ export interface AppAPI {
   minimizeWindow: () => void;
   maximizeWindow: () => void;
   closeWindow: () => void;
+  getZoomLevel: () => Promise<number>;
+  setZoomLevel: (level: number) => Promise<void>;
 }
 
 export interface ConfigAPI {

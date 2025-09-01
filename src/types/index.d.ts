@@ -10,8 +10,6 @@ export type SdConvDirectMode = 'off' | 'vaeonly' | 'full';
 
 export type FrontendPreference = 'koboldcpp' | 'sillytavern';
 
-export type ServerTabMode = 'chat' | 'image-generation';
-
 export type Screen = 'welcome' | 'download' | 'launch' | 'interface';
 
 export interface GitHubAsset {

@@ -1,22 +1,20 @@
-import { useRef } from 'react';
 import { Box, Text, Stack } from '@mantine/core';
-import { SILLYTAVERN, FRONTENDS } from '@/constants';
-import type { ServerTabMode, FrontendPreference } from '@/types';
+import { SILLYTAVERN, FRONTENDS, TITLEBAR_HEIGHT } from '@/constants';
+import { useLaunchConfigStore } from '@/stores/launchConfig';
+import type { FrontendPreference } from '@/types';
 
 interface ServerTabProps {
   serverUrl?: string;
   isServerReady?: boolean;
-  mode: ServerTabMode;
   frontendPreference?: FrontendPreference;
 }
 
 export const ServerTab = ({
   serverUrl,
   isServerReady,
-  mode,
   frontendPreference = 'koboldcpp',
 }: ServerTabProps) => {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const { isImageGenerationMode } = useLaunchConfigStore();
 
   if (!isServerReady || !serverUrl) {
     return (
@@ -34,8 +32,8 @@ export const ServerTab = ({
             Waiting for the KoboldCpp server to start...
           </Text>
           <Text c="dimmed" size="sm">
-            The {mode === 'chat' ? 'chat' : 'image generation'} interface will
-            load automatically when ready
+            The {isImageGenerationMode ? 'image generation' : 'chat'} interface
+            will load automatically when ready
           </Text>
         </Stack>
       </Box>
@@ -49,23 +47,21 @@ export const ServerTab = ({
     iframeUrl = SILLYTAVERN.PROXY_URL;
     title = FRONTENDS.SILLYTAVERN;
   } else {
-    iframeUrl = mode === 'image-generation' ? `${serverUrl}/sdui` : serverUrl;
-    title =
-      mode === 'image-generation'
-        ? FRONTENDS.STABLE_UI
-        : FRONTENDS.KOBOLDAI_LITE;
+    iframeUrl = isImageGenerationMode ? `${serverUrl}/sdui` : serverUrl;
+    title = isImageGenerationMode
+      ? FRONTENDS.STABLE_UI
+      : FRONTENDS.KOBOLDAI_LITE;
   }
 
   return (
     <Box
       style={{
         width: '100%',
-        height: 'calc(100vh - 2rem)',
+        height: `calc(100vh - ${TITLEBAR_HEIGHT})`,
         overflow: 'hidden',
       }}
     >
       <iframe
-        ref={iframeRef}
         src={iframeUrl}
         title={title}
         style={{

@@ -72,6 +72,10 @@ The AUR package automatically handles installation, desktop integration, and sys
 
 <img src="screenshots/gen-img.png" alt="Image Generation" width="600">
 
+### Seemless SillyTavern integration
+
+<img src="screenshots/sillytavern.png" alt="SillyTavern integration" width="600">
+
 </div>
 <!-- markdownlint-enable MD033 -->
 

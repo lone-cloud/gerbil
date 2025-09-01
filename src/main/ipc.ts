@@ -139,8 +139,8 @@ export class IPCHandlers {
       this.koboldManager.parseConfigFile(filePath)
     );
 
-    ipcMain.handle('kobold:selectModelFile', () =>
-      this.koboldManager.selectModelFile()
+    ipcMain.handle('kobold:selectModelFile', (_, title) =>
+      this.koboldManager.selectModelFile(title)
     );
 
     ipcMain.handle('config:get', (_, key) => this.configManager.get(key));
@@ -165,9 +165,14 @@ export class IPCHandlers {
     ipcMain.handle('app:openExternal', async (_, url) => {
       try {
         await shell.openExternal(url);
-        return { success: true };
       } catch (error) {
-        return { success: false, error: (error as Error).message };
+        this.logManager.logError(
+          'Failed to open external URL:',
+          error as Error
+        );
+        throw new Error(
+          `Failed to open external URL: ${(error as Error).message}`
+        );
       }
     });
 
@@ -175,9 +180,11 @@ export class IPCHandlers {
       try {
         const logsDir = this.logManager.getLogsDirectory();
         await shell.openPath(logsDir);
-        return { success: true };
       } catch (error) {
-        return { success: false, error: (error as Error).message };
+        this.logManager.logError('Failed to open logs folder:', error as Error);
+        throw new Error(
+          `Failed to open logs folder: ${(error as Error).message}`
+        );
       }
     });
 
@@ -199,6 +206,32 @@ export class IPCHandlers {
       const mainWindow = this.windowManager.getMainWindow();
       mainWindow?.close();
     });
+
+    ipcMain.handle('app:getZoomLevel', async () => {
+      const mainWindow = this.windowManager.getMainWindow();
+      if (mainWindow) {
+        return mainWindow.webContents.getZoomLevel();
+      }
+      return 0;
+    });
+
+    ipcMain.handle('app:setZoomLevel', async (_, level: number) => {
+      const mainWindow = this.windowManager.getMainWindow();
+      if (mainWindow) {
+        mainWindow.webContents.setZoomLevel(level);
+        await this.configManager.set('zoomLevel', level);
+      }
+    });
+
+    const mainWindow = this.windowManager.getMainWindow();
+    if (mainWindow) {
+      mainWindow.webContents.once('did-finish-load', async () => {
+        const savedZoomLevel = await this.configManager.get('zoomLevel');
+        if (typeof savedZoomLevel === 'number') {
+          mainWindow.webContents.setZoomLevel(savedZoomLevel);
+        }
+      });
+    }
 
     ipcMain.handle('logs:logError', (_, message: string, error?: Error) => {
       this.logManager.logError(message, error);

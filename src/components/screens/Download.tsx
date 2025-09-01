@@ -65,7 +65,7 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
   }, [downloading]);
 
   return (
-    <Container size="sm">
+    <Container size="sm" mt="md">
       <Stack gap="xl">
         <Card withBorder radius="md" shadow="sm">
           <Stack gap="lg">

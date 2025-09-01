@@ -6,9 +6,9 @@ import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 
 export const GeneralTab = () => {
   const {
-    modelPath,
+    model,
     contextSize,
-    handleModelPathChange,
+    handleModelChange,
     handleSelectModelFile,
     handleContextSizeChangeWithStep,
   } = useLaunchConfig();
@@ -19,10 +19,10 @@ export const GeneralTab = () => {
 
       <ModelFileField
         label="Text Model File"
-        value={modelPath}
+        value={model}
         placeholder="Select a .gguf model file or enter a direct URL to file"
         tooltip="Select a GGUF text generation model file for chat and completion tasks."
-        onChange={handleModelPathChange}
+        onChange={handleModelChange}
         onSelectFile={handleSelectModelFile}
         showSearchHF
         searchUrl="https://huggingface.co/models?pipeline_tag=text-generation&library=gguf&sort=trending"

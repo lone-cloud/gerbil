@@ -19,9 +19,10 @@ import { useState } from 'react';
 import { soundAssets, playSound, initializeAudio } from '@/utils/sounds';
 import { useAppUpdateChecker } from '@/hooks/useAppUpdateChecker';
 import { useModalStore } from '@/stores/modal';
+import { useLaunchConfigStore } from '@/stores/launchConfig';
 import iconUrl from '/icon.png';
-import { PRODUCT_NAME, TITLEBAR_HEIGHT } from '@/constants';
-import type { InterfaceTab, Screen } from '@/types';
+import { FRONTENDS, PRODUCT_NAME, TITLEBAR_HEIGHT } from '@/constants';
+import type { FrontendPreference, InterfaceTab, Screen } from '@/types';
 
 interface TitleBarProps {
   currentScreen: Screen;
@@ -29,6 +30,7 @@ interface TitleBarProps {
   onTabChange?: (tab: InterfaceTab) => void;
   onEject?: () => void;
   onOpenSettings?: () => void;
+  frontendPreference?: FrontendPreference;
 }
 
 export const TitleBar = ({
@@ -37,16 +39,19 @@ export const TitleBar = ({
   onTabChange,
   onEject,
   onOpenSettings,
+  frontendPreference,
 }: TitleBarProps) => {
   const computedColorScheme = useComputedColorScheme('light', {
     getInitialValueInEffect: false,
   });
   const { hasUpdate, openReleasePage } = useAppUpdateChecker();
   const { isAnyModalOpen } = useModalStore();
+  const { isImageGenerationMode } = useLaunchConfigStore();
   const [logoClickCount, setLogoClickCount] = useState(0);
   const [isElephantMode, setIsElephantMode] = useState(false);
   const [isMouseSqueaking, setIsMouseSqueaking] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
+  const [isSelectOpen, setIsSelectOpen] = useState(false);
 
   const handleMinimize = () => {
     window.electronAPI.app.minimizeWindow();
@@ -101,7 +106,8 @@ export const TitleBar = ({
               ? 'var(--mantine-color-dark-7)'
               : 'var(--mantine-color-gray-0)',
           borderBottom: '1px solid var(--mantine-color-default-border)',
-          WebkitAppRegion: isAnyModalOpen() ? 'no-drag' : 'drag',
+          WebkitAppRegion:
+            isAnyModalOpen() || isSelectOpen ? 'no-drag' : 'drag',
           userSelect: 'none',
           position: 'relative',
         }}
@@ -154,10 +160,17 @@ export const TitleBar = ({
                   onTabChange?.(value as InterfaceTab);
                 }
               }}
+              onDropdownOpen={() => setIsSelectOpen(true)}
+              onDropdownClose={() => setIsSelectOpen(false)}
               data={[
                 {
                   value: 'chat',
-                  label: 'Chat',
+                  label:
+                    frontendPreference === 'sillytavern'
+                      ? FRONTENDS.SILLYTAVERN
+                      : isImageGenerationMode
+                        ? FRONTENDS.STABLE_UI
+                        : FRONTENDS.KOBOLDAI_LITE,
                 },
                 { value: 'terminal', label: 'Terminal' },
                 { value: 'eject', label: 'Eject' },
@@ -167,7 +180,7 @@ export const TitleBar = ({
               size="sm"
               style={{
                 textAlign: 'center',
-                minWidth: '120px',
+                minWidth: '7.5rem',
               }}
               styles={{
                 input: {

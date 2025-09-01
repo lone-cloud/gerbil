@@ -5,13 +5,12 @@ import type {
   ConfigAPI,
   LogsAPI,
   SillyTavernAPI,
-  KoboldConfig,
 } from '@/types/electron';
 
 const koboldAPI: KoboldAPI = {
   getInstalledVersions: () => ipcRenderer.invoke('kobold:getInstalledVersions'),
   getCurrentVersion: () => ipcRenderer.invoke('kobold:getCurrentVersion'),
-  setCurrentVersion: (version: string) =>
+  setCurrentVersion: (version) =>
     ipcRenderer.invoke('kobold:setCurrentVersion', version),
   getPlatform: () => ipcRenderer.invoke('kobold:getPlatform'),
   detectGPU: () => ipcRenderer.invoke('kobold:detectGPU'),
@@ -21,24 +20,24 @@ const koboldAPI: KoboldAPI = {
   detectGPUMemory: () => ipcRenderer.invoke('kobold:detectGPUMemory'),
   detectROCm: () => ipcRenderer.invoke('kobold:detectROCm'),
   detectBackendSupport: () => ipcRenderer.invoke('kobold:detectBackendSupport'),
-  getAvailableBackends: (includeDisabled?: boolean) =>
+  getAvailableBackends: (includeDisabled) =>
     ipcRenderer.invoke('kobold:getAvailableBackends', includeDisabled),
   getCurrentInstallDir: () => ipcRenderer.invoke('kobold:getCurrentInstallDir'),
   selectInstallDirectory: () =>
     ipcRenderer.invoke('kobold:selectInstallDirectory'),
   downloadRelease: (asset) =>
     ipcRenderer.invoke('kobold:downloadRelease', asset),
-  launchKoboldCpp: (args?: string[]) =>
-    ipcRenderer.invoke('kobold:launchKoboldCpp', args),
+  launchKoboldCpp: (args) => ipcRenderer.invoke('kobold:launchKoboldCpp', args),
   getConfigFiles: () => ipcRenderer.invoke('kobold:getConfigFiles'),
-  saveConfigFile: (configName: string, configData: KoboldConfig) =>
+  saveConfigFile: (configName, configData) =>
     ipcRenderer.invoke('kobold:saveConfigFile', configName, configData),
   getSelectedConfig: () => ipcRenderer.invoke('kobold:getSelectedConfig'),
-  setSelectedConfig: (configName: string) =>
+  setSelectedConfig: (configName) =>
     ipcRenderer.invoke('kobold:setSelectedConfig', configName),
-  parseConfigFile: (filePath: string) =>
+  parseConfigFile: (filePath) =>
     ipcRenderer.invoke('kobold:parseConfigFile', filePath),
-  selectModelFile: () => ipcRenderer.invoke('kobold:selectModelFile'),
+  selectModelFile: (title) =>
+    ipcRenderer.invoke('kobold:selectModelFile', title),
   stopKoboldCpp: () => ipcRenderer.invoke('kobold:stopKoboldCpp'),
   onDownloadProgress: (callback) => {
     ipcRenderer.on(
@@ -46,7 +45,7 @@ const koboldAPI: KoboldAPI = {
       (_: IpcRendererEvent, progress: number) => callback(progress)
     );
   },
-  onInstallDirChanged: (callback: (newPath: string) => void) => {
+  onInstallDirChanged: (callback) => {
     const handler = (_: IpcRendererEvent, newPath: string) => callback(newPath);
     ipcRenderer.on('install-dir-changed', handler);
 
@@ -54,7 +53,7 @@ const koboldAPI: KoboldAPI = {
       ipcRenderer.removeListener('install-dir-changed', handler);
     };
   },
-  onVersionsUpdated: (callback: () => void) => {
+  onVersionsUpdated: (callback) => {
     const handler = () => callback();
     ipcRenderer.on('versions-updated', handler);
 
@@ -62,7 +61,7 @@ const koboldAPI: KoboldAPI = {
       ipcRenderer.removeListener('versions-updated', handler);
     };
   },
-  onKoboldOutput: (callback: (data: string) => void) => {
+  onKoboldOutput: (callback) => {
     const handler = (_: IpcRendererEvent, data: string) => callback(data);
     ipcRenderer.on('kobold-output', handler);
 
@@ -83,16 +82,17 @@ const appAPI: AppAPI = {
   minimizeWindow: () => ipcRenderer.invoke('app:minimizeWindow'),
   maximizeWindow: () => ipcRenderer.invoke('app:maximizeWindow'),
   closeWindow: () => ipcRenderer.invoke('app:closeWindow'),
+  getZoomLevel: () => ipcRenderer.invoke('app:getZoomLevel'),
+  setZoomLevel: (level) => ipcRenderer.invoke('app:setZoomLevel', level),
 };
 
 const configAPI: ConfigAPI = {
-  get: (key: string) => ipcRenderer.invoke('config:get', key),
-  set: (key: string, value: unknown) =>
-    ipcRenderer.invoke('config:set', key, value),
+  get: (key) => ipcRenderer.invoke('config:get', key),
+  set: (key, value) => ipcRenderer.invoke('config:set', key, value),
 };
 
 const logsAPI: LogsAPI = {
-  logError: (message: string, error?: Error) =>
+  logError: (message, error) =>
     ipcRenderer.invoke('logs:logError', message, error),
 };
 

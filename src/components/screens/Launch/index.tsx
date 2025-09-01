@@ -15,13 +15,9 @@ import type { ConfigFile } from '@/types';
 
 interface LaunchScreenProps {
   onLaunch: () => void;
-  onLaunchModeChange?: (isImageMode: boolean) => void;
 }
 
-export const LaunchScreen = ({
-  onLaunch,
-  onLaunchModeChange,
-}: LaunchScreenProps) => {
+export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
   const [configFiles, setConfigFiles] = useState<ConfigFile[]>([]);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [, setInstallDir] = useState<string>('');
@@ -33,7 +29,7 @@ export const LaunchScreen = ({
     gpuLayers,
     autoGpuLayers,
     contextSize,
-    modelPath,
+    model,
     additionalArguments,
     port,
     host,
@@ -65,19 +61,18 @@ export const LaunchScreen = ({
     moeexperts,
     parseAndApplyConfigFile,
     loadConfigFromFile,
-    handleModelPathChange,
+    handleModelChange,
     handleBackendChange,
   } = useLaunchConfig();
 
   const { isLaunching, handleLaunch } = useLaunchLogic({
-    modelPath,
+    model,
     sdmodel,
     onLaunch,
-    onLaunchModeChange,
   });
 
   const { warnings: combinedWarnings } = useWarnings({
-    modelPath,
+    model,
     sdmodel,
     backend,
     noavx2,
@@ -97,26 +92,26 @@ export const LaunchScreen = ({
   }, [backend, handleBackendChange]);
 
   const setInitialDefaults = useCallback(
-    async (currentModelPath: string, currentSdModel: string) => {
+    async (currentModel: string, currentSdModel: string) => {
       await tryExecute(async () => {
         if (
           !defaultsSetRef.current &&
-          !currentModelPath.trim() &&
+          !currentModel.trim() &&
           !currentSdModel.trim()
         ) {
-          handleModelPathChange(DEFAULT_MODEL_URL);
+          handleModelChange(DEFAULT_MODEL_URL);
           defaultsSetRef.current = true;
         }
       }, 'Failed to set initial defaults:');
     },
-    [handleModelPathChange]
+    [handleModelChange]
   );
 
   useEffect(() => {
     if (configLoaded && !defaultsSetRef.current) {
       void setHappyDefaults();
-      if (!modelPath.trim() && !sdmodel.trim()) {
-        void setInitialDefaults(modelPath, sdmodel);
+      if (!model.trim() && !sdmodel.trim()) {
+        void setInitialDefaults(model, sdmodel);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -160,7 +155,7 @@ export const LaunchScreen = ({
     autoGpuLayers: autoGpuLayers,
     gpulayers: gpuLayers,
     contextsize: contextSize,
-    model: modelPath,
+    model,
     additionalArguments,
     port,
     host,
@@ -290,7 +285,7 @@ export const LaunchScreen = ({
   };
 
   return (
-    <Container size="sm">
+    <Container size="sm" mt="md">
       <Stack gap="md">
         <Card
           withBorder
@@ -314,7 +309,7 @@ export const LaunchScreen = ({
               onChange={setActiveTab}
               styles={{
                 root: {
-                  maxHeight: '22rem',
+                  maxHeight: '59vh',
                   display: 'flex',
                   flexDirection: 'column',
                 },
@@ -354,18 +349,18 @@ export const LaunchScreen = ({
               <WarningDisplay warnings={combinedWarnings}>
                 <Button
                   radius="md"
-                  disabled={(!modelPath && !sdmodel) || isLaunching}
+                  disabled={(!model && !sdmodel) || isLaunching}
                   onClick={handleLaunchClick}
                   size="lg"
                   variant="filled"
                   color="blue"
                   style={{
                     fontWeight: 600,
-                    fontSize: '16px',
-                    padding: '12px 28px',
-                    minWidth: '120px',
+                    fontSize: '1em',
+                    padding: '0.75rem 1.75rem',
+                    minWidth: '7.5rem',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
+                    letterSpacing: '0.03125rem',
                   }}
                 >
                   Launch

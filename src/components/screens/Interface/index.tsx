@@ -6,14 +6,12 @@ import type { InterfaceTab, FrontendPreference } from '@/types';
 interface InterfaceScreenProps {
   activeTab?: InterfaceTab | null;
   onTabChange?: (tab: InterfaceTab) => void;
-  isImageGenerationMode?: boolean;
   frontendPreference?: FrontendPreference;
 }
 
 export const InterfaceScreen = ({
   activeTab,
   onTabChange,
-  isImageGenerationMode = false,
   frontendPreference = 'koboldcpp',
 }: InterfaceScreenProps) => {
   const [serverUrl, setServerUrl] = useState<string>('');
@@ -48,7 +46,6 @@ export const InterfaceScreen = ({
         <ServerTab
           serverUrl={serverUrl}
           isServerReady={isServerReady}
-          mode={isImageGenerationMode ? 'image-generation' : 'chat'}
           frontendPreference={frontendPreference}
         />
       </div>

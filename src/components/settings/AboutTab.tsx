@@ -122,7 +122,12 @@ export const AboutTab = () => {
         <Stack gap="xs">
           {versionItems.map((item, index) => (
             <Group key={index} gap="md" align="center" wrap="nowrap">
-              <Text size="sm" fw={500} c="dimmed" style={{ minWidth: '120px' }}>
+              <Text
+                size="sm"
+                fw={500}
+                c="dimmed"
+                style={{ minWidth: '7.5rem' }}
+              >
                 {item.label}:
               </Text>
               <Text

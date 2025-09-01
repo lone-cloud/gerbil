@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { safeExecute } from '@/utils/logger';
 import type { BackendOption } from '@/types';
 
@@ -8,7 +8,7 @@ export interface Warning {
 }
 
 interface UseWarningsProps {
-  modelPath: string;
+  model: string;
   sdmodel: string;
   backend?: string;
   noavx2?: boolean;
@@ -17,11 +17,11 @@ interface UseWarningsProps {
 }
 
 const checkModelWarnings = (
-  modelPath: string,
+  model: string,
   sdmodel: string,
   configLoaded: boolean
 ): Warning[] => {
-  const hasTextModel = modelPath?.trim() !== '';
+  const hasTextModel = model?.trim() !== '';
   const hasImageModel = sdmodel.trim() !== '';
   const showModelPriorityWarning = hasTextModel && hasImageModel;
   const showNoModelWarning = !hasTextModel && !hasImageModel && configLoaded;
@@ -230,7 +230,7 @@ const checkBackendWarnings = async (params?: {
 };
 
 export const useWarnings = ({
-  modelPath,
+  model,
   sdmodel,
   backend,
   noavx2 = false,
@@ -240,8 +240,8 @@ export const useWarnings = ({
   const [backendWarnings, setBackendWarnings] = useState<Warning[]>([]);
 
   const modelWarnings = useMemo(
-    () => checkModelWarnings(modelPath, sdmodel, configLoaded),
-    [modelPath, sdmodel, configLoaded]
+    () => checkModelWarnings(model, sdmodel, configLoaded),
+    [model, sdmodel, configLoaded]
   );
 
   const updateBackendWarnings = useCallback(async () => {

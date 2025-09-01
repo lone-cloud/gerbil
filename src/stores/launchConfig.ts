@@ -7,7 +7,7 @@ interface LaunchConfigState {
   gpuLayers: number;
   autoGpuLayers: boolean;
   contextSize: number;
-  modelPath: string;
+  model: string;
   additionalArguments: string;
   port?: number;
   host: string;
@@ -37,11 +37,12 @@ interface LaunchConfigState {
   sdconvdirect: SdConvDirectMode;
   moecpu: number;
   moeexperts: number;
+  isImageGenerationMode: boolean;
 
   setGpuLayers: (layers: number) => void;
   setAutoGpuLayers: (auto: boolean) => void;
   setContextSize: (size: number) => void;
-  setModelPath: (path: string) => void;
+  setModel: (path: string) => void;
   setAdditionalArguments: (args: string) => void;
   setPort: (port?: number) => void;
   setHost: (host: string) => void;
@@ -93,7 +94,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   gpuLayers: 0,
   autoGpuLayers: true,
   contextSize: DEFAULT_CONTEXT_SIZE,
-  modelPath: '',
+  model: '',
   additionalArguments: '',
   port: undefined,
   host: '',
@@ -124,10 +125,12 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   moecpu: 0,
   moeexperts: -1,
 
+  isImageGenerationMode: false,
+
   setGpuLayers: (layers) => set({ gpuLayers: layers }),
   setAutoGpuLayers: (auto) => set({ autoGpuLayers: auto }),
   setContextSize: (size) => set({ contextSize: size }),
-  setModelPath: (path) => set({ modelPath: path }),
+  setModel: (path) => set({ model: path }),
   setAdditionalArguments: (args) => set({ additionalArguments: args }),
   setPort: (port) => set({ port }),
   setHost: (host) => set({ host }),
@@ -152,7 +155,11 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   setGpuDeviceSelection: (selection) => set({ gpuDeviceSelection: selection }),
   setTensorSplit: (split) => set({ tensorSplit: split }),
   setGpuPlatform: (platform) => set({ gpuPlatform: platform }),
-  setSdmodel: (model) => set({ sdmodel: model }),
+  setSdmodel: (model) =>
+    set({
+      sdmodel: model,
+      isImageGenerationMode: Boolean(model?.trim()),
+    }),
   setSdt5xxl: (model) => set({ sdt5xxl: model }),
   setSdclipl: (model) => set({ sdclipl: model }),
   setSdclipg: (model) => set({ sdclipg: model }),
@@ -190,7 +197,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
       }
 
       if (typeof configData.model === 'string') {
-        updates.modelPath = configData.model;
+        updates.model = configData.model;
       }
 
       if (typeof configData.additionalArguments === 'string') {
@@ -316,6 +323,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
 
       if (typeof configData.sdmodel === 'string') {
         updates.sdmodel = configData.sdmodel;
+        updates.isImageGenerationMode = Boolean(configData.sdmodel?.trim());
       }
 
       if (typeof configData.sdt5xxl === 'string') {
@@ -387,56 +395,75 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   },
 
   selectModelFile: async () => {
-    const result = await window.electronAPI.kobold.selectModelFile();
+    const result = await window.electronAPI.kobold.selectModelFile(
+      'Select a Text Model File'
+    );
     if (result) {
-      set({ modelPath: result });
+      set({ model: result });
     }
   },
 
   selectSdmodelFile: async () => {
-    const result = await window.electronAPI.kobold.selectModelFile();
+    const result = await window.electronAPI.kobold.selectModelFile(
+      'Select a Image Gen. Model File'
+    );
     if (result) {
-      set({ sdmodel: result });
+      set({
+        sdmodel: result,
+        isImageGenerationMode: Boolean(result?.trim()),
+      });
     }
   },
 
   selectSdt5xxlFile: async () => {
-    const result = await window.electronAPI.kobold.selectModelFile();
+    const result = await window.electronAPI.kobold.selectModelFile(
+      'Select a SDT5XXL Model File'
+    );
     if (result) {
       set({ sdt5xxl: result });
     }
   },
 
   selectSdcliplFile: async () => {
-    const result = await window.electronAPI.kobold.selectModelFile();
+    const result = await window.electronAPI.kobold.selectModelFile(
+      'Select a SDCLIP-L Model File'
+    );
     if (result) {
       set({ sdclipl: result });
     }
   },
 
   selectSdclipgFile: async () => {
-    const result = await window.electronAPI.kobold.selectModelFile();
+    const result = await window.electronAPI.kobold.selectModelFile(
+      'Select a SDCLIP-G Model File'
+    );
     if (result) {
       set({ sdclipg: result });
     }
   },
 
   selectSdphotomakerFile: async () => {
-    const result = await window.electronAPI.kobold.selectModelFile();
+    const result = await window.electronAPI.kobold.selectModelFile(
+      'Select a SDPhotoMaker Model File'
+    );
     if (result) {
       set({ sdphotomaker: result });
     }
   },
 
   selectSdvaeFile: async () => {
-    const result = await window.electronAPI.kobold.selectModelFile();
+    const result = await window.electronAPI.kobold.selectModelFile(
+      'Select a SDVAE Model File'
+    );
     if (result) {
       set({ sdvae: result });
     }
   },
 
   selectSdloraFile: async () => {
-    const result = await window.electronAPI.kobold.selectModelFile();
+    const result = await window.electronAPI.kobold.selectModelFile(
+      'Select a SDLORA Model File'
+    );
     if (result) {
       set({ sdlora: result });
     }
@@ -450,6 +477,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   applyImageModelPreset: (preset: ImageModelPreset) => {
     set({
       sdmodel: preset.sdmodel,
+      isImageGenerationMode: Boolean(preset.sdmodel?.trim()),
       sdt5xxl: preset.sdt5xxl,
       sdclipl: preset.sdclipl,
       sdclipg: preset.sdclipg || '',

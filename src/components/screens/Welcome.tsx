@@ -18,7 +18,7 @@ interface WelcomeScreenProps {
 }
 
 export const WelcomeScreen = ({ onGetStarted }: WelcomeScreenProps) => (
-  <Container size="md">
+  <Container size="md" mt="md">
     <Stack gap="xl">
       <Card withBorder radius="md" shadow="sm" p="xl">
         <Stack gap="lg" align="center">
@@ -69,18 +69,10 @@ export const WelcomeScreen = ({ onGetStarted }: WelcomeScreenProps) => (
               <List.Item>
                 <Text>
                   <Text component="span" fw={500}>
-                    No subscription fees
-                  </Text>{' '}
-                  - Use powerful AI models for free once downloaded
-                </Text>
-              </List.Item>
-              <List.Item>
-                <Text>
-                  <Text component="span" fw={500}>
                     Hardware acceleration
                   </Text>{' '}
-                  - Supports CUDA, ROCm, Vulkan, and CLBlast backends for faster
-                  inference
+                  - Supports CUDA, ROCm, Vulkan, CLBlast and CPU backends for
+                  faster inference
                 </Text>
               </List.Item>
             </List>

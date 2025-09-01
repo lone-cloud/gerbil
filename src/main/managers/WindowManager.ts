@@ -32,7 +32,7 @@ export class WindowManager {
     const iconImage = nativeImage.createFromPath(iconPath);
 
     const { workAreaSize } = screen.getPrimaryDisplay();
-    const windowHeight = Math.floor(workAreaSize.height * 0.85);
+    const windowHeight = Math.floor(workAreaSize.height * 0.86);
 
     this.mainWindow = new BrowserWindow({
       width: 1000,
