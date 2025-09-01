@@ -11,6 +11,7 @@ import { ScreenTransition } from '@/components/ScreenTransition';
 import { TitleBar } from '@/components/TitleBar';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
+import { useModalStore } from '@/stores/modal';
 import { safeExecute } from '@/utils/logger';
 import { TITLEBAR_HEIGHT } from '@/constants';
 import type { DownloadItem } from '@/types/electron';
@@ -18,14 +19,14 @@ import type { InterfaceTab, FrontendPreference, Screen } from '@/types';
 
 export const App = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen | null>(null);
-  const [settingsOpened, setSettingsOpened] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
-  const [showEjectModal, setShowEjectModal] = useState(false);
   const [activeInterfaceTab, setActiveInterfaceTab] =
     useState<InterfaceTab>('terminal');
   const [isImageGenerationMode, setIsImageGenerationMode] = useState(false);
   const [frontendPreference, setFrontendPreference] =
     useState<FrontendPreference>('koboldcpp');
+
+  const { modals, setModalOpen } = useModalStore();
 
   const {
     updateInfo: binaryUpdateInfo,
@@ -120,7 +121,7 @@ export const App = () => {
     if (skipEjectConfirmation) {
       performEject();
     } else {
-      setShowEjectModal(true);
+      setModalOpen('ejectConfirm', true);
     }
   };
 
@@ -147,31 +148,20 @@ export const App = () => {
     }
   };
 
-  const isAnyModalOpen = settingsOpened || showEjectModal || showUpdateModal;
-
   return (
     <AppShell
       header={{ height: TITLEBAR_HEIGHT }}
       padding={currentScreen === 'interface' ? 0 : 'md'}
     >
-      <AppShell.Header style={{ display: 'flex', flexDirection: 'column' }}>
-        <TitleBar
-          currentScreen={currentScreen || 'welcome'}
-          currentTab={activeInterfaceTab}
-          onTabChange={setActiveInterfaceTab}
-          onEject={handleEject}
-          onOpenSettings={() => setSettingsOpened(true)}
-          isModalOpen={isAnyModalOpen}
-        />
-      </AppShell.Header>
-      <AppShell.Main
-        style={{
-          position: 'relative',
-          overflow: 'hidden',
-          minHeight:
-            currentScreen === 'welcome' ? '100vh' : 'calc(100vh - 2rem)',
-        }}
-      >
+      <TitleBar
+        currentScreen={currentScreen || 'welcome'}
+        currentTab={activeInterfaceTab}
+        onTabChange={setActiveInterfaceTab}
+        onEject={handleEject}
+        onOpenSettings={() => setModalOpen('settings', true)}
+      />
+
+      <AppShell.Main>
         {currentScreen === null ? (
           <Center h="100%" style={{ minHeight: '25rem' }}>
             <Stack align="center" gap="lg">
@@ -238,9 +228,9 @@ export const App = () => {
         )}
       </AppShell.Main>
       <SettingsModal
-        opened={settingsOpened}
+        opened={modals.settings}
         onClose={async () => {
-          setSettingsOpened(false);
+          setModalOpen('settings', false);
           const preference = await safeExecute(
             () =>
               window.electronAPI.config.get(
@@ -253,8 +243,8 @@ export const App = () => {
         currentScreen={currentScreen || undefined}
       />
       <EjectConfirmModal
-        opened={showEjectModal}
-        onClose={() => setShowEjectModal(false)}
+        opened={modals.ejectConfirm}
+        onClose={() => setModalOpen('ejectConfirm', false)}
         onConfirm={handleEjectConfirm}
       />
     </AppShell>

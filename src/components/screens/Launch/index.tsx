@@ -314,7 +314,7 @@ export const LaunchScreen = ({
               onChange={setActiveTab}
               styles={{
                 root: {
-                  maxHeight: '24rem',
+                  maxHeight: '22rem',
                   display: 'flex',
                   flexDirection: 'column',
                 },

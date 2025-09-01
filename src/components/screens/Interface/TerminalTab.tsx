@@ -10,7 +10,7 @@ import { ChevronDown } from 'lucide-react';
 import styles from '@/styles/layout.module.css';
 import { SERVER_READY_SIGNALS } from '@/constants';
 import { handleTerminalOutput, processTerminalContent } from '@/utils/terminal';
-import { useLaunchConfigStore } from '@/stores/launchConfigStore';
+import { useLaunchConfigStore } from '@/stores/launchConfig';
 import type { FrontendPreference } from '@/types';
 
 interface TerminalTabProps {
