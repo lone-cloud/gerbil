@@ -18,7 +18,3 @@
 - **Frontend errors**: Use `window.electronAPI.logs.logError(message, error)` for renderer process errors
 - All errors are logged asynchronously to avoid blocking the event loop
 - Only use console.\* for critical system errors that must appear in terminal (very rare cases)
-
-### Scripting
-
-- when debugging: try to run script commands explicitly through bash. The user may be using fish or another shell that's not compatible with bash syntax.

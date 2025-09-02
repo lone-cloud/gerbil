@@ -129,6 +129,7 @@
     "mac": {
       "compression": "maximum",
       "category": "public.app-category.productivity",
+      "icon": "assets/icon.icns",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "assets/entitlements.mac.plist",
