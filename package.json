@@ -96,7 +96,6 @@
     "appId": "com.gerbil.app",
     "productName": "Gerbil",
     "compression": "normal",
-    "icon": "src/assets/icon.png",
     "publish": null,
     "electronLanguages": [
       "en-US"
