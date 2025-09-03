@@ -1,6 +1,9 @@
 import { LogManager } from '@/main/managers/LogManager';
 import { readJsonFile, writeJsonFile } from '@/utils/fs';
 import type { FrontendPreference } from '@/types';
+import { homedir } from 'os';
+import { join } from 'path';
+import { PRODUCT_NAME } from '@/constants';
 
 type ConfigValue = string | number | boolean | unknown[] | undefined;
 
@@ -53,8 +56,22 @@ export class ConfigManager {
     await this.saveConfig();
   }
 
-  getInstallDir(): string | undefined {
-    return this.config.installDir;
+  private getDefaultInstallDir(): string {
+    const platform = process.platform;
+    const home = homedir();
+
+    switch (platform) {
+      case 'win32':
+        return join(home, PRODUCT_NAME);
+      case 'darwin':
+        return join(home, 'Applications', PRODUCT_NAME);
+      default:
+        return join(home, '.local', 'share', PRODUCT_NAME);
+    }
+  }
+
+  getInstallDir(): string {
+    return this.config.installDir || this.getDefaultInstallDir();
   }
 
   async setInstallDir(dir: string): Promise<void> {

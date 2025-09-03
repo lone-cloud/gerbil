@@ -2,19 +2,20 @@
 
 A desktop app to easily run Large Language Models locally.
 
-<img src="src/assets/icon.png" alt="Gerbil Icon" width="32" height="32">
+<img src="src/assets/icon.png" alt="Gerbil Icon" width="32" height="32" />
 
 <!-- markdownlint-enable MD033 -->
 
 ## Core Features
 
-- **Run LLMs locally** powered by [KoboldCpp](https://github.com/LostRuins/koboldcpp)
+- **Run LLMs locally** powered by [KoboldCpp](https://github.com/LostRuins/koboldcpp) which itself is a highly modified fork of [llama.cpp](https://github.com/ggml-org/llama.cpp)
 - **Cross-platform desktop app** - Native support for Windows, macOS, and Linux (including Wayland)
 - **Automatic updates** - Download and keep your KoboldCpp binary up-to-date effortlessly
 - **Smart process management** - Prevents runaway background processes and system resource waste
 - **Optimized performance** - Automatically unpacks binaries for faster operation and reduced memory usage
 - **Image generation support** - Built-in presets for Flux and Chroma image generation workflows
 - **SillyTavern integration** - Seamlessly launch SillyTavern for advanced character interactions (requires [Node.js](https://nodejs.org/))
+- **OpenWebUI integration** - Launch OpenWebUI for a modern web-based chat interface (requires [uv](https://docs.astral.sh/uv/getting-started/installation/))
 - **Privacy-focused** - Everything runs locally on your machine, no data sent to external servers
 
 ## Installation
@@ -49,9 +50,6 @@ The AUR package automatically handles installation, desktop integration, and sys
 
 ## Screenshots
 
-<!-- markdownlint-disable MD033 -->
-<div align="center">
-
 ### Download & Setup
 
 <img src="screenshots/download.png" alt="Download Interface" width="600">
@@ -72,12 +70,13 @@ The AUR package automatically handles installation, desktop integration, and sys
 
 <img src="screenshots/gen-img.png" alt="Image Generation" width="600">
 
-### Seemless SillyTavern integration
+### Seamless SillyTavern integration
 
 <img src="screenshots/sillytavern.png" alt="SillyTavern integration" width="600">
 
-</div>
-<!-- markdownlint-enable MD033 -->
+### Seamless OpenWebUI integration
+
+<img src="screenshots/openwebui.png" alt="SillyTavern integration" width="600">
 
 ### Future features
 
@@ -147,3 +146,5 @@ You can use the CLI mode on Windows in exactly the same way as in the Linux/macO
 ## License
 
 AGPL v3 License - see LICENSE file for details
+
+# test

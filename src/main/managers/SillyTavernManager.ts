@@ -6,9 +6,10 @@ import type { ChildProcess } from 'child_process';
 
 import { LogManager } from './LogManager';
 import { WindowManager } from './WindowManager';
-import { SILLYTAVERN } from '@/constants';
+import { SILLYTAVERN, SERVER_READY_SIGNALS } from '@/constants';
 import { terminateProcess } from '@/utils/process';
 import { pathExists, readJsonFile, writeJsonFile } from '@/utils/fs';
+import { parseKoboldConfig } from '@/utils/kobold';
 
 export interface SillyTavernConfig {
   name: string;
@@ -76,39 +77,6 @@ export class SillyTavernManager {
     }
 
     const fallback = this.getFallbackDataRoot();
-
-    if (await pathExists(fallback)) {
-      this.detectedDataRoot = fallback;
-      return fallback;
-    }
-
-    const platform = process.platform;
-    const home = homedir();
-    const alternatePaths = [];
-
-    switch (platform) {
-      case 'win32':
-        alternatePaths.push(
-          join(home, 'AppData', 'Local', 'SillyTavern', 'data'),
-          join(home, '.sillytavern', 'data')
-        );
-        break;
-      case 'darwin':
-        alternatePaths.push(join(home, '.sillytavern', 'data'));
-        break;
-      case 'linux':
-      default:
-        alternatePaths.push(join(home, '.sillytavern', 'data'));
-        break;
-    }
-
-    for (const path of alternatePaths) {
-      if (await pathExists(path)) {
-        this.detectedDataRoot = path;
-        return path;
-      }
-    }
-
     this.detectedDataRoot = fallback;
     return fallback;
   }
@@ -220,7 +188,7 @@ export class SillyTavernManager {
         initProcess.stdout.on('data', (data: Buffer) => {
           const output = data.toString();
 
-          if (output.includes('SillyTavern is listening')) {
+          if (output.includes(SERVER_READY_SIGNALS.SILLYTAVERN)) {
             setTimeout(async () => {
               if (!initProcess.killed && !hasResolved) {
                 hasResolved = true;
@@ -247,33 +215,6 @@ export class SillyTavernManager {
         });
       }
     });
-  }
-
-  private parseKoboldConfig(args: string[]): {
-    host: string;
-    port: number;
-    isImageMode: boolean;
-  } {
-    let host = 'localhost';
-    let port = 5001;
-    let hasSdModel = false;
-
-    for (let i = 0; i < args.length - 1; i++) {
-      if (args[i] === '--hostname' || args[i] === '--host') {
-        host = args[i + 1];
-      } else if (args[i] === '--port') {
-        const parsedPort = parseInt(args[i + 1], 10);
-        if (!isNaN(parsedPort)) {
-          port = parsedPort;
-        }
-      } else if (args[i] === '--sdmodel') {
-        hasSdModel = true;
-      }
-    }
-
-    const isImageMode = hasSdModel;
-
-    return { host, port, isImageMode };
   }
 
   private async setupSillyTavernConfig(
@@ -357,13 +298,8 @@ export class SillyTavernManager {
     this.windowManager.sendKoboldOutput('Waiting for SillyTavern to start...');
 
     return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error('SillyTavern failed to start within 30 seconds'));
-      }, 30000);
-
       const checkForOutput = (data: Buffer) => {
-        if (data.toString().includes('SillyTavern is listening')) {
-          clearTimeout(timeout);
+        if (data.toString().includes(SERVER_READY_SIGNALS.SILLYTAVERN)) {
           this.windowManager.sendKoboldOutput('SillyTavern is now running!');
           resolve();
 
@@ -379,7 +315,6 @@ export class SillyTavernManager {
       if (this.sillyTavernProcess?.stdout) {
         this.sillyTavernProcess.stdout.on('data', checkForOutput);
       } else {
-        clearTimeout(timeout);
         reject(new Error('SillyTavern process stdout not available'));
       }
     });
@@ -433,7 +368,7 @@ export class SillyTavernManager {
         host: koboldHost,
         port: koboldPort,
         isImageMode,
-      } = this.parseKoboldConfig(args);
+      } = parseKoboldConfig(args);
 
       await this.stopFrontend();
 

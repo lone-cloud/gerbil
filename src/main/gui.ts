@@ -1,16 +1,14 @@
 import { app } from 'electron';
-import { join } from 'path';
 
 import { WindowManager } from '@/main/managers/WindowManager';
 import { ConfigManager } from '@/main/managers/ConfigManager';
 import { LogManager } from '@/main/managers/LogManager';
 import { KoboldCppManager } from '@/main/managers/KoboldCppManager';
 import { SillyTavernManager } from '@/main/managers/SillyTavernManager';
+import { OpenWebUIManager } from '@/main/managers/OpenWebUIManager';
 import { HardwareManager } from '@/main/managers/HardwareManager';
 import { BinaryManager } from '@/main/managers/BinaryManager';
 import { IPCHandlers } from '@/main/ipc';
-import { PRODUCT_NAME } from '@/constants';
-import { homedir } from 'os';
 import { ensureDir } from '@/utils/fs';
 import { getConfigDir } from '@/utils/path';
 
@@ -20,6 +18,7 @@ export class GerbilApp {
   private configManager: ConfigManager;
   private logManager: LogManager;
   private sillyTavernManager: SillyTavernManager;
+  private openWebUIManager: OpenWebUIManager;
   private hardwareManager: HardwareManager;
   private binaryManager: BinaryManager;
   private ipcHandlers: IPCHandlers;
@@ -49,6 +48,12 @@ export class GerbilApp {
       this.windowManager
     );
 
+    this.openWebUIManager = new OpenWebUIManager(
+      this.configManager,
+      this.logManager,
+      this.windowManager
+    );
+
     this.ipcHandlers = new IPCHandlers(
       this.koboldManager,
       this.configManager,
@@ -56,32 +61,13 @@ export class GerbilApp {
       this.binaryManager,
       this.logManager,
       this.sillyTavernManager,
+      this.openWebUIManager,
       this.windowManager
     );
   }
 
-  private getDefaultInstallDir(): string {
-    const platform = process.platform;
-    const home = homedir();
-
-    switch (platform) {
-      case 'win32':
-        return join(home, PRODUCT_NAME);
-      case 'darwin':
-        return join(home, 'Applications', PRODUCT_NAME);
-      default:
-        return join(home, '.local', 'share', PRODUCT_NAME);
-    }
-  }
-
   private async ensureInstallDirectory(): Promise<void> {
-    const installDir =
-      this.configManager.getInstallDir() || this.getDefaultInstallDir();
-
-    if (!this.configManager.getInstallDir()) {
-      await this.configManager.setInstallDir(installDir);
-    }
-
+    const installDir = this.configManager.getInstallDir();
     await ensureDir(installDir);
   }
 
@@ -89,10 +75,6 @@ export class GerbilApp {
     await app.whenReady();
     await this.configManager.initialize();
     await this.ensureInstallDirectory();
-
-    if (process.platform === 'linux') {
-      app.setAppUserModelId('com.gerbil.app');
-    }
 
     this.windowManager.createMainWindow();
     this.ipcHandlers.setupHandlers();
@@ -112,6 +94,7 @@ export class GerbilApp {
         const cleanupPromises = [
           this.koboldManager.cleanup(),
           this.sillyTavernManager.cleanup(),
+          this.openWebUIManager.cleanup(),
         ];
 
         const timeoutPromise = new Promise<void>((resolve) => {

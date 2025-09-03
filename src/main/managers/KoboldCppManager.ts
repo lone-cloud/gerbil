@@ -35,10 +35,6 @@ export class KoboldCppManager {
     this.windowManager = windowManager;
   }
 
-  private get installDir(): string {
-    return this.configManager.getInstallDir() || '';
-  }
-
   private async removeDirectoryWithRetry(
     dirPath: string,
     maxRetries = 3,
@@ -193,12 +189,18 @@ export class KoboldCppManager {
   }
 
   async downloadRelease(asset: GitHubAsset): Promise<string> {
-    const tempPackedFilePath = join(this.installDir, `${asset.name}.packed`);
+    const tempPackedFilePath = join(
+      this.configManager.getInstallDir(),
+      `${asset.name}.packed`
+    );
     const baseFilename = stripAssetExtensions(asset.name);
     const folderName = asset.version
       ? `${baseFilename}-${asset.version}`
       : baseFilename;
-    const unpackedDirPath = join(this.installDir, folderName);
+    const unpackedDirPath = join(
+      this.configManager.getInstallDir(),
+      folderName
+    );
 
     try {
       await this.handleExistingDirectory(
@@ -268,15 +270,16 @@ export class KoboldCppManager {
 
   async getInstalledVersions(): Promise<InstalledVersion[]> {
     try {
-      if (!(await pathExists(this.installDir))) {
+      const installDir = this.configManager.getInstallDir();
+      if (!(await pathExists(installDir))) {
         return [];
       }
 
-      const items = await readdir(this.installDir);
+      const items = await readdir(installDir);
       const launchers: { path: string; filename: string; size: number }[] = [];
 
       for (const item of items) {
-        const itemPath = join(this.installDir, item);
+        const itemPath = join(installDir, item);
         const stats = await stat(itemPath);
 
         if (stats.isDirectory()) {
@@ -334,11 +337,12 @@ export class KoboldCppManager {
     const configFiles: { name: string; path: string; size: number }[] = [];
 
     try {
-      if (await pathExists(this.installDir)) {
-        const files = await readdir(this.installDir);
+      const installDir = this.configManager.getInstallDir();
+      if (await pathExists(installDir)) {
+        const files = await readdir(installDir);
 
         for (const file of files) {
-          const filePath = join(this.installDir, file);
+          const filePath = join(installDir, file);
 
           const stats = await stat(filePath);
           if (
@@ -384,12 +388,8 @@ export class KoboldCppManager {
     configData: KoboldConfig
   ): Promise<boolean> {
     try {
-      if (!this.installDir) {
-        this.logManager.logError('No install directory found');
-        return false;
-      }
-
-      const configPath = join(this.installDir, configFileName);
+      const installDir = this.configManager.getInstallDir();
+      const configPath = join(installDir, configFileName);
       await writeJsonFile(configPath, configData);
       return true;
     } catch (error) {
@@ -532,7 +532,7 @@ export class KoboldCppManager {
   }
 
   getCurrentInstallDir() {
-    return this.installDir;
+    return this.configManager.getInstallDir();
   }
 
   getWindowManager() {
@@ -543,7 +543,7 @@ export class KoboldCppManager {
     const result = await dialog.showOpenDialog({
       properties: ['openDirectory', 'createDirectory'],
       title: `Select the ${PRODUCT_NAME} Installation Directory`,
-      defaultPath: this.installDir,
+      defaultPath: this.configManager.getInstallDir(),
       buttonLabel: 'Select Directory',
     });
 

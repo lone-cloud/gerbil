@@ -166,6 +166,10 @@ export interface SillyTavernAPI {
   isNpxAvailable: () => Promise<boolean>;
 }
 
+export interface OpenWebUIAPI {
+  isUvAvailable: () => Promise<boolean>;
+}
+
 declare global {
   interface Window {
     electronAPI: {
@@ -174,6 +178,7 @@ declare global {
       config: ConfigAPI;
       logs: LogsAPI;
       sillytavern: SillyTavernAPI;
+      openwebui: OpenWebUIAPI;
     };
   }
 }

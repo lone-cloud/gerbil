@@ -13,3 +13,10 @@ export const SILLYTAVERN = {
     return `http://localhost:${this.PROXY_PORT}`;
   },
 } as const;
+
+export const OPENWEBUI = {
+  PORT: 8080,
+  get URL() {
+    return `http://localhost:${this.PORT}`;
+  },
+} as const;

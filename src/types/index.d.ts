@@ -8,7 +8,7 @@ export type InterfaceTab = 'terminal' | 'chat';
 
 export type SdConvDirectMode = 'off' | 'vaeonly' | 'full';
 
-export type FrontendPreference = 'koboldcpp' | 'sillytavern';
+export type FrontendPreference = 'koboldcpp' | 'sillytavern' | 'openwebui';
 
 export type Screen = 'welcome' | 'download' | 'launch' | 'interface';
 
