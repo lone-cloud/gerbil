@@ -9,6 +9,7 @@ import { SettingsModal } from '@/components/settings/SettingsModal';
 import { EjectConfirmModal } from '@/components/EjectConfirmModal';
 import { ScreenTransition } from '@/components/ScreenTransition';
 import { TitleBar } from '@/components/TitleBar';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import { useModalStore } from '@/stores/modal';
@@ -162,50 +163,52 @@ export const App = () => {
       />
 
       <AppShell.Main>
-        {currentScreen === null ? (
-          <Center h="100%" style={{ minHeight: '25rem' }}>
-            <Stack align="center" gap="lg">
-              <Loader size="xl" type="dots" />
-              <Text c="dimmed" size="lg">
-                Loading...
-              </Text>
-            </Stack>
-          </Center>
-        ) : (
-          <>
-            <ScreenTransition
-              isActive={currentScreen === 'welcome'}
-              shouldAnimate={hasInitialized}
-            >
-              <WelcomeScreen onGetStarted={handleWelcomeComplete} />
-            </ScreenTransition>
+        <ErrorBoundary>
+          {currentScreen === null ? (
+            <Center h="100%" style={{ minHeight: '25rem' }}>
+              <Stack align="center" gap="lg">
+                <Loader size="xl" type="dots" />
+                <Text c="dimmed" size="lg">
+                  Loading...
+                </Text>
+              </Stack>
+            </Center>
+          ) : (
+            <>
+              <ScreenTransition
+                isActive={currentScreen === 'welcome'}
+                shouldAnimate={hasInitialized}
+              >
+                <WelcomeScreen onGetStarted={handleWelcomeComplete} />
+              </ScreenTransition>
 
-            <ScreenTransition
-              isActive={currentScreen === 'download'}
-              shouldAnimate={hasInitialized}
-            >
-              <DownloadScreen onDownloadComplete={handleDownloadComplete} />
-            </ScreenTransition>
+              <ScreenTransition
+                isActive={currentScreen === 'download'}
+                shouldAnimate={hasInitialized}
+              >
+                <DownloadScreen onDownloadComplete={handleDownloadComplete} />
+              </ScreenTransition>
 
-            <ScreenTransition
-              isActive={currentScreen === 'launch'}
-              shouldAnimate={hasInitialized}
-            >
-              <LaunchScreen onLaunch={handleLaunch} />
-            </ScreenTransition>
+              <ScreenTransition
+                isActive={currentScreen === 'launch'}
+                shouldAnimate={hasInitialized}
+              >
+                <LaunchScreen onLaunch={handleLaunch} />
+              </ScreenTransition>
 
-            <ScreenTransition
-              isActive={currentScreen === 'interface'}
-              shouldAnimate={hasInitialized}
-            >
-              <InterfaceScreen
-                activeTab={activeInterfaceTab}
-                onTabChange={setActiveInterfaceTab}
-                frontendPreference={frontendPreference}
-              />
-            </ScreenTransition>
-          </>
-        )}
+              <ScreenTransition
+                isActive={currentScreen === 'interface'}
+                shouldAnimate={hasInitialized}
+              >
+                <InterfaceScreen
+                  activeTab={activeInterfaceTab}
+                  onTabChange={setActiveInterfaceTab}
+                  frontendPreference={frontendPreference}
+                />
+              </ScreenTransition>
+            </>
+          )}
+        </ErrorBoundary>
 
         <UpdateAvailableModal
           opened={showUpdateModal && !!binaryUpdateInfo}

@@ -161,7 +161,12 @@ export const VersionsTab = () => {
       }
     });
 
-    return versions;
+    return versions.sort((a, b) => {
+      if (a.isInstalled && !b.isInstalled) return -1;
+      if (!a.isInstalled && b.isInstalled) return 1;
+
+      return 0;
+    });
   }, [availableDownloads, installedVersions, currentVersion]);
 
   useEffect(() => {
