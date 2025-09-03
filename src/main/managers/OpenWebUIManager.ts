@@ -1,6 +1,8 @@
 import { spawn } from 'child_process';
 import type { ChildProcess } from 'child_process';
 import { join } from 'path';
+import { homedir } from 'os';
+import { access } from 'fs/promises';
 
 import { LogManager } from './LogManager';
 import { WindowManager } from './WindowManager';
@@ -53,6 +55,26 @@ export class OpenWebUIManager {
   > {
     const env = { ...process.env };
 
+    const uvPaths = [
+      join(homedir(), '.cargo', 'bin'),
+      join(homedir(), '.local', 'bin'),
+    ];
+
+    const existingPaths: string[] = [];
+    for (const path of uvPaths) {
+      try {
+        await access(path);
+        existingPaths.push(path);
+      } catch {
+        void 0;
+      }
+    }
+
+    if (existingPaths.length > 0) {
+      const pathSeparator = process.platform === 'win32' ? ';' : ':';
+      env.PATH = `${existingPaths.join(pathSeparator)}${pathSeparator}${env.PATH}`;
+    }
+
     if (process.platform === 'win32') {
       env.PYTHONIOENCODING = 'utf-8';
       env.PYTHONLEGACYWINDOWSSTDIO = '1';
@@ -66,11 +88,7 @@ export class OpenWebUIManager {
   async isUvAvailable(): Promise<boolean> {
     try {
       const env = await this.getUvEnvironment();
-      const testProcess = spawn('uv', ['--version'], {
-        stdio: 'pipe',
-        env,
-        shell: true,
-      });
+      const testProcess = spawn('uv', ['--version'], { stdio: 'pipe', env });
 
       return new Promise<boolean>((resolve) => {
         const timeout = setTimeout(() => {
@@ -109,7 +127,6 @@ export class OpenWebUIManager {
       stdio: ['pipe', 'pipe', 'pipe'],
       detached: false,
       env: mergedEnv,
-      shell: true,
     });
   }
 
@@ -118,24 +135,14 @@ export class OpenWebUIManager {
 
     return new Promise((resolve, reject) => {
       const checkForOutput = (data: Buffer) => {
-        try {
-          const output = data.toString('utf8');
-          if (output.includes(SERVER_READY_SIGNALS.OPENWEBUI)) {
-            this.windowManager.sendKoboldOutput('Open WebUI is now running!');
-            resolve();
+        const output = data.toString();
+        if (output.includes(SERVER_READY_SIGNALS.OPENWEBUI)) {
+          this.windowManager.sendKoboldOutput('Open WebUI is now running!');
+          resolve();
 
-            if (this.openWebUIProcess?.stdout) {
-              this.openWebUIProcess.stdout.removeListener(
-                'data',
-                checkForOutput
-              );
-            }
+          if (this.openWebUIProcess?.stdout) {
+            this.openWebUIProcess.stdout.removeListener('data', checkForOutput);
           }
-        } catch (error) {
-          this.logManager.logError(
-            'Error checking OpenWebUI output:',
-            error as Error
-          );
         }
       };
 
