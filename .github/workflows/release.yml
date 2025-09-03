@@ -29,19 +29,21 @@ jobs:
 
       - name: Get Node.js version from .nvmrc
         id: versions
+        shell: bash
         run: |
           NODE_VERSION=$(cat .nvmrc)
           echo "node-version=$NODE_VERSION" >> $GITHUB_OUTPUT
           echo "📦 Using Node.js $NODE_VERSION from .nvmrc"
 
-      - name: Enable Corepack
-        run: corepack enable
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ steps.versions.outputs.node-version }}
-          cache: 'yarn'
+
+      - name: Enable Corepack and prepare Yarn
+        run: |
+          corepack enable
+          corepack prepare yarn@4.9.4 --activate
 
       - name: Install dependencies
         run: yarn

@@ -16,6 +16,7 @@ jobs:
 
       - name: Get Node.js version from .nvmrc
         id: versions
+        shell: bash
         run: |
           NODE_VERSION=$(cat .nvmrc)
           echo "node-version=$NODE_VERSION" >> $GITHUB_OUTPUT
