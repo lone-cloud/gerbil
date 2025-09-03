@@ -1,6 +1,8 @@
 import { spawn } from 'child_process';
 import type { ChildProcess } from 'child_process';
 import { join } from 'path';
+import { homedir } from 'os';
+import { access } from 'fs/promises';
 
 import { LogManager } from './LogManager';
 import { WindowManager } from './WindowManager';
@@ -48,9 +50,30 @@ export class OpenWebUIManager {
     });
   }
 
+  private async getUvEnvironment(): Promise<
+    Record<string, string | undefined>
+  > {
+    const env = { ...process.env };
+
+    const cargoPath = join(homedir(), '.cargo', 'bin');
+
+    try {
+      await access(cargoPath);
+      env.PATH =
+        process.platform === 'win32'
+          ? `${cargoPath};${env.PATH}`
+          : `${cargoPath}:${env.PATH}`;
+    } catch {
+      return env;
+    }
+
+    return env;
+  }
+
   async isUvAvailable(): Promise<boolean> {
     try {
-      const testProcess = spawn('uv', ['--version'], { stdio: 'pipe' });
+      const env = await this.getUvEnvironment();
+      const testProcess = spawn('uv', ['--version'], { stdio: 'pipe', env });
 
       return new Promise<boolean>((resolve) => {
         const timeout = setTimeout(() => {
@@ -73,14 +96,15 @@ export class OpenWebUIManager {
     }
   }
 
-  private createUvProcess(
+  private async createUvProcess(
     args: string[],
     env?: Record<string, string>
-  ): ChildProcess {
+  ): Promise<ChildProcess> {
+    const uvEnv = await this.getUvEnvironment();
     return spawn('uvx', args, {
       stdio: ['pipe', 'pipe', 'pipe'],
       detached: false,
-      env: { ...process.env, ...env },
+      env: { ...uvEnv, ...env },
     });
   }
 
@@ -150,7 +174,7 @@ export class OpenWebUIManager {
       const installDir = this.configManager.getInstallDir();
       const openWebUIDataDir = join(installDir, 'openwebui-data');
 
-      this.openWebUIProcess = this.createUvProcess(openWebUIArgs, {
+      this.openWebUIProcess = await this.createUvProcess(openWebUIArgs, {
         OPENAI_API_BASE_URL: `${koboldUrl}/v1`,
         OPENAI_API_KEY: 'kobold',
         DATA_DIR: openWebUIDataDir,
