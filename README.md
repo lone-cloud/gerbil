@@ -120,20 +120,27 @@ You can use the CLI mode on Windows in exactly the same way as in the Linux/macO
 
 ### Prerequisites
 
-- **[Volta](https://volta.sh/)** - JavaScript tool manager (installs correct Node.js + Yarn versions automatically)
+- **[fnm](https://github.com/Schniz/fnm)** - Fast Node.js version manager (installs correct Node.js versions automatically)
 
 ### Setup
 
-1. **Install Volta** (if not already installed):
+1. **Install fnm** (if not already installed):
 
    ```bash
-   curl https://get.volta.sh | bash
+   # Using package manager (recommended for Arch Linux)
+   yay -S fnm-bin
+
+   # Or using curl (other distros)
+   curl -fsSL https://fnm.vercel.app/install | bash
    ```
 
 2. Clone the repository
-3. Install dependencies (Volta will auto-install the correct Node.js and Yarn versions):
+3. Install Node.js and dependencies:
 
    ```bash
+   # fnm will auto-install Node.js based on .nvmrc or engines field
+   fnm use --install-if-missing
+   npm install -g yarn
    yarn
    ```
 

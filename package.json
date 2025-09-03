@@ -9,10 +9,6 @@
     "node": ">=22.0.0",
     "yarn": "^4.0.0"
   },
-  "volta": {
-    "node": "22.18.0",
-    "yarn": "4.9.4"
-  },
   "packageManager": "yarn@4.9.4",
   "scripts": {
     "dev": "electron-vite dev",

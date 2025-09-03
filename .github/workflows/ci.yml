@@ -14,17 +14,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get Node.js version from package.json
+      - name: Get Node.js version from .nvmrc
         id: versions
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
-            const nodeVersion = packageJson.volta.node;
-
-            core.setOutput('node-version', nodeVersion);
-            console.log(`📦 Using Node.js ${nodeVersion} from package.json`);
+        run: |
+          NODE_VERSION=$(cat .nvmrc)
+          echo "node-version=$NODE_VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Using Node.js $NODE_VERSION from .nvmrc"
 
       - name: Enable Corepack
         run: corepack enable

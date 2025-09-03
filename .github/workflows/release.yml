@@ -27,26 +27,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get Node.js and Yarn versions from package.json
+      - name: Get Node.js version from .nvmrc
         id: versions
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
-            const nodeVersion = packageJson.volta.node;
-            const yarnVersion = packageJson.volta.yarn;
+        run: |
+          NODE_VERSION=$(cat .nvmrc)
+          echo "node-version=$NODE_VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Using Node.js $NODE_VERSION from .nvmrc"
 
-            core.setOutput('node-version', nodeVersion);
-            core.setOutput('yarn-version', yarnVersion);
+      - name: Enable Corepack
+        run: corepack enable
 
-            console.log(`📦 Using Node.js ${nodeVersion} and Yarn ${yarnVersion} from package.json`);
-
-      - name: Setup Node.js with Volta
-        uses: volta-cli/action@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ steps.versions.outputs.node-version }}
-          yarn-version: ${{ steps.versions.outputs.yarn-version }}
+          cache: 'yarn'
 
       - name: Install dependencies
         run: yarn
