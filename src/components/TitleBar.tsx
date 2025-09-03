@@ -165,12 +165,20 @@ export const TitleBar = ({
               data={[
                 {
                   value: 'chat',
-                  label:
-                    frontendPreference === 'sillytavern'
-                      ? FRONTENDS.SILLYTAVERN
-                      : isImageGenerationMode
-                        ? FRONTENDS.STABLE_UI
-                        : FRONTENDS.KOBOLDAI_LITE,
+                  label: (() => {
+                    if (frontendPreference === 'sillytavern') {
+                      return FRONTENDS.SILLYTAVERN;
+                    }
+                    if (
+                      frontendPreference === 'openwebui' &&
+                      !isImageGenerationMode
+                    ) {
+                      return FRONTENDS.OPENWEBUI;
+                    }
+                    return isImageGenerationMode
+                      ? FRONTENDS.STABLE_UI
+                      : FRONTENDS.KOBOLDAI_LITE;
+                  })(),
                 },
                 { value: 'terminal', label: 'Terminal' },
                 { value: 'eject', label: 'Eject' },

@@ -5,6 +5,7 @@ import type {
   ConfigAPI,
   LogsAPI,
   SillyTavernAPI,
+  OpenWebUIAPI,
 } from '@/types/electron';
 
 const koboldAPI: KoboldAPI = {
@@ -100,10 +101,15 @@ const sillyTavernAPI: SillyTavernAPI = {
   isNpxAvailable: () => ipcRenderer.invoke('sillytavern:isNpxAvailable'),
 };
 
+const openwebUIAPI: OpenWebUIAPI = {
+  isUvAvailable: () => ipcRenderer.invoke('openwebui:isUvAvailable'),
+};
+
 contextBridge.exposeInMainWorld('electronAPI', {
   kobold: koboldAPI,
   app: appAPI,
   config: configAPI,
   logs: logsAPI,
   sillytavern: sillyTavernAPI,
+  openwebui: openwebUIAPI,
 });

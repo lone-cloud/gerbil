@@ -4,6 +4,7 @@ import type { KoboldCppManager } from '@/main/managers/KoboldCppManager';
 import type { ConfigManager } from '@/main/managers/ConfigManager';
 import type { LogManager } from '@/main/managers/LogManager';
 import type { SillyTavernManager } from '@/main/managers/SillyTavernManager';
+import type { OpenWebUIManager } from '@/main/managers/OpenWebUIManager';
 import type { WindowManager } from '@/main/managers/WindowManager';
 import { HardwareManager } from '@/main/managers/HardwareManager';
 import { BinaryManager } from '@/main/managers/BinaryManager';
@@ -13,6 +14,7 @@ export class IPCHandlers {
   private configManager: ConfigManager;
   private logManager: LogManager;
   private sillyTavernManager: SillyTavernManager;
+  private openWebUIManager: OpenWebUIManager;
   private hardwareManager: HardwareManager;
   private binaryManager: BinaryManager;
   private windowManager: WindowManager;
@@ -24,12 +26,14 @@ export class IPCHandlers {
     binaryManager: BinaryManager,
     logManager: LogManager,
     sillyTavernManager: SillyTavernManager,
+    openWebUIManager: OpenWebUIManager,
     windowManager: WindowManager
   ) {
     this.koboldManager = koboldManager;
     this.configManager = configManager;
     this.logManager = logManager;
     this.sillyTavernManager = sillyTavernManager;
+    this.openWebUIManager = openWebUIManager;
     this.hardwareManager = hardwareManager;
     this.binaryManager = binaryManager;
     this.windowManager = windowManager;
@@ -44,6 +48,8 @@ export class IPCHandlers {
 
       if (frontendPreference === 'sillytavern') {
         this.sillyTavernManager.startFrontend(args);
+      } else if (frontendPreference === 'openwebui') {
+        this.openWebUIManager.startFrontend(args);
       }
 
       return result;
@@ -133,6 +139,7 @@ export class IPCHandlers {
     ipcMain.handle('kobold:stopKoboldCpp', () => {
       this.koboldManager.stopKoboldCpp();
       this.sillyTavernManager.stopFrontend();
+      this.openWebUIManager.stopFrontend();
     });
 
     ipcMain.handle('kobold:parseConfigFile', (_, filePath) =>
@@ -239,6 +246,10 @@ export class IPCHandlers {
 
     ipcMain.handle('sillytavern:isNpxAvailable', () =>
       this.sillyTavernManager.isNpxAvailable()
+    );
+
+    ipcMain.handle('openwebui:isUvAvailable', () =>
+      this.openWebUIManager.isUvAvailable()
     );
   }
 }

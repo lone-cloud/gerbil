@@ -1,5 +1,10 @@
 import { Box, Text, Stack } from '@mantine/core';
-import { SILLYTAVERN, FRONTENDS, TITLEBAR_HEIGHT } from '@/constants';
+import {
+  SILLYTAVERN,
+  OPENWEBUI,
+  FRONTENDS,
+  TITLEBAR_HEIGHT,
+} from '@/constants';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 import type { FrontendPreference } from '@/types';
 
@@ -46,6 +51,9 @@ export const ServerTab = ({
   if (frontendPreference === 'sillytavern') {
     iframeUrl = SILLYTAVERN.PROXY_URL;
     title = FRONTENDS.SILLYTAVERN;
+  } else if (frontendPreference === 'openwebui' && !isImageGenerationMode) {
+    iframeUrl = OPENWEBUI.URL;
+    title = FRONTENDS.OPENWEBUI;
   } else {
     iframeUrl = isImageGenerationMode ? `${serverUrl}/sdui` : serverUrl;
     title = isImageGenerationMode

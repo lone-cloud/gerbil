@@ -22,7 +22,7 @@ export const TerminalTab = ({
   onServerReady,
   frontendPreference = 'koboldcpp',
 }: TerminalTabProps) => {
-  const { host, port } = useLaunchConfigStore();
+  const { host, port, isImageGenerationMode } = useLaunchConfigStore();
   const computedColorScheme = useComputedColorScheme('light', {
     getInitialValueInEffect: false,
   });
@@ -68,20 +68,22 @@ export const TerminalTab = ({
           const serverHost = host || 'localhost';
           const serverPort = port || 5001;
 
+          let signalToCheck: string = SERVER_READY_SIGNALS.KOBOLDCPP;
+
           if (frontendPreference === 'sillytavern') {
-            if (newData.includes(SERVER_READY_SIGNALS.SILLYTAVERN)) {
-              setTimeout(
-                () => onServerReady(`http://${serverHost}:${serverPort}`),
-                1500
-              );
-            }
-          } else {
-            if (newData.includes(SERVER_READY_SIGNALS.KOBOLDCPP)) {
-              setTimeout(
-                () => onServerReady(`http://${serverHost}:${serverPort}`),
-                1500
-              );
-            }
+            signalToCheck = SERVER_READY_SIGNALS.SILLYTAVERN;
+          } else if (
+            frontendPreference === 'openwebui' &&
+            !isImageGenerationMode
+          ) {
+            signalToCheck = SERVER_READY_SIGNALS.OPENWEBUI;
+          }
+
+          if (newData.includes(signalToCheck)) {
+            setTimeout(
+              () => onServerReady(`http://${serverHost}:${serverPort}`),
+              1500
+            );
           }
         }
 
@@ -90,7 +92,7 @@ export const TerminalTab = ({
     });
 
     return cleanup;
-  }, [onServerReady, host, port, frontendPreference]);
+  }, [onServerReady, host, port, frontendPreference, isImageGenerationMode]);
 
   const scrollToBottom = () => {
     if (viewportRef.current) {

@@ -1,7 +1,7 @@
 {
   "name": "gerbil",
   "productName": "Gerbil",
-  "version": "0.9.6",
+  "version": "0.9.7",
   "description": "Run Large Language Models locally",
   "main": "out/main/index.js",
   "homepage": "./",
@@ -56,11 +56,11 @@
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
-    "@typescript-eslint/eslint-plugin": "^8.41.0",
-    "@typescript-eslint/parser": "^8.41.0",
+    "@typescript-eslint/eslint-plugin": "^8.42.0",
+    "@typescript-eslint/parser": "^8.42.0",
     "@vitejs/plugin-react": "^5.0.2",
     "cross-env": "^10.0.0",
-    "electron": "^37.4.0",
+    "electron": "^38.0.0",
     "electron-builder": "^26.0.12",
     "electron-vite": "^4.0.0",
     "eslint": "^9.34.0",
@@ -111,15 +111,6 @@
       {
         "from": "assets/gerbil.desktop",
         "to": "assets/gerbil.desktop",
-        "filter": [
-          "**/*"
-        ]
-      }
-    ],
-    "extraResources": [
-      {
-        "from": "src/main/templates",
-        "to": "templates",
         "filter": [
           "**/*"
         ]

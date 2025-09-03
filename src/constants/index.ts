@@ -7,6 +7,7 @@ export const TITLEBAR_HEIGHT = '2.5rem';
 export const SERVER_READY_SIGNALS = {
   KOBOLDCPP: 'Please connect to custom endpoint at',
   SILLYTAVERN: 'SillyTavern is listening on',
+  OPENWEBUI: 'Waiting for application startup.',
 } as const;
 
 export * from './defaults';
@@ -45,6 +46,7 @@ export const FRONTENDS = {
   KOBOLDAI_LITE: 'KoboldAI Lite',
   STABLE_UI: 'Stable UI',
   SILLYTAVERN: 'SillyTavern',
+  OPENWEBUI: 'Open WebUI',
 } as const;
 
 export const ZOOM = {
