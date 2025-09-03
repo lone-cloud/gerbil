@@ -1,7 +1,7 @@
 {
   "name": "gerbil",
   "productName": "Gerbil",
-  "version": "0.9.8",
+  "version": "0.9.9",
   "description": "Run Large Language Models locally",
   "main": "out/main/index.js",
   "homepage": "./",
@@ -125,6 +125,7 @@
     },
     "win": {
       "compression": "normal",
+      "icon": "assets/icon.ico",
       "target": [
         {
           "target": "nsis",
@@ -154,6 +155,7 @@
     "linux": {
       "compression": "store",
       "category": "Utility",
+      "icon": "src/assets/icon.png",
       "desktop": {
         "entry": {
           "Name": "Gerbil",

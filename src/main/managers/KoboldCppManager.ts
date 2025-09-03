@@ -239,7 +239,7 @@ export class KoboldCppManager {
   ): Promise<void> {
     try {
       await execa(packedPath, ['--unpack', unpackDir], {
-        timeout: 30000,
+        timeout: 60000,
         stdio: ['ignore', 'pipe', 'pipe'],
       });
     } catch (error) {
@@ -501,7 +501,7 @@ export class KoboldCppManager {
       }
 
       const result = await execa(launcherPath, ['--version'], {
-        timeout: 10000,
+        timeout: 30000,
         stdio: ['ignore', 'pipe', 'pipe'],
       });
 
@@ -674,14 +674,6 @@ export class KoboldCppManager {
       }>((resolve, reject) => {
         readyResolve = resolve;
         _readyReject = reject;
-
-        setTimeout(() => {
-          if (!isReady) {
-            reject(
-              new Error('Timeout waiting for KoboldCpp ready signal (30s)')
-            );
-          }
-        }, 30000);
       });
 
       child.stdout?.on('data', (data) => {

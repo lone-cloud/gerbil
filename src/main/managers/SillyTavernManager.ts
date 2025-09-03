@@ -2,7 +2,6 @@ import { spawn } from 'child_process';
 import { createServer, request, type Server } from 'http';
 import { homedir } from 'os';
 import { join } from 'path';
-import { access, readdir } from 'fs/promises';
 import type { ChildProcess } from 'child_process';
 
 import { LogManager } from './LogManager';
@@ -87,94 +86,12 @@ export class SillyTavernManager {
     return join(dataRoot, 'default-user', 'settings.json');
   }
 
-  private async tryAddPathToEnv(
-    env: Record<string, string | undefined>,
-    path: string
-  ): Promise<boolean> {
-    const pathSeparator = process.platform === 'win32' ? ';' : ':';
-    if (!env.PATH?.includes(path)) {
-      env.PATH = `${path}${pathSeparator}${env.PATH}`;
-      return true;
-    }
-    return false;
-  }
-
-  private async tryVersionManagerPath(
-    basePath: string,
-    env: Record<string, string | undefined>
-  ): Promise<boolean> {
-    try {
-      await access(basePath);
-      const versions = await readdir(basePath);
-      if (versions.length > 0) {
-        const latestVersion = versions.sort().pop();
-        if (latestVersion) {
-          const binSubPath = basePath.includes('fnm')
-            ? join('installation', 'bin')
-            : 'bin';
-          const nodeBinPath = join(basePath, latestVersion, binSubPath);
-
-          try {
-            await access(nodeBinPath);
-            return this.tryAddPathToEnv(env, nodeBinPath);
-          } catch {
-            return false;
-          }
-        }
-      }
-    } catch {
-      return false;
-    }
-    return false;
-  }
-
-  private async getNodeEnvironment(): Promise<
-    Record<string, string | undefined>
-  > {
-    const env = { ...process.env };
-
-    const versionManagerPaths = [
-      join(homedir(), '.local', 'share', 'fnm', 'node-versions'),
-      join(homedir(), '.nvm', 'versions', 'node'),
-      join(homedir(), '.volta', 'tools', 'image', 'node'),
-      join(homedir(), '.asdf', 'installs', 'nodejs'),
-    ];
-
-    const systemPaths: string[] = [];
-    if (process.platform === 'darwin') {
-      systemPaths.push('/opt/homebrew/bin', '/usr/local/bin');
-    }
-    if (process.platform === 'win32') {
-      versionManagerPaths.push(
-        join(homedir(), 'AppData', 'Local', 'fnm', 'node-versions'),
-        join(homedir(), 'AppData', 'Roaming', 'nvm')
-      );
-    }
-
-    for (const systemPath of systemPaths) {
-      try {
-        await access(systemPath);
-        if (await this.tryAddPathToEnv(env, systemPath)) {
-          return env;
-        }
-      } catch {
-        continue;
-      }
-    }
-
-    for (const versionPath of versionManagerPaths) {
-      if (await this.tryVersionManagerPath(versionPath, env)) {
-        return env;
-      }
-    }
-
-    return env;
-  }
-
   async isNpxAvailable(): Promise<boolean> {
     try {
-      const env = await this.getNodeEnvironment();
-      const testProcess = spawn('npx', ['--version'], { stdio: 'pipe', env });
+      const testProcess = spawn('npx', ['--version'], {
+        stdio: 'pipe',
+        shell: true,
+      });
 
       return new Promise<boolean>((resolve) => {
         const timeout = setTimeout(() => {
@@ -198,11 +115,10 @@ export class SillyTavernManager {
   }
 
   private async createNpxProcess(args: string[]): Promise<ChildProcess> {
-    const env = await this.getNodeEnvironment();
     return spawn('npx', args, {
       stdio: ['pipe', 'pipe', 'pipe'],
       detached: false,
-      env,
+      shell: true,
     });
   }
 

@@ -1,8 +1,6 @@
 import { spawn } from 'child_process';
 import type { ChildProcess } from 'child_process';
 import { join } from 'path';
-import { homedir } from 'os';
-import { access } from 'fs/promises';
 
 import { LogManager } from './LogManager';
 import { WindowManager } from './WindowManager';
@@ -55,16 +53,11 @@ export class OpenWebUIManager {
   > {
     const env = { ...process.env };
 
-    const cargoPath = join(homedir(), '.cargo', 'bin');
-
-    try {
-      await access(cargoPath);
-      env.PATH =
-        process.platform === 'win32'
-          ? `${cargoPath};${env.PATH}`
-          : `${cargoPath}:${env.PATH}`;
-    } catch {
-      return env;
+    if (process.platform === 'win32') {
+      env.PYTHONIOENCODING = 'utf-8';
+      env.PYTHONLEGACYWINDOWSSTDIO = '1';
+      env.PYTHONUTF8 = '1';
+      env.CHCP = '65001';
     }
 
     return env;
@@ -73,13 +66,17 @@ export class OpenWebUIManager {
   async isUvAvailable(): Promise<boolean> {
     try {
       const env = await this.getUvEnvironment();
-      const testProcess = spawn('uv', ['--version'], { stdio: 'pipe', env });
+      const testProcess = spawn('uv', ['--version'], {
+        stdio: 'pipe',
+        env,
+        shell: true,
+      });
 
       return new Promise<boolean>((resolve) => {
         const timeout = setTimeout(() => {
           testProcess.kill();
           resolve(false);
-        }, 5000);
+        }, 10000);
 
         testProcess.on('exit', (code) => {
           clearTimeout(timeout);
@@ -101,10 +98,18 @@ export class OpenWebUIManager {
     env?: Record<string, string>
   ): Promise<ChildProcess> {
     const uvEnv = await this.getUvEnvironment();
+    const mergedEnv = { ...uvEnv, ...env };
+
+    if (process.platform === 'win32') {
+      mergedEnv.PYTHONIOENCODING = 'utf-8';
+      mergedEnv.PYTHONUTF8 = '1';
+    }
+
     return spawn('uvx', args, {
       stdio: ['pipe', 'pipe', 'pipe'],
       detached: false,
-      env: { ...uvEnv, ...env },
+      env: mergedEnv,
+      shell: true,
     });
   }
 
@@ -113,14 +118,24 @@ export class OpenWebUIManager {
 
     return new Promise((resolve, reject) => {
       const checkForOutput = (data: Buffer) => {
-        const output = data.toString();
-        if (output.includes(SERVER_READY_SIGNALS.OPENWEBUI)) {
-          this.windowManager.sendKoboldOutput('Open WebUI is now running!');
-          resolve();
+        try {
+          const output = data.toString('utf8');
+          if (output.includes(SERVER_READY_SIGNALS.OPENWEBUI)) {
+            this.windowManager.sendKoboldOutput('Open WebUI is now running!');
+            resolve();
 
-          if (this.openWebUIProcess?.stdout) {
-            this.openWebUIProcess.stdout.removeListener('data', checkForOutput);
+            if (this.openWebUIProcess?.stdout) {
+              this.openWebUIProcess.stdout.removeListener(
+                'data',
+                checkForOutput
+              );
+            }
           }
+        } catch (error) {
+          this.logManager.logError(
+            'Error checking OpenWebUI output:',
+            error as Error
+          );
         }
       };
 
@@ -182,13 +197,29 @@ export class OpenWebUIManager {
 
       if (this.openWebUIProcess.stdout) {
         this.openWebUIProcess.stdout.on('data', (data: Buffer) => {
-          this.windowManager.sendKoboldOutput(data.toString(), true);
+          try {
+            const output = data.toString('utf8');
+            this.windowManager.sendKoboldOutput(output, true);
+          } catch (error) {
+            this.logManager.logError(
+              'Error processing stdout data:',
+              error as Error
+            );
+          }
         });
       }
 
       if (this.openWebUIProcess.stderr) {
         this.openWebUIProcess.stderr.on('data', (data: Buffer) => {
-          this.windowManager.sendKoboldOutput(data.toString(), true);
+          try {
+            const output = data.toString('utf8');
+            this.windowManager.sendKoboldOutput(output, true);
+          } catch (error) {
+            this.logManager.logError(
+              'Error processing stderr data:',
+              error as Error
+            );
+          }
         });
       }
 
