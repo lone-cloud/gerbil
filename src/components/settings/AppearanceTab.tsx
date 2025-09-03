@@ -132,40 +132,38 @@ export const AppearanceTab = () => {
         <Text fw={500} mb="sm">
           Zoom Level
         </Text>
-        <Text size="sm" c="dimmed" mb="md">
-          Adjust the zoom level of the application interface
-        </Text>
+        <Group justify="space-between" align="center" mb="md">
+          <Text size="sm" c="dimmed">
+            Adjust the zoom level of the application interface
+          </Text>
+          <TextInput
+            value={zoomPercentage}
+            onChange={(event) =>
+              handleZoomPercentageChange(event.currentTarget.value)
+            }
+            onBlur={(event) => {
+              const value = event.currentTarget.value;
+              const numValue = Number(value);
+              if (isNaN(numValue) || !isValidZoomPercentage(numValue)) {
+                setZoomPercentage(zoomLevelToPercentage(zoomLevel).toString());
+              }
+            }}
+            rightSection={
+              <Text size="sm" c="dimmed">
+                %
+              </Text>
+            }
+            size="sm"
+            w={80}
+            styles={{
+              input: {
+                textAlign: 'center',
+              },
+            }}
+          />
+        </Group>
         <Group gap="md" align="flex-end">
           <div style={{ flex: 1 }}>
-            <Group justify="space-between" align="center" mb="xs">
-              <TextInput
-                value={zoomPercentage}
-                onChange={(event) =>
-                  handleZoomPercentageChange(event.currentTarget.value)
-                }
-                onBlur={(event) => {
-                  const value = event.currentTarget.value;
-                  const numValue = Number(value);
-                  if (isNaN(numValue) || !isValidZoomPercentage(numValue)) {
-                    setZoomPercentage(
-                      zoomLevelToPercentage(zoomLevel).toString()
-                    );
-                  }
-                }}
-                rightSection={
-                  <Text size="sm" c="dimmed">
-                    %
-                  </Text>
-                }
-                size="sm"
-                w={80}
-                styles={{
-                  input: {
-                    textAlign: 'center',
-                  },
-                }}
-              />
-            </Group>
             <Slider
               value={zoomLevel}
               onChange={handleZoomChange}

@@ -72,6 +72,10 @@ export class WindowManager {
       this.mainWindow = null;
     });
 
+    if (!this.isDevelopment()) {
+      Menu.setApplicationMenu(null);
+    }
+
     this.mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
       const url = new URL(navigationUrl);
       if (
