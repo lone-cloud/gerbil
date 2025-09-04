@@ -53,3 +53,12 @@ export const sortDownloadsByType = <T extends { name: string }>(
 
     return a.name.localeCompare(b.name);
   });
+
+export const pretifyBinName = (binName: string) =>
+  binName
+    .replace('koboldcpp-', '')
+    .replace('-x64', ' (x64) ')
+    .replace(' -', ' ')
+    .replace('rocm', '- ROCm')
+    .replace('nocuda', '- NoCUDA')
+    .replace('oldpc', '- OldPC');

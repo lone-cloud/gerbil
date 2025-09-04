@@ -283,7 +283,7 @@ export const useLaunchLogic = ({
           );
         }
       } catch (err) {
-        error('Error launching KoboldCpp:', err as Error);
+        error('Error launching:', err as Error);
       } finally {
         setIsLaunching(false);
       }

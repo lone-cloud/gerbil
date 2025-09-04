@@ -1,6 +1,5 @@
 import { Checkbox, Group } from '@mantine/core';
 import { InfoTooltip } from '@/components/InfoTooltip';
-import styles from '@/styles/layout.module.css';
 
 interface CheckboxWithTooltipProps {
   checked: boolean;
@@ -17,7 +16,7 @@ export const CheckboxWithTooltip = ({
   tooltip,
   disabled = false,
 }: CheckboxWithTooltipProps) => (
-  <div className={styles.minWidth200}>
+  <div style={{ minWidth: '12.5rem' }}>
     <Group gap="xs" align="center">
       <Checkbox
         checked={checked}

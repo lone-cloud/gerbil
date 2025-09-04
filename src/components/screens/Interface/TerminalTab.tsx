@@ -7,7 +7,6 @@ import {
   useComputedColorScheme,
 } from '@mantine/core';
 import { ChevronDown } from 'lucide-react';
-import styles from '@/styles/layout.module.css';
 import { SERVER_READY_SIGNALS, TITLEBAR_HEIGHT } from '@/constants';
 import { handleTerminalOutput, processTerminalContent } from '@/utils/terminal';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
@@ -120,14 +119,19 @@ export const TerminalTab = ({
         ref={scrollAreaRef}
         viewportRef={viewportRef}
         onScrollPositionChange={handleScroll}
-        className={styles.terminalScrollArea}
+        style={{
+          flex: 1,
+          fontFamily: 'Monaco, Menlo, Ubuntu Mono, monospace',
+          fontSize: '0.875em',
+          lineHeight: 1.4,
+        }}
         scrollbarSize={8}
         offsetScrollbars={false}
       >
         <Box p="md">
           {terminalContent.length === 0 ? (
             <Text c="dimmed" style={{ fontFamily: 'inherit' }}>
-              Starting KoboldCpp...
+              Starting...
             </Text>
           ) : (
             <div

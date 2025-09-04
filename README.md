@@ -8,7 +8,7 @@ A desktop app to easily run Large Language Models locally.
 
 ## Core Features
 
-- **Run LLMs locally** powered by [KoboldCpp](https://github.com/LostRuins/koboldcpp) which itself is a highly modified fork of [llama.cpp](https://github.com/ggml-org/llama.cpp)
+- **Run LLMs locally** powered by a highly modified fork of [llama.cpp](https://github.com/ggml-org/llama.cpp)
 - **Cross-platform desktop app** - Native support for Windows, macOS, and Linux (including Wayland)
 - **Automatic updates** - Download and keep your KoboldCpp binary up-to-date effortlessly
 - **Smart process management** - Prevents runaway background processes and system resource waste
@@ -150,8 +150,12 @@ You can use the CLI mode on Windows in exactly the same way as in the Linux/macO
    yarn dev
    ```
 
+## Future Considerations
+
+- migrate the project to Tauri from Electron?
+- transition to using llama.cpp binaries directly instead of running them indirectly through koboldcpp?
+- seamless support for more frontends?
+
 ## License
 
 AGPL v3 License - see LICENSE file for details
-
-# test

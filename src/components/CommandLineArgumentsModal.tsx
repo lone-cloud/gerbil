@@ -233,7 +233,7 @@ const COMMAND_LINE_ARGUMENTS: ArgumentInfo[] = [
   {
     flag: '--cli',
     description:
-      'Does not launch KoboldCpp HTTP server. Instead, enables KoboldCpp from the command line, accepting interactive console input and displaying responses to the terminal.',
+      'Does not launch the HTTP server. Instead, enables input from the command line, accepting interactive console input and displaying responses to the terminal.',
     type: 'boolean',
     category: 'Advanced',
   },

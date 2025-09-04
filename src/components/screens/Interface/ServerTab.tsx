@@ -34,7 +34,7 @@ export const ServerTab = ({
       >
         <Stack align="center" gap="md" mt="xl">
           <Text c="dimmed" size="lg">
-            Waiting for the KoboldCpp server to start...
+            Waiting for the server to start...
           </Text>
           <Text c="dimmed" size="sm">
             The {isImageGenerationMode ? 'image generation' : 'chat'} interface

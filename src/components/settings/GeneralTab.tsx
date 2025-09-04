@@ -12,7 +12,6 @@ import {
   Anchor,
 } from '@mantine/core';
 import { Folder, FolderOpen, Monitor } from 'lucide-react';
-import styles from '@/styles/layout.module.css';
 import type { FrontendPreference } from '@/types';
 import { FRONTENDS } from '@/constants';
 
@@ -39,7 +38,7 @@ export const GeneralTab = () => {
 
   const frontendConfigs: FrontendConfig[] = useMemo(
     () => [
-      { value: 'koboldcpp', label: 'KoboldCpp (Built-in)' },
+      { value: 'koboldcpp', label: 'Built-in Interface' },
       {
         value: 'sillytavern',
         label: FRONTENDS.SILLYTAVERN,
@@ -195,7 +194,7 @@ export const GeneralTab = () => {
             value={installDir}
             readOnly
             placeholder="Default installation directory"
-            className={styles.flex1}
+            style={{ flex: 1 }}
             leftSection={<Folder style={{ width: rem(16), height: rem(16) }} />}
           />
           <Button

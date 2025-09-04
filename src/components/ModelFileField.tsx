@@ -2,7 +2,6 @@ import { Group, TextInput, Button } from '@mantine/core';
 import { File, Search } from 'lucide-react';
 import { LabelWithTooltip } from '@/components/LabelWithTooltip';
 import { getInputValidationState } from '@/utils/validation';
-import styles from '@/styles/layout.module.css';
 
 interface ModelFileFieldProps {
   label: string;
@@ -41,7 +40,7 @@ export const ModelFileField = ({
     <div>
       <LabelWithTooltip label={label} tooltip={tooltip} />
       <Group gap="xs" align="flex-start">
-        <div className={styles.flex1}>
+        <div style={{ flex: 1 }}>
           <TextInput
             placeholder={placeholder}
             value={value}

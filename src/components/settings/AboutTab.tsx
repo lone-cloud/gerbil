@@ -10,8 +10,10 @@ import {
   Badge,
   Button,
   rem,
+  ActionIcon,
+  Tooltip,
 } from '@mantine/core';
-import { Github, FolderOpen } from 'lucide-react';
+import { Github, FolderOpen, Copy } from 'lucide-react';
 import { safeExecute } from '@/utils/logger';
 import type { VersionInfo } from '@/types/electron';
 import { PRODUCT_NAME } from '@/constants';
@@ -49,6 +51,22 @@ export const AboutTab = () => {
       value: `${versionInfo.platform} ${versionInfo.arch} (${versionInfo.osVersion})`,
     },
   ];
+
+  const copyVersionInfo = async () => {
+    const info = [
+      `${PRODUCT_NAME} v${versionInfo.appVersion}`,
+      `Electron: ${versionInfo.electronVersion}`,
+      `Node.js: ${versionInfo.nodeVersion}`,
+      `Chromium: ${versionInfo.chromeVersion}`,
+      `V8: ${versionInfo.v8Version}`,
+      `OS: ${versionInfo.platform} ${versionInfo.arch} (${versionInfo.osVersion})`,
+    ].join('\n');
+
+    await safeExecute(
+      () => navigator.clipboard.writeText(info),
+      'Failed to copy version info'
+    );
+  };
 
   return (
     <Stack gap="md">
@@ -118,7 +136,23 @@ export const AboutTab = () => {
         </Group>
       </Card>
 
-      <Card withBorder radius="md" p="xs">
+      <Card withBorder radius="md" p="xs" style={{ position: 'relative' }}>
+        <Tooltip label="Copy info">
+          <ActionIcon
+            variant="subtle"
+            size="sm"
+            onClick={copyVersionInfo}
+            aria-label="Copy Info"
+            style={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              zIndex: 1,
+            }}
+          >
+            <Copy style={{ width: rem(14), height: rem(14) }} />
+          </ActionIcon>
+        </Tooltip>
         <Stack gap="xs">
           {versionItems.map((item, index) => (
             <Group key={index} gap="md" align="center" wrap="nowrap">

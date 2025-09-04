@@ -2,7 +2,6 @@ import { Stack, Text, Group, Button, Select } from '@mantine/core';
 import { useState, useCallback } from 'react';
 import { Save, File, Plus, Check } from 'lucide-react';
 import type { ConfigFile } from '@/types';
-import styles from '@/styles/layout.module.css';
 import { CreateConfigModal } from './CreateConfigModal';
 
 interface ConfigFileManagerProps {
@@ -67,7 +66,7 @@ export const ConfigFileManager = ({
           Configuration
         </Text>
         <Group gap="xs" align="flex-end">
-          <div className={styles.flex1}>
+          <div style={{ flex: 1 }}>
             <Select
               placeholder="Select a configuration file"
               value={selectedFile}
