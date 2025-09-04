@@ -41,7 +41,7 @@ export const AboutTab = () => {
   }
 
   const versionItems = [
-    { label: 'App Version', value: versionInfo.appVersion },
+    { label: PRODUCT_NAME, value: versionInfo.appVersion },
     { label: 'Electron', value: versionInfo.electronVersion },
     { label: 'Node.js', value: versionInfo.nodeVersion },
     { label: 'Chromium', value: versionInfo.chromeVersion },
@@ -54,7 +54,7 @@ export const AboutTab = () => {
 
   const copyVersionInfo = async () => {
     const info = [
-      `${PRODUCT_NAME} v${versionInfo.appVersion}`,
+      `${PRODUCT_NAME}: v${versionInfo.appVersion}`,
       `Electron: ${versionInfo.electronVersion}`,
       `Node.js: ${versionInfo.nodeVersion}`,
       `Chromium: ${versionInfo.chromeVersion}`,
@@ -137,12 +137,12 @@ export const AboutTab = () => {
       </Card>
 
       <Card withBorder radius="md" p="xs" style={{ position: 'relative' }}>
-        <Tooltip label="Copy info">
+        <Tooltip label="Copy Version Info">
           <ActionIcon
             variant="subtle"
             size="sm"
             onClick={copyVersionInfo}
-            aria-label="Copy Info"
+            aria-label="Copy Version Info"
             style={{
               position: 'absolute',
               top: 8,

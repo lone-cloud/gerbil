@@ -55,68 +55,19 @@ export const sortDownloadsByType = <T extends { name: string }>(
   });
 
 export const pretifyBinName = (binName: string): string => {
-  const cleanName = stripAssetExtensions(binName);
+  const cleanName = stripAssetExtensions(binName).toLowerCase();
 
-  let name = cleanName.replace(/^koboldcpp[-_]?/, '');
-
-  if (!name) {
-    return 'Windows (x64)';
+  if (cleanName.includes(ASSET_SUFFIXES.ROCM)) {
+    return 'ROCm';
   }
 
-  const platforms = {
-    linux: 'Linux',
-    mac: 'macOS',
-  };
-
-  const architectures = {
-    x64: 'x64',
-    arm64: 'ARM64',
-  };
-
-  const variants = {
-    rocm: 'ROCm',
-    nocuda: 'NoCUDA',
-    oldpc: 'OldPC',
-  };
-
-  const parts: string[] = [];
-  let workingName = name.toLowerCase();
-
-  let platform = '';
-  for (const [key, value] of Object.entries(platforms)) {
-    if (workingName.includes(key)) {
-      platform = value;
-      workingName = workingName.replace(key, '').replace(/^-+|-+$/g, '');
-      break;
-    }
+  if (cleanName.endsWith(ASSET_SUFFIXES.OLDPC)) {
+    return 'Old PC';
   }
 
-  let arch = '';
-  for (const [key, value] of Object.entries(architectures)) {
-    if (workingName.includes(key)) {
-      arch = value;
-      workingName = workingName.replace(key, '').replace(/^-+|-+$/g, '');
-      break;
-    }
+  if (cleanName.endsWith(ASSET_SUFFIXES.NOCUDA)) {
+    return 'No CUDA';
   }
 
-  const foundVariants: string[] = [];
-  for (const [key, value] of Object.entries(variants)) {
-    if (workingName.includes(key)) {
-      foundVariants.push(value);
-      workingName = workingName.replace(key, '').replace(/^-+|-+$/g, '');
-    }
-  }
-
-  if (platform) parts.push(platform);
-  if (arch) parts.push(`(${arch})`);
-  if (foundVariants.length > 0) {
-    parts.push(`- ${foundVariants.join(', ')}`);
-  }
-
-  if (parts.length === 0) {
-    return cleanName.replace('koboldcpp-', '').replace(/^-+/, '') || 'Standard';
-  }
-
-  return parts.join(' ');
+  return 'Standard';
 };

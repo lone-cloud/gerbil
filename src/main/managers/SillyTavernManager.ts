@@ -133,6 +133,10 @@ export class SillyTavernManager {
   > {
     const env = { ...process.env };
 
+    if (process.platform === 'win32') {
+      return env;
+    }
+
     const versionManagerPaths = [
       join(homedir(), '.local', 'share', 'fnm', 'node-versions'),
       join(homedir(), '.nvm', 'versions', 'node'),
@@ -144,19 +148,12 @@ export class SillyTavernManager {
     if (process.platform === 'darwin') {
       systemPaths.push('/opt/homebrew/bin', '/usr/local/bin');
     }
-    if (process.platform === 'win32') {
-      versionManagerPaths.push(
-        join(homedir(), 'AppData', 'Local', 'fnm', 'node-versions'),
-        join(homedir(), 'AppData', 'Roaming', 'nvm')
-      );
-    }
 
     for (const systemPath of systemPaths) {
       try {
         await access(systemPath);
-        if (await this.tryAddPathToEnv(env, systemPath)) {
-          return env;
-        }
+        await this.tryAddPathToEnv(env, systemPath);
+        return env;
       } catch {
         continue;
       }
@@ -174,7 +171,11 @@ export class SillyTavernManager {
   async isNpxAvailable(): Promise<boolean> {
     try {
       const env = await this.getNodeEnvironment();
-      const testProcess = spawn('npx', ['--version'], { stdio: 'pipe', env });
+      const testProcess = spawn('npx', ['--version'], {
+        stdio: 'pipe',
+        env,
+        shell: process.platform === 'win32',
+      });
 
       return new Promise<boolean>((resolve) => {
         const timeout = setTimeout(() => {
@@ -203,6 +204,7 @@ export class SillyTavernManager {
       stdio: ['pipe', 'pipe', 'pipe'],
       detached: false,
       env,
+      shell: process.platform === 'win32',
     });
   }
 
