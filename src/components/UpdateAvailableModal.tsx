@@ -13,7 +13,7 @@ import { Download, X, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 import type { InstalledVersion, DownloadItem } from '@/types/electron';
 import { getDisplayNameFromPath } from '@/utils/version';
-import { GITHUB_API } from '@/constants';
+import { GITHUB_API, MODAL_STYLES_WITH_TITLEBAR } from '@/constants';
 import { safeExecute } from '@/utils/logger';
 
 interface UpdateAvailableModalProps {
@@ -57,6 +57,7 @@ export const UpdateAvailableModal = ({
       centered
       closeOnClickOutside={false}
       closeOnEscape={!isDownloading && !isUpdating}
+      styles={MODAL_STYLES_WITH_TITLEBAR}
     >
       <Stack gap="md">
         <Card withBorder radius="md" p="md" bd="2px solid orange">

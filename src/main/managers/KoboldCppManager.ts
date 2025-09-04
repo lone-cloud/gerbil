@@ -531,14 +531,6 @@ export class KoboldCppManager {
     }
   }
 
-  getCurrentInstallDir() {
-    return this.configManager.getInstallDir();
-  }
-
-  getWindowManager() {
-    return this.windowManager;
-  }
-
   async selectInstallDirectory(): Promise<string | null> {
     const result = await dialog.showOpenDialog({
       properties: ['openDirectory', 'createDirectory'],

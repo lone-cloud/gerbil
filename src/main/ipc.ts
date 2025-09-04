@@ -97,7 +97,7 @@ export class IPCHandlers {
     );
 
     ipcMain.handle('kobold:getCurrentInstallDir', () =>
-      this.koboldManager.getCurrentInstallDir()
+      this.configManager.getInstallDir()
     );
 
     ipcMain.handle('kobold:selectInstallDirectory', () =>
@@ -187,6 +187,7 @@ export class IPCHandlers {
       try {
         const logsDir = this.logManager.getLogsDirectory();
         await shell.openPath(logsDir);
+        return { success: true };
       } catch (error) {
         this.logManager.logError('Failed to open logs folder:', error as Error);
         throw new Error(

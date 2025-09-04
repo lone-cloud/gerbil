@@ -139,7 +139,7 @@ export const TerminalTab = ({
                 margin: 0,
                 fontFamily:
                   'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-                fontSize: '0.875rem',
+                fontSize: '0.875em',
                 lineHeight: 1.4,
                 color: isDark
                   ? 'var(--mantine-color-gray-0)'

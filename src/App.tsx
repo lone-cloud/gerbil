@@ -12,7 +12,6 @@ import { TitleBar } from '@/components/TitleBar';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
-import { useModalStore } from '@/stores/modal';
 import { safeExecute } from '@/utils/logger';
 import { TITLEBAR_HEIGHT } from '@/constants';
 import type { DownloadItem } from '@/types/electron';
@@ -25,8 +24,8 @@ export const App = () => {
     useState<InterfaceTab>('terminal');
   const [frontendPreference, setFrontendPreference] =
     useState<FrontendPreference>('koboldcpp');
-
-  const { modals, setModalOpen } = useModalStore();
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [ejectConfirmModalOpen, setEjectConfirmModalOpen] = useState(false);
 
   const {
     updateInfo: binaryUpdateInfo,
@@ -121,7 +120,7 @@ export const App = () => {
     if (skipEjectConfirmation) {
       performEject();
     } else {
-      setModalOpen('ejectConfirm', true);
+      setEjectConfirmModalOpen(true);
     }
   };
 
@@ -158,7 +157,7 @@ export const App = () => {
         currentTab={activeInterfaceTab}
         onTabChange={setActiveInterfaceTab}
         onEject={handleEject}
-        onOpenSettings={() => setModalOpen('settings', true)}
+        onOpenSettings={() => setSettingsModalOpen(true)}
         frontendPreference={frontendPreference}
       />
 
@@ -225,9 +224,9 @@ export const App = () => {
         />
       </AppShell.Main>
       <SettingsModal
-        opened={modals.settings}
+        opened={settingsModalOpen}
         onClose={async () => {
-          setModalOpen('settings', false);
+          setSettingsModalOpen(false);
           const preference = await safeExecute(
             () =>
               window.electronAPI.config.get(
@@ -240,8 +239,8 @@ export const App = () => {
         currentScreen={currentScreen || undefined}
       />
       <EjectConfirmModal
-        opened={modals.ejectConfirm}
-        onClose={() => setModalOpen('ejectConfirm', false)}
+        opened={ejectConfirmModalOpen}
+        onClose={() => setEjectConfirmModalOpen(false)}
         onConfirm={handleEjectConfirm}
       />
     </AppShell>

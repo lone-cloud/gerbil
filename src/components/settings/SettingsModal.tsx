@@ -12,6 +12,7 @@ import { VersionsTab } from '@/components/settings/VersionsTab';
 import { AppearanceTab } from '@/components/settings/AppearanceTab';
 import { AboutTab } from '@/components/settings/AboutTab';
 import type { Screen } from '@/types';
+import { MODAL_STYLES_WITH_TITLEBAR } from '@/constants';
 
 interface SettingsModalProps {
   opened: boolean;
@@ -67,16 +68,17 @@ export const SettingsModal = ({
       centered
       lockScroll={false}
       styles={{
+        ...MODAL_STYLES_WITH_TITLEBAR,
+        content: {
+          ...MODAL_STYLES_WITH_TITLEBAR.content,
+          paddingBottom: 0,
+        },
         body: {
-          height: '27.5rem',
+          height: '70vh',
           padding: 0,
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',
-        },
-        content: {
-          height: '31.25rem',
-          paddingBottom: 0,
         },
       }}
       transitionProps={{

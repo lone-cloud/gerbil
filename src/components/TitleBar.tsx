@@ -18,7 +18,6 @@ import {
 import { useState } from 'react';
 import { soundAssets, playSound, initializeAudio } from '@/utils/sounds';
 import { useAppUpdateChecker } from '@/hooks/useAppUpdateChecker';
-import { useModalStore } from '@/stores/modal';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 import iconUrl from '/icon.png';
 import { FRONTENDS, PRODUCT_NAME, TITLEBAR_HEIGHT } from '@/constants';
@@ -45,7 +44,6 @@ export const TitleBar = ({
     getInitialValueInEffect: false,
   });
   const { hasUpdate, openReleasePage } = useAppUpdateChecker();
-  const { isAnyModalOpen } = useModalStore();
   const { isImageGenerationMode } = useLaunchConfigStore();
   const [logoClickCount, setLogoClickCount] = useState(0);
   const [isElephantMode, setIsElephantMode] = useState(false);
@@ -106,8 +104,7 @@ export const TitleBar = ({
               ? 'var(--mantine-color-dark-8)'
               : 'var(--mantine-color-gray-1)',
           borderBottom: '1px solid var(--mantine-color-default-border)',
-          WebkitAppRegion:
-            isAnyModalOpen() || isSelectOpen ? 'no-drag' : 'drag',
+          WebkitAppRegion: isSelectOpen ? 'no-drag' : 'drag',
           userSelect: 'none',
           position: 'relative',
         }}

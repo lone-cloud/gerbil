@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Modal, Text, Group, Button, Checkbox, Stack } from '@mantine/core';
+import { MODAL_STYLES_WITH_TITLEBAR } from '@/constants';
 
 interface EjectConfirmModalProps {
   opened: boolean;
@@ -32,6 +33,7 @@ export const EjectConfirmModal = ({
       centered
       closeOnClickOutside={false}
       closeOnEscape={false}
+      styles={MODAL_STYLES_WITH_TITLEBAR}
     >
       <Stack gap="md">
         <Text size="sm" c="dimmed">
