@@ -11,7 +11,6 @@ import { InfoTooltip } from '@/components/InfoTooltip';
 import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
 import { CommandLineArgumentsModal } from '@/components/CommandLineArgumentsModal';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
-import { useModalStore } from '@/stores/modal';
 import { safeExecute } from '@/utils/logger';
 
 export const AdvancedTab = () => {
@@ -38,7 +37,7 @@ export const AdvancedTab = () => {
     handleMoecpuChange,
     handleMoeexpertsChange,
   } = useLaunchConfig();
-  const { modals, setModalOpen } = useModalStore();
+  const [commandLineModalOpen, setCommandLineModalOpen] = useState(false);
   const [backendSupport, setBackendSupport] = useState<{
     noavx2: boolean;
     failsafe: boolean;
@@ -222,7 +221,7 @@ export const AdvancedTab = () => {
           <Button
             size="xs"
             variant="light"
-            onClick={() => setModalOpen('commandLineArguments', true)}
+            onClick={() => setCommandLineModalOpen(true)}
           >
             View Available Arguments
           </Button>
@@ -237,8 +236,8 @@ export const AdvancedTab = () => {
       </div>
 
       <CommandLineArgumentsModal
-        opened={modals.commandLineArguments}
-        onClose={() => setModalOpen('commandLineArguments', false)}
+        opened={commandLineModalOpen}
+        onClose={() => setCommandLineModalOpen(false)}
         onAddArgument={handleAddArgument}
       />
     </Stack>

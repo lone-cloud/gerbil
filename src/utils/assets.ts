@@ -54,11 +54,69 @@ export const sortDownloadsByType = <T extends { name: string }>(
     return a.name.localeCompare(b.name);
   });
 
-export const pretifyBinName = (binName: string) =>
-  binName
-    .replace('koboldcpp-', '')
-    .replace('-x64', ' (x64) ')
-    .replace(' -', ' ')
-    .replace('rocm', '- ROCm')
-    .replace('nocuda', '- NoCUDA')
-    .replace('oldpc', '- OldPC');
+export const pretifyBinName = (binName: string): string => {
+  const cleanName = stripAssetExtensions(binName);
+
+  let name = cleanName.replace(/^koboldcpp[-_]?/, '');
+
+  if (!name) {
+    return 'Windows (x64)';
+  }
+
+  const platforms = {
+    linux: 'Linux',
+    mac: 'macOS',
+  };
+
+  const architectures = {
+    x64: 'x64',
+    arm64: 'ARM64',
+  };
+
+  const variants = {
+    rocm: 'ROCm',
+    nocuda: 'NoCUDA',
+    oldpc: 'OldPC',
+  };
+
+  const parts: string[] = [];
+  let workingName = name.toLowerCase();
+
+  let platform = '';
+  for (const [key, value] of Object.entries(platforms)) {
+    if (workingName.includes(key)) {
+      platform = value;
+      workingName = workingName.replace(key, '').replace(/^-+|-+$/g, '');
+      break;
+    }
+  }
+
+  let arch = '';
+  for (const [key, value] of Object.entries(architectures)) {
+    if (workingName.includes(key)) {
+      arch = value;
+      workingName = workingName.replace(key, '').replace(/^-+|-+$/g, '');
+      break;
+    }
+  }
+
+  const foundVariants: string[] = [];
+  for (const [key, value] of Object.entries(variants)) {
+    if (workingName.includes(key)) {
+      foundVariants.push(value);
+      workingName = workingName.replace(key, '').replace(/^-+|-+$/g, '');
+    }
+  }
+
+  if (platform) parts.push(platform);
+  if (arch) parts.push(`(${arch})`);
+  if (foundVariants.length > 0) {
+    parts.push(`- ${foundVariants.join(', ')}`);
+  }
+
+  if (parts.length === 0) {
+    return cleanName.replace('koboldcpp-', '').replace(/^-+/, '') || 'Standard';
+  }
+
+  return parts.join(' ');
+};

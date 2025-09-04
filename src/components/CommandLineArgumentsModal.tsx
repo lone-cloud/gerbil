@@ -1,3 +1,4 @@
+import { MODAL_STYLES_WITH_TITLEBAR } from '@/constants';
 import {
   Modal,
   Text,
@@ -549,7 +550,7 @@ export const CommandLineArgumentsModal = ({
     >
       <Group gap="xs" wrap="wrap" justify="space-between">
         <Group gap="xs" wrap="wrap" style={{ flex: 1 }}>
-          <Code style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+          <Code style={{ fontSize: '0.875em', fontWeight: 600 }}>
             {arg.flag}
           </Code>
           {arg.aliases &&
@@ -609,6 +610,7 @@ export const CommandLineArgumentsModal = ({
       title="Available Command Line Arguments"
       size="xl"
       centered
+      styles={MODAL_STYLES_WITH_TITLEBAR}
     >
       <Stack gap="md">
         <Text size="sm" c="dimmed">
