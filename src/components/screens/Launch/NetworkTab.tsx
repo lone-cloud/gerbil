@@ -35,7 +35,7 @@ export const NetworkTab = () => {
             <Text size="sm" fw={500}>
               Host
             </Text>
-            <InfoTooltip label="The hostname or IP address on which KoboldCpp will bind its webserver to." />
+            <InfoTooltip label="The hostname or IP address to bind the webserver to." />
           </Group>
           <TextInput
             placeholder="localhost"
@@ -49,7 +49,7 @@ export const NetworkTab = () => {
             <Text size="sm" fw={500}>
               Port
             </Text>
-            <InfoTooltip label="The port number on which KoboldCpp will listen for connections. Leave empty to use default port 5001." />
+            <InfoTooltip label="The port number on which the server will listen for connections. Leave empty to use default port 5001." />
           </Group>
           <TextInput
             placeholder="5001"
@@ -105,7 +105,7 @@ export const NetworkTab = () => {
               checked={remotetunnel}
               onChange={handleRemotetunnelChange}
               label="Remote Tunnel"
-              tooltip="Creates a trycloudflare tunnel. Allows you to access koboldcpp from other devices over an internet URL."
+              tooltip="Creates a trycloudflare tunnel. Allows you to access your server from other devices over an internet URL."
             />
 
             <CheckboxWithTooltip

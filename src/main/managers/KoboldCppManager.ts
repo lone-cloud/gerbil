@@ -77,7 +77,7 @@ export class KoboldCppManager {
     try {
       if (this.koboldProcess && !this.koboldProcess.killed) {
         this.windowManager.sendKoboldOutput(
-          'Stopping KoboldCpp process before update...'
+          'Stopping process before update...'
         );
         await this.cleanup();
         await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -91,7 +91,7 @@ export class KoboldCppManager {
       );
       throw new Error(
         `Cannot update: Failed to remove existing installation. ` +
-          `Please ensure KoboldCpp is stopped and try again. ` +
+          `Please ensure the server is stopped and try again. ` +
           `Error: ${(error as Error).message}`
       );
     }
@@ -182,7 +182,7 @@ export class KoboldCppManager {
     }
 
     if (!launcherPath || !(await pathExists(launcherPath))) {
-      throw new Error('Failed to find or create koboldcpp launcher');
+      throw new Error('Failed to find or create launcher');
     }
 
     return launcherPath;
@@ -633,8 +633,8 @@ export class KoboldCppManager {
       if (!currentVersion || !(await pathExists(currentVersion.path))) {
         const rawPath = this.configManager.getCurrentKoboldBinary();
         const error = currentVersion
-          ? `KoboldCpp binary file does not exist at path: ${currentVersion.path}`
-          : 'No KoboldCpp version configured';
+          ? `Binary file does not exist at path: ${currentVersion.path}`
+          : 'No version configured';
 
         this.logManager.logError(
           `Launch failed: ${error}. Raw config path: "${rawPath}", Current version: ${JSON.stringify(currentVersion)}`
@@ -717,10 +717,7 @@ export class KoboldCppManager {
       });
 
       child.on('error', (error) => {
-        this.logManager.logError(
-          `KoboldCpp process error: ${error.message}`,
-          error
-        );
+        this.logManager.logError(`Process error: ${error.message}`, error);
 
         this.windowManager.sendKoboldOutput(
           `\n[ERROR] Process error: ${error.message}\n`
@@ -736,7 +733,7 @@ export class KoboldCppManager {
     } catch (error) {
       const errorMessage = (error as Error).message;
       this.logManager.logError(
-        `Failed to launch KoboldCpp: ${errorMessage}`,
+        `Failed to launch: ${errorMessage}`,
         error as Error
       );
       return { success: false, error: errorMessage };

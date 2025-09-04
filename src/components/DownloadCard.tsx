@@ -12,7 +12,7 @@ import {
 } from '@mantine/core';
 import { Download } from 'lucide-react';
 import { MouseEvent } from 'react';
-import styles from '@/styles/layout.module.css';
+import { pretifyBinName } from '@/utils/assets';
 
 interface DownloadCardProps {
   name: string;
@@ -126,10 +126,10 @@ export const DownloadCard = ({
       })}
     >
       <Group justify="space-between" align="center">
-        <div className={styles.flex1}>
+        <div style={{ flex: 1 }}>
           <Group gap="xs" align="center" mb="xs">
             <Text fw={500} size="sm">
-              {name}
+              {pretifyBinName(name)}
             </Text>
             {isCurrent && (
               <Badge variant="light" color="blue" size="sm">

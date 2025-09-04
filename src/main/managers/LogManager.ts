@@ -1,19 +1,19 @@
 import { app } from 'electron';
 import { join } from 'path';
-import winston from 'winston';
-import 'winston-daily-rotate-file';
+import { createLogger, format, type Logger } from 'winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
 
 export class LogManager {
-  private logger: winston.Logger;
+  private logger: Logger;
 
   constructor() {
     const logsDir = join(app.getPath('userData'), 'logs');
 
-    this.logger = winston.createLogger({
+    this.logger = createLogger({
       level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.printf(({ timestamp, level, message, error }) => {
+      format: format.combine(
+        format.timestamp(),
+        format.printf(({ timestamp, level, message, error }) => {
           const processInfo = `[${process.type || 'unknown'}:${process.pid}]`;
           let logEntry = `${timestamp} ${processInfo} [${level.toUpperCase()}] ${message}`;
 
@@ -28,7 +28,7 @@ export class LogManager {
         })
       ),
       transports: [
-        new winston.transports.DailyRotateFile({
+        new DailyRotateFile({
           filename: join(logsDir, 'gerbil-%DATE%.log'),
           datePattern: 'YYYY-MM-DD',
           maxSize: '10m',

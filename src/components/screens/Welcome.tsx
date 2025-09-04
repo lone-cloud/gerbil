@@ -9,9 +9,10 @@ import {
   Group,
   List,
   ThemeIcon,
-  Anchor,
+  Image,
 } from '@mantine/core';
-import { Check, ExternalLink } from 'lucide-react';
+import { Check } from 'lucide-react';
+import iconUrl from '/icon.png';
 
 interface WelcomeScreenProps {
   onGetStarted: () => void;
@@ -23,9 +24,12 @@ export const WelcomeScreen = ({ onGetStarted }: WelcomeScreenProps) => (
       <Card withBorder radius="md" shadow="sm" p="xl">
         <Stack gap="lg" align="center">
           <Stack gap="md" align="center">
-            <Title order={1} ta="center">
-              {PRODUCT_NAME}
-            </Title>
+            <Group gap="md" mr="xl" align="center">
+              <Image src={iconUrl} alt={PRODUCT_NAME} w={36} h={36} />
+              <Title order={1} ta="center">
+                {PRODUCT_NAME}
+              </Title>
+            </Group>
             <Text size="lg" c="dimmed" ta="center" maw={600}>
               Run Large Language Models locally
             </Text>
@@ -84,44 +88,9 @@ export const WelcomeScreen = ({ onGetStarted }: WelcomeScreenProps) => (
             </Text>
           </Stack>
 
-          <Button size="lg" onClick={onGetStarted}>
+          <Button size="lg" mt="lg" onClick={onGetStarted}>
             Get Started
           </Button>
-
-          <Group gap="lg" mt="md">
-            <Anchor
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                window.electronAPI.app.openExternal(
-                  'https://github.com/LostRuins/koboldcpp'
-                );
-              }}
-              size="sm"
-              c="dimmed"
-            >
-              <Group gap={4} align="center">
-                <span>About KoboldCpp</span>
-                <ExternalLink size={12} />
-              </Group>
-            </Anchor>
-            <Anchor
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                window.electronAPI.app.openExternal(
-                  'https://github.com/lone-cloud/gerbil'
-                );
-              }}
-              size="sm"
-              c="dimmed"
-            >
-              <Group gap={4} align="center">
-                <span>About Gerbil</span>
-                <ExternalLink size={12} />
-              </Group>
-            </Anchor>
-          </Group>
         </Stack>
       </Card>
     </Stack>

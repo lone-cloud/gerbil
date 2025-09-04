@@ -77,7 +77,7 @@ const checkGpuWarnings = async (
     warnings.push({
       type: 'warning',
       message:
-        'Your KoboldCpp binary supports CUDA and you have an NVIDIA GPU, but CUDA runtime is not detected on your system.',
+        'Your binary supports CUDA and you have an NVIDIA GPU, but CUDA runtime is not detected on your system.',
     });
   }
 
@@ -89,7 +89,7 @@ const checkGpuWarnings = async (
     warnings.push({
       type: 'warning',
       message:
-        'Your KoboldCpp binary supports ROCm and you have an AMD GPU, but ROCm runtime is not detected on your system.',
+        'Your binary supports ROCm and you have an AMD GPU, but ROCm runtime is not detected on your system.',
     });
   }
 

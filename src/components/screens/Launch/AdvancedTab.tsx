@@ -217,7 +217,7 @@ export const AdvancedTab = () => {
             <Text size="sm" fw={500}>
               Additional arguments
             </Text>
-            <InfoTooltip label="Additional command line arguments to pass to the KoboldCPP binary. Leave this empty if you don't know what they are." />
+            <InfoTooltip label="Additional command line arguments to pass to the binary. Leave this empty if you don't know what they are." />
           </Group>
           <Button
             size="xs"

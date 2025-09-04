@@ -27,14 +27,14 @@ export class LightweightCliHandler {
 
     if (!currentBinary) {
       console.error(
-        'Error: No KoboldCpp binary found. Please run the GUI first to download KoboldCpp.'
+        'Error: No binary found. Please run the GUI first to download the binary.'
       );
       process.exit(1);
     }
 
     if (!(await pathExists(currentBinary))) {
-      console.error(`Error: KoboldCpp binary not found at: ${currentBinary}`);
-      console.error('Please run the GUI to download or reconfigure KoboldCpp.');
+      console.error(`Error: Binary not found at: ${currentBinary}`);
+      console.error('Please run the GUI to download and configure the binary.');
       process.exit(1);
     }
 
@@ -75,12 +75,12 @@ export class LightweightCliHandler {
       });
 
       child.on('error', (error) => {
-        console.error(`Failed to start KoboldCpp: ${error.message}`);
+        console.error(`Failed to start: ${error.message}`);
         reject(error);
       });
 
       const handleSignal = async () => {
-        console.log('\nReceived termination signal, terminating KoboldCpp...');
+        console.log('\nReceived termination signal, terminating...');
         if (!child.killed) {
           await terminateProcess(child, {
             timeoutMs: 5000,

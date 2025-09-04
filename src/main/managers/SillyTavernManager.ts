@@ -363,7 +363,7 @@ export class SillyTavernManager {
       textgenSettings.type = 'koboldcpp';
 
       this.windowManager.sendKoboldOutput(
-        `Configured SillyTavern for text generation with KoboldCpp at ${koboldUrl}`
+        `Configured SillyTavern for text generation at ${koboldUrl}`
       );
 
       await writeJsonFile(configPath, settings);
@@ -461,7 +461,7 @@ export class SillyTavernManager {
       await this.stopFrontend();
 
       this.windowManager.sendKoboldOutput(
-        `Preparing SillyTavern to connect to KoboldCpp at ${koboldHost}:${koboldPort}...`
+        `Preparing SillyTavern to connect at ${koboldHost}:${koboldPort}...`
       );
 
       await this.ensureSillyTavernSettings();

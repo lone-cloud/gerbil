@@ -176,7 +176,7 @@ export class OpenWebUIManager {
       await this.stopFrontend();
 
       this.windowManager.sendKoboldOutput(
-        `Preparing Open WebUI to connect to KoboldCpp at ${koboldHost}:${koboldPort}...`
+        `Preparing Open WebUI to connect at ${koboldHost}:${koboldPort}...`
       );
 
       this.windowManager.sendKoboldOutput(
@@ -252,13 +252,13 @@ export class OpenWebUIManager {
       await this.waitForOpenWebUIToStart();
 
       this.windowManager.sendKoboldOutput(
-        `Open WebUI is ready and auto-configured for KoboldCpp!`
+        `Open WebUI is ready and auto-configured!`
       );
       this.windowManager.sendKoboldOutput(
         `Access Open WebUI at: http://localhost:${config.port}`
       );
       this.windowManager.sendKoboldOutput(
-        `KoboldCpp connection: ${koboldUrl}/v1 (auto-configured)`
+        `Connection: ${koboldUrl}/v1 (auto-configured)`
       );
     } catch (error) {
       this.logManager.logError(
