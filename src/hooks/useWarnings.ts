@@ -86,10 +86,19 @@ const checkGpuWarnings = async (
     !gpuCapabilities.rocm.supported &&
     gpuInfo.hasAMD
   ) {
+    const platform = await window.electronAPI.kobold.getPlatform();
+    const baseMessage =
+      'Your binary supports ROCm and you have an AMD GPU, but ROCm runtime is not detected on your system.';
+
+    let message = baseMessage;
+    if (platform === 'win32') {
+      message +=
+        ' On Windows, make sure ROCm is installed and its bin directory is added to your PATH so that hipInfo.exe can be found.';
+    }
+
     warnings.push({
       type: 'warning',
-      message:
-        'Your binary supports ROCm and you have an AMD GPU, but ROCm runtime is not detected on your system.',
+      message,
     });
   }
 
