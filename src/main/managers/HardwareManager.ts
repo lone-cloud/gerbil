@@ -195,12 +195,28 @@ export class HardwareManager {
     }
   }
 
+  private async findRocminfoCommand(): Promise<string | null> {
+    const platform = await import('process').then((p) => p.platform);
+
+    if (platform === 'win32') {
+      return 'hipInfo';
+    } else {
+      return 'rocminfo';
+    }
+  }
+
   async detectROCm(): Promise<{
     supported: boolean;
     devices: string[];
   }> {
     try {
-      const rocminfo = spawn('rocminfo', [], { timeout: 5000 });
+      const rocminfoCommand = await this.findRocminfoCommand();
+      if (!rocminfoCommand) {
+        return { supported: false, devices: [] };
+      }
+
+      const isWindows = rocminfoCommand.includes('hipInfo');
+      const rocminfo = spawn(rocminfoCommand, [], { timeout: 5000 });
 
       let output = '';
       rocminfo.stdout.on('data', (data) => {
@@ -212,38 +228,56 @@ export class HardwareManager {
         rocminfo.on('close', (code) => {
           if (code === 0 && output.trim()) {
             const devices: string[] = [];
-            const lines = output.split('\n');
 
-            for (let i = 0; i < lines.length; i++) {
-              const line = lines[i];
+            if (isWindows) {
+              const lines = output.split('\n');
 
-              if (line.includes('Marketing Name:')) {
-                const name = line.split('Marketing Name:')[1]?.trim();
-                if (name) {
-                  let deviceType = '';
-
-                  const searchRangeLines = 20;
-                  const searchStartIndex = Math.max(0, i - searchRangeLines);
-                  const searchEndIndex = Math.min(
-                    lines.length,
-                    i + searchRangeLines
-                  );
-
-                  for (
-                    let searchIndex = searchStartIndex;
-                    searchIndex < searchEndIndex;
-                    searchIndex++
+              for (const line of lines) {
+                const trimmedLine = line.trim();
+                if (trimmedLine.startsWith('Name:')) {
+                  const name = trimmedLine.split('Name:')[1]?.trim();
+                  if (
+                    name &&
+                    !name.toLowerCase().includes('cpu') &&
+                    !devices.includes(shortenDeviceName(name))
                   ) {
-                    if (lines[searchIndex].includes('Device Type:')) {
-                      deviceType =
-                        lines[searchIndex].split('Device Type:')[1]?.trim() ||
-                        '';
-                      break;
-                    }
-                  }
-
-                  if (deviceType !== 'CPU') {
                     devices.push(shortenDeviceName(name));
+                  }
+                }
+              }
+            } else {
+              const lines = output.split('\n');
+              for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+
+                if (line.includes('Marketing Name:')) {
+                  const name = line.split('Marketing Name:')[1]?.trim();
+                  if (name) {
+                    let deviceType = '';
+
+                    const searchRangeLines = 20;
+                    const searchStartIndex = Math.max(0, i - searchRangeLines);
+                    const searchEndIndex = Math.min(
+                      lines.length,
+                      i + searchRangeLines
+                    );
+
+                    for (
+                      let searchIndex = searchStartIndex;
+                      searchIndex < searchEndIndex;
+                      searchIndex++
+                    ) {
+                      if (lines[searchIndex].includes('Device Type:')) {
+                        deviceType =
+                          lines[searchIndex].split('Device Type:')[1]?.trim() ||
+                          '';
+                        break;
+                      }
+                    }
+
+                    if (deviceType !== 'CPU') {
+                      devices.push(shortenDeviceName(name));
+                    }
                   }
                 }
               }
