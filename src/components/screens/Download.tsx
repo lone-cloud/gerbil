@@ -78,59 +78,56 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
               </Stack>
             ) : (
               <>
-                {availableDownloads.length > 0 && (
-                  <>
-                    {availableDownloads.length > 0 ? (
-                      <Stack gap="sm">
-                        {sortedDownloads.map((download) => {
-                          const isDownloading =
-                            Boolean(downloading) &&
-                            downloadingAsset === download.name;
+                {availableDownloads.length > 0 ? (
+                  <Stack gap="sm">
+                    {sortedDownloads.map((download) => {
+                      const isDownloading =
+                        Boolean(downloading) &&
+                        downloadingAsset === download.name;
 
-                          return (
-                            <div
-                              key={download.name}
-                              ref={isDownloading ? downloadingItemRef : null}
-                            >
-                              <DownloadCard
-                                name={download.name}
-                                size={formatDownloadSize(
-                                  download.size,
-                                  download.url
-                                )}
-                                version={download.version}
-                                description={getAssetDescription(download.name)}
-                                isDownloading={isDownloading}
-                                downloadProgress={
-                                  isDownloading
-                                    ? downloadProgress[download.name] || 0
-                                    : 0
-                                }
-                                disabled={
-                                  Boolean(downloading) &&
-                                  downloadingAsset !== download.name
-                                }
-                                onDownload={(e) => {
-                                  e.stopPropagation();
-                                  handleDownload(download);
-                                }}
-                              />
-                            </div>
-                          );
-                        })}
-                      </Stack>
-                    ) : (
-                      <Card withBorder p="md" bg="yellow.0" c="yellow.9">
-                        <Stack gap="xs">
-                          <Text fw={500}>No downloads available</Text>
-                          <Text size="sm">
-                            No downloads available for your platform (
-                            {getPlatformDisplayName(platform)}).
-                          </Text>
-                        </Stack>
-                      </Card>
-                    )}
-                  </>
+                      return (
+                        <div
+                          key={download.name}
+                          ref={isDownloading ? downloadingItemRef : null}
+                        >
+                          <DownloadCard
+                            name={download.name}
+                            size={formatDownloadSize(
+                              download.size,
+                              download.url
+                            )}
+                            version={download.version}
+                            description={getAssetDescription(download.name)}
+                            isDownloading={isDownloading}
+                            downloadProgress={
+                              isDownloading
+                                ? downloadProgress[download.name] || 0
+                                : 0
+                            }
+                            disabled={
+                              Boolean(downloading) &&
+                              downloadingAsset !== download.name
+                            }
+                            onDownload={(e) => {
+                              e.stopPropagation();
+                              handleDownload(download);
+                            }}
+                          />
+                        </div>
+                      );
+                    })}
+                  </Stack>
+                ) : (
+                  <Card withBorder p="md" bg="red.0" c="red.9">
+                    <Stack gap="xs">
+                      <Text fw={500}>No downloads available</Text>
+                      <Text size="sm">
+                        Unable to fetch downloads for your platform (
+                        {getPlatformDisplayName(platform)}). Please check your
+                        internet connection and try again.
+                      </Text>
+                    </Stack>
+                  </Card>
                 )}
               </>
             )}

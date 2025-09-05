@@ -54,7 +54,7 @@ export const AboutTab = () => {
 
   const copyVersionInfo = async () => {
     const info = [
-      `${PRODUCT_NAME}: v${versionInfo.appVersion}`,
+      `${PRODUCT_NAME}: ${versionInfo.appVersion}`,
       `Electron: ${versionInfo.electronVersion}`,
       `Node.js: ${versionInfo.nodeVersion}`,
       `Chromium: ${versionInfo.chromeVersion}`,
