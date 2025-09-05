@@ -116,7 +116,7 @@ CLI mode will only work correctly on Windows if you install Gerbil using the Set
 
 You can use the CLI mode on Windows in exactly the same way as in the Linux/macOS examples above, except you'll be calling the "Gerbil.exe". Note that it will not be on your system PATH by default, so you'll need to manually specify the full path to it when callig it from the Windows terminal.
 
-## For Local Dev
+## Local Dev
 
 ### Prerequisites
 
@@ -149,6 +149,11 @@ You can use the CLI mode on Windows in exactly the same way as in the Linux/macO
    ```bash
    yarn dev
    ```
+
+## Known Issues
+
+- automatic GPU layer detection does not currently work consistently accross all backends and platforms. It's advised to set this configuration manually if you are told in the launch terminal that your VRAM could not be detected. It should work correctly on all platforms after 1.99.0 of KoboldCpp gets released except for the Windows ROCm binary which was not written well.
+- Windows ROCm support is... problematic and currently requires for the user to manually add the installed ROCm bin directory to the system PATH. In particular "hipInfo.exe" must be present, which is not always the case for older verions of ROCm.
 
 ## Future Considerations
 
