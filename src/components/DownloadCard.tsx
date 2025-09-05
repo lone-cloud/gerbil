@@ -177,7 +177,10 @@ export const DownloadCard = ({
             radius="xl"
           />
           <Text size="xs" c="dimmed" ta="center">
-            {Math.min(downloadProgress, 100).toFixed(1)}% complete
+            {Math.min(downloadProgress, 100) === 100
+              ? '100%'
+              : `${Math.min(downloadProgress, 100).toFixed(1)}%`}{' '}
+            complete
           </Text>
         </Stack>
       )}

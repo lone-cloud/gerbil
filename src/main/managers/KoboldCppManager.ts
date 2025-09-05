@@ -1,7 +1,17 @@
 import { spawn, ChildProcess } from 'child_process';
 import { createWriteStream } from 'fs';
 import { join } from 'path';
-import { rm, readdir, stat, unlink, rename, mkdir, chmod } from 'fs/promises';
+import {
+  rm,
+  readdir,
+  stat,
+  unlink,
+  rename,
+  mkdir,
+  chmod,
+  readFile,
+  writeFile,
+} from 'fs/promises';
 import { dialog } from 'electron';
 import axios from 'axios';
 
@@ -210,6 +220,7 @@ export class KoboldCppManager {
       await this.downloadFile(asset, tempPackedFilePath);
       await mkdir(unpackedDirPath, { recursive: true });
       await this.unpackKoboldCpp(tempPackedFilePath, unpackedDirPath);
+      await this.patchKliteEmbd(unpackedDirPath);
       const launcherPath = await this.setupLauncher(
         tempPackedFilePath,
         unpackedDirPath
@@ -251,6 +262,113 @@ export class KoboldCppManager {
       const errorMessage =
         execaError.stderr || execaError.stdout || execaError.message;
       throw new Error(`Unpack failed: ${errorMessage}`);
+    }
+  }
+
+  private async patchKliteEmbd(unpackedDir: string): Promise<void> {
+    try {
+      const possiblePaths = [
+        join(unpackedDir, '_internal', 'klite.embd'),
+        join(unpackedDir, 'klite.embd'),
+      ];
+
+      let kliteEmbdPath: string | null = null;
+      for (const path of possiblePaths) {
+        if (await pathExists(path)) {
+          kliteEmbdPath = path;
+          break;
+        }
+      }
+
+      if (!kliteEmbdPath) {
+        this.logManager.logError(
+          'klite.embd file not found in unpacked directory',
+          new Error('File not found')
+        );
+        return;
+      }
+
+      this.windowManager.sendKoboldOutput(
+        'Injecting CSS override for better iframe display...'
+      );
+
+      const content = await readFile(kliteEmbdPath, 'utf8');
+
+      const customCssOverride = `
+<style id="gerbil-css-override">
+* {
+  transition: 100ms ease all;
+}
+.maincontainer {
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+}
+.adaptivecontainer {
+  width: 100% !important;
+}
+#lastreq1 {
+  margin: 0 10px;
+}
+#inputrow {
+  padding: 0 10px;
+}
+#actionmenuitems {
+  margin-left: 10px;
+}
+.topmenu {
+  padding: 10px;
+}
+#navbarNavDropdown {
+  padding: 0;
+}
+#inputrow > :nth-child(1) {
+  padding-right: 0 !important;
+}
+#inputrow.show_mode > :nth-child(1) {
+  flex: 0 0 70px;
+  margin-right: 4px;
+}
+#inputrow > :nth-child(3) {
+  flex: 0 0 70px;
+  padding-right: 0 !important;
+}
+#inputrow.show_mode > :nth-child(3) button {
+  background-color: #129c00;
+  font-size: 14px;
+}
+#inputrow.show_mode > :nth-child(3) button:hover {
+  background-color: #058105;
+}
+#actionmenuitems + div {
+  margin-right: 10px;
+}
+#actionmenuitems button, #actionmenuitems2 button {
+  background-color: #337ab7 !important;
+}
+#actionmenuitems button:hover, #actionmenuitems2 button:hover {
+  background-color: #286090 !important;
+}
+</style>`;
+
+      if (content.includes('</head>')) {
+        const patchedContent = content.replace(
+          '</head>',
+          `${customCssOverride}\n</head>`
+        );
+        await writeFile(kliteEmbdPath, patchedContent, 'utf8');
+        this.windowManager.sendKoboldOutput(
+          'Successfully injected CSS override to klite.embd'
+        );
+      } else {
+        this.windowManager.sendKoboldOutput(
+          'Warning: Could not find </head> tag in klite.embd, skipping CSS injection'
+        );
+      }
+    } catch (error) {
+      this.logManager.logError('Failed to patch klite.embd:', error as Error);
+      this.windowManager.sendKoboldOutput(
+        'Warning: Failed to patch klite.embd CSS, but continuing with installation...'
+      );
     }
   }
 
@@ -602,15 +720,6 @@ export class KoboldCppManager {
     } catch {
       return false;
     }
-  }
-
-  isRunning() {
-    return this.koboldProcess !== null && !this.koboldProcess.killed;
-  }
-
-  async getInstalledVersion(): Promise<string | undefined> {
-    const currentVersion = await this.getCurrentVersion();
-    return currentVersion?.version;
   }
 
   async launchKoboldCpp(
