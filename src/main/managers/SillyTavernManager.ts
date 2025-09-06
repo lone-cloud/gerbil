@@ -12,12 +12,6 @@ import { terminateProcess } from '@/utils/process';
 import { pathExists, readJsonFile, writeJsonFile } from '@/utils/fs';
 import { parseKoboldConfig } from '@/utils/kobold';
 
-export interface SillyTavernConfig {
-  name: string;
-  port: number;
-  proxyPort?: number;
-}
-
 export class SillyTavernManager {
   private sillyTavernProcess: ChildProcess | null = null;
   private proxyServer: Server | null = null;

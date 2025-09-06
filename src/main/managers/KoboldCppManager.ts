@@ -21,7 +21,10 @@ import { ConfigManager } from '@/main/managers/ConfigManager';
 import { LogManager } from '@/main/managers/LogManager';
 import { WindowManager } from '@/main/managers/WindowManager';
 import { PRODUCT_NAME, SERVER_READY_SIGNALS } from '@/constants';
-import { KLITE_CSS_OVERRIDE } from '@/constants/css';
+import {
+  KLITE_CSS_OVERRIDE,
+  KLITE_AUTOSCROLL_PATCHES,
+} from '@/constants/patches';
 import { pathExists, readJsonFile, writeJsonFile } from '@/utils/fs';
 import { stripAssetExtensions } from '@/utils/version';
 import type {
@@ -221,7 +224,6 @@ export class KoboldCppManager {
       await this.downloadFile(asset, tempPackedFilePath);
       await mkdir(unpackedDirPath, { recursive: true });
       await this.unpackKoboldCpp(tempPackedFilePath, unpackedDirPath);
-      await this.patchKliteEmbd(unpackedDirPath);
       const launcherPath = await this.setupLauncher(
         tempPackedFilePath,
         unpackedDirPath
@@ -282,38 +284,23 @@ export class KoboldCppManager {
       }
 
       if (!kliteEmbdPath) {
-        this.logManager.logError(
-          'klite.embd file not found in unpacked directory',
-          new Error('File not found')
-        );
         return;
       }
 
-      this.windowManager.sendKoboldOutput(
-        'Injecting CSS override for better iframe display...'
-      );
-
       const content = await readFile(kliteEmbdPath, 'utf8');
 
-      if (content.includes('</head>')) {
+      if (
+        content.includes('</head>') &&
+        !content.includes('gerbil-autoscroll-patches')
+      ) {
         const patchedContent = content.replace(
           '</head>',
-          `${KLITE_CSS_OVERRIDE}\n</head>`
+          `${KLITE_CSS_OVERRIDE}\n${KLITE_AUTOSCROLL_PATCHES}\n</head>`
         );
         await writeFile(kliteEmbdPath, patchedContent, 'utf8');
-        this.windowManager.sendKoboldOutput(
-          'Successfully injected CSS override to klite.embd'
-        );
-      } else {
-        this.windowManager.sendKoboldOutput(
-          'Warning: Could not find </head> tag in klite.embd, skipping CSS injection'
-        );
       }
     } catch (error) {
       this.logManager.logError('Failed to patch klite.embd:', error as Error);
-      this.windowManager.sendKoboldOutput(
-        'Warning: Failed to patch klite.embd CSS, but continuing with installation...'
-      );
     }
   }
 
@@ -616,57 +603,6 @@ export class KoboldCppManager {
     return null;
   }
 
-  async launchKobold(
-    versionPath: string,
-    args: string[] = [],
-    onOutput?: (data: string) => void,
-    onError?: (data: string) => void
-  ): Promise<ChildProcess | null> {
-    if (this.koboldProcess) {
-      this.koboldProcess.kill();
-      this.koboldProcess = null;
-    }
-
-    if (!(await pathExists(versionPath))) {
-      throw new Error('Selected version file does not exist');
-    }
-    this.koboldProcess = spawn(versionPath, args, {
-      stdio: ['pipe', 'pipe', 'pipe'],
-      detached: false,
-    });
-
-    if (onOutput) {
-      this.koboldProcess.stdout?.on('data', (data) => {
-        onOutput(data.toString());
-      });
-    }
-
-    if (onError) {
-      this.koboldProcess.stderr?.on('data', (data) => {
-        onError(data.toString());
-      });
-    }
-
-    this.koboldProcess.on('close', () => {
-      this.koboldProcess = null;
-    });
-
-    return this.koboldProcess;
-  }
-
-  async stopKobold(): Promise<boolean> {
-    try {
-      if (this.koboldProcess) {
-        this.koboldProcess.kill();
-        this.koboldProcess = null;
-        return true;
-      }
-      return false;
-    } catch {
-      return false;
-    }
-  }
-
   async launchKoboldCpp(
     args: string[] = []
   ): Promise<{ success: boolean; pid?: number; error?: string }> {
@@ -691,6 +627,12 @@ export class KoboldCppManager {
           error,
         };
       }
+
+      const binaryDir = currentVersion.path
+        .split(/[/\\]/)
+        .slice(0, -1)
+        .join('/');
+      await this.patchKliteEmbd(binaryDir);
 
       const finalArgs = [...args];
 

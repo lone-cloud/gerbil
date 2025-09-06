@@ -16,18 +16,6 @@ export const safeExecute = async <T>(
   }
 };
 
-export const safeExecuteSync = <T>(
-  operation: () => T,
-  errorMessage: string
-): T | null => {
-  try {
-    return operation();
-  } catch (error) {
-    logError(errorMessage, error as Error);
-    return null;
-  }
-};
-
 export const tryExecute = async (
   operation: () => Promise<void>,
   errorMessage: string
@@ -40,14 +28,6 @@ export const tryExecute = async (
     return false;
   }
 };
-
-export const withErrorHandling =
-  <TArgs extends unknown[], TReturn>(
-    fn: (...args: TArgs) => Promise<TReturn>,
-    errorMessage: string
-  ): ((...args: TArgs) => Promise<TReturn | null>) =>
-  async (...args: TArgs) =>
-    safeExecute(() => fn(...args), errorMessage);
 
 export const error = (message: string, error: Error): void => {
   logError(message, error);

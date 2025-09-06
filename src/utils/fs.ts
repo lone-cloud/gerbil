@@ -38,18 +38,3 @@ export const ensureDir = async (path: string): Promise<void> => {
     }
   }
 };
-
-export const readTextFile = async (path: string): Promise<string | null> => {
-  try {
-    return readFile(path, 'utf-8');
-  } catch {
-    return null;
-  }
-};
-
-export const writeTextFile = async (
-  path: string,
-  content: string
-): Promise<void> => {
-  await writeFile(path, content, 'utf-8');
-};
