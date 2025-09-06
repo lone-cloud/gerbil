@@ -95,7 +95,7 @@ export const TitleBar = ({
       <Box
         style={{
           height: TITLEBAR_HEIGHT,
-          padding: '0.125rem 0.5rem',
+          padding: '0.125rem 0 0.125rem 0.5rem',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -117,11 +117,9 @@ export const TitleBar = ({
           <Image
             src={iconUrl}
             alt={PRODUCT_NAME}
-            w={24}
-            h={24}
+            w={26}
+            h={26}
             style={{
-              minWidth: 24,
-              minHeight: 24,
               cursor: 'pointer',
               userSelect: 'none',
               transition: 'transform 0.15s ease-in-out',
@@ -201,17 +199,18 @@ export const TitleBar = ({
           )}
         </Box>
 
-        <Group gap="0.125rem" style={{ WebkitAppRegion: 'no-drag' }}>
+        <Group gap="0" style={{ WebkitAppRegion: 'no-drag' }}>
           {hasUpdate && (
             <ActionIcon
               variant="subtle"
               color="orange"
-              size="2rem"
+              size={TITLEBAR_HEIGHT}
               onClick={openReleasePage}
               aria-label="New release available"
+              tabIndex={-1}
               style={{
-                borderRadius: '0.25rem',
-                margin: '0.125rem',
+                borderRadius: 0,
+                margin: 0,
               }}
             >
               <CircleFadingArrowUp size="1.25rem" />
@@ -220,12 +219,13 @@ export const TitleBar = ({
 
           <ActionIcon
             variant="subtle"
-            size="2rem"
+            size={TITLEBAR_HEIGHT}
             onClick={onOpenSettings}
             aria-label="Open settings"
+            tabIndex={-1}
             style={{
               borderRadius: '0.25rem',
-              margin: '0.125rem',
+              margin: 0,
             }}
           >
             <Settings size="1.25rem" />
@@ -263,13 +263,14 @@ export const TitleBar = ({
             <ActionIcon
               key={index}
               variant="subtle"
-              size="2rem"
+              size={TITLEBAR_HEIGHT}
               onClick={button.onClick}
               color={button.color}
               aria-label={button.label}
+              tabIndex={-1}
               style={{
-                borderRadius: '0.25rem',
-                margin: '0.125rem',
+                borderRadius: 0,
+                margin: 0,
               }}
             >
               {button.icon}
