@@ -62,6 +62,8 @@ const UI_COVERED_ARGS = new Set([
   '--sdconvdirect',
 ]);
 
+const IGNORED_ARGS = new Set(['--cli', '--version', '--launch', '--config']);
+
 const COMMAND_LINE_ARGUMENTS: ArgumentInfo[] = [
   {
     flag: '--threads',
@@ -487,7 +489,7 @@ const COMMAND_LINE_ARGUMENTS: ArgumentInfo[] = [
 ];
 
 const AVAILABLE_ARGUMENTS = COMMAND_LINE_ARGUMENTS.filter(
-  (arg) => !UI_COVERED_ARGS.has(arg.flag)
+  (arg) => !UI_COVERED_ARGS.has(arg.flag) && !IGNORED_ARGS.has(arg.flag)
 );
 
 export const CommandLineArgumentsModal = ({

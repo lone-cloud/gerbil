@@ -11,11 +11,6 @@ import { OPENWEBUI, SERVER_READY_SIGNALS } from '@/constants';
 import { terminateProcess } from '@/utils/process';
 import { parseKoboldConfig } from '@/utils/kobold';
 
-export interface OpenWebUIConfig {
-  name: string;
-  port: number;
-}
-
 export class OpenWebUIManager {
   private openWebUIProcess: ChildProcess | null = null;
   private logManager: LogManager;

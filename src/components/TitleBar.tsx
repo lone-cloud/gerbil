@@ -178,6 +178,20 @@ export const TitleBar = ({
                 { value: 'terminal', label: 'Terminal' },
                 { value: 'eject', label: 'Eject' },
               ]}
+              renderOption={({ option }) => (
+                <Box
+                  style={{
+                    textAlign: 'center',
+                    color:
+                      option.value === 'eject'
+                        ? 'var(--mantine-color-red-6)'
+                        : undefined,
+                    fontWeight: option.value === 'eject' ? 600 : undefined,
+                  }}
+                >
+                  {option.label}
+                </Box>
+              )}
               allowDeselect={false}
               variant="unstyled"
               size="sm"
