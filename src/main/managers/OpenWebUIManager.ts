@@ -195,6 +195,7 @@ export class OpenWebUIManager {
         OPENAI_API_BASE_URL: `${koboldUrl}/v1`,
         OPENAI_API_KEY: 'kobold',
         DATA_DIR: openWebUIDataDir,
+        DISABLE_SIGNUP: 'true',
       });
 
       if (this.openWebUIProcess.stdout) {

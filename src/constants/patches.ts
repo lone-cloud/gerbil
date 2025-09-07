@@ -56,6 +56,10 @@ export const KLITE_CSS_OVERRIDE = `
   margin-right: 10px;
 }
 
+#actionmenuitems + div input[type=checkbox] {
+  margin: 0;
+}
+
 #actionmenuitems button, #actionmenuitems2 button {
   background-color: #337ab7 !important;
 }
@@ -69,6 +73,8 @@ export const KLITE_AUTOSCROLL_PATCHES = `
 (function() {
   'use strict';
   
+  let lastScrollHeights = {};
+  
   window.handle_autoscroll = function(alwaysscroll = true) {
     if (localsettings.autoscroll) {
       let box1 = document.getElementById("gametext");
@@ -80,7 +86,16 @@ export const KLITE_AUTOSCROLL_PATCHES = `
       }
       
       function shouldRespectUserScroll(element) {
-        return (element.scrollHeight - element.scrollTop - element.clientHeight) > 50;
+        const elementId = element.id;
+        const currentHeight = element.scrollHeight;
+        const lastHeight = lastScrollHeights[elementId] || currentHeight;
+        
+        const heightGrowth = Math.max(0, currentHeight - lastHeight);
+        const dynamicThreshold = Math.min(Math.max(heightGrowth * 1.2, 30), 200);
+        
+        lastScrollHeights[elementId] = currentHeight;
+        
+        return (element.scrollHeight - element.scrollTop - element.clientHeight) > dynamicThreshold;
       }
       
       if((alwaysscroll && !shouldRespectUserScroll(box1)) || isScrolledToBottom(box1)) {
@@ -121,8 +136,19 @@ export const KLITE_AUTOSCROLL_PATCHES = `
     let shouldSkipAutoscroll = false;
     ["gametext", "chat_msg_body", "corpostylemain"].forEach(id => {
       let el = document.getElementById(id);
-      if (el && (el.scrollHeight - el.scrollTop - el.clientHeight) > 50) {
-        shouldSkipAutoscroll = true;
+      if (el) {
+        const currentHeight = el.scrollHeight;
+        const lastHeight = lastScrollHeights[id] || currentHeight;
+        
+        // Calculate dynamic threshold based on recent growth
+        const heightGrowth = Math.max(0, currentHeight - lastHeight);
+        const dynamicThreshold = Math.min(Math.max(heightGrowth * 1.2, 30), 200);
+        
+        lastScrollHeights[id] = currentHeight;
+        
+        if ((el.scrollHeight - el.scrollTop - el.clientHeight) > dynamicThreshold) {
+          shouldSkipAutoscroll = true;
+        }
       }
     });
     

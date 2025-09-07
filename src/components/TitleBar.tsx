@@ -117,8 +117,8 @@ export const TitleBar = ({
           <Image
             src={iconUrl}
             alt={PRODUCT_NAME}
-            w={26}
-            h={26}
+            w={24}
+            h={24}
             style={{
               cursor: 'pointer',
               userSelect: 'none',
