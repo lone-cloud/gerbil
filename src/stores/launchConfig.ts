@@ -417,7 +417,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
 
   selectSdt5xxlFile: async () => {
     const result = await window.electronAPI.kobold.selectModelFile(
-      'Select a SDT5XXL Model File'
+      'Select a T5XXL Model File'
     );
     if (result) {
       set({ sdt5xxl: result });
@@ -426,7 +426,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
 
   selectSdcliplFile: async () => {
     const result = await window.electronAPI.kobold.selectModelFile(
-      'Select a SDCLIP-L Model File'
+      'Select a CLIP-L Model File'
     );
     if (result) {
       set({ sdclipl: result });
@@ -435,7 +435,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
 
   selectSdclipgFile: async () => {
     const result = await window.electronAPI.kobold.selectModelFile(
-      'Select a SDCLIP-G Model File'
+      'Select a CLIP-G Model File'
     );
     if (result) {
       set({ sdclipg: result });
@@ -444,7 +444,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
 
   selectSdphotomakerFile: async () => {
     const result = await window.electronAPI.kobold.selectModelFile(
-      'Select a SDPhotoMaker Model File'
+      'Select a PhotoMaker Model File'
     );
     if (result) {
       set({ sdphotomaker: result });
@@ -453,7 +453,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
 
   selectSdvaeFile: async () => {
     const result = await window.electronAPI.kobold.selectModelFile(
-      'Select a SDVAE Model File'
+      'Select a VAE Model File'
     );
     if (result) {
       set({ sdvae: result });
@@ -462,7 +462,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
 
   selectSdloraFile: async () => {
     const result = await window.electronAPI.kobold.selectModelFile(
-      'Select a SDLORA Model File'
+      'Select a LORA Model File'
     );
     if (result) {
       set({ sdlora: result });
