@@ -3,16 +3,14 @@ import {
   Stack,
   Text,
   Group,
-  Button,
   Card,
   Loader,
-  rem,
   Center,
   Anchor,
 } from '@mantine/core';
-import { RotateCcw, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { DownloadCard } from '@/components/DownloadCard';
-import { getAssetDescription, sortDownloadsByType } from '@/utils/assets';
+import { getAssetDescription } from '@/utils/assets';
 import {
   getDisplayNameFromPath,
   stripAssetExtensions,
@@ -43,7 +41,6 @@ export const VersionsTab = () => {
     loadingRemote,
     downloading,
     downloadProgress,
-    loadRemoteVersions,
     handleDownload: sharedHandleDownload,
     getLatestReleaseWithDownloadStatus,
   } = useKoboldVersions();
@@ -95,9 +92,7 @@ export const VersionsTab = () => {
     const versions: VersionInfo[] = [];
     const processedInstalled = new Set<string>();
 
-    const sortedDownloads = sortDownloadsByType(availableDownloads);
-
-    sortedDownloads.forEach((download) => {
+    availableDownloads.forEach((download) => {
       const downloadBaseName = stripAssetExtensions(download.name);
 
       const installedVersion = installedVersions.find((v) => {
@@ -230,9 +225,7 @@ export const VersionsTab = () => {
     }, 'Failed to set current version:');
   };
 
-  const isLoading = loadingInstalled || loadingPlatform || loadingRemote;
-
-  if (isLoading) {
+  if (loadingInstalled || loadingPlatform || loadingRemote) {
     return (
       <Center h="100%">
         <Stack align="center" gap="md">
@@ -252,45 +245,25 @@ export const VersionsTab = () => {
   return (
     <>
       <Group justify="space-between" align="center" mb="sm">
-        <div>
-          {latestRelease && (
-            <Group gap="xs">
-              <Text size="sm" c="dimmed">
-                Latest release: {latestRelease.release.tag_name}
-              </Text>
-              <Anchor
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  window.electronAPI.app.openExternal(
-                    latestRelease.release.html_url
-                  );
-                }}
-                size="sm"
-                c="blue"
-              >
-                <Group gap={4} align="center">
-                  <span>Release notes</span>
-                  <ExternalLink size={12} />
-                </Group>
-              </Anchor>
-            </Group>
-          )}
-        </div>
-        <Button
-          variant="subtle"
-          size="xs"
-          onClick={() => {
-            loadInstalledVersions();
-            loadRemoteVersions();
-            loadLatestRelease();
-          }}
-          leftSection={
-            <RotateCcw style={{ width: rem(14), height: rem(14) }} />
-          }
-        >
-          Refresh
-        </Button>
+        {latestRelease && (
+          <Group gap="xs">
+            <Text size="sm" c="dimmed">
+              Latest release: {latestRelease.release.tag_name}
+            </Text>
+            <Anchor
+              href={latestRelease.release.html_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              size="sm"
+              c="blue"
+            >
+              <Group gap={4} align="center">
+                <span>Release notes</span>
+                <ExternalLink size={12} />
+              </Group>
+            </Anchor>
+          </Group>
+        )}
       </Group>
 
       {allVersions.map((version, index) => {

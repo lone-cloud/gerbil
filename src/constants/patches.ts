@@ -140,7 +140,6 @@ export const KLITE_AUTOSCROLL_PATCHES = `
         const currentHeight = el.scrollHeight;
         const lastHeight = lastScrollHeights[id] || currentHeight;
         
-        // Calculate dynamic threshold based on recent growth
         const heightGrowth = Math.max(0, currentHeight - lastHeight);
         const dynamicThreshold = Math.min(Math.max(heightGrowth * 1.2, 30), 200);
         

@@ -3,7 +3,7 @@ import { Card, Text, Title, Loader, Stack, Container } from '@mantine/core';
 import { DownloadCard } from '@/components/DownloadCard';
 import { getPlatformDisplayName } from '@/utils/platform';
 import { formatDownloadSize } from '@/utils/download';
-import { getAssetDescription, sortDownloadsByType } from '@/utils/assets';
+import { getAssetDescription } from '@/utils/assets';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import { safeExecute } from '@/utils/logger';
 import type { DownloadItem } from '@/types/electron';
@@ -27,8 +27,6 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
   const downloadingItemRef = useRef<HTMLDivElement>(null);
 
   const loading = loadingPlatform || loadingRemote;
-
-  const sortedDownloads = sortDownloadsByType(availableDownloads);
 
   const handleDownload = useCallback(
     async (download: DownloadItem) => {
@@ -80,7 +78,7 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
               <>
                 {availableDownloads.length > 0 ? (
                   <Stack gap="sm">
-                    {sortedDownloads.map((download) => {
+                    {availableDownloads.map((download) => {
                       const isDownloading =
                         Boolean(downloading) &&
                         downloadingAsset === download.name;

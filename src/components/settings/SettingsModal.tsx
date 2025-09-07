@@ -81,9 +81,6 @@ export const SettingsModal = ({
           position: 'relative',
         },
       }}
-      transitionProps={{
-        duration: 200,
-      }}
     >
       <Tabs
         value={activeTab}

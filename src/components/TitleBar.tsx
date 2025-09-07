@@ -43,7 +43,7 @@ export const TitleBar = ({
   const computedColorScheme = useComputedColorScheme('light', {
     getInitialValueInEffect: false,
   });
-  const { hasUpdate, openReleasePage } = useAppUpdateChecker();
+  const { hasUpdate, releaseUrl } = useAppUpdateChecker();
   const { isImageGenerationMode } = useLaunchConfigStore();
   const [logoClickCount, setLogoClickCount] = useState(0);
   const [isElephantMode, setIsElephantMode] = useState(false);
@@ -214,12 +214,15 @@ export const TitleBar = ({
         </Box>
 
         <Group gap="0" style={{ WebkitAppRegion: 'no-drag' }}>
-          {hasUpdate && (
+          {hasUpdate && releaseUrl && (
             <ActionIcon
+              component="a"
+              href={releaseUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               variant="subtle"
               color="orange"
               size={TITLEBAR_HEIGHT}
-              onClick={openReleasePage}
               aria-label="New release available"
               tabIndex={-1}
               style={{
@@ -240,6 +243,7 @@ export const TitleBar = ({
             style={{
               borderRadius: '0.25rem',
               margin: 0,
+              outline: 'none',
             }}
           >
             <Settings size="1.25rem" />

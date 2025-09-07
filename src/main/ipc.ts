@@ -169,20 +169,6 @@ export class IPCHandlers {
       arch: process.arch,
     }));
 
-    ipcMain.handle('app:openExternal', async (_, url) => {
-      try {
-        await shell.openExternal(url);
-      } catch (error) {
-        this.logManager.logError(
-          'Failed to open external URL:',
-          error as Error
-        );
-        throw new Error(
-          `Failed to open external URL: ${(error as Error).message}`
-        );
-      }
-    });
-
     ipcMain.handle('app:showLogsFolder', async () => {
       try {
         const logsDir = this.logManager.getLogsDirectory();
