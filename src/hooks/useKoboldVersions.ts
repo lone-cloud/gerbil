@@ -10,6 +10,7 @@ import type {
   GitHubAsset,
   InstalledVersion,
 } from '@/types/electron';
+import { sortDownloadsByType } from '@/utils/assets';
 
 interface CachedReleaseData {
   releases: DownloadItem[];
@@ -137,15 +138,7 @@ interface UseKoboldVersionsReturn {
   loadingRemote: boolean;
   downloading: string | null;
   downloadProgress: Record<string, number>;
-  loadRemoteVersions: () => Promise<void>;
-  refresh: () => Promise<void>;
   handleDownload: (params: HandleDownloadParams) => Promise<boolean>;
-  setDownloading: (value: string | null) => void;
-  setDownloadProgress: (
-    value:
-      | Record<string, number>
-      | ((prev: Record<string, number>) => Record<string, number>)
-  ) => void;
   getLatestReleaseWithDownloadStatus: () => Promise<ReleaseWithStatus | null>;
 }
 
@@ -186,7 +179,7 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
         if (rocm) {
           allDownloads.push(rocm);
         }
-        setAvailableDownloads(allDownloads);
+        setAvailableDownloads(sortDownloadsByType(allDownloads));
         setLoadingRemote(false);
         return;
       }
@@ -203,7 +196,7 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
         allDownloads.push(rocm);
       }
 
-      setAvailableDownloads(allDownloads);
+      setAvailableDownloads(sortDownloadsByType(allDownloads));
     } catch (err) {
       error('Failed to load remote versions:', err as Error);
       const cached = loadFromCache();
@@ -213,7 +206,7 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
         if (rocm) {
           allDownloads.push(rocm);
         }
-        setAvailableDownloads(allDownloads);
+        setAvailableDownloads(sortDownloadsByType(allDownloads));
       }
     } finally {
       setLoadingRemote(false);
@@ -257,11 +250,6 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
     []
   );
 
-  const refresh = useCallback(async () => {
-    localStorage.removeItem(CACHE_KEY);
-    await loadRemoteVersions();
-  }, [loadRemoteVersions]);
-
   useEffect(() => {
     loadPlatform();
   }, [loadPlatform]);
@@ -296,11 +284,7 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
     loadingRemote,
     downloading,
     downloadProgress,
-    loadRemoteVersions,
-    refresh,
     handleDownload,
-    setDownloading,
-    setDownloadProgress,
     getLatestReleaseWithDownloadStatus,
   };
 };

@@ -87,20 +87,9 @@ export class WindowManager {
       }
     });
 
-    this.mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-      const parsedUrl = new URL(url);
-
-      if (
-        parsedUrl.hostname === 'localhost' ||
-        parsedUrl.hostname === '127.0.0.1'
-      ) {
-        return { action: 'allow' };
-      }
-
-      shell.openExternal(url);
-
-      return { action: 'deny' };
-    });
+    this.mainWindow.webContents.setWindowOpenHandler(() => ({
+      action: 'allow',
+    }));
 
     this.mainWindow.on('close', () => {
       app.quit();

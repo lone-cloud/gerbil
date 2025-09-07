@@ -57,12 +57,6 @@ export const useAppUpdateChecker = () => {
     }
   }, []);
 
-  const openReleasePage = useCallback(() => {
-    if (updateInfo?.releaseUrl) {
-      window.electronAPI.app.openExternal(updateInfo.releaseUrl);
-    }
-  }, [updateInfo]);
-
   useEffect(() => {
     checkForAppUpdates();
   }, [checkForAppUpdates]);
@@ -72,7 +66,7 @@ export const useAppUpdateChecker = () => {
     isChecking,
     lastChecked,
     checkForAppUpdates,
-    openReleasePage,
+    releaseUrl: updateInfo?.releaseUrl,
     hasUpdate: updateInfo?.hasUpdate || false,
   };
 };

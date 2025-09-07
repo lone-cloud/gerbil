@@ -100,12 +100,7 @@ export const AboutTab = () => {
               <Anchor
                 href="https://github.com/lone-cloud/gerbil"
                 target="_blank"
-                onClick={(e) => {
-                  e.preventDefault();
-                  window.electronAPI.app.openExternal(
-                    'https://github.com/lone-cloud/gerbil'
-                  );
-                }}
+                rel="noopener noreferrer"
                 style={{ textDecoration: 'none' }}
               >
                 <Group gap="xs" align="center">

@@ -76,7 +76,6 @@ const koboldAPI: KoboldAPI = {
 };
 
 const appAPI: AppAPI = {
-  openExternal: (url) => ipcRenderer.invoke('app:openExternal', url),
   showLogsFolder: () => ipcRenderer.invoke('app:showLogsFolder'),
   getVersion: () => ipcRenderer.invoke('app:getVersion'),
   getVersionInfo: () => ipcRenderer.invoke('app:getVersionInfo'),

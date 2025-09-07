@@ -227,11 +227,9 @@ export const GeneralTab = () => {
             {getUnmetRequirements().map((req, index) => (
               <span key={req.id}>
                 <Anchor
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    window.electronAPI.app.openExternal(req.url);
-                  }}
+                  href={req.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   c="red"
                   td="underline"
                 >
@@ -266,11 +264,9 @@ export const GeneralTab = () => {
                   {unmetReqs.map((req, index) => (
                     <span key={req.id}>
                       <Anchor
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          window.electronAPI.app.openExternal(req.url);
-                        }}
+                        href={req.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         c="orange"
                         td="underline"
                       >

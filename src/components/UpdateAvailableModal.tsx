@@ -101,11 +101,6 @@ export const UpdateAvailableModal = ({
                 href={`https://github.com/${GITHUB_API.KOBOLDCPP_REPO}/releases/tag/v${availableUpdate?.version}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() =>
-                  window.electronAPI.app.openExternal(
-                    `https://github.com/${GITHUB_API.KOBOLDCPP_REPO}/releases/tag/v${availableUpdate?.version}`
-                  )
-                }
               >
                 <Group gap={4} align="center">
                   <span>v{availableUpdate?.version}</span>

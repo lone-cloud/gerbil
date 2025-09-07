@@ -1,7 +1,7 @@
 {
   "name": "gerbil",
   "productName": "Gerbil",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Run Large Language Models locally",
   "main": "out/main/index.js",
   "homepage": "./",
@@ -54,7 +54,6 @@
     "eslint-plugin-no-comments": "^1.1.10",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.20",
     "eslint-plugin-sonarjs": "^3.0.5",
     "globals": "^16.3.0",
     "jiti": "^2.5.1",
