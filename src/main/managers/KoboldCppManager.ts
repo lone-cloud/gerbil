@@ -289,14 +289,28 @@ export class KoboldCppManager {
 
       const content = await readFile(kliteEmbdPath, 'utf8');
 
-      if (
-        content.includes('</head>') &&
-        !content.includes('gerbil-autoscroll-patches')
-      ) {
-        const patchedContent = content.replace(
+      if (content.includes('</head>')) {
+        let patchedContent = content;
+
+        if (content.includes('gerbil-css-override')) {
+          patchedContent = patchedContent.replace(
+            /<style id="gerbil-css-override">[\s\S]*?<\/style>\s*/g,
+            ''
+          );
+        }
+
+        if (content.includes('gerbil-autoscroll-patches')) {
+          patchedContent = patchedContent.replace(
+            /<script id="gerbil-autoscroll-patches">[\s\S]*?<\/script>\s*/g,
+            ''
+          );
+        }
+
+        patchedContent = patchedContent.replace(
           '</head>',
           `${KLITE_CSS_OVERRIDE}\n${KLITE_AUTOSCROLL_PATCHES}\n</head>`
         );
+
         await writeFile(kliteEmbdPath, patchedContent, 'utf8');
       }
     } catch (error) {
