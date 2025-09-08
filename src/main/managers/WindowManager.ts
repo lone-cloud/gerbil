@@ -11,6 +11,7 @@ import { join } from 'path';
 import { stripVTControlCharacters } from 'util';
 import { PRODUCT_NAME } from '../../constants';
 import type { IPCChannel, IPCChannelPayloads } from '@/types/ipc';
+import { getAssetPath } from '@/utils/path';
 
 export class WindowManager {
   private mainWindow: BrowserWindow | null = null;
@@ -20,11 +21,7 @@ export class WindowManager {
   }
 
   private getIconPath(): string {
-    if (process.env.NODE_ENV === 'development') {
-      const projectRoot = join(__dirname, '../..');
-      return join(projectRoot, 'src/assets/icon.png');
-    }
-    return join(process.resourcesPath, 'assets/icon.png');
+    return getAssetPath('icon.png');
   }
 
   createMainWindow(): BrowserWindow {

@@ -1,6 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { ServerTab } from '@/components/screens/Interface/ServerTab';
-import { TerminalTab } from '@/components/screens/Interface/TerminalTab';
+import {
+  TerminalTab,
+  type TerminalTabRef,
+} from '@/components/screens/Interface/TerminalTab';
 import type { InterfaceTab, FrontendPreference } from '@/types';
 
 interface InterfaceScreenProps {
@@ -16,6 +19,7 @@ export const InterfaceScreen = ({
 }: InterfaceScreenProps) => {
   const [serverUrl, setServerUrl] = useState<string>('');
   const [isServerReady, setIsServerReady] = useState<boolean>(false);
+  const terminalTabRef = useRef<TerminalTabRef>(null);
 
   const handleServerReady = useCallback(
     (url: string) => {
@@ -27,6 +31,12 @@ export const InterfaceScreen = ({
     },
     [onTabChange]
   );
+
+  useEffect(() => {
+    if (activeTab === 'terminal' && terminalTabRef.current) {
+      terminalTabRef.current.scrollToBottom();
+    }
+  }, [activeTab]);
 
   return (
     <div
@@ -56,6 +66,7 @@ export const InterfaceScreen = ({
         }}
       >
         <TerminalTab
+          ref={terminalTabRef}
           onServerReady={handleServerReady}
           frontendPreference={frontendPreference}
         />
