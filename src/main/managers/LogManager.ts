@@ -3,6 +3,8 @@ import { join } from 'path';
 import { createLogger, format, type Logger } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
+let logManagerInstance: LogManager | null = null;
+
 export class LogManager {
   private logger: Logger;
 
@@ -86,3 +88,10 @@ export class LogManager {
     return join(app.getPath('userData'), 'logs');
   }
 }
+
+export const getLogManager = (): LogManager => {
+  if (!logManagerInstance) {
+    logManagerInstance = new LogManager();
+  }
+  return logManagerInstance;
+};

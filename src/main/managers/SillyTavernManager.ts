@@ -5,8 +5,8 @@ import { join } from 'path';
 import { access, readdir } from 'fs/promises';
 import type { ChildProcess } from 'child_process';
 
-import { LogManager } from './LogManager';
-import { WindowManager } from './WindowManager';
+import { getLogManager } from './LogManager';
+import { getWindowManager } from './WindowManager';
 import { SILLYTAVERN, SERVER_READY_SIGNALS } from '@/constants';
 import { terminateProcess } from '@/utils/process';
 import { pathExists, readJsonFile, writeJsonFile } from '@/utils/fs';
@@ -15,8 +15,6 @@ import { parseKoboldConfig } from '@/utils/kobold';
 export class SillyTavernManager {
   private sillyTavernProcess: ChildProcess | null = null;
   private proxyServer: Server | null = null;
-  private logManager: LogManager;
-  private windowManager: WindowManager;
   private static readonly SILLYTAVERN_BASE_ARGS = [
     'sillytavern',
     '--global',
@@ -26,10 +24,7 @@ export class SillyTavernManager {
     '--disableCsrf',
   ];
 
-  constructor(logManager: LogManager, windowManager: WindowManager) {
-    this.logManager = logManager;
-    this.windowManager = windowManager;
-
+  constructor() {
     process.on('SIGINT', () => {
       this.cleanup().catch(() => {
         void 0;
@@ -206,13 +201,13 @@ export class SillyTavernManager {
     const settingsPath = await this.getSillyTavernSettingsPath();
 
     if (await pathExists(settingsPath)) {
-      this.windowManager.sendKoboldOutput(
+      getWindowManager().sendKoboldOutput(
         `SillyTavern settings found at ${settingsPath}`
       );
       return;
     }
 
-    this.windowManager.sendKoboldOutput(
+    getWindowManager().sendKoboldOutput(
       'SillyTavern settings not found, starting SillyTavern briefly to generate config...'
     );
 
@@ -224,7 +219,7 @@ export class SillyTavernManager {
       let hasResolved = false;
 
       initProcess.on('exit', (code: number | null, signal: string | null) => {
-        this.windowManager.sendKoboldOutput(
+        getWindowManager().sendKoboldOutput(
           signal
             ? `SillyTavern init process terminated with signal ${signal}`
             : `SillyTavern init process exited with code ${code}`
@@ -239,14 +234,14 @@ export class SillyTavernManager {
                 ? 'SillyTavern failed to install due to EBUSY error (resource busy or locked). This is a critical error.'
                 : `SillyTavern initialization failed with exit code ${code}`;
 
-            this.logManager.logError(
+            getLogManager().logError(
               'SillyTavern initialization failed:',
               new Error(errorMsg)
             );
-            this.windowManager.sendKoboldOutput(`CRITICAL ERROR: ${errorMsg}`);
+            getWindowManager().sendKoboldOutput(`CRITICAL ERROR: ${errorMsg}`);
             reject(new Error(errorMsg));
           } else {
-            this.windowManager.sendKoboldOutput(
+            getWindowManager().sendKoboldOutput(
               'SillyTavern settings should now be generated'
             );
             resolve();
@@ -257,11 +252,11 @@ export class SillyTavernManager {
       initProcess.on('error', (error) => {
         if (!hasResolved) {
           hasResolved = true;
-          this.logManager.logError(
+          getLogManager().logError(
             'Failed to initialize SillyTavern settings:',
             error
           );
-          this.windowManager.sendKoboldOutput(
+          getWindowManager().sendKoboldOutput(
             `SillyTavern initialization error: ${error.message}`
           );
           reject(error);
@@ -279,10 +274,10 @@ export class SillyTavernManager {
 
                 await terminateProcess(initProcess, {
                   logError: (message, error) =>
-                    this.logManager.logError(message, error),
+                    getLogManager().logError(message, error),
                 });
 
-                this.windowManager.sendKoboldOutput(
+                getWindowManager().sendKoboldOutput(
                   'SillyTavern settings should now be generated'
                 );
 
@@ -295,7 +290,7 @@ export class SillyTavernManager {
 
       if (initProcess.stderr) {
         initProcess.stderr.on('data', (data: Buffer) => {
-          this.windowManager.sendKoboldOutput(data.toString().trim());
+          getWindowManager().sendKoboldOutput(data.toString().trim());
         });
       }
     });
@@ -316,12 +311,12 @@ export class SillyTavernManager {
             await readJsonFile<Record<string, unknown>>(configPath);
           if (existingSettings) {
             settings = existingSettings;
-            this.windowManager.sendKoboldOutput(
+            getWindowManager().sendKoboldOutput(
               `Loaded existing SillyTavern settings`
             );
           }
         } catch {
-          this.windowManager.sendKoboldOutput(
+          getWindowManager().sendKoboldOutput(
             `Could not read existing settings, creating new ones`
           );
         }
@@ -334,7 +329,7 @@ export class SillyTavernManager {
       powerUser.auto_connect = true;
 
       if (isImageMode) {
-        this.windowManager.sendKoboldOutput(
+        getWindowManager().sendKoboldOutput(
           `Image generation mode detected. Please configure SillyTavern manually:\n` +
             `1. Open SillyTavern and navigate to Settings (top-right gear icon)\n` +
             `2. Go to 'Extensions' tab and enable 'Image Generation'\n` +
@@ -358,33 +353,33 @@ export class SillyTavernManager {
       settings.main_api = 'textgenerationwebui';
       textgenSettings.type = 'koboldcpp';
 
-      this.windowManager.sendKoboldOutput(
+      getWindowManager().sendKoboldOutput(
         `Configured SillyTavern for text generation at ${koboldUrl}`
       );
 
       await writeJsonFile(configPath, settings);
 
-      this.windowManager.sendKoboldOutput(
+      getWindowManager().sendKoboldOutput(
         `SillyTavern configuration updated successfully!`
       );
     } catch (error) {
-      this.logManager.logError(
+      getLogManager().logError(
         'Failed to setup SillyTavern config:',
         error as Error
       );
-      this.windowManager.sendKoboldOutput(
+      getWindowManager().sendKoboldOutput(
         `Failed to configure SillyTavern: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }
 
   private async waitForSillyTavernToStart(_port: number): Promise<void> {
-    this.windowManager.sendKoboldOutput('Waiting for SillyTavern to start...');
+    getWindowManager().sendKoboldOutput('Waiting for SillyTavern to start...');
 
     return new Promise((resolve, reject) => {
       const checkForOutput = (data: Buffer) => {
         if (data.toString().includes(SERVER_READY_SIGNALS.SILLYTAVERN)) {
-          this.windowManager.sendKoboldOutput('SillyTavern is now running!');
+          getWindowManager().sendKoboldOutput('SillyTavern is now running!');
           resolve();
 
           if (this.sillyTavernProcess?.stdout) {
@@ -422,7 +417,7 @@ export class SillyTavernManager {
       });
 
       proxyReq.on('error', (err) => {
-        this.logManager.logError('Proxy request error:', err);
+        getLogManager().logError('Proxy request error:', err);
         res.writeHead(500);
         res.end('Proxy error');
       });
@@ -431,13 +426,13 @@ export class SillyTavernManager {
     });
 
     this.proxyServer.listen(proxyPort, () => {
-      this.windowManager.sendKoboldOutput(
+      getWindowManager().sendKoboldOutput(
         `Proxy server started on port ${proxyPort}, forwarding to SillyTavern on port ${targetPort}`
       );
     });
 
     this.proxyServer.on('error', (err) => {
-      this.logManager.logError('Proxy server error:', err);
+      getLogManager().logError('Proxy server error:', err);
     });
   }
 
@@ -456,14 +451,14 @@ export class SillyTavernManager {
 
       await this.stopFrontend();
 
-      this.windowManager.sendKoboldOutput(
+      getWindowManager().sendKoboldOutput(
         `Preparing SillyTavern to connect at ${koboldHost}:${koboldPort}...`
       );
 
       await this.ensureSillyTavernSettings();
       await this.setupSillyTavernConfig(koboldHost, koboldPort, isImageMode);
 
-      this.windowManager.sendKoboldOutput(
+      getWindowManager().sendKoboldOutput(
         `Starting ${config.name} frontend on port ${config.port}...`
       );
 
@@ -473,7 +468,7 @@ export class SillyTavernManager {
         config.port.toString(),
       ];
 
-      this.windowManager.sendKoboldOutput(
+      getWindowManager().sendKoboldOutput(
         'Final port check before starting SillyTavern...'
       );
 
@@ -481,13 +476,13 @@ export class SillyTavernManager {
 
       if (this.sillyTavernProcess.stdout) {
         this.sillyTavernProcess.stdout.on('data', (data: Buffer) => {
-          this.windowManager.sendKoboldOutput(data.toString(), true);
+          getWindowManager().sendKoboldOutput(data.toString(), true);
         });
       }
 
       if (this.sillyTavernProcess.stderr) {
         this.sillyTavernProcess.stderr.on('data', (data: Buffer) => {
-          this.windowManager.sendKoboldOutput(data.toString(), true);
+          getWindowManager().sendKoboldOutput(data.toString(), true);
         });
       }
 
@@ -497,14 +492,14 @@ export class SillyTavernManager {
           const message = signal
             ? `SillyTavern terminated with signal ${signal}`
             : `SillyTavern exited with code ${code}`;
-          this.windowManager.sendKoboldOutput(message);
+          getWindowManager().sendKoboldOutput(message);
           this.sillyTavernProcess = null;
         }
       );
 
       this.sillyTavernProcess.on('error', (error) => {
-        this.logManager.logError('SillyTavern process error:', error);
-        this.windowManager.sendKoboldOutput(
+        getLogManager().logError('SillyTavern process error:', error);
+        getWindowManager().sendKoboldOutput(
           `SillyTavern error: ${error.message}`
         );
 
@@ -514,7 +509,7 @@ export class SillyTavernManager {
       await this.waitForSillyTavernToStart(config.port);
       this.createProxyServer(config.port, config.proxyPort);
     } catch (error) {
-      this.logManager.logError(
+      getLogManager().logError(
         `Failed to start SillyTavern: ${error instanceof Error ? error.message : String(error)}`,
         error as Error
       );
@@ -529,7 +524,7 @@ export class SillyTavernManager {
       promises.push(
         terminateProcess(this.sillyTavernProcess, {
           logError: (message, error) =>
-            this.logManager.logError(message, error),
+            getLogManager().logError(message, error),
         }).then(() => {
           this.sillyTavernProcess = null;
         })
@@ -555,11 +550,20 @@ export class SillyTavernManager {
       try {
         await this.stopFrontend();
       } catch (error) {
-        this.logManager.logError(
+        getLogManager().logError(
           'Error during SillyTavernManager cleanup:',
           error as Error
         );
       }
     }
   }
+}
+
+let sillyTavernManagerInstance: SillyTavernManager;
+
+export function getSillyTavernManager(): SillyTavernManager {
+  if (!sillyTavernManagerInstance) {
+    sillyTavernManagerInstance = new SillyTavernManager();
+  }
+  return sillyTavernManagerInstance;
 }

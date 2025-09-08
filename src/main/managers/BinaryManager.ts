@@ -1,26 +1,13 @@
 import { join, dirname } from 'path';
 import { pathExists } from '@/utils/fs';
-import { LogManager } from '@/main/managers/LogManager';
-import type { KoboldCppManager } from '@/main/managers/KoboldCppManager';
-import type { HardwareManager } from '@/main/managers/HardwareManager';
+import { getLogManager } from '@/main/managers/LogManager';
+import { getHardwareManager } from '@/main/managers/HardwareManager';
 import type { BackendOption, BackendSupport } from '@/types';
+import type { KoboldCppManager } from '@/main/managers/KoboldCppManager';
 
 export class BinaryManager {
   private backendSupportCache = new Map<string, BackendSupport>();
   private availableBackendsCache = new Map<string, BackendOption[]>();
-  private logManager: LogManager;
-  private koboldManager: KoboldCppManager;
-  private hardwareManager: HardwareManager;
-
-  constructor(
-    logManager: LogManager,
-    koboldManager: KoboldCppManager,
-    hardwareManager: HardwareManager
-  ) {
-    this.logManager = logManager;
-    this.koboldManager = koboldManager;
-    this.hardwareManager = hardwareManager;
-  }
 
   private async detectBackendSupportFromPath(
     koboldBinaryPath: string
@@ -68,7 +55,7 @@ export class BinaryManager {
       support.failsafe = await hasKoboldCppLib('koboldcpp_failsafe');
       support.cuda = await hasKoboldCppLib('koboldcpp_cublas');
     } catch (error) {
-      this.logManager.logError(
+      getLogManager().logError(
         'Error detecting backend support:',
         error as Error
       );
@@ -78,9 +65,11 @@ export class BinaryManager {
     return support;
   }
 
-  async detectBackendSupport(): Promise<BackendSupport | null> {
+  async detectBackendSupport(
+    koboldManager: KoboldCppManager
+  ): Promise<BackendSupport | null> {
     try {
-      const currentBinaryInfo = await this.koboldManager.getCurrentBinaryInfo();
+      const currentBinaryInfo = await koboldManager.getCurrentBinaryInfo();
 
       if (!currentBinaryInfo?.path) {
         return null;
@@ -88,7 +77,7 @@ export class BinaryManager {
 
       return this.detectBackendSupportFromPath(currentBinaryInfo.path);
     } catch (error) {
-      this.logManager.logError(
+      getLogManager().logError(
         'Error detecting current binary backend support:',
         error as Error
       );
@@ -98,16 +87,16 @@ export class BinaryManager {
 
   // eslint-disable-next-line sonarjs/cognitive-complexity
   async getAvailableBackends(
+    koboldManager: KoboldCppManager,
     includeDisabled = false
   ): Promise<BackendOption[]> {
     try {
+      const hardwareManager = getHardwareManager();
       const [currentBinaryInfo, hardwareCapabilities, cpuCapabilities] =
         await Promise.all([
-          this.koboldManager.getCurrentBinaryInfo(),
-          this.hardwareManager.detectGPUCapabilities(),
-          includeDisabled
-            ? this.hardwareManager.detectCPU()
-            : Promise.resolve(null),
+          koboldManager.getCurrentBinaryInfo(),
+          hardwareManager.detectGPUCapabilities(),
+          includeDisabled ? hardwareManager.detectCPU() : Promise.resolve(null),
         ]);
 
       if (!currentBinaryInfo?.path) {
@@ -120,7 +109,7 @@ export class BinaryManager {
         return this.availableBackendsCache.get(cacheKey)!;
       }
 
-      const backendSupport = await this.detectBackendSupport();
+      const backendSupport = await this.detectBackendSupport(koboldManager);
 
       if (!backendSupport) {
         return [];
@@ -193,7 +182,7 @@ export class BinaryManager {
       this.availableBackendsCache.set(cacheKey, backends);
       return backends;
     } catch (error) {
-      this.logManager.logError(
+      getLogManager().logError(
         'Failed to get available backends:',
         error as Error
       );
@@ -205,4 +194,13 @@ export class BinaryManager {
     this.backendSupportCache.clear();
     this.availableBackendsCache.clear();
   }
+}
+
+let binaryManagerInstance: BinaryManager;
+
+export function getBinaryManager(): BinaryManager {
+  if (!binaryManagerInstance) {
+    binaryManagerInstance = new BinaryManager();
+  }
+  return binaryManagerInstance;
 }

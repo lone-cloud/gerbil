@@ -1,4 +1,4 @@
-import { LogManager } from '@/main/managers/LogManager';
+import { getLogManager } from '@/main/managers/LogManager';
 import { readJsonFile, writeJsonFile } from '@/utils/fs';
 import type { FrontendPreference } from '@/types';
 import { homedir } from 'os';
@@ -15,14 +15,14 @@ interface AppConfig {
   [key: string]: ConfigValue;
 }
 
+let configManagerInstance: ConfigManager | null = null;
+
 export class ConfigManager {
   private config: AppConfig = {};
   private configPath: string;
-  private logManager: LogManager;
 
-  constructor(configPath: string, logManager: LogManager) {
+  constructor(configPath: string) {
     this.configPath = configPath;
-    this.logManager = logManager;
   }
 
   async initialize(): Promise<void> {
@@ -34,7 +34,7 @@ export class ConfigManager {
       const config = await readJsonFile<AppConfig>(this.configPath);
       return config || {};
     } catch (error) {
-      this.logManager.logError('Error loading config:', error as Error);
+      getLogManager().logError('Error loading config:', error as Error);
       return {};
     }
   }
@@ -43,7 +43,7 @@ export class ConfigManager {
     try {
       await writeJsonFile(this.configPath, this.config);
     } catch (error) {
-      this.logManager.logError('Error saving config:', error as Error);
+      getLogManager().logError('Error saving config:', error as Error);
     }
   }
 
@@ -98,3 +98,15 @@ export class ConfigManager {
     await this.saveConfig();
   }
 }
+
+export const getConfigManager = (configPath?: string): ConfigManager => {
+  if (!configManagerInstance) {
+    if (!configPath) {
+      throw new Error(
+        'ConfigManager not initialized. Provide configPath on first call.'
+      );
+    }
+    configManagerInstance = new ConfigManager(configPath);
+  }
+  return configManagerInstance;
+};

@@ -1,17 +1,8 @@
-import {
-  BrowserWindow,
-  app,
-  shell,
-  nativeImage,
-  screen,
-  Menu,
-  clipboard,
-} from 'electron';
+import { BrowserWindow, app, shell, screen, Menu, clipboard } from 'electron';
 import { join } from 'path';
 import { stripVTControlCharacters } from 'util';
 import { PRODUCT_NAME } from '../../constants';
 import type { IPCChannel, IPCChannelPayloads } from '@/types/ipc';
-import { getAssetPath } from '@/utils/path';
 
 export class WindowManager {
   private mainWindow: BrowserWindow | null = null;
@@ -20,14 +11,7 @@ export class WindowManager {
     return process.env.NODE_ENV === 'development' || !app.isPackaged;
   }
 
-  private getIconPath(): string {
-    return getAssetPath('icon.png');
-  }
-
   createMainWindow(): BrowserWindow {
-    const iconPath = this.getIconPath();
-    const iconImage = nativeImage.createFromPath(iconPath);
-
     const { workAreaSize } = screen.getPrimaryDisplay();
     const windowHeight = Math.floor(workAreaSize.height * 0.86);
 
@@ -35,7 +19,6 @@ export class WindowManager {
       width: 1000,
       height: windowHeight,
       frame: false,
-      icon: iconImage,
       title: PRODUCT_NAME,
       show: false,
       backgroundColor: '#ffffff',
@@ -48,10 +31,6 @@ export class WindowManager {
         spellcheck: false,
       },
     });
-
-    if (process.platform === 'linux') {
-      this.mainWindow.setIcon(iconImage);
-    }
 
     this.mainWindow.once('ready-to-show', () => {
       this.mainWindow?.show();
@@ -222,4 +201,13 @@ export class WindowManager {
       this.mainWindow.removeAllListeners();
     }
   }
+}
+
+let windowManagerInstance: WindowManager;
+
+export function getWindowManager(): WindowManager {
+  if (!windowManagerInstance) {
+    windowManagerInstance = new WindowManager();
+  }
+  return windowManagerInstance;
 }
