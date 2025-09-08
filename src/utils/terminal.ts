@@ -5,19 +5,29 @@ export const handleTerminalOutput = (
   newData: string
 ): string => {
   try {
-    if (newData.includes('\r') && !newData.includes('\r\n')) {
-      const lines = (prevContent + newData).split('\n');
+    if (newData.includes('\r')) {
+      const hasStandaloneCarriageReturns = /\r(?!\n)/g.test(newData);
 
-      return lines
-        .map((line) => {
+      if (hasStandaloneCarriageReturns) {
+        const combined = prevContent + newData;
+
+        const lines = combined.split(/(\r?\n)/);
+        const processedLines: string[] = [];
+
+        for (let i = 0; i < lines.length; i += 2) {
+          const line = lines[i] || '';
+          const lineBreak = lines[i + 1] || '';
+
           if (line.includes('\r')) {
             const parts = line.split('\r');
-            return parts[parts.length - 1];
+            processedLines.push(parts[parts.length - 1] + lineBreak);
+          } else {
+            processedLines.push(line + lineBreak);
           }
+        }
 
-          return line;
-        })
-        .join('\n');
+        return processedLines.join('').replace(/\r?\n$/, '');
+      }
     }
 
     return prevContent + newData;
