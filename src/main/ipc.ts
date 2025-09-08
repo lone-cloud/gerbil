@@ -126,13 +126,16 @@ export class IPCHandlers {
     );
 
     ipcMain.handle('kobold:detectBackendSupport', () =>
-      this.binaryManager.detectBackendSupport()
+      this.binaryManager.detectBackendSupport(this.koboldManager)
     );
 
     ipcMain.handle(
       'kobold:getAvailableBackends',
       (_, includeDisabled = false) =>
-        this.binaryManager.getAvailableBackends(includeDisabled)
+        this.binaryManager.getAvailableBackends(
+          this.koboldManager,
+          includeDisabled
+        )
     );
 
     ipcMain.handle('kobold:getPlatform', () => process.platform);

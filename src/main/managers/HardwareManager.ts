@@ -1,7 +1,7 @@
 /* eslint-disable no-comments/disallowComments */
 import si from 'systeminformation';
 import { shortenDeviceName } from '@/utils/hardware';
-import { LogManager } from '@/main/managers/LogManager';
+import { getLogManager } from '@/main/managers/LogManager';
 import { terminateProcess } from '@/utils/process';
 import type {
   CPUCapabilities,
@@ -12,16 +12,13 @@ import type {
 } from '@/types/hardware';
 import { spawn } from 'child_process';
 
+let hardwareManagerInstance: HardwareManager | null = null;
+
 export class HardwareManager {
   private cpuCapabilitiesCache: CPUCapabilities | null = null;
   private basicGPUInfoCache: BasicGPUInfo | null = null;
   private gpuCapabilitiesCache: GPUCapabilities | null = null;
   private gpuMemoryInfoCache: GPUMemoryInfo[] | null = null;
-  private logManager: LogManager;
-
-  constructor(logManager: LogManager) {
-    this.logManager = logManager;
-  }
 
   async detectCPU(): Promise<CPUCapabilities> {
     if (this.cpuCapabilitiesCache) {
@@ -47,7 +44,7 @@ export class HardwareManager {
 
       return this.cpuCapabilitiesCache;
     } catch (error) {
-      this.logManager.logError('CPU detection failed:', error as Error);
+      getLogManager().logError('CPU detection failed:', error as Error);
       const fallbackCapabilities = {
         avx: false,
         avx2: false,
@@ -107,7 +104,7 @@ export class HardwareManager {
 
       return this.basicGPUInfoCache;
     } catch (error) {
-      this.logManager.logError('GPU detection failed:', error as Error);
+      getLogManager().logError('GPU detection failed:', error as Error);
       const fallbackGPUInfo = {
         hasAMD: false,
         hasNVIDIA: false,
@@ -482,10 +479,17 @@ export class HardwareManager {
 
       this.gpuMemoryInfoCache = memoryInfo;
     } catch (error) {
-      this.logManager.logError('GPU memory detection failed:', error as Error);
+      getLogManager().logError('GPU memory detection failed:', error as Error);
       this.gpuMemoryInfoCache = [];
     }
 
     return this.gpuMemoryInfoCache;
   }
 }
+
+export const getHardwareManager = (): HardwareManager => {
+  if (!hardwareManagerInstance) {
+    hardwareManagerInstance = new HardwareManager();
+  }
+  return hardwareManagerInstance;
+};

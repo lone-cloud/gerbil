@@ -18,9 +18,9 @@ import axios from 'axios';
 
 import { execa } from 'execa';
 import { terminateProcess } from '@/utils/process';
-import { ConfigManager } from '@/main/managers/ConfigManager';
-import { LogManager } from '@/main/managers/LogManager';
-import { WindowManager } from '@/main/managers/WindowManager';
+import { getConfigManager } from '@/main/managers/ConfigManager';
+import { getLogManager } from '@/main/managers/LogManager';
+import { getWindowManager } from '@/main/managers/WindowManager';
 import { PRODUCT_NAME, SERVER_READY_SIGNALS } from '@/constants';
 import {
   KLITE_CSS_OVERRIDE,
@@ -39,19 +39,6 @@ import type { FrontendPreference } from '@/types';
 
 export class KoboldCppManager {
   private koboldProcess: ChildProcess | null = null;
-  private configManager: ConfigManager;
-  private logManager: LogManager;
-  private windowManager: WindowManager;
-
-  constructor(
-    configManager: ConfigManager,
-    windowManager: WindowManager,
-    logManager: LogManager
-  ) {
-    this.configManager = configManager;
-    this.logManager = logManager;
-    this.windowManager = windowManager;
-  }
 
   private async removeDirectoryWithRetry(
     dirPath: string,
@@ -72,7 +59,7 @@ export class KoboldCppManager {
         }
 
         if (isPermissionError && process.platform === 'win32') {
-          this.windowManager.sendKoboldOutput(
+          getWindowManager().sendKoboldOutput(
             `Attempt ${attempt}/${maxRetries} failed (file in use), retrying in ${delayMs}ms...`
           );
           await new Promise((resolve) => setTimeout(resolve, delayMs));
@@ -94,7 +81,7 @@ export class KoboldCppManager {
 
     try {
       if (this.koboldProcess && !this.koboldProcess.killed) {
-        this.windowManager.sendKoboldOutput(
+        getWindowManager().sendKoboldOutput(
           'Stopping process before update...'
         );
         await this.cleanup();
@@ -103,7 +90,7 @@ export class KoboldCppManager {
 
       await this.removeDirectoryWithRetry(unpackedDirPath);
     } catch (error) {
-      this.logManager.logError(
+      getLogManager().logError(
         'Failed to remove existing directory for update:',
         error as Error
       );
@@ -136,7 +123,7 @@ export class KoboldCppManager {
       downloadedBytes += chunk.length;
       if (totalBytes > 0) {
         const progress = (downloadedBytes / totalBytes) * 100;
-        const mainWindow = this.windowManager.getMainWindow();
+        const mainWindow = getWindowManager().getMainWindow();
         if (mainWindow) {
           mainWindow.webContents.send('download-progress', progress);
         }
@@ -151,7 +138,7 @@ export class KoboldCppManager {
           try {
             await chmod(tempPackedFilePath, 0o755);
           } catch (error) {
-            this.logManager.logError(
+            getLogManager().logError(
               'Failed to make binary executable:',
               error as Error
             );
@@ -182,7 +169,7 @@ export class KoboldCppManager {
           await rename(tempPackedFilePath, newLauncherPath);
           launcherPath = newLauncherPath;
         } catch (error) {
-          this.logManager.logError(
+          getLogManager().logError(
             'Failed to rename binary as launcher:',
             error as Error
           );
@@ -192,7 +179,7 @@ export class KoboldCppManager {
       try {
         await unlink(tempPackedFilePath);
       } catch (error) {
-        this.logManager.logError(
+        getLogManager().logError(
           'Failed to cleanup packed file:',
           error as Error
         );
@@ -208,7 +195,7 @@ export class KoboldCppManager {
 
   async downloadRelease(asset: GitHubAsset): Promise<string> {
     const tempPackedFilePath = join(
-      this.configManager.getInstallDir(),
+      getConfigManager().getInstallDir(),
       `${asset.name}.packed`
     );
     const baseFilename = stripAssetExtensions(asset.name);
@@ -216,7 +203,7 @@ export class KoboldCppManager {
       ? `${baseFilename}-${asset.version}`
       : baseFilename;
     const unpackedDirPath = join(
-      this.configManager.getInstallDir(),
+      getConfigManager().getInstallDir(),
       folderName
     );
 
@@ -233,15 +220,15 @@ export class KoboldCppManager {
         unpackedDirPath
       );
 
-      const currentBinary = this.configManager.getCurrentKoboldBinary();
+      const currentBinary = getConfigManager().getCurrentKoboldBinary();
       if (!currentBinary || (asset.isUpdate && asset.wasCurrentBinary)) {
-        await this.configManager.setCurrentKoboldBinary(launcherPath);
+        await getConfigManager().setCurrentKoboldBinary(launcherPath);
       }
 
-      this.windowManager.sendToRenderer('versions-updated');
+      getWindowManager().sendToRenderer('versions-updated');
       return launcherPath;
     } catch (error) {
-      this.logManager.logError(
+      getLogManager().logError(
         'Failed to download or unpack binary:',
         error as Error
       );
@@ -318,7 +305,7 @@ export class KoboldCppManager {
         await writeFile(kliteEmbdPath, patchedContent, 'utf8');
       }
     } catch (error) {
-      this.logManager.logError('Failed to patch klite.embd:', error as Error);
+      getLogManager().logError('Failed to patch klite.embd:', error as Error);
     }
   }
 
@@ -338,7 +325,7 @@ export class KoboldCppManager {
         }
       }
     } catch (error) {
-      this.logManager.logError(
+      getLogManager().logError(
         'Failed to patch kcpp_sdui.embd:',
         error as Error
       );
@@ -361,7 +348,7 @@ export class KoboldCppManager {
 
   async getInstalledVersions(): Promise<InstalledVersion[]> {
     try {
-      const installDir = this.configManager.getInstallDir();
+      const installDir = getConfigManager().getInstallDir();
       if (!(await pathExists(installDir))) {
         return [];
       }
@@ -401,7 +388,7 @@ export class KoboldCppManager {
             size: launcher.size,
           } as InstalledVersion;
         } catch (error) {
-          this.logManager.logError(
+          getLogManager().logError(
             `Could not detect version for ${launcher.filename}:`,
             error as Error
           );
@@ -414,7 +401,7 @@ export class KoboldCppManager {
         (version): version is InstalledVersion => version !== null
       );
     } catch (error) {
-      this.logManager.logError(
+      getLogManager().logError(
         'Error scanning install directory:',
         error as Error
       );
@@ -428,7 +415,7 @@ export class KoboldCppManager {
     const configFiles: { name: string; path: string; size: number }[] = [];
 
     try {
-      const installDir = this.configManager.getInstallDir();
+      const installDir = getConfigManager().getInstallDir();
       if (await pathExists(installDir)) {
         const files = await readdir(installDir);
 
@@ -451,7 +438,7 @@ export class KoboldCppManager {
         }
       }
     } catch (error) {
-      this.logManager.logError(
+      getLogManager().logError(
         'Error scanning for config files:',
         error as Error
       );
@@ -469,7 +456,7 @@ export class KoboldCppManager {
       const config = await readJsonFile(filePath);
       return config as KoboldConfig;
     } catch (error) {
-      this.logManager.logError('Error parsing config file:', error as Error);
+      getLogManager().logError('Error parsing config file:', error as Error);
       return null;
     }
   }
@@ -479,19 +466,19 @@ export class KoboldCppManager {
     configData: KoboldConfig
   ): Promise<boolean> {
     try {
-      const installDir = this.configManager.getInstallDir();
+      const installDir = getConfigManager().getInstallDir();
       const configPath = join(installDir, configFileName);
       await writeJsonFile(configPath, configData);
       return true;
     } catch (error) {
-      this.logManager.logError('Error saving config file:', error as Error);
+      getLogManager().logError('Error saving config file:', error as Error);
       return false;
     }
   }
 
   async selectModelFile(title = 'Select Model File'): Promise<string | null> {
     try {
-      const mainWindow = this.windowManager.getMainWindow();
+      const mainWindow = getWindowManager().getMainWindow();
       if (!mainWindow) {
         return null;
       }
@@ -514,13 +501,13 @@ export class KoboldCppManager {
 
       return result.filePaths[0];
     } catch (error) {
-      this.logManager.logError('Error selecting model file:', error as Error);
+      getLogManager().logError('Error selecting model file:', error as Error);
       return null;
     }
   }
 
   async getCurrentVersion(): Promise<InstalledVersion | null> {
-    const currentBinaryPath = this.configManager.getCurrentKoboldBinary();
+    const currentBinaryPath = getConfigManager().getCurrentKoboldBinary();
     const versions = await this.getInstalledVersions();
 
     if (currentBinaryPath && (await pathExists(currentBinaryPath))) {
@@ -532,12 +519,12 @@ export class KoboldCppManager {
 
     const firstVersion = versions[0];
     if (firstVersion) {
-      await this.configManager.setCurrentKoboldBinary(firstVersion.path);
+      await getConfigManager().setCurrentKoboldBinary(firstVersion.path);
       return firstVersion;
     }
 
     if (currentBinaryPath) {
-      await this.configManager.setCurrentKoboldBinary('');
+      await getConfigManager().setCurrentKoboldBinary('');
     }
 
     return null;
@@ -565,9 +552,9 @@ export class KoboldCppManager {
 
   async setCurrentVersion(binaryPath: string): Promise<boolean> {
     if (await pathExists(binaryPath)) {
-      await this.configManager.setCurrentKoboldBinary(binaryPath);
+      await getConfigManager().setCurrentKoboldBinary(binaryPath);
 
-      this.windowManager.sendToRenderer('versions-updated');
+      getWindowManager().sendToRenderer('versions-updated');
 
       return true;
     }
@@ -626,14 +613,14 @@ export class KoboldCppManager {
     const result = await dialog.showOpenDialog({
       properties: ['openDirectory', 'createDirectory'],
       title: `Select the ${PRODUCT_NAME} Installation Directory`,
-      defaultPath: this.configManager.getInstallDir(),
+      defaultPath: getConfigManager().getInstallDir(),
       buttonLabel: 'Select Directory',
     });
 
     if (!result.canceled && result.filePaths.length > 0) {
-      await this.configManager.setInstallDir(result.filePaths[0]);
+      await getConfigManager().setInstallDir(result.filePaths[0]);
 
-      this.windowManager.sendToRenderer(
+      getWindowManager().sendToRenderer(
         'install-dir-changed',
         result.filePaths[0]
       );
@@ -655,12 +642,12 @@ export class KoboldCppManager {
 
       const currentVersion = await this.getCurrentVersion();
       if (!currentVersion || !(await pathExists(currentVersion.path))) {
-        const rawPath = this.configManager.getCurrentKoboldBinary();
+        const rawPath = getConfigManager().getCurrentKoboldBinary();
         const error = currentVersion
           ? `Binary file does not exist at path: ${currentVersion.path}`
           : 'No version configured';
 
-        this.logManager.logError(
+        getLogManager().logError(
           `Launch failed: ${error}. Raw config path: "${rawPath}", Current version: ${JSON.stringify(currentVersion)}`
         );
 
@@ -698,7 +685,7 @@ export class KoboldCppManager {
 
       const commandLine = `$ ${currentVersion.path} ${finalArgs.join(' ')}`;
 
-      this.windowManager.sendKoboldOutput(commandLine);
+      getWindowManager().sendKoboldOutput(commandLine);
 
       let readyResolve:
         | ((value: { success: boolean; pid?: number; error?: string }) => void)
@@ -717,7 +704,7 @@ export class KoboldCppManager {
 
       child.stdout?.on('data', (data) => {
         const output = data.toString();
-        this.windowManager.sendKoboldOutput(output, true);
+        getWindowManager().sendKoboldOutput(output, true);
 
         if (!isReady && output.includes(SERVER_READY_SIGNALS.KOBOLDCPP)) {
           isReady = true;
@@ -727,7 +714,7 @@ export class KoboldCppManager {
 
       child.stderr?.on('data', (data) => {
         const output = data.toString();
-        this.windowManager.sendKoboldOutput(output, true);
+        getWindowManager().sendKoboldOutput(output, true);
 
         if (!isReady && output.includes(SERVER_READY_SIGNALS.KOBOLDCPP)) {
           isReady = true;
@@ -743,7 +730,7 @@ export class KoboldCppManager {
             : code && (code > 1 || code < 0)
               ? `\n[ERROR] Process exited with code ${code}`
               : `\n[INFO] Process exited with code ${code}`;
-        this.windowManager.sendKoboldOutput(displayMessage);
+        getWindowManager().sendKoboldOutput(displayMessage);
         this.koboldProcess = null;
 
         if (!isReady) {
@@ -756,9 +743,9 @@ export class KoboldCppManager {
       });
 
       child.on('error', (error) => {
-        this.logManager.logError(`Process error: ${error.message}`, error);
+        getLogManager().logError(`Process error: ${error.message}`, error);
 
-        this.windowManager.sendKoboldOutput(
+        getWindowManager().sendKoboldOutput(
           `\n[ERROR] Process error: ${error.message}\n`
         );
         this.koboldProcess = null;
@@ -771,7 +758,7 @@ export class KoboldCppManager {
       return readyPromise;
     } catch (error) {
       const errorMessage = (error as Error).message;
-      this.logManager.logError(
+      getLogManager().logError(
         `Failed to launch: ${errorMessage}`,
         error as Error
       );
@@ -783,7 +770,7 @@ export class KoboldCppManager {
     if (this.koboldProcess) {
       await terminateProcess(this.koboldProcess, {
         timeoutMs: 5000,
-        logError: (message, error) => this.logManager.logError(message, error),
+        logError: (message, error) => getLogManager().logError(message, error),
       });
       this.koboldProcess = null;
     }
@@ -792,9 +779,18 @@ export class KoboldCppManager {
   async cleanup(): Promise<void> {
     if (this.koboldProcess) {
       await terminateProcess(this.koboldProcess, {
-        logError: (message, error) => this.logManager.logError(message, error),
+        logError: (message, error) => getLogManager().logError(message, error),
       });
       this.koboldProcess = null;
     }
   }
+}
+
+let koboldCppManagerInstance: KoboldCppManager;
+
+export function getKoboldCppManager(): KoboldCppManager {
+  if (!koboldCppManagerInstance) {
+    koboldCppManagerInstance = new KoboldCppManager();
+  }
+  return koboldCppManagerInstance;
 }

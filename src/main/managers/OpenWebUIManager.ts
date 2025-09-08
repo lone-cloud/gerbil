@@ -4,18 +4,15 @@ import { join } from 'path';
 import { homedir } from 'os';
 import { access } from 'fs/promises';
 
-import { LogManager } from './LogManager';
-import { WindowManager } from './WindowManager';
-import { ConfigManager } from './ConfigManager';
+import { getLogManager } from './LogManager';
+import { getWindowManager } from './WindowManager';
+import { getConfigManager } from './ConfigManager';
 import { OPENWEBUI, SERVER_READY_SIGNALS } from '@/constants';
 import { terminateProcess } from '@/utils/process';
 import { parseKoboldConfig } from '@/utils/kobold';
 
 export class OpenWebUIManager {
   private openWebUIProcess: ChildProcess | null = null;
-  private logManager: LogManager;
-  private windowManager: WindowManager;
-  private configManager: ConfigManager;
   private static readonly OPENWEBUI_BASE_ARGS = [
     '--python',
     '3.11',
@@ -23,15 +20,7 @@ export class OpenWebUIManager {
     'serve',
   ];
 
-  constructor(
-    configManager: ConfigManager,
-    logManager: LogManager,
-    windowManager: WindowManager
-  ) {
-    this.configManager = configManager;
-    this.logManager = logManager;
-    this.windowManager = windowManager;
-
+  constructor() {
     process.on('SIGINT', () => {
       this.cleanup().catch(() => {
         void 0;
@@ -126,13 +115,13 @@ export class OpenWebUIManager {
   }
 
   private async waitForOpenWebUIToStart(): Promise<void> {
-    this.windowManager.sendKoboldOutput('Waiting for Open WebUI to start...');
+    getWindowManager().sendKoboldOutput('Waiting for Open WebUI to start...');
 
     return new Promise((resolve, reject) => {
       const checkForOutput = (data: Buffer) => {
         const output = data.toString();
         if (output.includes(SERVER_READY_SIGNALS.OPENWEBUI)) {
-          this.windowManager.sendKoboldOutput('Open WebUI is now running!');
+          getWindowManager().sendKoboldOutput('Open WebUI is now running!');
           resolve();
 
           if (this.openWebUIProcess?.stdout) {
@@ -167,11 +156,11 @@ export class OpenWebUIManager {
 
       await this.stopFrontend();
 
-      this.windowManager.sendKoboldOutput(
+      getWindowManager().sendKoboldOutput(
         `Preparing Open WebUI to connect at ${koboldHost}:${koboldPort}...`
       );
 
-      this.windowManager.sendKoboldOutput(
+      getWindowManager().sendKoboldOutput(
         `Starting ${config.name} frontend on port ${config.port}...`
       );
 
@@ -183,9 +172,9 @@ export class OpenWebUIManager {
         config.port.toString(),
       ];
 
-      this.windowManager.sendKoboldOutput('Starting Open WebUI with uv...');
+      getWindowManager().sendKoboldOutput('Starting Open WebUI with uv...');
 
-      const installDir = this.configManager.getInstallDir();
+      const installDir = getConfigManager().getInstallDir();
       const openWebUIDataDir = join(installDir, 'openwebui-data');
 
       this.openWebUIProcess = await this.createUvProcess(openWebUIArgs, {
@@ -199,9 +188,9 @@ export class OpenWebUIManager {
         this.openWebUIProcess.stdout.on('data', (data: Buffer) => {
           try {
             const output = data.toString('utf8');
-            this.windowManager.sendKoboldOutput(output, true);
+            getWindowManager().sendKoboldOutput(output, true);
           } catch (error) {
-            this.logManager.logError(
+            getLogManager().logError(
               'Error processing stdout data:',
               error as Error
             );
@@ -213,9 +202,9 @@ export class OpenWebUIManager {
         this.openWebUIProcess.stderr.on('data', (data: Buffer) => {
           try {
             const output = data.toString('utf8');
-            this.windowManager.sendKoboldOutput(output, true);
+            getWindowManager().sendKoboldOutput(output, true);
           } catch (error) {
-            this.logManager.logError(
+            getLogManager().logError(
               'Error processing stderr data:',
               error as Error
             );
@@ -229,14 +218,14 @@ export class OpenWebUIManager {
           const message = signal
             ? `Open WebUI terminated with signal ${signal}`
             : `Open WebUI exited with code ${code}`;
-          this.windowManager.sendKoboldOutput(message);
+          getWindowManager().sendKoboldOutput(message);
           this.openWebUIProcess = null;
         }
       );
 
       this.openWebUIProcess.on('error', (error) => {
-        this.logManager.logError('Open WebUI process error:', error);
-        this.windowManager.sendKoboldOutput(
+        getLogManager().logError('Open WebUI process error:', error);
+        getWindowManager().sendKoboldOutput(
           `Open WebUI error: ${error.message}`
         );
         this.openWebUIProcess = null;
@@ -244,21 +233,21 @@ export class OpenWebUIManager {
 
       await this.waitForOpenWebUIToStart();
 
-      this.windowManager.sendKoboldOutput(
+      getWindowManager().sendKoboldOutput(
         `Open WebUI is ready and auto-configured!`
       );
-      this.windowManager.sendKoboldOutput(
+      getWindowManager().sendKoboldOutput(
         `Access Open WebUI at: http://localhost:${config.port}`
       );
-      this.windowManager.sendKoboldOutput(
+      getWindowManager().sendKoboldOutput(
         `Connection: ${koboldUrl}/v1 (auto-configured)`
       );
     } catch (error) {
-      this.logManager.logError(
+      getLogManager().logError(
         'Failed to start Open WebUI frontend:',
         error as Error
       );
-      this.windowManager.sendKoboldOutput(
+      getWindowManager().sendKoboldOutput(
         `Failed to start Open WebUI: ${(error as Error).message}`
       );
       this.openWebUIProcess = null;
@@ -268,16 +257,16 @@ export class OpenWebUIManager {
 
   async stopFrontend(): Promise<void> {
     if (this.openWebUIProcess) {
-      this.windowManager.sendKoboldOutput('Stopping Open WebUI...');
+      getWindowManager().sendKoboldOutput('Stopping Open WebUI...');
 
       try {
         await terminateProcess(this.openWebUIProcess, {
           logError: (message, error) =>
-            this.logManager.logError(message, error),
+            getLogManager().logError(message, error),
         });
-        this.windowManager.sendKoboldOutput('Open WebUI stopped');
+        getWindowManager().sendKoboldOutput('Open WebUI stopped');
       } catch (error) {
-        this.logManager.logError('Error stopping Open WebUI:', error as Error);
+        getLogManager().logError('Error stopping Open WebUI:', error as Error);
       }
 
       this.openWebUIProcess = null;
@@ -287,4 +276,13 @@ export class OpenWebUIManager {
   async cleanup(): Promise<void> {
     await this.stopFrontend();
   }
+}
+
+let openWebUIManagerInstance: OpenWebUIManager;
+
+export function getOpenWebUIManager(): OpenWebUIManager {
+  if (!openWebUIManagerInstance) {
+    openWebUIManagerInstance = new OpenWebUIManager();
+  }
+  return openWebUIManagerInstance;
 }

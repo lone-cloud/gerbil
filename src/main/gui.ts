@@ -1,82 +1,44 @@
 import { app } from 'electron';
 
-import { WindowManager } from '@/main/managers/WindowManager';
-import { ConfigManager } from '@/main/managers/ConfigManager';
-import { LogManager } from '@/main/managers/LogManager';
-import { KoboldCppManager } from '@/main/managers/KoboldCppManager';
-import { SillyTavernManager } from '@/main/managers/SillyTavernManager';
-import { OpenWebUIManager } from '@/main/managers/OpenWebUIManager';
-import { HardwareManager } from '@/main/managers/HardwareManager';
-import { BinaryManager } from '@/main/managers/BinaryManager';
+import { getWindowManager } from '@/main/managers/WindowManager';
+import { getConfigManager } from '@/main/managers/ConfigManager';
+import { getLogManager } from '@/main/managers/LogManager';
+import { getKoboldCppManager } from '@/main/managers/KoboldCppManager';
+import { getSillyTavernManager } from '@/main/managers/SillyTavernManager';
+import { getOpenWebUIManager } from '@/main/managers/OpenWebUIManager';
+import { getHardwareManager } from '@/main/managers/HardwareManager';
+import { getBinaryManager } from '@/main/managers/BinaryManager';
 import { IPCHandlers } from '@/main/ipc';
 import { ensureDir } from '@/utils/fs';
 import { getConfigDir } from '@/utils/path';
 
 export class GerbilApp {
-  private windowManager: WindowManager;
-  private koboldManager: KoboldCppManager;
-  private configManager: ConfigManager;
-  private logManager: LogManager;
-  private sillyTavernManager: SillyTavernManager;
-  private openWebUIManager: OpenWebUIManager;
-  private hardwareManager: HardwareManager;
-  private binaryManager: BinaryManager;
   private ipcHandlers: IPCHandlers;
 
   constructor() {
-    this.logManager = new LogManager();
-    this.logManager.setupGlobalErrorHandlers();
-
-    this.configManager = new ConfigManager(getConfigDir(), this.logManager);
-    this.windowManager = new WindowManager();
-    this.hardwareManager = new HardwareManager(this.logManager);
-
-    this.koboldManager = new KoboldCppManager(
-      this.configManager,
-      this.windowManager,
-      this.logManager
-    );
-
-    this.binaryManager = new BinaryManager(
-      this.logManager,
-      this.koboldManager,
-      this.hardwareManager
-    );
-
-    this.sillyTavernManager = new SillyTavernManager(
-      this.logManager,
-      this.windowManager
-    );
-
-    this.openWebUIManager = new OpenWebUIManager(
-      this.configManager,
-      this.logManager,
-      this.windowManager
-    );
-
     this.ipcHandlers = new IPCHandlers(
-      this.koboldManager,
-      this.configManager,
-      this.hardwareManager,
-      this.binaryManager,
-      this.logManager,
-      this.sillyTavernManager,
-      this.openWebUIManager,
-      this.windowManager
+      getKoboldCppManager(),
+      getConfigManager(getConfigDir()),
+      getHardwareManager(),
+      getBinaryManager(),
+      getLogManager(),
+      getSillyTavernManager(),
+      getOpenWebUIManager(),
+      getWindowManager()
     );
   }
 
   private async ensureInstallDirectory(): Promise<void> {
-    const installDir = this.configManager.getInstallDir();
+    const installDir = getConfigManager().getInstallDir();
     await ensureDir(installDir);
   }
 
   async initialize(): Promise<void> {
     await app.whenReady();
-    await this.configManager.initialize();
+    await getConfigManager().initialize();
     await this.ensureInstallDirectory();
 
-    this.windowManager.createMainWindow();
+    getWindowManager().createMainWindow();
     this.ipcHandlers.setupHandlers();
 
     app.on('window-all-closed', () => {
@@ -92,9 +54,9 @@ export class GerbilApp {
 
       try {
         const cleanupPromises = [
-          this.koboldManager.cleanup(),
-          this.sillyTavernManager.cleanup(),
-          this.openWebUIManager.cleanup(),
+          getKoboldCppManager().cleanup(),
+          getSillyTavernManager().cleanup(),
+          getOpenWebUIManager().cleanup(),
         ];
 
         const timeoutPromise = new Promise<void>((resolve) => {
@@ -105,10 +67,10 @@ export class GerbilApp {
 
         await Promise.race([Promise.all(cleanupPromises), timeoutPromise]);
       } catch (error) {
-        this.logManager.logError('Error during cleanup:', error as Error);
+        getLogManager().logError('Error during cleanup:', error as Error);
       }
 
-      this.windowManager.cleanup();
+      getWindowManager().cleanup();
 
       app.exit(0);
     });
@@ -119,8 +81,8 @@ export class GerbilApp {
     });
 
     app.on('activate', () => {
-      if (!this.windowManager.getMainWindow()) {
-        this.windowManager.createMainWindow();
+      if (!getWindowManager().getMainWindow()) {
+        getWindowManager().createMainWindow();
       }
     });
   }
