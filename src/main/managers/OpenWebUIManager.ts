@@ -162,9 +162,6 @@ export class OpenWebUIManager {
       } = parseKoboldConfig(args);
 
       if (isImageMode) {
-        this.windowManager.sendKoboldOutput(
-          'Open WebUI does not support image generation mode. Please use KoboldAI Lite or SillyTavern for image generation.'
-        );
         return;
       }
 

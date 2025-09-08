@@ -25,11 +25,11 @@ import type { FrontendPreference, InterfaceTab, Screen } from '@/types';
 
 interface TitleBarProps {
   currentScreen: Screen;
-  currentTab?: InterfaceTab;
-  onTabChange?: (tab: InterfaceTab) => void;
-  onEject?: () => void;
-  onOpenSettings?: () => void;
-  frontendPreference?: FrontendPreference;
+  currentTab: InterfaceTab;
+  onTabChange: (tab: InterfaceTab) => void;
+  onEject: () => void;
+  onOpenSettings: () => void;
+  frontendPreference: FrontendPreference;
 }
 
 export const TitleBar = ({
@@ -150,9 +150,9 @@ export const TitleBar = ({
               value={currentTab}
               onChange={(value) => {
                 if (value === 'eject') {
-                  onEject?.();
+                  onEject();
                 } else {
-                  onTabChange?.(value as InterfaceTab);
+                  onTabChange(value as InterfaceTab);
                 }
               }}
               onDropdownOpen={() => setIsSelectOpen(true)}

@@ -1,4 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import {
+  useState,
+  useEffect,
+  useRef,
+  forwardRef,
+  useImperativeHandle,
+} from 'react';
 import {
   Box,
   ScrollArea,
@@ -17,163 +23,174 @@ interface TerminalTabProps {
   frontendPreference?: FrontendPreference;
 }
 
-export const TerminalTab = ({
-  onServerReady,
-  frontendPreference = 'koboldcpp',
-}: TerminalTabProps) => {
-  const { host, port, isImageGenerationMode } = useLaunchConfigStore();
-  const computedColorScheme = useComputedColorScheme('light', {
-    getInitialValueInEffect: false,
-  });
-  const [terminalContent, setTerminalContent] = useState<string>('');
-  const [isUserScrolling, setIsUserScrolling] = useState<boolean>(false);
-  const [shouldAutoScroll, setShouldAutoScroll] = useState<boolean>(true);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const lastScrollTop = useRef<number>(0);
+export interface TerminalTabRef {
+  scrollToBottom: () => void;
+}
 
-  const isDark = computedColorScheme === 'dark';
-
-  const handleScroll = ({ y }: { y: number }) => {
-    if (!viewportRef.current) return;
-
-    const { scrollHeight, clientHeight } = viewportRef.current;
-    const isAtBottomNow = y + clientHeight >= scrollHeight - 10;
-
-    if (y < lastScrollTop.current) {
-      setIsUserScrolling(true);
-      setShouldAutoScroll(false);
-    } else if (isAtBottomNow) {
-      setIsUserScrolling(false);
-      setShouldAutoScroll(true);
-    }
-
-    lastScrollTop.current = y;
-  };
-
-  useEffect(() => {
-    if (shouldAutoScroll && !isUserScrolling && viewportRef.current) {
-      const viewport = viewportRef.current;
-      viewport.scrollTop = viewport.scrollHeight;
-    }
-  }, [terminalContent, shouldAutoScroll, isUserScrolling]);
-
-  useEffect(() => {
-    const cleanup = window.electronAPI.kobold.onKoboldOutput((data: string) => {
-      setTerminalContent((prev) => {
-        const newData = data.toString();
-
-        if (onServerReady) {
-          const serverHost = host || 'localhost';
-          const serverPort = port || 5001;
-
-          let signalToCheck: string = SERVER_READY_SIGNALS.KOBOLDCPP;
-
-          if (frontendPreference === 'sillytavern') {
-            signalToCheck = SERVER_READY_SIGNALS.SILLYTAVERN;
-          } else if (
-            frontendPreference === 'openwebui' &&
-            !isImageGenerationMode
-          ) {
-            signalToCheck = SERVER_READY_SIGNALS.OPENWEBUI;
-          }
-
-          if (newData.includes(signalToCheck)) {
-            setTimeout(
-              () => onServerReady(`http://${serverHost}:${serverPort}`),
-              1500
-            );
-          }
-        }
-
-        return handleTerminalOutput(prev, newData);
-      });
+export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
+  ({ onServerReady, frontendPreference = 'koboldcpp' }, ref) => {
+    const { host, port, isImageGenerationMode } = useLaunchConfigStore();
+    const computedColorScheme = useComputedColorScheme('light', {
+      getInitialValueInEffect: false,
     });
+    const [terminalContent, setTerminalContent] = useState<string>('');
+    const [isUserScrolling, setIsUserScrolling] = useState<boolean>(false);
+    const [shouldAutoScroll, setShouldAutoScroll] = useState<boolean>(true);
+    const scrollAreaRef = useRef<HTMLDivElement>(null);
+    const viewportRef = useRef<HTMLDivElement>(null);
+    const lastScrollTop = useRef<number>(0);
 
-    return cleanup;
-  }, [onServerReady, host, port, frontendPreference, isImageGenerationMode]);
+    const isDark = computedColorScheme === 'dark';
 
-  const scrollToBottom = () => {
-    if (viewportRef.current) {
-      const viewport = viewportRef.current;
-      viewport.scrollTop = viewport.scrollHeight;
-      setShouldAutoScroll(true);
-      setIsUserScrolling(false);
-    }
-  };
+    const handleScroll = ({ y }: { y: number }) => {
+      if (!viewportRef.current) return;
 
-  return (
-    <Box
-      style={{
-        height: `calc(100vh - ${TITLEBAR_HEIGHT})`,
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: isDark
-          ? 'var(--mantine-color-dark-filled)'
-          : 'var(--mantine-color-gray-0)',
-        borderRadius: 'inherit',
-        position: 'relative',
-      }}
-    >
-      <ScrollArea
-        ref={scrollAreaRef}
-        viewportRef={viewportRef}
-        onScrollPositionChange={handleScroll}
+      const { scrollHeight, clientHeight } = viewportRef.current;
+      const isAtBottomNow = y + clientHeight >= scrollHeight - 10;
+
+      if (y < lastScrollTop.current) {
+        setIsUserScrolling(true);
+        setShouldAutoScroll(false);
+      } else if (isAtBottomNow) {
+        setIsUserScrolling(false);
+        setShouldAutoScroll(true);
+      }
+
+      lastScrollTop.current = y;
+    };
+
+    useEffect(() => {
+      if (shouldAutoScroll && !isUserScrolling && viewportRef.current) {
+        const viewport = viewportRef.current;
+        viewport.scrollTop = viewport.scrollHeight;
+      }
+    }, [terminalContent, shouldAutoScroll, isUserScrolling]);
+
+    useEffect(() => {
+      const cleanup = window.electronAPI.kobold.onKoboldOutput(
+        (data: string) => {
+          setTerminalContent((prev) => {
+            const newData = data.toString();
+
+            if (onServerReady) {
+              const serverHost = host || 'localhost';
+              const serverPort = port || 5001;
+
+              let signalToCheck: string = SERVER_READY_SIGNALS.KOBOLDCPP;
+
+              if (frontendPreference === 'sillytavern') {
+                signalToCheck = SERVER_READY_SIGNALS.SILLYTAVERN;
+              } else if (
+                frontendPreference === 'openwebui' &&
+                !isImageGenerationMode
+              ) {
+                signalToCheck = SERVER_READY_SIGNALS.OPENWEBUI;
+              }
+
+              if (newData.includes(signalToCheck)) {
+                setTimeout(
+                  () => onServerReady(`http://${serverHost}:${serverPort}`),
+                  1500
+                );
+              }
+            }
+
+            return handleTerminalOutput(prev, newData);
+          });
+        }
+      );
+
+      return cleanup;
+    }, [onServerReady, host, port, frontendPreference, isImageGenerationMode]);
+
+    const scrollToBottom = () => {
+      if (viewportRef.current) {
+        const viewport = viewportRef.current;
+        viewport.scrollTop = viewport.scrollHeight;
+        setShouldAutoScroll(true);
+        setIsUserScrolling(false);
+      }
+    };
+
+    useImperativeHandle(ref, () => ({
+      scrollToBottom,
+    }));
+
+    return (
+      <Box
         style={{
-          flex: 1,
-          fontFamily: 'Monaco, Menlo, Ubuntu Mono, monospace',
-          fontSize: '0.875em',
-          lineHeight: 1.4,
+          height: `calc(100vh - ${TITLEBAR_HEIGHT})`,
+          display: 'flex',
+          flexDirection: 'column',
+          backgroundColor: isDark
+            ? 'var(--mantine-color-dark-filled)'
+            : 'var(--mantine-color-gray-0)',
+          borderRadius: 'inherit',
+          position: 'relative',
         }}
-        scrollbarSize={8}
-        offsetScrollbars={false}
       >
-        <Box p="md">
-          {terminalContent.length === 0 ? (
-            <Text c="dimmed" style={{ fontFamily: 'inherit' }}>
-              Starting...
-            </Text>
-          ) : (
-            <div
-              style={{
-                margin: 0,
-                fontFamily:
-                  'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-                fontSize: '0.875em',
-                lineHeight: 1.4,
-                color: isDark
-                  ? 'var(--mantine-color-gray-0)'
-                  : 'var(--mantine-color-dark-filled)',
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-              }}
-              dangerouslySetInnerHTML={{
-                __html: processTerminalContent(terminalContent),
-              }}
-            />
-          )}
-        </Box>
-      </ScrollArea>
-
-      {isUserScrolling && !shouldAutoScroll && (
-        <ActionIcon
-          variant="filled"
-          color="blue"
-          size="lg"
-          radius="xl"
-          onClick={scrollToBottom}
+        <ScrollArea
+          ref={scrollAreaRef}
+          viewportRef={viewportRef}
+          onScrollPositionChange={handleScroll}
           style={{
-            position: 'absolute',
-            bottom: '1.25rem',
-            right: '1.25rem',
-            zIndex: 10,
-            boxShadow: '0 0.125rem 0.5rem rgba(0, 0, 0, 0.3)',
+            flex: 1,
+            fontFamily: 'Monaco, Menlo, Ubuntu Mono, monospace',
+            fontSize: '0.875em',
+            lineHeight: 1.4,
           }}
-          aria-label="Scroll to bottom"
+          scrollbarSize={8}
+          offsetScrollbars={false}
         >
-          <ChevronDown size={20} />
-        </ActionIcon>
-      )}
-    </Box>
-  );
-};
+          <Box p="md">
+            {terminalContent.length === 0 ? (
+              <Text c="dimmed" style={{ fontFamily: 'inherit' }}>
+                Starting...
+              </Text>
+            ) : (
+              <div
+                style={{
+                  margin: 0,
+                  fontFamily:
+                    'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                  fontSize: '0.875em',
+                  lineHeight: 1.4,
+                  color: isDark
+                    ? 'var(--mantine-color-gray-0)'
+                    : 'var(--mantine-color-dark-filled)',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                }}
+                dangerouslySetInnerHTML={{
+                  __html: processTerminalContent(terminalContent),
+                }}
+              />
+            )}
+          </Box>
+        </ScrollArea>
+
+        {isUserScrolling && !shouldAutoScroll && (
+          <ActionIcon
+            variant="filled"
+            color="blue"
+            size="lg"
+            radius="xl"
+            onClick={scrollToBottom}
+            style={{
+              position: 'absolute',
+              bottom: '1.25rem',
+              right: '1.25rem',
+              zIndex: 10,
+              boxShadow: '0 0.125rem 0.5rem rgba(0, 0, 0, 0.3)',
+            }}
+            aria-label="Scroll to bottom"
+          >
+            <ChevronDown size={20} />
+          </ActionIcon>
+        )}
+      </Box>
+    );
+  }
+);
+
+TerminalTab.displayName = 'TerminalTab';

@@ -11,6 +11,7 @@ import {
   chmod,
   readFile,
   writeFile,
+  copyFile,
 } from 'fs/promises';
 import { dialog } from 'electron';
 import axios from 'axios';
@@ -27,11 +28,14 @@ import {
 } from '@/constants/patches';
 import { pathExists, readJsonFile, writeJsonFile } from '@/utils/fs';
 import { stripAssetExtensions } from '@/utils/version';
+import { parseKoboldConfig } from '@/utils/kobold';
+import { getAssetPath } from '@/utils/path';
 import type {
   GitHubAsset,
   InstalledVersion,
   KoboldConfig,
 } from '@/types/electron';
+import type { FrontendPreference } from '@/types';
 
 export class KoboldCppManager {
   private koboldProcess: ChildProcess | null = null;
@@ -315,6 +319,29 @@ export class KoboldCppManager {
       }
     } catch (error) {
       this.logManager.logError('Failed to patch klite.embd:', error as Error);
+    }
+  }
+
+  private async patchKcppSduiEmbd(unpackedDir: string): Promise<void> {
+    try {
+      const possiblePaths = [
+        join(unpackedDir, '_internal', 'kcpp_sdui.embd'),
+        join(unpackedDir, 'kcpp_sdui.embd'),
+      ];
+
+      const sourceAssetPath = getAssetPath('kcpp_sdui.embd');
+
+      for (const targetPath of possiblePaths) {
+        if (await pathExists(targetPath)) {
+          await copyFile(sourceAssetPath, targetPath);
+          break;
+        }
+      }
+    } catch (error) {
+      this.logManager.logError(
+        'Failed to patch kcpp_sdui.embd:',
+        error as Error
+      );
     }
   }
 
@@ -618,7 +645,8 @@ export class KoboldCppManager {
   }
 
   async launchKoboldCpp(
-    args: string[] = []
+    args: string[] = [],
+    frontendPreference: FrontendPreference = 'koboldcpp'
   ): Promise<{ success: boolean; pid?: number; error?: string }> {
     try {
       if (this.koboldProcess) {
@@ -646,7 +674,18 @@ export class KoboldCppManager {
         .split(/[/\\]/)
         .slice(0, -1)
         .join('/');
-      await this.patchKliteEmbd(binaryDir);
+
+      const { isImageMode } = parseKoboldConfig(args);
+
+      if (frontendPreference === 'koboldcpp') {
+        if (isImageMode) {
+          await this.patchKcppSduiEmbd(binaryDir);
+        } else {
+          await this.patchKliteEmbd(binaryDir);
+        }
+      } else if (frontendPreference === 'openwebui' && isImageMode) {
+        await this.patchKcppSduiEmbd(binaryDir);
+      }
 
       const finalArgs = [...args];
 

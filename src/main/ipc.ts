@@ -8,6 +8,7 @@ import type { OpenWebUIManager } from '@/main/managers/OpenWebUIManager';
 import type { WindowManager } from '@/main/managers/WindowManager';
 import { HardwareManager } from '@/main/managers/HardwareManager';
 import { BinaryManager } from '@/main/managers/BinaryManager';
+import type { FrontendPreference } from '@/types';
 
 export class IPCHandlers {
   private koboldManager: KoboldCppManager;
@@ -41,10 +42,14 @@ export class IPCHandlers {
 
   private async launchKoboldCppWithCustomFrontends(args: string[] = []) {
     try {
-      const result = await this.koboldManager.launchKoboldCpp(args);
+      const frontendPreference = (await this.configManager.get(
+        'frontendPreference'
+      )) as FrontendPreference;
 
-      const frontendPreference =
-        await this.configManager.get('frontendPreference');
+      const result = await this.koboldManager.launchKoboldCpp(
+        args,
+        frontendPreference
+      );
 
       if (frontendPreference === 'sillytavern') {
         this.sillyTavernManager.startFrontend(args);
