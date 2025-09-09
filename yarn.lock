@@ -191,7 +191,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.20.13":
+"@babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.20.13":
   version: 7.28.4
   resolution: "@babel/runtime@npm:7.28.4"
   checksum: 10c0/792ce7af9750fb9b93879cc9d1db175701c4689da890e6ced242ea0207c9da411ccf16dc04e689cc01158b28d7898c40d75598f4559109f761c12ce01e959bf7
@@ -3649,10 +3649,11 @@ __metadata:
     execa: "npm:^9.6.0"
     globals: "npm:^16.3.0"
     jiti: "npm:^2.5.1"
-    lucide-react: "npm:^0.542.0"
+    lucide-react: "npm:^0.543.0"
     prettier: "npm:^3.6.2"
     react: "npm:^19.1.1"
     react-dom: "npm:^19.1.1"
+    react-error-boundary: "npm:^6.0.0"
     rollup-plugin-visualizer: "npm:^6.0.3"
     systeminformation: "npm:^5.27.8"
     typescript: "npm:^5.9.2"
@@ -4766,12 +4767,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide-react@npm:^0.542.0":
-  version: 0.542.0
-  resolution: "lucide-react@npm:0.542.0"
+"lucide-react@npm:^0.543.0":
+  version: 0.543.0
+  resolution: "lucide-react@npm:0.543.0"
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10c0/3ccdb898a480f0194f93abef0b6f0347bc2647db24051e65a17c1dbd22ca0d10a7636d9af68c92665b42b6c9e761567a0d65944fe8568fb0e30a7ea57281ccec
+  checksum: 10c0/76bb54f9c602ff5d44ec66f2786c035d92aaabca1e1abb380b0c8101dfb3290e52c82fa4d630e286ef07c05b63696e187f0ca3ae186535d9c5b4de7aa8825bd3
   languageName: node
   linkType: hard
 
@@ -5683,6 +5684,17 @@ __metadata:
   peerDependencies:
     react: ^19.1.1
   checksum: 10c0/8c91198510521299c56e4e8d5e3a4508b2734fb5e52f29eeac33811de64e76fe586ad32c32182e2e84e070d98df67125da346c3360013357228172dbcd20bcdd
+  languageName: node
+  linkType: hard
+
+"react-error-boundary@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "react-error-boundary@npm:6.0.0"
+  dependencies:
+    "@babel/runtime": "npm:^7.12.5"
+  peerDependencies:
+    react: ">=16.13.1"
+  checksum: 10c0/1914d600dee95a14f14af4afe9867b0d35c26c4f7826d23208800ba2a99728659029aad60a6ef95e13430b4d79c2c4c9b3585f50bf508450478760d2e4e732d8
   languageName: node
   linkType: hard
 

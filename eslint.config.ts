@@ -143,6 +143,7 @@ const config = [
 
       'arrow-body-style': ['error', 'as-needed'],
       'prefer-arrow-callback': ['error', { allowNamedFunctions: false }],
+      'object-shorthand': ['error', 'always'],
 
       'no-console': 'error',
 

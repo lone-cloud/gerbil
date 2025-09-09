@@ -224,6 +224,7 @@ export const App = () => {
         />
       </AppShell.Main>
       <SettingsModal
+        isOnInterfaceScreen={currentScreen === 'interface'}
         opened={settingsModalOpen}
         onClose={async () => {
           setSettingsModalOpen(false);

@@ -18,12 +18,14 @@ interface SettingsModalProps {
   opened: boolean;
   onClose: () => void;
   currentScreen?: Screen;
+  isOnInterfaceScreen?: boolean;
 }
 
 export const SettingsModal = ({
   opened,
   onClose,
   currentScreen,
+  isOnInterfaceScreen = false,
 }: SettingsModalProps) => {
   const [activeTab, setActiveTab] = useState('general');
 
@@ -140,7 +142,7 @@ export const SettingsModal = ({
         </Tabs.List>
 
         <Tabs.Panel value="general">
-          <GeneralTab />
+          <GeneralTab isOnInterfaceScreen={isOnInterfaceScreen} />
         </Tabs.Panel>
 
         {showVersionsTab && (

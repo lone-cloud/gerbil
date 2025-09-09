@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { ConfigFile, SdConvDirectMode } from '@/types';
 import type { ImageModelPreset } from '@/constants/imageModelPresets';
-import { DEFAULT_CONTEXT_SIZE } from '@/constants';
+import { DEFAULT_AUTO_GPU_LAYERS, DEFAULT_CONTEXT_SIZE } from '@/constants';
 
 interface LaunchConfigState {
   gpuLayers: number;
@@ -92,7 +92,7 @@ interface LaunchConfigState {
 
 export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   gpuLayers: 0,
-  autoGpuLayers: true,
+  autoGpuLayers: DEFAULT_AUTO_GPU_LAYERS,
   contextSize: DEFAULT_CONTEXT_SIZE,
   model: '',
   additionalArguments: '',
@@ -181,7 +181,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
       if (typeof configData.autoGpuLayers === 'boolean') {
         updates.autoGpuLayers = configData.autoGpuLayers;
       } else {
-        updates.autoGpuLayers = true;
+        updates.autoGpuLayers = DEFAULT_AUTO_GPU_LAYERS;
       }
 
       if (typeof configData.gpulayers === 'number') {

@@ -23,9 +23,8 @@ if (process.argv[1] === '--version') {
     import('./cli')
       .then(async (cliModule) => {
         const args = process.argv.slice(process.argv.indexOf('--cli') + 1);
-        const handler = new cliModule.LightweightCliHandler();
         try {
-          await handler.handleCliMode(args);
+          await cliModule.handleCliMode(args);
         } catch (error) {
           // eslint-disable-next-line no-console
           console.error('CLI mode error:', error);
@@ -39,8 +38,7 @@ if (process.argv[1] === '--version') {
       });
   } else {
     import('./gui').then((guiModule) => {
-      const app = new guiModule.GerbilApp();
-      app.initialize().catch((error: unknown) => {
+      guiModule.initializeApp().catch((error: unknown) => {
         // eslint-disable-next-line no-console
         console.error('Failed to initialize Gerbil:', error);
       });
