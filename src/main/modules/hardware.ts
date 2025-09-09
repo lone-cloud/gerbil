@@ -1,0 +1,472 @@
+/* eslint-disable no-comments/disallowComments */
+import si from 'systeminformation';
+import { shortenDeviceName } from '@/utils/hardware';
+import { logError } from '@/main/modules/logging';
+import { terminateProcess } from '@/utils/process';
+import type {
+  CPUCapabilities,
+  GPUCapabilities,
+  BasicGPUInfo,
+  GPUMemoryInfo,
+} from '@/types/hardware';
+import { spawn } from 'child_process';
+
+let cpuCapabilitiesCache: CPUCapabilities | null = null;
+let basicGPUInfoCache: BasicGPUInfo | null = null;
+let gpuCapabilitiesCache: GPUCapabilities | null = null;
+let gpuMemoryInfoCache: GPUMemoryInfo[] | null = null;
+
+export async function detectCPU() {
+  if (cpuCapabilitiesCache) {
+    return cpuCapabilitiesCache;
+  }
+
+  try {
+    const [cpu, flags] = await Promise.all([si.cpu(), si.cpuFlags()]);
+
+    const devices: string[] = [];
+    if (cpu.brand) {
+      devices.push(shortenDeviceName(cpu.brand));
+    }
+
+    const avx = flags.includes('avx') || flags.includes('AVX');
+    const avx2 = flags.includes('avx2') || flags.includes('AVX2');
+
+    cpuCapabilitiesCache = {
+      avx,
+      avx2,
+      devices,
+    };
+
+    return cpuCapabilitiesCache;
+  } catch (error) {
+    logError('CPU detection failed:', error as Error);
+    const fallbackCapabilities = {
+      avx: false,
+      avx2: false,
+      devices: [],
+    };
+    cpuCapabilitiesCache = fallbackCapabilities;
+    return fallbackCapabilities;
+  }
+}
+
+export async function detectGPU() {
+  if (basicGPUInfoCache) {
+    return basicGPUInfoCache;
+  }
+
+  try {
+    const graphics = await si.graphics();
+
+    let hasAMD = false;
+    let hasNVIDIA = false;
+    const gpuInfo: string[] = [];
+
+    for (const controller of graphics.controllers) {
+      if (controller.model) {
+        gpuInfo.push(shortenDeviceName(controller.model));
+      }
+
+      const vendor = controller.vendor?.toLowerCase() || '';
+      const model = controller.model?.toLowerCase() || '';
+
+      if (
+        vendor.includes('amd') ||
+        vendor.includes('ati') ||
+        model.includes('radeon') ||
+        model.includes('amd')
+      ) {
+        hasAMD = true;
+      }
+
+      if (
+        vendor.includes('nvidia') ||
+        model.includes('nvidia') ||
+        model.includes('geforce') ||
+        model.includes('gtx') ||
+        model.includes('rtx')
+      ) {
+        hasNVIDIA = true;
+      }
+    }
+
+    basicGPUInfoCache = {
+      hasAMD,
+      hasNVIDIA,
+      gpuInfo: gpuInfo.length > 0 ? gpuInfo : ['No GPU information available'],
+    };
+
+    return basicGPUInfoCache;
+  } catch (error) {
+    logError('GPU detection failed:', error as Error);
+    const fallbackGPUInfo = {
+      hasAMD: false,
+      hasNVIDIA: false,
+      gpuInfo: ['GPU detection failed'],
+    };
+    basicGPUInfoCache = fallbackGPUInfo;
+    return fallbackGPUInfo;
+  }
+}
+
+export async function detectGPUCapabilities() {
+  // WARNING: we're not worrying about the users that update their system
+  // during runtime and not restart. Should we be though?
+  if (gpuCapabilitiesCache) {
+    return gpuCapabilitiesCache;
+  }
+
+  const [cuda, rocm, vulkan, clblast] = await Promise.all([
+    detectCUDA(),
+    detectROCm(),
+    detectVulkan(),
+    detectCLBlast(),
+  ]);
+
+  gpuCapabilitiesCache = { cuda, rocm, vulkan, clblast };
+
+  return gpuCapabilitiesCache;
+}
+
+async function detectCUDA() {
+  try {
+    const nvidia = spawn(
+      'nvidia-smi',
+      ['--query-gpu=name,memory.total,memory.free', '--format=csv,noheader'],
+      { timeout: 5000 }
+    );
+
+    let output = '';
+    nvidia.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+
+    return new Promise<{
+      supported: boolean;
+      devices: string[];
+    }>((resolve) => {
+      nvidia.on('close', (code) => {
+        if (code === 0 && output.trim()) {
+          const devices = output
+            .trim()
+            .split('\n')
+            .map((line) => {
+              const parts = line.split(',');
+              const rawName = parts[0]?.trim() || 'Unknown NVIDIA GPU';
+              return shortenDeviceName(rawName);
+            })
+            .filter(Boolean);
+
+          resolve({
+            supported: devices.length > 0,
+            devices,
+          });
+        } else {
+          resolve({ supported: false, devices: [] });
+        }
+      });
+
+      nvidia.on('error', () => {
+        resolve({ supported: false, devices: [] });
+      });
+
+      setTimeout(async () => {
+        await terminateProcess(nvidia);
+        resolve({ supported: false, devices: [] });
+      }, 5000);
+    });
+  } catch {
+    return { supported: false, devices: [] };
+  }
+}
+
+async function findRocminfoCommand() {
+  const platform = await import('process').then((p) => p.platform);
+
+  if (platform === 'win32') {
+    return 'hipInfo';
+  } else {
+    return 'rocminfo';
+  }
+}
+
+export async function detectROCm() {
+  try {
+    const rocminfoCommand = await findRocminfoCommand();
+    if (!rocminfoCommand) {
+      return { supported: false, devices: [] };
+    }
+
+    const isWindows = rocminfoCommand.includes('hipInfo');
+    const rocminfo = spawn(rocminfoCommand, [], { timeout: 5000 });
+
+    let output = '';
+    rocminfo.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+
+    return new Promise<{
+      supported: boolean;
+      devices: string[];
+    }>((resolve) => {
+      // eslint-disable-next-line sonarjs/cognitive-complexity
+      rocminfo.on('close', (code) => {
+        if (code === 0 && output.trim()) {
+          const devices: string[] = [];
+
+          if (isWindows) {
+            const lines = output.split('\n');
+
+            for (const line of lines) {
+              const trimmedLine = line.trim();
+              if (trimmedLine.startsWith('Name:')) {
+                const name = trimmedLine.split('Name:')[1]?.trim();
+                if (
+                  name &&
+                  !name.toLowerCase().includes('cpu') &&
+                  !devices.includes(shortenDeviceName(name))
+                ) {
+                  devices.push(shortenDeviceName(name));
+                }
+              }
+            }
+          } else {
+            const lines = output.split('\n');
+            for (let i = 0; i < lines.length; i++) {
+              const line = lines[i];
+
+              if (line.includes('Marketing Name:')) {
+                const name = line.split('Marketing Name:')[1]?.trim();
+                if (name) {
+                  let deviceType = '';
+
+                  const searchRangeLines = 20;
+                  const searchStartIndex = Math.max(0, i - searchRangeLines);
+                  const searchEndIndex = Math.min(
+                    lines.length,
+                    i + searchRangeLines
+                  );
+
+                  for (
+                    let searchIndex = searchStartIndex;
+                    searchIndex < searchEndIndex;
+                    searchIndex++
+                  ) {
+                    if (lines[searchIndex].includes('Device Type:')) {
+                      deviceType =
+                        lines[searchIndex].split('Device Type:')[1]?.trim() ||
+                        '';
+                      break;
+                    }
+                  }
+
+                  if (deviceType !== 'CPU') {
+                    devices.push(shortenDeviceName(name));
+                  }
+                }
+              }
+            }
+          }
+
+          resolve({
+            supported: devices.length > 0,
+            devices,
+          });
+        } else {
+          resolve({ supported: false, devices: [] });
+        }
+      });
+
+      rocminfo.on('error', () => {
+        resolve({ supported: false, devices: [] });
+      });
+
+      setTimeout(async () => {
+        await terminateProcess(rocminfo);
+        resolve({ supported: false, devices: [] });
+      }, 5000);
+    });
+  } catch {
+    return { supported: false, devices: [] };
+  }
+}
+
+async function detectVulkan() {
+  try {
+    const vulkaninfo = spawn('vulkaninfo', ['--summary'], { timeout: 5000 });
+
+    let output = '';
+    vulkaninfo.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+
+    return new Promise<{
+      supported: boolean;
+      devices: string[];
+    }>((resolve) => {
+      vulkaninfo.on('close', (code) => {
+        if (code === 0 && output.trim()) {
+          const devices: string[] = [];
+          const lines = output.split('\n');
+
+          for (const line of lines) {
+            if (line.includes('deviceName') && line.includes('=')) {
+              const parts = line.split('=');
+              if (parts.length >= 2) {
+                const name = parts[1]?.trim();
+                if (name) {
+                  devices.push(shortenDeviceName(name));
+                }
+              }
+            }
+          }
+
+          resolve({
+            supported: devices.length > 0,
+            devices,
+          });
+        } else {
+          resolve({ supported: false, devices: [] });
+        }
+      });
+
+      vulkaninfo.on('error', () => {
+        resolve({ supported: false, devices: [] });
+      });
+
+      setTimeout(async () => {
+        await terminateProcess(vulkaninfo);
+        resolve({ supported: false, devices: [] });
+      }, 5000);
+    });
+  } catch {
+    return { supported: false, devices: [] };
+  }
+}
+
+function parseClInfoOutput(output: string) {
+  const devices: string[] = [];
+  const lines = output.split('\n');
+
+  let currentPlatform = '';
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+
+    if (line.includes('Platform Name:')) {
+      currentPlatform = line.split('Platform Name:')[1]?.trim() || '';
+      continue;
+    }
+
+    if (line.includes('Device Type:') && line.includes('GPU')) {
+      const deviceName = findDeviceNameInClInfo(lines, i);
+
+      if (deviceName && currentPlatform) {
+        const deviceLabel = `${shortenDeviceName(deviceName)} (${currentPlatform})`;
+        devices.push(deviceLabel);
+      }
+    }
+  }
+
+  return devices;
+}
+
+function findDeviceNameInClInfo(lines: string[], startIndex: number) {
+  for (
+    let j = startIndex + 1;
+    j < Math.min(startIndex + 50, lines.length);
+    j++
+  ) {
+    const nextLine = lines[j].trim();
+    if (nextLine.includes('Board name:')) {
+      return nextLine.split('Board name:')[1]?.trim() || '';
+    }
+  }
+
+  for (
+    let j = startIndex + 1;
+    j < Math.min(startIndex + 100, lines.length);
+    j++
+  ) {
+    const nextLine = lines[j].trim();
+    if (nextLine.startsWith('Name:')) {
+      return nextLine.split('Name:')[1]?.trim() || '';
+    }
+  }
+
+  return '';
+}
+
+async function detectCLBlast() {
+  try {
+    const clinfo = spawn('clinfo', [], { timeout: 3000 });
+
+    let output = '';
+    clinfo.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+
+    return new Promise<{
+      supported: boolean;
+      devices: string[];
+    }>((resolve) => {
+      clinfo.on('close', (code) => {
+        if (code === 0 && output.trim()) {
+          const devices = parseClInfoOutput(output);
+          resolve({
+            supported: devices.length > 0,
+            devices,
+          });
+        } else {
+          resolve({ supported: false, devices: [] });
+        }
+      });
+
+      clinfo.on('error', () => {
+        resolve({ supported: false, devices: [] });
+      });
+
+      setTimeout(async () => {
+        await terminateProcess(clinfo);
+        resolve({ supported: false, devices: [] });
+      }, 3000);
+    });
+  } catch {
+    return { supported: false, devices: [] };
+  }
+}
+
+export async function detectGPUMemory() {
+  if (gpuMemoryInfoCache) {
+    return gpuMemoryInfoCache;
+  }
+
+  const memoryInfo: GPUMemoryInfo[] = [];
+
+  try {
+    const graphics = await si.graphics();
+
+    for (const controller of graphics.controllers) {
+      if (controller.model) {
+        let vram = controller.vram;
+
+        if (!vram || vram === 1) {
+          vram = null;
+        }
+
+        memoryInfo.push({
+          deviceName: shortenDeviceName(controller.model),
+          totalMemoryMB: vram,
+        });
+      }
+    }
+
+    gpuMemoryInfoCache = memoryInfo;
+  } catch (error) {
+    logError('GPU memory detection failed:', error as Error);
+    gpuMemoryInfoCache = [];
+  }
+
+  return gpuMemoryInfoCache;
+}

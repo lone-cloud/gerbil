@@ -1,7 +1,7 @@
 {
   "name": "gerbil",
   "productName": "Gerbil",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "description": "Run Large Language Models locally",
   "main": "out/main/index.js",
   "homepage": "./",
@@ -67,9 +67,10 @@
     "@mantine/hooks": "^8.3.0",
     "axios": "^1.11.0",
     "execa": "^9.6.0",
-    "lucide-react": "^0.542.0",
+    "lucide-react": "^0.543.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-error-boundary": "^6.0.0",
     "systeminformation": "^5.27.8",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0",
@@ -90,15 +91,7 @@
       "out/**/*",
       "dist/**/*"
     ],
-    "extraFiles": [
-      {
-        "from": "assets/gerbil.desktop",
-        "to": "assets/gerbil.desktop",
-        "filter": [
-          "**/*"
-        ]
-      }
-    ],
+    "extraFiles": [],
     "mac": {
       "compression": "maximum",
       "category": "public.app-category.productivity",
@@ -163,6 +156,12 @@
           "StartupWMClass": "Gerbil"
         }
       },
+      "extraFiles": [
+        {
+          "from": "assets/gerbil.desktop",
+          "to": "assets/gerbil.desktop"
+        }
+      ],
       "target": [
         {
           "target": "AppImage",

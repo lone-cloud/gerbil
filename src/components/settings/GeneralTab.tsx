@@ -28,7 +28,13 @@ interface FrontendConfig {
   requirementCheck?: () => Promise<boolean>;
 }
 
-export const GeneralTab = () => {
+interface GeneralTabProps {
+  isOnInterfaceScreen?: boolean;
+}
+
+export const GeneralTab = ({
+  isOnInterfaceScreen = false,
+}: GeneralTabProps) => {
   const [installDir, setInstallDir] = useState<string>('');
   const [FrontendPreference, setFrontendPreference] =
     useState<FrontendPreference>('koboldcpp');
@@ -245,6 +251,7 @@ export const GeneralTab = () => {
         <Select
           value={FrontendPreference}
           onChange={handleFrontendPreferenceChange}
+          disabled={isOnInterfaceScreen}
           data={frontendConfigs.map((config) => ({
             value: config.value,
             label: config.label,
