@@ -298,7 +298,12 @@ async function patchKcppSduiEmbd(unpackedDir: string) {
     if (isDevelopment) {
       sourceAssetPath = join(__dirname, '../../assets', 'kcpp_sdui.embd');
     } else {
-      sourceAssetPath = join(process.resourcesPath, 'assets', 'kcpp_sdui.embd');
+      sourceAssetPath = join(
+        process.resourcesPath,
+        '..',
+        'assets',
+        'kcpp_sdui.embd'
+      );
     }
 
     for (const targetPath of possiblePaths) {

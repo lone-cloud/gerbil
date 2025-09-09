@@ -55,7 +55,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-sonarjs": "^3.0.5",
-    "globals": "^16.3.0",
+    "globals": "^16.4.0",
     "jiti": "^2.5.1",
     "prettier": "^3.6.2",
     "rollup-plugin-visualizer": "^6.0.3",
@@ -91,7 +91,12 @@
       "out/**/*",
       "dist/**/*"
     ],
-    "extraFiles": [],
+    "extraFiles": [
+      {
+        "from": "assets/kcpp_sdui.embd",
+        "to": "assets/kcpp_sdui.embd"
+      }
+    ],
     "mac": {
       "compression": "maximum",
       "category": "public.app-category.productivity",
