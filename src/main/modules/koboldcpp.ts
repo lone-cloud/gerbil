@@ -642,7 +642,7 @@ export async function launchKoboldCpp(
 
     koboldProcess = child;
 
-    const commandLine = `$ ${currentVersion.path} ${finalArgs.join(' ')}`;
+    const commandLine = `${currentVersion.path} ${finalArgs.join(' ')}`;
 
     sendKoboldOutput(commandLine);
 

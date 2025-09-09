@@ -8,7 +8,6 @@ import {
 import {
   Box,
   ScrollArea,
-  Text,
   ActionIcon,
   useComputedColorScheme,
 } from '@mantine/core';
@@ -36,11 +35,20 @@ export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
     const [terminalContent, setTerminalContent] = useState<string>('');
     const [isUserScrolling, setIsUserScrolling] = useState<boolean>(false);
     const [shouldAutoScroll, setShouldAutoScroll] = useState<boolean>(true);
+    const [isVisible, setIsVisible] = useState<boolean>(false);
     const scrollAreaRef = useRef<HTMLDivElement>(null);
     const viewportRef = useRef<HTMLDivElement>(null);
     const lastScrollTop = useRef<number>(0);
 
     const isDark = computedColorScheme === 'dark';
+
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        setIsVisible(true);
+      }, 150);
+
+      return () => clearTimeout(timer);
+    }, []);
 
     const handleScroll = ({ y }: { y: number }) => {
       if (!viewportRef.current) return;
@@ -143,29 +151,25 @@ export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
           offsetScrollbars={false}
         >
           <Box p="md">
-            {terminalContent.length === 0 ? (
-              <Text c="dimmed" style={{ fontFamily: 'inherit' }}>
-                Starting...
-              </Text>
-            ) : (
-              <div
-                style={{
-                  margin: 0,
-                  fontFamily:
-                    'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-                  fontSize: '0.875em',
-                  lineHeight: 1.4,
-                  color: isDark
-                    ? 'var(--mantine-color-gray-0)'
-                    : 'var(--mantine-color-dark-filled)',
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word',
-                }}
-                dangerouslySetInnerHTML={{
-                  __html: processTerminalContent(terminalContent),
-                }}
-              />
-            )}
+            <div
+              style={{
+                margin: 0,
+                fontFamily:
+                  'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                fontSize: '0.875em',
+                lineHeight: 1.4,
+                color: isDark
+                  ? 'var(--mantine-color-gray-0)'
+                  : 'var(--mantine-color-dark-filled)',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                opacity: isVisible ? 1 : 0,
+                transition: 'opacity 0.2s ease-in-out',
+              }}
+              dangerouslySetInnerHTML={{
+                __html: processTerminalContent(terminalContent),
+              }}
+            />
           </Box>
         </ScrollArea>
 

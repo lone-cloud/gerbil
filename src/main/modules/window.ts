@@ -4,21 +4,29 @@ import { stripVTControlCharacters } from 'util';
 import { PRODUCT_NAME } from '../../constants';
 import type { IPCChannel, IPCChannelPayloads } from '@/types/ipc';
 import { isDevelopment } from '@/utils/environment';
+import { getBackgroundColor } from './config';
 
 let mainWindow: BrowserWindow | null = null;
 
 export function createMainWindow() {
   const { size } = screen.getPrimaryDisplay();
   const windowHeight = Math.floor(size.height * 0.86);
+  const windowWidth = 800;
+
+  const icon = isDevelopment
+    ? join(__dirname, '../../src/assets/icon.png')
+    : join(__dirname, '../../assets/icon.png');
 
   mainWindow = new BrowserWindow({
-    width: 1000,
+    width: windowWidth,
     height: windowHeight,
+    x: Math.floor((size.width - windowWidth) / 2),
+    y: Math.floor((size.height - windowHeight) / 2),
     frame: false,
     title: PRODUCT_NAME,
     show: false,
-    backgroundColor: '#ffffff',
-    icon: join(__dirname, '../../src/assets/icon.png'),
+    backgroundColor: getBackgroundColor(),
+    icon,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -60,6 +68,11 @@ export function createMainWindow() {
 
   mainWindow.webContents.setWindowOpenHandler(() => ({
     action: 'allow',
+    overrideBrowserWindowOptions: {
+      icon,
+      title: PRODUCT_NAME,
+      backgroundColor: getBackgroundColor(),
+    },
   }));
 
   mainWindow.on('close', () => {

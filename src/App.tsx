@@ -40,10 +40,6 @@ export const App = () => {
     downloadProgress,
   } = useKoboldVersions();
 
-  const setCurrentScreenWithTransition = (screen: Screen) => {
-    setCurrentScreen(screen);
-  };
-
   useEffect(() => {
     const checkInstallation = async () => {
       await safeExecute(async () => {
@@ -58,11 +54,11 @@ export const App = () => {
         setFrontendPreference(preference || 'koboldcpp');
 
         if (!hasSeenWelcome) {
-          setCurrentScreenWithTransition('welcome');
+          setCurrentScreen('welcome');
         } else if (currentVersion) {
-          setCurrentScreenWithTransition('launch');
+          setCurrentScreen('launch');
         } else {
-          setCurrentScreenWithTransition('download');
+          setCurrentScreen('download');
         }
 
         if (currentVersion) {
@@ -99,17 +95,17 @@ export const App = () => {
     }, 'Error refreshing versions after download:');
 
     setTimeout(() => {
-      setCurrentScreenWithTransition('launch');
+      setCurrentScreen('launch');
     }, 100);
   };
 
   const handleLaunch = () => {
     setActiveInterfaceTab('terminal');
-    setCurrentScreenWithTransition('interface');
+    setCurrentScreen('interface');
   };
 
   const handleBackToLaunch = () => {
-    setCurrentScreenWithTransition('launch');
+    setCurrentScreen('launch');
   };
 
   const handleEject = async () => {
@@ -141,9 +137,9 @@ export const App = () => {
 
     const versions = await window.electronAPI.kobold.getInstalledVersions();
     if (versions.length > 0) {
-      setCurrentScreenWithTransition('launch');
+      setCurrentScreen('launch');
     } else {
-      setCurrentScreenWithTransition('download');
+      setCurrentScreen('download');
     }
   };
 
