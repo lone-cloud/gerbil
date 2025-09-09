@@ -1,5 +1,6 @@
 import { ipcMain, shell, app } from 'electron';
 import * as os from 'os';
+import type { MantineColorScheme } from '@mantine/core';
 import {
   launchKoboldCpp,
   downloadRelease,
@@ -19,6 +20,8 @@ import {
   getSelectedConfig,
   setSelectedConfig,
   getInstallDir,
+  getColorScheme,
+  setColorScheme,
 } from '@/main/modules/config';
 import { logError, getLogsDirectory } from '@/main/modules/logging';
 import { getSillyTavernManager } from '@/main/modules/sillytavern';
@@ -197,6 +200,15 @@ export function setupIPCHandlers() {
       await setConfig('zoomLevel', level);
     }
   });
+
+  ipcMain.handle('app:getColorScheme', () => getColorScheme());
+
+  ipcMain.handle(
+    'app:setColorScheme',
+    async (_, colorScheme: MantineColorScheme) => {
+      await setColorScheme(colorScheme);
+    }
+  );
 
   const mainWindow = getMainWindow();
   if (mainWindow) {

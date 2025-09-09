@@ -10,6 +10,7 @@ import {
   Select,
   Box,
   Anchor,
+  Badge,
 } from '@mantine/core';
 import { Folder, FolderOpen, Monitor } from 'lucide-react';
 import type { FrontendPreference } from '@/types';
@@ -24,6 +25,7 @@ interface FrontendRequirement {
 interface FrontendConfig {
   value: string;
   label: string;
+  badges: string[];
   requirements?: FrontendRequirement[];
   requirementCheck?: () => Promise<boolean>;
 }
@@ -44,10 +46,15 @@ export const GeneralTab = ({
 
   const frontendConfigs: FrontendConfig[] = useMemo(
     () => [
-      { value: 'koboldcpp', label: 'Built-in Interface' },
+      {
+        value: 'koboldcpp',
+        label: 'Built-in Interface',
+        badges: ['Text', 'Image'],
+      },
       {
         value: 'sillytavern',
         label: FRONTENDS.SILLYTAVERN,
+        badges: ['Text', 'Image'],
         requirements: [
           {
             id: 'nodejs',
@@ -60,6 +67,7 @@ export const GeneralTab = ({
       {
         value: 'openwebui',
         label: FRONTENDS.OPENWEBUI,
+        badges: ['Text'],
         requirements: [
           {
             id: 'uv',
@@ -186,6 +194,30 @@ export const GeneralTab = ({
     }
   };
 
+  const renderSelectOption = ({
+    option,
+  }: {
+    option: { value: string; label: string; disabled?: boolean };
+  }) => {
+    const config = frontendConfigs.find((c) => c.value === option.value);
+    if (!config) return <Text>{option.label}</Text>;
+
+    return (
+      <Group justify="space-between" wrap="nowrap">
+        <Text size="sm" truncate c={option.disabled ? 'dimmed' : undefined}>
+          {config.label}
+        </Text>
+        <Group gap={4}>
+          {config.badges.map((badge) => (
+            <Badge key={badge} size="sm" variant="light" color="blue">
+              {badge}
+            </Badge>
+          ))}
+        </Group>
+      </Group>
+    );
+  };
+
   return (
     <Stack gap="lg" h="100%">
       <div>
@@ -258,6 +290,7 @@ export const GeneralTab = ({
             disabled: !isFrontendAvailable(config.value),
           }))}
           leftSection={<Monitor style={{ width: rem(16), height: rem(16) }} />}
+          renderOption={renderSelectOption}
         />
 
         <Box mt="sm">

@@ -5,6 +5,7 @@ import type {
   GPUMemoryInfo,
 } from '@/types/hardware';
 import type { BackendOption, BackendSupport } from '@/types';
+import type { MantineColorScheme } from '@mantine/core';
 
 export interface GitHubAsset {
   name: string;
@@ -150,6 +151,8 @@ export interface AppAPI {
   closeWindow: () => void;
   getZoomLevel: () => Promise<number>;
   setZoomLevel: (level: number) => Promise<void>;
+  getColorScheme: () => Promise<MantineColorScheme>;
+  setColorScheme: (colorScheme: MantineColorScheme) => Promise<void>;
 }
 
 export interface ConfigAPI {

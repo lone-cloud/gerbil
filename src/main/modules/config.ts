@@ -2,8 +2,10 @@ import { logError } from '@/main/modules/logging';
 import { readJsonFile, writeJsonFile } from '@/utils/fs';
 import { getConfigDir } from '@/utils/path';
 import type { FrontendPreference } from '@/types';
+import type { MantineColorScheme } from '@mantine/core';
 import { homedir } from 'os';
 import { join } from 'path';
+import { nativeTheme } from 'electron';
 import { PRODUCT_NAME } from '@/constants';
 
 type ConfigValue = string | number | boolean | unknown[] | undefined;
@@ -13,6 +15,7 @@ interface AppConfig {
   currentKoboldBinary?: string;
   selectedConfig?: string;
   frontendPreference?: FrontendPreference;
+  colorScheme?: MantineColorScheme;
   [key: string]: ConfigValue;
 }
 
@@ -91,4 +94,25 @@ export function getSelectedConfig() {
 export async function setSelectedConfig(configName: string) {
   config.selectedConfig = configName;
   await saveConfig();
+}
+
+export function getColorScheme() {
+  return config.colorScheme || 'auto';
+}
+
+export async function setColorScheme(colorScheme: MantineColorScheme) {
+  config.colorScheme = colorScheme;
+  await saveConfig();
+}
+
+export function getBackgroundColor(): string {
+  const colorScheme = getColorScheme();
+
+  if (colorScheme === 'light') {
+    return '#ffffff';
+  } else if (colorScheme === 'dark') {
+    return '#1a1b1e';
+  } else {
+    return nativeTheme.shouldUseDarkColors ? '#1a1b1e' : '#ffffff';
+  }
 }

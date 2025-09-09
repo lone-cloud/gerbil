@@ -84,6 +84,9 @@ const appAPI: AppAPI = {
   closeWindow: () => ipcRenderer.invoke('app:closeWindow'),
   getZoomLevel: () => ipcRenderer.invoke('app:getZoomLevel'),
   setZoomLevel: (level) => ipcRenderer.invoke('app:setZoomLevel', level),
+  getColorScheme: () => ipcRenderer.invoke('app:getColorScheme'),
+  setColorScheme: (colorScheme) =>
+    ipcRenderer.invoke('app:setColorScheme', colorScheme),
 };
 
 const configAPI: ConfigAPI = {

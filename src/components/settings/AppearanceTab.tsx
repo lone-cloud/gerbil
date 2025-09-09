@@ -8,6 +8,7 @@ import {
   useComputedColorScheme,
   Slider,
   TextInput,
+  type MantineColorScheme,
 } from '@mantine/core';
 import { Sun, Moon, Monitor } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -32,19 +33,40 @@ export const AppearanceTab = () => {
   );
 
   useEffect(() => {
-    const loadZoomLevel = async () => {
-      const currentZoom = await safeExecute(
-        () => window.electronAPI.app.getZoomLevel(),
-        'Failed to load zoom level:'
-      );
+    const loadSettings = async () => {
+      const [currentZoom, savedColorScheme] = await Promise.all([
+        safeExecute(
+          () => window.electronAPI.app.getZoomLevel(),
+          'Failed to load zoom level:'
+        ),
+        safeExecute(
+          () => window.electronAPI.app.getColorScheme(),
+          'Failed to load color scheme:'
+        ),
+      ]);
+
       if (typeof currentZoom === 'number') {
         setZoomLevel(currentZoom);
         setZoomPercentage(zoomLevelToPercentage(currentZoom).toString());
       }
+
+      if (savedColorScheme && savedColorScheme !== colorScheme) {
+        setColorScheme(savedColorScheme as MantineColorScheme);
+      }
     };
 
-    void loadZoomLevel();
-  }, []);
+    void loadSettings();
+  }, [colorScheme, setColorScheme]);
+
+  const handleColorSchemeChange = async (value: string) => {
+    const newColorScheme = value as MantineColorScheme;
+    setColorScheme(newColorScheme);
+
+    await safeExecute(
+      () => window.electronAPI.app.setColorScheme(newColorScheme),
+      'Failed to save color scheme:'
+    );
+  };
 
   const handleZoomChange = async (newZoomLevel: number) => {
     setZoomLevel(newZoomLevel);
@@ -83,9 +105,7 @@ export const AppearanceTab = () => {
         <SegmentedControl
           fullWidth
           value={colorScheme}
-          onChange={(value) =>
-            setColorScheme(value as 'light' | 'dark' | 'auto')
-          }
+          onChange={handleColorSchemeChange}
           styles={(theme) => ({
             indicator: {
               backgroundColor: isDark
