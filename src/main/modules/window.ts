@@ -18,6 +18,8 @@ export function createMainWindow() {
     : join(__dirname, '../../assets/icon.png');
 
   mainWindow = new BrowserWindow({
+    minWidth: 600,
+    minHeight: 600,
     width: windowWidth,
     height: windowHeight,
     x: Math.floor((size.width - windowWidth) / 2),

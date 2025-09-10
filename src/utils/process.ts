@@ -9,8 +9,8 @@ export interface ProcessTerminationOptions {
 async function killWindowsProcessTree(
   pid: number,
   logError?: (message: string, error: Error) => void
-): Promise<void> {
-  return new Promise((resolve) => {
+) {
+  return new Promise<void>((resolve) => {
     const taskkill = spawn('taskkill', ['/pid', pid.toString(), '/t', '/f'], {
       stdio: 'pipe',
     });
@@ -35,7 +35,7 @@ async function killWindowsProcessTree(
 export async function terminateProcess(
   childProcess: ChildProcess,
   options: ProcessTerminationOptions = {}
-): Promise<void> {
+) {
   const { timeoutMs = 3000, logError } = options;
 
   if (!childProcess?.pid) {

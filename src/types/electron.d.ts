@@ -6,6 +6,7 @@ import type {
 } from '@/types/hardware';
 import type { BackendOption, BackendSupport } from '@/types';
 import type { MantineColorScheme } from '@mantine/core';
+import type { SystemMetrics } from '@/main/modules/monitoring';
 
 export interface GitHubAsset {
   name: string;
@@ -172,6 +173,13 @@ export interface OpenWebUIAPI {
   isUvAvailable: () => Promise<boolean>;
 }
 
+export interface MonitoringAPI {
+  start: () => Promise<void>;
+  stop: () => Promise<void>;
+  onMetrics: (callback: (metrics: SystemMetrics) => void) => void;
+  removeMetricsListener: () => void;
+}
+
 declare global {
   interface Window {
     electronAPI: {
@@ -181,6 +189,7 @@ declare global {
       logs: LogsAPI;
       sillytavern: SillyTavernAPI;
       openwebui: OpenWebUIAPI;
+      monitoring: MonitoringAPI;
     };
   }
 }

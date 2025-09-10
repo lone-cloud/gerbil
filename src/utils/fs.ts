@@ -1,7 +1,7 @@
 import { readFile, writeFile, access, mkdir } from 'fs/promises';
 import { constants } from 'fs';
 
-export const pathExists = async (path: string): Promise<boolean> => {
+export const pathExists = async (path: string) => {
   try {
     await access(path, constants.F_OK);
     return true;
@@ -21,15 +21,12 @@ export const readJsonFile = async <T = unknown>(
   }
 };
 
-export const writeJsonFile = async (
-  path: string,
-  data: unknown
-): Promise<void> => {
+export const writeJsonFile = async (path: string, data: unknown) => {
   const content = JSON.stringify(data, null, 2);
   await writeFile(path, content, 'utf-8');
 };
 
-export const ensureDir = async (path: string): Promise<void> => {
+export const ensureDir = async (path: string) => {
   try {
     await mkdir(path, { recursive: true });
   } catch (error) {

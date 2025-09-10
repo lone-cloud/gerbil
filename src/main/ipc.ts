@@ -42,6 +42,11 @@ import {
   detectBackendSupport,
   getAvailableBackends,
 } from '@/main/modules/binary';
+import {
+  setMainWindow,
+  startMonitoring,
+  stopMonitoring,
+} from '@/main/modules/monitoring';
 import type { FrontendPreference } from '@/types';
 
 async function launchKoboldCppWithCustomFrontends(args: string[] = []) {
@@ -229,4 +234,16 @@ export function setupIPCHandlers() {
   );
 
   ipcMain.handle('openwebui:isUvAvailable', () => isUvAvailable());
+
+  ipcMain.handle('monitoring:start', () => {
+    const mainWindow = getMainWindow();
+    if (mainWindow) {
+      setMainWindow(mainWindow);
+      startMonitoring();
+    }
+  });
+
+  ipcMain.handle('monitoring:stop', () => {
+    stopMonitoring();
+  });
 }

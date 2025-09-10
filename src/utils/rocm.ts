@@ -1,8 +1,7 @@
 import { GITHUB_API, ROCM } from '@/constants';
-import type { DownloadItem } from '@/types/electron';
 import type { GitHubAsset } from '@/types';
 
-export async function getROCmDownload(): Promise<DownloadItem | null> {
+export async function getROCmDownload() {
   const platform = await window.electronAPI.kobold.getPlatform();
 
   if (platform === 'linux') {
@@ -14,7 +13,7 @@ export async function getROCmDownload(): Promise<DownloadItem | null> {
   return null;
 }
 
-async function getLinuxROCmDownload(): Promise<DownloadItem | null> {
+async function getLinuxROCmDownload() {
   try {
     const response = await fetch(GITHUB_API.LATEST_RELEASE_URL);
     if (!response.ok) {
@@ -40,7 +39,7 @@ async function getLinuxROCmDownload(): Promise<DownloadItem | null> {
   }
 }
 
-async function getWindowsROCmDownload(): Promise<DownloadItem | null> {
+async function getWindowsROCmDownload() {
   try {
     const response = await fetch(GITHUB_API.ROCM_LATEST_RELEASE_URL);
     if (!response.ok) {

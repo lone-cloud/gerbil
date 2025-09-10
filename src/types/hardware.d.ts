@@ -34,6 +34,11 @@ export interface BasicGPUInfo {
   gpuInfo: string[];
 }
 
+export interface HardwareDetectionResult {
+  supported: boolean;
+  devices: string[];
+}
+
 export interface HardwareInfo {
   cpu: CPUCapabilities;
   gpu: BasicGPUInfo;

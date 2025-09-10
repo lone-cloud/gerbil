@@ -1,4 +1,4 @@
-const logError = (message: string, error: Error): void => {
+export const logError = (message: string, error: Error) => {
   if (window.electronAPI?.logs?.logError) {
     window.electronAPI.logs.logError(message, error);
   }
@@ -19,7 +19,7 @@ export const safeExecute = async <T>(
 export const tryExecute = async (
   operation: () => Promise<void>,
   errorMessage: string
-): Promise<boolean> => {
+) => {
   try {
     await operation();
     return true;
@@ -27,8 +27,4 @@ export const tryExecute = async (
     logError(errorMessage, error as Error);
     return false;
   }
-};
-
-export const error = (message: string, error: Error): void => {
-  logError(message, error);
 };

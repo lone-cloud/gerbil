@@ -7,14 +7,7 @@ import {
   useComputedColorScheme,
   AppShell,
 } from '@mantine/core';
-import {
-  Minus,
-  Square,
-  X,
-  Settings,
-  Copy,
-  CircleFadingArrowUp,
-} from 'lucide-react';
+import { Minus, Square, X, Copy, CircleFadingArrowUp } from 'lucide-react';
 import { useState } from 'react';
 import { soundAssets, playSound, initializeAudio } from '@/utils/sounds';
 import { useAppUpdateChecker } from '@/hooks/useAppUpdateChecker';
@@ -28,7 +21,6 @@ interface TitleBarProps {
   currentTab: InterfaceTab;
   onTabChange: (tab: InterfaceTab) => void;
   onEject: () => void;
-  onOpenSettings: () => void;
   frontendPreference: FrontendPreference;
 }
 
@@ -37,11 +29,10 @@ export const TitleBar = ({
   currentTab,
   onTabChange,
   onEject,
-  onOpenSettings,
   frontendPreference,
 }: TitleBarProps) => {
   const computedColorScheme = useComputedColorScheme('light', {
-    getInitialValueInEffect: false,
+    getInitialValueInEffect: true,
   });
   const { hasUpdate, releaseUrl } = useAppUpdateChecker();
   const { isImageGenerationMode } = useLaunchConfigStore();
@@ -233,30 +224,6 @@ export const TitleBar = ({
               <CircleFadingArrowUp size="1.25rem" />
             </ActionIcon>
           )}
-
-          <ActionIcon
-            variant="subtle"
-            size={TITLEBAR_HEIGHT}
-            onClick={onOpenSettings}
-            aria-label="Open settings"
-            tabIndex={-1}
-            style={{
-              borderRadius: '0.25rem',
-              margin: 0,
-              outline: 'none',
-            }}
-          >
-            <Settings size="1.25rem" />
-          </ActionIcon>
-
-          <Box
-            style={{
-              width: '0.0625rem',
-              height: '1.25rem',
-              backgroundColor: 'var(--mantine-color-default-border)',
-              margin: '0 0.25rem',
-            }}
-          />
 
           {[
             {

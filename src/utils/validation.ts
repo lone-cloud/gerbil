@@ -1,4 +1,4 @@
-const isValidUrl = (string: string): boolean => {
+const isValidUrl = (string: string) => {
   try {
     const url = new URL(string);
     return url.protocol === 'http:' || url.protocol === 'https:';
@@ -7,7 +7,7 @@ const isValidUrl = (string: string): boolean => {
   }
 };
 
-const isValidFilePath = (path: string): boolean => {
+const isValidFilePath = (path: string) => {
   if (!path.trim()) return false;
 
   const validExtensions = ['.gguf'];
@@ -18,9 +18,7 @@ const isValidFilePath = (path: string): boolean => {
   return hasValidExtension || path.includes('/') || path.includes('\\');
 };
 
-export const getInputValidationState = (
-  path: string
-): 'valid' | 'invalid' | 'neutral' => {
+export const getInputValidationState = (path: string) => {
   if (!path.trim()) return 'neutral';
 
   if (isValidUrl(path) || isValidFilePath(path)) {

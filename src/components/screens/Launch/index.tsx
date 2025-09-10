@@ -1,6 +1,6 @@
 import { Card, Container, Stack, Tabs, Group, Button } from '@mantine/core';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { tryExecute, error, safeExecute } from '@/utils/logger';
+import { tryExecute, logError, safeExecute } from '@/utils/logger';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 import { useLaunchLogic } from '@/hooks/useLaunchLogic';
 import { useWarnings } from '@/hooks/useWarnings';
@@ -197,7 +197,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
         setSelectedFile(fullConfigName);
         await window.electronAPI.kobold.setSelectedConfig(fullConfigName);
       } else {
-        error(
+        logError(
           'Failed to create new configuration',
           new Error('Save operation failed')
         );
@@ -207,7 +207,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
 
   const handleSaveConfig = async () => {
     if (!selectedFile) {
-      error(
+      logError(
         'No configuration file selected for saving',
         new Error('Selected file is null')
       );
@@ -221,7 +221,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
       );
 
       if (!saveSuccess) {
-        error(
+        logError(
           'Failed to save configuration',
           new Error('Save operation failed')
         );

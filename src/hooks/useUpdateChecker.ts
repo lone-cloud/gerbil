@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { error } from '@/utils/logger';
+import { logError } from '@/utils/logger';
 import {
   getDisplayNameFromPath,
   compareVersions,
@@ -36,7 +36,7 @@ export const useUpdateChecker = () => {
         }
         setDismissedUpdatesLoaded(true);
       } catch (err) {
-        error('Failed to load dismissed updates:', err as Error);
+        logError('Failed to load dismissed updates:', err as Error);
         setDismissedUpdatesLoaded(true);
       }
     };
@@ -51,7 +51,7 @@ export const useUpdateChecker = () => {
         Array.from(updates)
       );
     } catch (err) {
-      error('Failed to save dismissed updates:', err as Error);
+      logError('Failed to save dismissed updates:', err as Error);
     }
   }, []);
 
@@ -106,7 +106,7 @@ export const useUpdateChecker = () => {
         }
       }
     } catch (err) {
-      error('Failed to check for updates:', err as Error);
+      logError('Failed to check for updates:', err as Error);
     } finally {
       setIsChecking(false);
     }
