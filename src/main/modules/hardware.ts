@@ -1,6 +1,5 @@
 /* eslint-disable no-comments/disallowComments */
 import si from 'systeminformation';
-import { shortenDeviceName } from '@/utils/hardware';
 import { logError } from '@/main/modules/logging';
 import { terminateProcess } from '@/utils/process';
 import type {
@@ -8,8 +7,10 @@ import type {
   GPUCapabilities,
   BasicGPUInfo,
   GPUMemoryInfo,
+  HardwareDetectionResult,
 } from '@/types/hardware';
 import { spawn } from 'child_process';
+import { formatDeviceName } from '@/utils/format';
 
 let cpuCapabilitiesCache: CPUCapabilities | null = null;
 let basicGPUInfoCache: BasicGPUInfo | null = null;
@@ -26,7 +27,7 @@ export async function detectCPU() {
 
     const devices: string[] = [];
     if (cpu.brand) {
-      devices.push(shortenDeviceName(cpu.brand));
+      devices.push(formatDeviceName(cpu.brand));
     }
 
     const avx = flags.includes('avx') || flags.includes('AVX');
@@ -65,7 +66,7 @@ export async function detectGPU() {
 
     for (const controller of graphics.controllers) {
       if (controller.model) {
-        gpuInfo.push(shortenDeviceName(controller.model));
+        gpuInfo.push(formatDeviceName(controller.model));
       }
 
       const vendor = controller.vendor?.toLowerCase() || '';
@@ -142,10 +143,7 @@ async function detectCUDA() {
       output += data.toString();
     });
 
-    return new Promise<{
-      supported: boolean;
-      devices: string[];
-    }>((resolve) => {
+    return new Promise<HardwareDetectionResult>((resolve) => {
       nvidia.on('close', (code) => {
         if (code === 0 && output.trim()) {
           const devices = output
@@ -154,7 +152,7 @@ async function detectCUDA() {
             .map((line) => {
               const parts = line.split(',');
               const rawName = parts[0]?.trim() || 'Unknown NVIDIA GPU';
-              return shortenDeviceName(rawName);
+              return formatDeviceName(rawName);
             })
             .filter(Boolean);
 
@@ -206,10 +204,7 @@ export async function detectROCm() {
       output += data.toString();
     });
 
-    return new Promise<{
-      supported: boolean;
-      devices: string[];
-    }>((resolve) => {
+    return new Promise<HardwareDetectionResult>((resolve) => {
       // eslint-disable-next-line sonarjs/cognitive-complexity
       rocminfo.on('close', (code) => {
         if (code === 0 && output.trim()) {
@@ -225,9 +220,9 @@ export async function detectROCm() {
                 if (
                   name &&
                   !name.toLowerCase().includes('cpu') &&
-                  !devices.includes(shortenDeviceName(name))
+                  !devices.includes(formatDeviceName(name))
                 ) {
-                  devices.push(shortenDeviceName(name));
+                  devices.push(formatDeviceName(name));
                 }
               }
             }
@@ -262,7 +257,7 @@ export async function detectROCm() {
                   }
 
                   if (deviceType !== 'CPU') {
-                    devices.push(shortenDeviceName(name));
+                    devices.push(formatDeviceName(name));
                   }
                 }
               }
@@ -301,10 +296,7 @@ async function detectVulkan() {
       output += data.toString();
     });
 
-    return new Promise<{
-      supported: boolean;
-      devices: string[];
-    }>((resolve) => {
+    return new Promise<HardwareDetectionResult>((resolve) => {
       vulkaninfo.on('close', (code) => {
         if (code === 0 && output.trim()) {
           const devices: string[] = [];
@@ -316,7 +308,7 @@ async function detectVulkan() {
               if (parts.length >= 2) {
                 const name = parts[1]?.trim();
                 if (name) {
-                  devices.push(shortenDeviceName(name));
+                  devices.push(formatDeviceName(name));
                 }
               }
             }
@@ -363,7 +355,7 @@ function parseClInfoOutput(output: string) {
       const deviceName = findDeviceNameInClInfo(lines, i);
 
       if (deviceName && currentPlatform) {
-        const deviceLabel = `${shortenDeviceName(deviceName)} (${currentPlatform})`;
+        const deviceLabel = `${formatDeviceName(deviceName)} (${currentPlatform})`;
         devices.push(deviceLabel);
       }
     }
@@ -407,10 +399,7 @@ async function detectCLBlast() {
       output += data.toString();
     });
 
-    return new Promise<{
-      supported: boolean;
-      devices: string[];
-    }>((resolve) => {
+    return new Promise<HardwareDetectionResult>((resolve) => {
       clinfo.on('close', (code) => {
         if (code === 0 && output.trim()) {
           const devices = parseClInfoOutput(output);
@@ -456,7 +445,7 @@ export async function detectGPUMemory() {
         }
 
         memoryInfo.push({
-          deviceName: shortenDeviceName(controller.model),
+          deviceName: formatDeviceName(controller.model),
           totalMemoryMB: vram,
         });
       }

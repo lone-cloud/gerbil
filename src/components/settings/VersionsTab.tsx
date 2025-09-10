@@ -17,7 +17,7 @@ import {
   compareVersions,
 } from '@/utils/version';
 import { safeExecute } from '@/utils/logger';
-import { formatDownloadSize } from '@/utils/download';
+import { formatDownloadSize } from '@/utils/format';
 
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import type { InstalledVersion, ReleaseWithStatus } from '@/types/electron';

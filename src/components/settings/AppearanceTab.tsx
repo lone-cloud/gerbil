@@ -23,7 +23,7 @@ import { ZOOM } from '@/constants';
 export const AppearanceTab = () => {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme('light', {
-    getInitialValueInEffect: false,
+    getInitialValueInEffect: true,
   });
   const isDark = computedColorScheme === 'dark';
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { error } from '@/utils/logger';
+import { logError } from '@/utils/logger';
 import { getROCmDownload } from '@/utils/rocm';
 import { GITHUB_API } from '@/constants';
 import { filterAssetsByPlatform } from '@/utils/platform';
@@ -48,7 +48,7 @@ const saveToCache = (releases: DownloadItem[]) => {
     };
     localStorage.setItem(CACHE_KEY, JSON.stringify(data));
   } catch (err) {
-    error('Failed to save releases to cache', err as Error);
+    logError('Failed to save releases to cache', err as Error);
   }
 };
 
@@ -126,7 +126,7 @@ const getLatestReleaseWithDownloadStatus =
         availableAssets,
       };
     } catch (err) {
-      error('Failed to fetch latest release with status:', err as Error);
+      logError('Failed to fetch latest release with status:', err as Error);
       return null;
     }
   };
@@ -198,7 +198,7 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
 
       setAvailableDownloads(sortDownloadsByType(allDownloads));
     } catch (err) {
-      error('Failed to load remote versions:', err as Error);
+      logError('Failed to load remote versions:', err as Error);
       const cached = loadFromCache();
       if (cached) {
         const rocm = await getROCmDownload().catch(() => null);
@@ -236,7 +236,7 @@ export const useKoboldVersions = (): UseKoboldVersionsReturn => {
 
         return result.success !== false;
       } catch (err) {
-        error('Failed to download ${item.name}:', err as Error);
+        logError(`Failed to download ${item.name}:`, err as Error);
         return false;
       } finally {
         setDownloading(null);

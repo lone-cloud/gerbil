@@ -4,6 +4,8 @@ export const CONFIG_FILE_NAME = 'config.json';
 
 export const TITLEBAR_HEIGHT = '2.5rem';
 
+export const STATUSBAR_HEIGHT = '1.5rem';
+
 export const MODAL_STYLES_WITH_TITLEBAR = {
   overlay: {
     top: TITLEBAR_HEIGHT,

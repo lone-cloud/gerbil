@@ -1,8 +1,6 @@
 import type { InstalledVersion } from '@/types';
 
-export const getDisplayNameFromPath = (
-  installedVersion: InstalledVersion
-): string => {
+export const getDisplayNameFromPath = (installedVersion: InstalledVersion) => {
   const pathParts = installedVersion.path.split(/[/\\]/);
   const launcherIndex = pathParts.findIndex(
     (part) => part === 'koboldcpp-launcher' || part === 'koboldcpp-launcher.exe'
@@ -15,16 +13,16 @@ export const getDisplayNameFromPath = (
   return installedVersion.filename;
 };
 
-export const stripAssetExtensions = (assetName: string): string =>
+export const stripAssetExtensions = (assetName: string) =>
   assetName.replace(/\.(tar\.gz|zip|exe|dmg|AppImage)$/i, '');
 
-const stripVersionSuffix = (displayName: string): string =>
+const stripVersionSuffix = (displayName: string) =>
   displayName.replace(
     /-(\d+\.\d+(?:\.\d+)?(?:\.[a-zA-Z0-9]+)*(?:-[a-zA-Z0-9]+)*)$/,
     ''
   );
 
-export const compareVersions = (versionA: string, versionB: string): number => {
+export const compareVersions = (versionA: string, versionB: string) => {
   const cleanVersion = (version: string): string =>
     version.replace(/^v/, '').replace(/[^0-9.]/g, '');
 

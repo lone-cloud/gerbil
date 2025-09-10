@@ -5,15 +5,15 @@ import { LaunchScreen } from '@/components/screens/Launch';
 import { InterfaceScreen } from '@/components/screens/Interface';
 import { WelcomeScreen } from '@/components/screens/Welcome';
 import { UpdateAvailableModal } from '@/components/UpdateAvailableModal';
-import { SettingsModal } from '@/components/settings/SettingsModal';
 import { EjectConfirmModal } from '@/components/EjectConfirmModal';
 import { ScreenTransition } from '@/components/ScreenTransition';
 import { TitleBar } from '@/components/TitleBar';
+import { StatusBar } from '@/components/StatusBar';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import { safeExecute } from '@/utils/logger';
-import { TITLEBAR_HEIGHT } from '@/constants';
+import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
 import type { DownloadItem } from '@/types/electron';
 import type { InterfaceTab, FrontendPreference, Screen } from '@/types';
 
@@ -24,7 +24,6 @@ export const App = () => {
     useState<InterfaceTab>('terminal');
   const [frontendPreference, setFrontendPreference] =
     useState<FrontendPreference>('koboldcpp');
-  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [ejectConfirmModalOpen, setEjectConfirmModalOpen] = useState(false);
 
   const {
@@ -146,6 +145,7 @@ export const App = () => {
   return (
     <AppShell
       header={{ height: TITLEBAR_HEIGHT }}
+      footer={{ height: STATUSBAR_HEIGHT }}
       padding={currentScreen === 'interface' ? 0 : 'md'}
     >
       <TitleBar
@@ -153,7 +153,6 @@ export const App = () => {
         currentTab={activeInterfaceTab}
         onTabChange={setActiveInterfaceTab}
         onEject={handleEject}
-        onOpenSettings={() => setSettingsModalOpen(true)}
         frontendPreference={frontendPreference}
       />
 
@@ -219,22 +218,15 @@ export const App = () => {
           }
         />
       </AppShell.Main>
-      <SettingsModal
-        isOnInterfaceScreen={currentScreen === 'interface'}
-        opened={settingsModalOpen}
-        onClose={async () => {
-          setSettingsModalOpen(false);
-          const preference = await safeExecute(
-            () =>
-              window.electronAPI.config.get(
-                'frontendPreference'
-              ) as Promise<FrontendPreference>,
-            'Failed to load frontend preference:'
-          );
-          setFrontendPreference(preference || 'koboldcpp');
-        }}
-        currentScreen={currentScreen || undefined}
-      />
+
+      <AppShell.Footer>
+        <StatusBar
+          currentScreen={currentScreen}
+          frontendPreference={frontendPreference}
+          onFrontendPreferenceChange={setFrontendPreference}
+        />
+      </AppShell.Footer>
+
       <EjectConfirmModal
         opened={ejectConfirmModalOpen}
         onClose={() => setEjectConfirmModalOpen(false)}

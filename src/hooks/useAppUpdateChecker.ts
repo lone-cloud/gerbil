@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { error } from '@/utils/logger';
+import { logError } from '@/utils/logger';
 import { compareVersions } from '@/utils/version';
 import { GITHUB_API } from '@/constants';
 
@@ -50,7 +50,7 @@ export const useAppUpdateChecker = () => {
 
       return updateInfo;
     } catch (err) {
-      error('Failed to check for app updates:', err as Error);
+      logError('Failed to check for app updates:', err as Error);
       return null;
     } finally {
       setIsChecking(false);

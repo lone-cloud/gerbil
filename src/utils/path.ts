@@ -2,11 +2,11 @@ import { join } from 'path';
 import { homedir } from 'os';
 import { PRODUCT_NAME, CONFIG_FILE_NAME } from '@/constants';
 
-export function getConfigDir(): string {
+export function getConfigDir() {
   return join(getConfigDirPath(), CONFIG_FILE_NAME);
 }
 
-function getConfigDirPath(): string {
+function getConfigDirPath() {
   const platform = process.platform;
   const home = homedir();
 

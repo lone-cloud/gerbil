@@ -1,4 +1,4 @@
-import { Text, Group, Badge } from '@mantine/core';
+import { Text, Group, Badge, Box } from '@mantine/core';
 import type { BackendOption } from '@/types';
 
 type BackendSelectItemProps = Omit<BackendOption, 'value'>;
@@ -9,14 +9,16 @@ export const BackendSelectItem = ({
   disabled = false,
 }: BackendSelectItemProps) => (
   <Group justify="space-between" wrap="nowrap">
-    <Text size="sm" truncate>
-      {label}
-      {disabled && (
-        <Text component="span" size="xs" ml="xs">
-          (Compatible devices not found)
-        </Text>
-      )}
-    </Text>
+    <Box w={!disabled ? '3rem' : 'auto'}>
+      <Text size="sm" truncate>
+        {label}
+        {disabled && (
+          <Text component="span" size="xs" ml="xs">
+            (Compatible devices not found)
+          </Text>
+        )}
+      </Text>
+    </Box>
     {devices && devices.length > 0 && (
       <Group gap={4}>
         {devices.slice(0, 2).map((device, index) => (

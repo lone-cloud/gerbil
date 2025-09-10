@@ -375,7 +375,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   loadConfigFromFile: async (
     configFiles: ConfigFile[],
     savedConfig: string | null
-  ): Promise<string | null> => {
+  ) => {
     let currentSelectedFile = null;
 
     if (savedConfig) {

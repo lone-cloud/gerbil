@@ -48,7 +48,7 @@ export const DownloadCard = ({
   onUpdate,
 }: DownloadCardProps) => {
   const computedColorScheme = useComputedColorScheme('light', {
-    getInitialValueInEffect: false,
+    getInitialValueInEffect: true,
   });
   const isDark = computedColorScheme === 'dark';
   const renderActionButtons = () => {

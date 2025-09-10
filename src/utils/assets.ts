@@ -1,7 +1,7 @@
 import { ASSET_SUFFIXES } from '@/constants';
 import { stripAssetExtensions } from '@/utils/version';
 
-export const getAssetDescription = (assetName: string): string => {
+export const getAssetDescription = (assetName: string) => {
   const name = stripAssetExtensions(assetName).toLowerCase();
 
   if (name.includes(ASSET_SUFFIXES.ROCM)) {
@@ -19,7 +19,7 @@ export const getAssetDescription = (assetName: string): string => {
   return "Standard build that's ideal for most cases.";
 };
 
-export const isAssetStandard = (assetName: string): boolean => {
+export const isAssetStandard = (assetName: string) => {
   const name = stripAssetExtensions(assetName).toLowerCase();
 
   return (
@@ -54,7 +54,7 @@ export const sortDownloadsByType = <T extends { name: string }>(
     return a.name.localeCompare(b.name);
   });
 
-export const pretifyBinName = (binName: string): string => {
+export const pretifyBinName = (binName: string) => {
   const cleanName = stripAssetExtensions(binName).toLowerCase();
 
   if (cleanName.includes(ASSET_SUFFIXES.ROCM)) {

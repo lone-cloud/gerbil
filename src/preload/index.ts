@@ -6,6 +6,7 @@ import type {
   LogsAPI,
   SillyTavernAPI,
   OpenWebUIAPI,
+  MonitoringAPI,
 } from '@/types/electron';
 
 const koboldAPI: KoboldAPI = {
@@ -107,6 +108,17 @@ const openwebUIAPI: OpenWebUIAPI = {
   isUvAvailable: () => ipcRenderer.invoke('openwebui:isUvAvailable'),
 };
 
+const monitoringAPI: MonitoringAPI = {
+  start: () => ipcRenderer.invoke('monitoring:start'),
+  stop: () => ipcRenderer.invoke('monitoring:stop'),
+  onMetrics: (callback) => {
+    ipcRenderer.on('system-metrics', (_, metrics) => callback(metrics));
+  },
+  removeMetricsListener: () => {
+    ipcRenderer.removeAllListeners('system-metrics');
+  },
+};
+
 contextBridge.exposeInMainWorld('electronAPI', {
   kobold: koboldAPI,
   app: appAPI,
@@ -114,4 +126,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   logs: logsAPI,
   sillytavern: sillyTavernAPI,
   openwebui: openwebUIAPI,
+  monitoring: monitoringAPI,
 });

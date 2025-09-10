@@ -30,7 +30,7 @@ export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
   ({ onServerReady, frontendPreference = 'koboldcpp' }, ref) => {
     const { host, port, isImageGenerationMode } = useLaunchConfigStore();
     const computedColorScheme = useComputedColorScheme('light', {
-      getInitialValueInEffect: false,
+      getInitialValueInEffect: true,
     });
     const [terminalContent, setTerminalContent] = useState<string>('');
     const [isUserScrolling, setIsUserScrolling] = useState<boolean>(false);

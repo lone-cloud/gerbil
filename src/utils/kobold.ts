@@ -1,10 +1,4 @@
-export interface KoboldConfig {
-  host: string;
-  port: number;
-  isImageMode: boolean;
-}
-
-export function parseKoboldConfig(args: string[]): KoboldConfig {
+export function parseKoboldConfig(args: string[]) {
   let host = 'localhost';
   let port = 5001;
   let hasSdModel = false;
