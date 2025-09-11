@@ -17,11 +17,12 @@ if (process.argv[1] === '--version') {
     process.exit(0);
   })();
 } else {
-  const isCliMode = process.argv.includes('--cli');
+  (async () => {
+    const isCliMode = process.argv.includes('--cli');
 
-  if (isCliMode) {
-    import('./cli')
-      .then(async (cliModule) => {
+    if (isCliMode) {
+      try {
+        const cliModule = await import('./cli');
         const args = process.argv.slice(process.argv.indexOf('--cli') + 1);
         try {
           await cliModule.handleCliMode(args);
@@ -30,18 +31,19 @@ if (process.argv[1] === '--version') {
           console.error('CLI mode error:', error);
           process.exit(1);
         }
-      })
-      .catch((error) => {
+      } catch (error) {
         // eslint-disable-next-line no-console
         console.error('Failed to load CLI module:', error);
         process.exit(1);
-      });
-  } else {
-    import('./gui').then((guiModule) => {
-      guiModule.initializeApp().catch((error: unknown) => {
+      }
+    } else {
+      try {
+        const guiModule = await import('./gui');
+        await guiModule.initializeApp();
+      } catch (error: unknown) {
         // eslint-disable-next-line no-console
         console.error('Failed to initialize Gerbil:', error);
-      });
-    });
-  }
+      }
+    }
+  })();
 }

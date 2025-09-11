@@ -480,11 +480,12 @@ export async function stopFrontend() {
 
   if (sillyTavernProcess) {
     promises.push(
-      terminateProcess(sillyTavernProcess, {
-        logError: (message, error) => logError(message, error),
-      }).then(() => {
+      (async () => {
+        await terminateProcess(sillyTavernProcess, {
+          logError: (message, error) => logError(message, error),
+        });
         sillyTavernProcess = null;
-      })
+      })()
     );
   }
 

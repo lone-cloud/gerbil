@@ -45,12 +45,21 @@ async function detectBackendSupportFromPath(koboldBinaryPath: string) {
       }
     };
 
-    support.rocm = await hasKoboldCppLib('koboldcpp_hipblas');
-    support.vulkan = await hasKoboldCppLib('koboldcpp_vulkan');
-    support.clblast = await hasKoboldCppLib('koboldcpp_clblast');
-    support.noavx2 = await hasKoboldCppLib('koboldcpp_noavx2');
-    support.failsafe = await hasKoboldCppLib('koboldcpp_failsafe');
-    support.cuda = await hasKoboldCppLib('koboldcpp_cublas');
+    const [rocm, vulkan, clblast, noavx2, failsafe, cuda] = await Promise.all([
+      hasKoboldCppLib('koboldcpp_hipblas'),
+      hasKoboldCppLib('koboldcpp_vulkan'),
+      hasKoboldCppLib('koboldcpp_clblast'),
+      hasKoboldCppLib('koboldcpp_noavx2'),
+      hasKoboldCppLib('koboldcpp_failsafe'),
+      hasKoboldCppLib('koboldcpp_cublas'),
+    ]);
+
+    support.rocm = rocm;
+    support.vulkan = vulkan;
+    support.clblast = clblast;
+    support.noavx2 = noavx2;
+    support.failsafe = failsafe;
+    support.cuda = cuda;
   } catch (error) {
     logError('Error detecting backend support:', error as Error);
   }

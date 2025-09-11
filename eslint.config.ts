@@ -6,7 +6,10 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import react from 'eslint-plugin-react';
 import importPlugin from 'eslint-plugin-import';
 import sonarjs from 'eslint-plugin-sonarjs';
+// @ts-ignore - No types available
 import noComments from 'eslint-plugin-no-comments';
+// @ts-ignore - No types available
+import promise from 'eslint-plugin-promise';
 
 const config = [
   js.configs.recommended,
@@ -53,6 +56,7 @@ const config = [
       import: importPlugin,
       sonarjs: sonarjs,
       'no-comments': noComments,
+      promise: promise,
     },
     settings: {
       react: {
@@ -155,6 +159,19 @@ const config = [
 
       'sonarjs/cognitive-complexity': ['warn', 25],
 
+      // Promise rules to prevent sequential awaits (no warnings, only errors)
+      'promise/prefer-await-to-then': 'error', // Enforce async/await
+      'promise/prefer-await-to-callbacks': 'off', // Too aggressive for Electron APIs
+      'promise/no-nesting': 'error', // No nested promises
+      'promise/no-promise-in-callback': 'off', // Common in Electron
+      'promise/no-callback-in-promise': 'off', // Common in Electron
+      'promise/avoid-new': 'off', // Sometimes needed for wrapping APIs
+      'promise/no-new-statics': 'error',
+      'promise/no-return-wrap': 'error',
+      'promise/param-names': 'error',
+      'promise/catch-or-return': 'off', // Too strict for some patterns
+      'promise/no-native': 'off',
+
       'no-comments/disallowComments': 'error',
     },
   },
@@ -187,6 +204,7 @@ const config = [
       '@typescript-eslint/return-await': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
     },
   },
   {
