@@ -45,9 +45,7 @@ let cpuInterval: ReturnType<typeof setInterval> | null = null;
 let memoryInterval: ReturnType<typeof setInterval> | null = null;
 let gpuInterval: ReturnType<typeof setInterval> | null = null;
 let isRunning = false;
-const cpuUpdateFrequency = 1000;
-const memoryUpdateFrequency = 1000;
-const gpuUpdateFrequency = 2000;
+const updateFrequency = 2000;
 let mainWindow: BrowserWindow | null = null;
 
 export function startMonitoring(window: BrowserWindow) {
@@ -59,17 +57,17 @@ export function startMonitoring(window: BrowserWindow) {
   collectAndSendCpuMetrics();
   cpuInterval = setInterval(() => {
     collectAndSendCpuMetrics();
-  }, cpuUpdateFrequency);
+  }, updateFrequency);
 
   collectAndSendMemoryMetrics();
   memoryInterval = setInterval(() => {
     collectAndSendMemoryMetrics();
-  }, memoryUpdateFrequency);
+  }, updateFrequency);
 
   collectAndSendGpuMetrics();
   gpuInterval = setInterval(() => {
     collectAndSendGpuMetrics();
-  }, gpuUpdateFrequency);
+  }, updateFrequency);
 }
 
 export function stopMonitoring() {
@@ -109,8 +107,8 @@ async function collectAndSendMemoryMetrics() {
     const usedBytes = memData.active || memData.used;
     const totalBytes = memData.total;
     const metrics: MemoryMetrics = {
-      used: Math.round(usedBytes / (1024 * 1024 * 1024) * 10) / 10,
-      total: Math.round(totalBytes / (1024 * 1024 * 1024) * 10) / 10,
+      used: Math.round((usedBytes / (1024 * 1024 * 1024)) * 10) / 10,
+      total: Math.round((totalBytes / (1024 * 1024 * 1024)) * 10) / 10,
       usage: (usedBytes / totalBytes) * 100,
     };
 

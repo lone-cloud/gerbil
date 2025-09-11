@@ -6,7 +6,6 @@ import {
   Tooltip,
   Badge,
   Group,
-  useMantineTheme,
   useComputedColorScheme,
 } from '@mantine/core';
 import { Settings } from 'lucide-react';
@@ -38,7 +37,6 @@ export const StatusBar = ({
   );
   const [gpuMetrics, setGpuMetrics] = useState<GpuMetrics | null>(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
-  const theme = useMantineTheme();
   const colorScheme = useComputedColorScheme('light', {
     getInitialValueInEffect: true,
   });
@@ -75,15 +73,10 @@ export const StatusBar = ({
     };
   }, [maxDataPoints]);
 
-  if (!cpuMetrics || !memoryMetrics) {
-    return null;
-  }
-
   return (
     <Box
       px="xs"
       style={{
-        borderTop: `1px solid ${colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3]}`,
         backgroundColor:
           colorScheme === 'dark'
             ? 'var(--mantine-color-dark-8)'
@@ -91,32 +84,36 @@ export const StatusBar = ({
       }}
     >
       <Flex align="center" justify="space-between">
-        <Group gap="xs" wrap="nowrap">
-          <Tooltip label={`${cpuMetrics.usage.toFixed(1)}%`} position="top">
-            <Badge
-              size="sm"
-              variant="light"
-              style={{ minWidth: '5rem', textAlign: 'center' }}
-            >
-              CPU: {cpuMetrics.usage.toFixed(1)}%
-            </Badge>
-          </Tooltip>
+        <Group gap="xs">
+          {cpuMetrics && memoryMetrics && (
+            <>
+              <Tooltip label={`${cpuMetrics.usage.toFixed(1)}%`} position="top">
+                <Badge
+                  size="sm"
+                  variant="light"
+                  style={{ minWidth: '5rem', textAlign: 'center' }}
+                >
+                  CPU: {cpuMetrics.usage.toFixed(1)}%
+                </Badge>
+              </Tooltip>
 
-          <Tooltip
-            label={`${memoryMetrics.used.toFixed(1)} GB / ${memoryMetrics.total.toFixed(1)} GB (${memoryMetrics.usage.toFixed(1)}%)`}
-            position="top"
-          >
-            <Badge
-              size="sm"
-              variant="light"
-              style={{ minWidth: '5rem', textAlign: 'center' }}
-            >
-              RAM: {memoryMetrics.usage.toFixed(1)}%
-            </Badge>
-          </Tooltip>
+              <Tooltip
+                label={`${memoryMetrics.used.toFixed(1)} GB / ${memoryMetrics.total.toFixed(1)} GB (${memoryMetrics.usage.toFixed(1)}%)`}
+                position="top"
+              >
+                <Badge
+                  size="sm"
+                  variant="light"
+                  style={{ minWidth: '5rem', textAlign: 'center' }}
+                >
+                  RAM: {memoryMetrics.usage.toFixed(1)}%
+                </Badge>
+              </Tooltip>
+            </>
+          )}
 
           {gpuMetrics?.gpus.map((gpu, index) => (
-            <Group key={`gpu-${index}`} gap={4} wrap="nowrap">
+            <Group gap="xs" key={`gpu-${index}`}>
               <Tooltip label={`${gpu.usage.toFixed(1)}%`} position="top">
                 <Badge
                   size="sm"
