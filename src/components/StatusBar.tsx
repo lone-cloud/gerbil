@@ -57,12 +57,8 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
       px="xs"
       gap="xs"
       justify="flex-end"
-      style={{
-        backgroundColor:
-          colorScheme === 'dark'
-            ? 'var(--mantine-color-dark-8)'
-            : 'var(--mantine-color-gray-1)',
-      }}
+      h="100%"
+      bg={colorScheme === 'dark' ? 'dark.8' : 'gray.1'}
     >
       {cpuMetrics && memoryMetrics && (
         <>
