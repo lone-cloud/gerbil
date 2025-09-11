@@ -1,3 +1,4 @@
+import { platform } from 'process';
 import si from 'systeminformation';
 import { BrowserWindow } from 'electron';
 import { logError } from '@/main/modules/logging';
@@ -45,7 +46,7 @@ let cpuInterval: ReturnType<typeof setInterval> | null = null;
 let memoryInterval: ReturnType<typeof setInterval> | null = null;
 let gpuInterval: ReturnType<typeof setInterval> | null = null;
 let isRunning = false;
-const updateFrequency = 2000;
+const updateFrequency = platform === 'win32' ? 2000 : 1000;
 let mainWindow: BrowserWindow | null = null;
 
 export function startMonitoring(window: BrowserWindow) {

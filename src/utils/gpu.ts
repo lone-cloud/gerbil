@@ -167,9 +167,8 @@ foreach ($gpu in $gpus) {
             gpus.push({
               deviceName: name,
               usage: Math.round(utilization * 100) / 100,
-              memoryUsed: usedRAM > 0 ? Math.round(usedRAM / (1024 * 1024 * 1024)) : 0,
-              memoryTotal:
-                totalRAM > 0 ? Math.round(totalRAM / (1024 * 1024 * 1024)) : 0,
+              memoryUsed: usedRAM > 0 ? usedRAM / (1024 * 1024 * 1024) : 0,
+              memoryTotal: totalRAM > 0 ? totalRAM / (1024 * 1024 * 1024) : 0,
             });
           }
         }
@@ -214,12 +213,10 @@ async function getLinuxGPUData() {
         );
 
         const usage = parseInt(usageData.trim(), 10) || 0;
-        const memoryUsed = Math.round(
-          (parseInt(memUsedData.trim(), 10) || 0) / (1024 * 1024 * 1024)
-        );
-        const memoryTotal = Math.round(
-          (parseInt(memTotalData.trim(), 10) || 0) / (1024 * 1024 * 1024)
-        );
+        const memoryUsed =
+          (parseInt(memUsedData.trim(), 10) || 0) / (1024 * 1024 * 1024);
+        const memoryTotal =
+          (parseInt(memTotalData.trim(), 10) || 0) / (1024 * 1024 * 1024);
 
         gpus.push({
           deviceName: 'GPU',
