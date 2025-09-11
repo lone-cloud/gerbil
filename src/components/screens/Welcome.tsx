@@ -59,7 +59,7 @@ export const WelcomeScreen = ({ onGetStarted }: WelcomeScreenProps) => (
                   <Text component="span" fw={500}>
                     Generate images
                   </Text>{' '}
-                  - Create artwork and illustrations with AI image models
+                  - Easily create artwork and illustrations with LLMs
                 </Text>
               </List.Item>
               <List.Item>
@@ -75,16 +75,14 @@ export const WelcomeScreen = ({ onGetStarted }: WelcomeScreenProps) => (
                   <Text component="span" fw={500}>
                     Hardware acceleration
                   </Text>{' '}
-                  - Supports CUDA, ROCm, Vulkan, CLBlast and CPU backends for
-                  faster inference
+                  - Supports CUDA, ROCm, Vulkan and CLBlast backends
                 </Text>
               </List.Item>
             </List>
 
             <Text size="xs" c="dimmed" ta="center" mt="sm">
-              Note: Hardware acceleration requires appropriate drivers to be
-              manually installed by the user (CUDA for NVIDIA GPUs, ROCm for AMD
-              GPUs, etc.)
+              Hardware acceleration requires appropriate drivers to be manually
+              installed (CUDA for NVIDIA GPUs, ROCm for AMD GPUs, etc.)
             </Text>
           </Stack>
 
