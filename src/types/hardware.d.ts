@@ -6,7 +6,7 @@ export interface CPUCapabilities {
 
 export interface GPUMemoryInfo {
   deviceName: string;
-  totalMemoryMB: number | null;
+  totalMemoryGB: number | null;
 }
 
 export interface GPUCapabilities {

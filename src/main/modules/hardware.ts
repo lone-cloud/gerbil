@@ -444,7 +444,7 @@ export async function detectGPUMemory() {
 
         memoryInfo.push({
           deviceName: formatDeviceName(gpu.deviceName),
-          totalMemoryMB: vram,
+          totalMemoryGB: vram,
         });
       }
     }

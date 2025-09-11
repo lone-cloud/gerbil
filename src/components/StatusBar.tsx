@@ -103,7 +103,7 @@ export const StatusBar = ({
           </Tooltip>
 
           <Tooltip
-            label={`${(memoryMetrics.used / 1024 ** 3).toFixed(1)} GB / ${(memoryMetrics.total / 1024 ** 3).toFixed(1)} GB (${memoryMetrics.usage.toFixed(1)}%)`}
+            label={`${memoryMetrics.used.toFixed(1)} GB / ${memoryMetrics.total.toFixed(1)} GB (${memoryMetrics.usage.toFixed(1)}%)`}
             position="top"
           >
             <Badge
@@ -128,7 +128,7 @@ export const StatusBar = ({
               </Tooltip>
 
               <Tooltip
-                label={`${(gpu.memoryUsed / 1024).toFixed(1)} GB / ${(gpu.memoryTotal / 1024).toFixed(1)} GB (${gpu.memoryUsage.toFixed(1)}%)`}
+                label={`${gpu.memoryUsed.toFixed(1)} GB / ${gpu.memoryTotal.toFixed(1)} GB (${gpu.memoryUsage.toFixed(1)}%)`}
                 position="top"
               >
                 <Badge
