@@ -4,6 +4,7 @@ import {
   OPENWEBUI,
   FRONTENDS,
   TITLEBAR_HEIGHT,
+  STATUSBAR_HEIGHT,
 } from '@/constants';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 import type { FrontendPreference } from '@/types';
@@ -65,7 +66,7 @@ export const ServerTab = ({
     <Box
       style={{
         width: '100%',
-        height: `calc(100vh - ${TITLEBAR_HEIGHT})`,
+        height: `calc(100vh - ${TITLEBAR_HEIGHT} - ${STATUSBAR_HEIGHT})`,
         overflow: 'hidden',
       }}
     >

@@ -25,6 +25,7 @@ export const App = () => {
   const [frontendPreference, setFrontendPreference] =
     useState<FrontendPreference>('koboldcpp');
   const [ejectConfirmModalOpen, setEjectConfirmModalOpen] = useState(false);
+  const isInterfaceScreen = currentScreen === 'interface';
 
   const {
     updateInfo: binaryUpdateInfo,
@@ -146,7 +147,7 @@ export const App = () => {
     <AppShell
       header={{ height: TITLEBAR_HEIGHT }}
       footer={{ height: STATUSBAR_HEIGHT }}
-      padding={currentScreen === 'interface' ? 0 : 'md'}
+      padding={isInterfaceScreen ? 0 : 'md'}
     >
       <TitleBar
         currentScreen={currentScreen || 'welcome'}
@@ -154,9 +155,21 @@ export const App = () => {
         onTabChange={setActiveInterfaceTab}
         onEject={handleEject}
         frontendPreference={frontendPreference}
+        onFrontendPreferenceChange={setFrontendPreference}
       />
 
-      <AppShell.Main>
+      <AppShell.Main
+        top={TITLEBAR_HEIGHT}
+        style={{
+          height: `calc(100vh - ${TITLEBAR_HEIGHT} - ${STATUSBAR_HEIGHT})`,
+          minHeight: `calc(100vh - ${TITLEBAR_HEIGHT} - ${STATUSBAR_HEIGHT})`,
+          position: 'relative',
+          overflow: 'auto',
+          paddingTop: 0,
+          top: TITLEBAR_HEIGHT,
+          paddingBottom: isInterfaceScreen ? 0 : '1rem',
+        }}
+      >
         <ErrorBoundary>
           {currentScreen === null ? (
             <Center h="100%" style={{ minHeight: '25rem' }}>
@@ -191,7 +204,7 @@ export const App = () => {
               </ScreenTransition>
 
               <ScreenTransition
-                isActive={currentScreen === 'interface'}
+                isActive={isInterfaceScreen}
                 shouldAnimate={hasInitialized}
               >
                 <InterfaceScreen
@@ -220,11 +233,7 @@ export const App = () => {
       </AppShell.Main>
 
       <AppShell.Footer>
-        <StatusBar
-          currentScreen={currentScreen}
-          frontendPreference={frontendPreference}
-          onFrontendPreferenceChange={setFrontendPreference}
-        />
+        <StatusBar />
       </AppShell.Footer>
 
       <EjectConfirmModal

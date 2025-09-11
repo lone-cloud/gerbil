@@ -1,17 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  Box,
-  Flex,
-  ActionIcon,
-  Tooltip,
-  Badge,
-  Group,
-  useComputedColorScheme,
-} from '@mantine/core';
-import { Settings } from 'lucide-react';
-import { SettingsModal } from '@/components/settings/SettingsModal';
-import { safeExecute } from '@/utils/logger';
-import type { FrontendPreference, Screen } from '@/types';
+import { Badge, Group, Tooltip, useComputedColorScheme } from '@mantine/core';
 import type {
   CpuMetrics,
   MemoryMetrics,
@@ -20,23 +8,14 @@ import type {
 
 interface StatusBarProps {
   maxDataPoints?: number;
-  currentScreen: Screen | null;
-  frontendPreference: FrontendPreference;
-  onFrontendPreferenceChange: (preference: FrontendPreference) => void;
 }
 
-export const StatusBar = ({
-  maxDataPoints = 60,
-  currentScreen,
-  frontendPreference: _frontendPreference,
-  onFrontendPreferenceChange,
-}: StatusBarProps) => {
+export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
   const [cpuMetrics, setCpuMetrics] = useState<CpuMetrics | null>(null);
   const [memoryMetrics, setMemoryMetrics] = useState<MemoryMetrics | null>(
     null
   );
   const [gpuMetrics, setGpuMetrics] = useState<GpuMetrics | null>(null);
-  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const colorScheme = useComputedColorScheme('light', {
     getInitialValueInEffect: true,
   });
@@ -74,8 +53,10 @@ export const StatusBar = ({
   }, [maxDataPoints]);
 
   return (
-    <Box
+    <Group
       px="xs"
+      gap="xs"
+      justify="flex-end"
       style={{
         backgroundColor:
           colorScheme === 'dark'
@@ -83,94 +64,59 @@ export const StatusBar = ({
             : 'var(--mantine-color-gray-1)',
       }}
     >
-      <Flex align="center" justify="space-between">
-        <Group gap="xs">
-          {cpuMetrics && memoryMetrics && (
-            <>
-              <Tooltip label={`${cpuMetrics.usage.toFixed(1)}%`} position="top">
-                <Badge
-                  size="sm"
-                  variant="light"
-                  style={{ minWidth: '5rem', textAlign: 'center' }}
-                >
-                  CPU: {cpuMetrics.usage.toFixed(1)}%
-                </Badge>
-              </Tooltip>
+      {cpuMetrics && memoryMetrics && (
+        <>
+          <Tooltip label={`${cpuMetrics.usage.toFixed(1)}%`} position="top">
+            <Badge
+              size="sm"
+              variant="light"
+              style={{ minWidth: '5rem', textAlign: 'center' }}
+            >
+              CPU: {cpuMetrics.usage.toFixed(1)}%
+            </Badge>
+          </Tooltip>
 
-              <Tooltip
-                label={`${memoryMetrics.used.toFixed(1)} GB / ${memoryMetrics.total.toFixed(1)} GB (${memoryMetrics.usage.toFixed(1)}%)`}
-                position="top"
-              >
-                <Badge
-                  size="sm"
-                  variant="light"
-                  style={{ minWidth: '5rem', textAlign: 'center' }}
-                >
-                  RAM: {memoryMetrics.usage.toFixed(1)}%
-                </Badge>
-              </Tooltip>
-            </>
-          )}
-
-          {gpuMetrics?.gpus.map((gpu, index) => (
-            <Group gap="xs" key={`gpu-${index}`}>
-              <Tooltip label={`${gpu.usage.toFixed(1)}%`} position="top">
-                <Badge
-                  size="sm"
-                  variant="light"
-                  style={{ minWidth: '5rem', textAlign: 'center' }}
-                >
-                  GPU: {gpu.usage.toFixed(1)}%
-                </Badge>
-              </Tooltip>
-
-              <Tooltip
-                label={`${gpu.memoryUsed.toFixed(1)} GB / ${gpu.memoryTotal.toFixed(1)} GB (${gpu.memoryUsage.toFixed(1)}%)`}
-                position="top"
-              >
-                <Badge
-                  size="sm"
-                  variant="light"
-                  style={{ minWidth: '5rem', textAlign: 'center' }}
-                >
-                  VRAM: {gpu.memoryUsage.toFixed(1)}%
-                </Badge>
-              </Tooltip>
-            </Group>
-          ))}
-        </Group>
-
-        <Tooltip label="Settings" position="top">
-          <ActionIcon
-            variant="subtle"
-            size="sm"
-            onClick={() => setSettingsModalOpen(true)}
-            aria-label="Open settings"
-            style={{
-              borderRadius: '0.25rem',
-            }}
+          <Tooltip
+            label={`${memoryMetrics.used.toFixed(1)} GB / ${memoryMetrics.total.toFixed(1)} GB (${memoryMetrics.usage.toFixed(1)}%)`}
+            position="top"
           >
-            <Settings size="1rem" />
-          </ActionIcon>
-        </Tooltip>
-      </Flex>
+            <Badge
+              size="sm"
+              variant="light"
+              style={{ minWidth: '5rem', textAlign: 'center' }}
+            >
+              RAM: {memoryMetrics.usage.toFixed(1)}%
+            </Badge>
+          </Tooltip>
+        </>
+      )}
 
-      <SettingsModal
-        isOnInterfaceScreen={currentScreen === 'interface'}
-        opened={settingsModalOpen}
-        onClose={async () => {
-          setSettingsModalOpen(false);
-          const preference = await safeExecute(
-            () =>
-              window.electronAPI.config.get(
-                'frontendPreference'
-              ) as Promise<FrontendPreference>,
-            'Failed to load frontend preference:'
-          );
-          onFrontendPreferenceChange(preference || 'koboldcpp');
-        }}
-        currentScreen={currentScreen || undefined}
-      />
-    </Box>
+      {gpuMetrics?.gpus.map((gpu, index) => (
+        <Group gap="xs" key={`gpu-${index}`}>
+          <Tooltip label={`${gpu.usage.toFixed(1)}%`} position="top">
+            <Badge
+              size="sm"
+              variant="light"
+              style={{ minWidth: '5rem', textAlign: 'center' }}
+            >
+              GPU: {gpu.usage.toFixed(1)}%
+            </Badge>
+          </Tooltip>
+
+          <Tooltip
+            label={`${gpu.memoryUsed.toFixed(1)} GB / ${gpu.memoryTotal.toFixed(1)} GB (${gpu.memoryUsage.toFixed(1)}%)`}
+            position="top"
+          >
+            <Badge
+              size="sm"
+              variant="light"
+              style={{ minWidth: '5rem', textAlign: 'center' }}
+            >
+              VRAM: {gpu.memoryUsage.toFixed(1)}%
+            </Badge>
+          </Tooltip>
+        </Group>
+      ))}
+    </Group>
   );
 };

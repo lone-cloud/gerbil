@@ -7,11 +7,20 @@ import {
   useComputedColorScheme,
   AppShell,
 } from '@mantine/core';
-import { Minus, Square, X, Copy, CircleFadingArrowUp } from 'lucide-react';
+import {
+  Minus,
+  Square,
+  X,
+  Copy,
+  CircleFadingArrowUp,
+  Settings,
+} from 'lucide-react';
 import { useState } from 'react';
 import { soundAssets, playSound, initializeAudio } from '@/utils/sounds';
 import { useAppUpdateChecker } from '@/hooks/useAppUpdateChecker';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
+import { SettingsModal } from '@/components/settings/SettingsModal';
+import { safeExecute } from '@/utils/logger';
 import iconUrl from '/icon.png';
 import { FRONTENDS, PRODUCT_NAME, TITLEBAR_HEIGHT } from '@/constants';
 import type { FrontendPreference, InterfaceTab, Screen } from '@/types';
@@ -22,6 +31,7 @@ interface TitleBarProps {
   onTabChange: (tab: InterfaceTab) => void;
   onEject: () => void;
   frontendPreference: FrontendPreference;
+  onFrontendPreferenceChange: (preference: FrontendPreference) => void;
 }
 
 export const TitleBar = ({
@@ -30,6 +40,7 @@ export const TitleBar = ({
   onTabChange,
   onEject,
   frontendPreference,
+  onFrontendPreferenceChange,
 }: TitleBarProps) => {
   const computedColorScheme = useComputedColorScheme('light', {
     getInitialValueInEffect: true,
@@ -41,6 +52,7 @@ export const TitleBar = ({
   const [isMouseSqueaking, setIsMouseSqueaking] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
 
   const handleMinimize = () => {
     window.electronAPI.app.minimizeWindow();
@@ -225,6 +237,29 @@ export const TitleBar = ({
             </ActionIcon>
           )}
 
+          <ActionIcon
+            variant="subtle"
+            size={TITLEBAR_HEIGHT}
+            onClick={() => setSettingsModalOpen(true)}
+            aria-label="Open settings"
+            tabIndex={-1}
+            style={{
+              borderRadius: 0,
+              margin: 0,
+            }}
+          >
+            <Settings size="1.25rem" />
+          </ActionIcon>
+
+          <Box
+            style={{
+              width: '0.0625rem',
+              height: '1.25rem',
+              backgroundColor: 'var(--mantine-color-default-border)',
+              margin: '0 0.25rem',
+            }}
+          />
+
           {[
             {
               icon: <Minus size="1rem" />,
@@ -263,6 +298,23 @@ export const TitleBar = ({
           ))}
         </Group>
       </Box>
+
+      <SettingsModal
+        isOnInterfaceScreen={currentScreen === 'interface'}
+        opened={settingsModalOpen}
+        onClose={async () => {
+          setSettingsModalOpen(false);
+          const preference = await safeExecute(
+            () =>
+              window.electronAPI.config.get(
+                'frontendPreference'
+              ) as Promise<FrontendPreference>,
+            'Failed to load frontend preference:'
+          );
+          onFrontendPreferenceChange(preference || 'koboldcpp');
+        }}
+        currentScreen={currentScreen || undefined}
+      />
     </AppShell.Header>
   );
 };

@@ -12,7 +12,11 @@ import {
   useComputedColorScheme,
 } from '@mantine/core';
 import { ChevronDown } from 'lucide-react';
-import { SERVER_READY_SIGNALS, TITLEBAR_HEIGHT } from '@/constants';
+import {
+  SERVER_READY_SIGNALS,
+  STATUSBAR_HEIGHT,
+  TITLEBAR_HEIGHT,
+} from '@/constants';
 import { handleTerminalOutput, processTerminalContent } from '@/utils/terminal';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 import type { FrontendPreference } from '@/types';
@@ -127,7 +131,7 @@ export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
     return (
       <Box
         style={{
-          height: `calc(100vh - ${TITLEBAR_HEIGHT})`,
+          height: `calc(100vh - ${TITLEBAR_HEIGHT} - ${STATUSBAR_HEIGHT})`,
           display: 'flex',
           flexDirection: 'column',
           backgroundColor: isDark

@@ -72,7 +72,6 @@ export const SettingsModal = ({
       styles={{
         ...MODAL_STYLES_WITH_TITLEBAR,
         content: {
-          ...MODAL_STYLES_WITH_TITLEBAR.content,
           paddingBottom: 0,
         },
         body: {
