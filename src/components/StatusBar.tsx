@@ -99,7 +99,8 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
               variant="light"
               style={{ minWidth: '5rem', textAlign: 'center' }}
             >
-              GPU: {gpu.usage.toFixed(1)}%
+              GPU{gpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}:{' '}
+              {gpu.usage.toFixed(1)}%
             </Badge>
           </Tooltip>
 
@@ -112,7 +113,8 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
               variant="light"
               style={{ minWidth: '5rem', textAlign: 'center' }}
             >
-              VRAM: {gpu.memoryUsage.toFixed(1)}%
+              VRAM{gpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}:{' '}
+              {gpu.memoryUsage.toFixed(1)}%
             </Badge>
           </Tooltip>
         </Group>
