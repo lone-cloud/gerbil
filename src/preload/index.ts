@@ -111,11 +111,23 @@ const openwebUIAPI: OpenWebUIAPI = {
 const monitoringAPI: MonitoringAPI = {
   start: () => ipcRenderer.invoke('monitoring:start'),
   stop: () => ipcRenderer.invoke('monitoring:stop'),
-  onMetrics: (callback) => {
-    ipcRenderer.on('system-metrics', (_, metrics) => callback(metrics));
+  onCpuMetrics: (callback) => {
+    ipcRenderer.on('cpu-metrics', (_, metrics) => callback(metrics));
   },
-  removeMetricsListener: () => {
-    ipcRenderer.removeAllListeners('system-metrics');
+  onMemoryMetrics: (callback) => {
+    ipcRenderer.on('memory-metrics', (_, metrics) => callback(metrics));
+  },
+  onGpuMetrics: (callback) => {
+    ipcRenderer.on('gpu-metrics', (_, metrics) => callback(metrics));
+  },
+  removeCpuMetricsListener: () => {
+    ipcRenderer.removeAllListeners('cpu-metrics');
+  },
+  removeMemoryMetricsListener: () => {
+    ipcRenderer.removeAllListeners('memory-metrics');
+  },
+  removeGpuMetricsListener: () => {
+    ipcRenderer.removeAllListeners('gpu-metrics');
   },
 };
 

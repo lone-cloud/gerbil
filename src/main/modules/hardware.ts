@@ -2,6 +2,7 @@
 import si from 'systeminformation';
 import { logError } from '@/main/modules/logging';
 import { terminateProcess } from '@/utils/process';
+import { getGPUData } from '@/utils/gpu';
 import type {
   CPUCapabilities,
   GPUCapabilities,
@@ -58,35 +59,32 @@ export async function detectGPU() {
   }
 
   try {
-    const graphics = await si.graphics();
+    const gpuData = await getGPUData();
 
     let hasAMD = false;
     let hasNVIDIA = false;
     const gpuInfo: string[] = [];
 
-    for (const controller of graphics.controllers) {
-      if (controller.model) {
-        gpuInfo.push(formatDeviceName(controller.model));
+    for (const gpu of gpuData) {
+      if (gpu.deviceName) {
+        gpuInfo.push(formatDeviceName(gpu.deviceName));
       }
 
-      const vendor = controller.vendor?.toLowerCase() || '';
-      const model = controller.model?.toLowerCase() || '';
+      const deviceName = gpu.deviceName?.toLowerCase() || '';
 
       if (
-        vendor.includes('amd') ||
-        vendor.includes('ati') ||
-        model.includes('radeon') ||
-        model.includes('amd')
+        deviceName.includes('amd') ||
+        deviceName.includes('ati') ||
+        deviceName.includes('radeon')
       ) {
         hasAMD = true;
       }
 
       if (
-        vendor.includes('nvidia') ||
-        model.includes('nvidia') ||
-        model.includes('geforce') ||
-        model.includes('gtx') ||
-        model.includes('rtx')
+        deviceName.includes('nvidia') ||
+        deviceName.includes('geforce') ||
+        deviceName.includes('gtx') ||
+        deviceName.includes('rtx')
       ) {
         hasNVIDIA = true;
       }
@@ -434,18 +432,18 @@ export async function detectGPUMemory() {
   const memoryInfo: GPUMemoryInfo[] = [];
 
   try {
-    const graphics = await si.graphics();
+    const gpuData = await getGPUData();
 
-    for (const controller of graphics.controllers) {
-      if (controller.model) {
-        let vram = controller.vram;
+    for (const gpu of gpuData) {
+      if (gpu.deviceName) {
+        let vram: number | null = gpu.memoryTotal;
 
-        if (!vram || vram === 1) {
+        if (!vram || vram <= 1) {
           vram = null;
         }
 
         memoryInfo.push({
-          deviceName: formatDeviceName(controller.model),
+          deviceName: formatDeviceName(gpu.deviceName),
           totalMemoryMB: vram,
         });
       }

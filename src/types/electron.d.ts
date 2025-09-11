@@ -6,7 +6,11 @@ import type {
 } from '@/types/hardware';
 import type { BackendOption, BackendSupport } from '@/types';
 import type { MantineColorScheme } from '@mantine/core';
-import type { SystemMetrics } from '@/main/modules/monitoring';
+import type {
+  CpuMetrics,
+  MemoryMetrics,
+  GpuMetrics,
+} from '@/main/modules/monitoring';
 
 export interface GitHubAsset {
   name: string;
@@ -176,8 +180,12 @@ export interface OpenWebUIAPI {
 export interface MonitoringAPI {
   start: () => Promise<void>;
   stop: () => Promise<void>;
-  onMetrics: (callback: (metrics: SystemMetrics) => void) => void;
-  removeMetricsListener: () => void;
+  onCpuMetrics: (callback: (metrics: CpuMetrics) => void) => void;
+  onMemoryMetrics: (callback: (metrics: MemoryMetrics) => void) => void;
+  onGpuMetrics: (callback: (metrics: GpuMetrics) => void) => void;
+  removeCpuMetricsListener: () => void;
+  removeMemoryMetricsListener: () => void;
+  removeGpuMetricsListener: () => void;
 }
 
 declare global {

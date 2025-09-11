@@ -13,7 +13,11 @@ import { Settings } from 'lucide-react';
 import { SettingsModal } from '@/components/settings/SettingsModal';
 import { safeExecute } from '@/utils/logger';
 import type { FrontendPreference, Screen } from '@/types';
-import type { SystemMetrics } from '@/main/modules/monitoring';
+import type {
+  CpuMetrics,
+  MemoryMetrics,
+  GpuMetrics,
+} from '@/main/modules/monitoring';
 
 interface StatusBarProps {
   maxDataPoints?: number;
@@ -28,9 +32,11 @@ export const StatusBar = ({
   frontendPreference: _frontendPreference,
   onFrontendPreferenceChange,
 }: StatusBarProps) => {
-  const [currentMetrics, setCurrentMetrics] = useState<SystemMetrics | null>(
+  const [cpuMetrics, setCpuMetrics] = useState<CpuMetrics | null>(null);
+  const [memoryMetrics, setMemoryMetrics] = useState<MemoryMetrics | null>(
     null
   );
+  const [gpuMetrics, setGpuMetrics] = useState<GpuMetrics | null>(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const theme = useMantineTheme();
   const colorScheme = useComputedColorScheme('light', {
@@ -40,29 +46,42 @@ export const StatusBar = ({
   useEffect(() => {
     let isMounted = true;
 
-    const handleMetrics = async (newMetrics: SystemMetrics) => {
+    const handleCpuMetrics = async (metrics: CpuMetrics) => {
       if (!isMounted) return;
-
-      setCurrentMetrics(newMetrics);
+      setCpuMetrics(metrics);
     };
 
-    window.electronAPI.monitoring.onMetrics(handleMetrics);
+    const handleMemoryMetrics = async (metrics: MemoryMetrics) => {
+      if (!isMounted) return;
+      setMemoryMetrics(metrics);
+    };
+
+    const handleGpuMetrics = async (metrics: GpuMetrics) => {
+      if (!isMounted) return;
+      setGpuMetrics(metrics);
+    };
+
+    window.electronAPI.monitoring.onCpuMetrics(handleCpuMetrics);
+    window.electronAPI.monitoring.onMemoryMetrics(handleMemoryMetrics);
+    window.electronAPI.monitoring.onGpuMetrics(handleGpuMetrics);
     void window.electronAPI.monitoring.start();
 
     return () => {
       isMounted = false;
-      window.electronAPI.monitoring.removeMetricsListener();
+      window.electronAPI.monitoring.removeCpuMetricsListener();
+      window.electronAPI.monitoring.removeMemoryMetricsListener();
+      window.electronAPI.monitoring.removeGpuMetricsListener();
       window.electronAPI.monitoring.stop();
     };
   }, [maxDataPoints]);
 
-  if (!currentMetrics) {
+  if (!cpuMetrics || !memoryMetrics) {
     return null;
   }
 
   return (
     <Box
-      pr="xs"
+      px="xs"
       style={{
         borderTop: `1px solid ${colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3]}`,
         backgroundColor:
@@ -73,37 +92,50 @@ export const StatusBar = ({
     >
       <Flex align="center" justify="space-between">
         <Group gap="xs" wrap="nowrap">
-          <Tooltip
-            label={`${currentMetrics.cpu.usage.toFixed(1)}%`}
-            position="top"
-          >
-            <Badge size="sm" variant="light">
-              CPU: {currentMetrics.cpu.usage.toFixed(1)}%
+          <Tooltip label={`${cpuMetrics.usage.toFixed(1)}%`} position="top">
+            <Badge
+              size="sm"
+              variant="light"
+              style={{ minWidth: '5rem', textAlign: 'center' }}
+            >
+              CPU: {cpuMetrics.usage.toFixed(1)}%
             </Badge>
           </Tooltip>
 
           <Tooltip
-            label={`${(currentMetrics.memory.used / 1024 ** 3).toFixed(1)} GB / ${(currentMetrics.memory.total / 1024 ** 3).toFixed(1)} GB (${currentMetrics.memory.usage.toFixed(1)}%)`}
+            label={`${(memoryMetrics.used / 1024 ** 3).toFixed(1)} GB / ${(memoryMetrics.total / 1024 ** 3).toFixed(1)} GB (${memoryMetrics.usage.toFixed(1)}%)`}
             position="top"
           >
-            <Badge size="sm" variant="light">
-              RAM: {currentMetrics.memory.usage.toFixed(1)}%
+            <Badge
+              size="sm"
+              variant="light"
+              style={{ minWidth: '5rem', textAlign: 'center' }}
+            >
+              RAM: {memoryMetrics.usage.toFixed(1)}%
             </Badge>
           </Tooltip>
 
-          {currentMetrics.gpu?.map((gpu, index) => (
+          {gpuMetrics?.gpus.map((gpu, index) => (
             <Group key={`gpu-${index}`} gap={4} wrap="nowrap">
               <Tooltip label={`${gpu.usage.toFixed(1)}%`} position="top">
-                <Badge size="sm" variant="light">
+                <Badge
+                  size="sm"
+                  variant="light"
+                  style={{ minWidth: '5rem', textAlign: 'center' }}
+                >
                   GPU: {gpu.usage.toFixed(1)}%
                 </Badge>
               </Tooltip>
 
               <Tooltip
-                label={`${(gpu.memoryUsed / 1024 ** 2).toFixed(1)} MB / ${(gpu.memoryTotal / 1024 ** 2).toFixed(1)} MB (${gpu.memoryUsage.toFixed(1)}%)`}
+                label={`${(gpu.memoryUsed / 1024).toFixed(1)} GB / ${(gpu.memoryTotal / 1024).toFixed(1)} GB (${gpu.memoryUsage.toFixed(1)}%)`}
                 position="top"
               >
-                <Badge size="sm" variant="light">
+                <Badge
+                  size="sm"
+                  variant="light"
+                  style={{ minWidth: '5rem', textAlign: 'center' }}
+                >
                   VRAM: {gpu.memoryUsage.toFixed(1)}%
                 </Badge>
               </Tooltip>

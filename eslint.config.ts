@@ -144,6 +144,7 @@ const config = [
       'arrow-body-style': ['error', 'as-needed'],
       'prefer-arrow-callback': ['error', { allowNamedFunctions: false }],
       'object-shorthand': ['error', 'always'],
+      'prefer-const': 'error',
 
       'no-console': 'error',
 
