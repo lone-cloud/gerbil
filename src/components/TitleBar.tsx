@@ -246,6 +246,7 @@ export const TitleBar = ({
             style={{
               borderRadius: 0,
               margin: 0,
+              outline: 'none',
             }}
           >
             <Settings size="1.25rem" />
