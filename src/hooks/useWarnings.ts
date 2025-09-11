@@ -118,7 +118,7 @@ const checkVramWarnings = async (backend: string): Promise<Warning[]> => {
     if (gpuMemoryInfo) {
       const lowVramGpus = gpuMemoryInfo.filter(
         (gpu) =>
-          typeof gpu.totalMemoryMB === 'number' && gpu.totalMemoryMB < 8192
+          typeof gpu.totalMemoryGB === 'number' && gpu.totalMemoryGB < 8
       );
 
       if (lowVramGpus.length > 0) {
@@ -127,7 +127,7 @@ const checkVramWarnings = async (backend: string): Promise<Warning[]> => {
           message: `Low VRAM detected (${lowVramGpus
             .map(
               (gpu) =>
-                `${gpu.deviceName}: ${(gpu.totalMemoryMB! / 1024).toFixed(1)}GB`
+                `${gpu.deviceName}: ${gpu.totalMemoryGB!.toFixed(1)}GB`
             )
             .join(
               ', '

@@ -106,10 +106,12 @@ async function collectAndSendCpuMetrics() {
 async function collectAndSendMemoryMetrics() {
   try {
     const memData = await si.mem();
+    const usedBytes = memData.active || memData.used;
+    const totalBytes = memData.total;
     const metrics: MemoryMetrics = {
-      used: memData.active || memData.used,
-      total: memData.total,
-      usage: ((memData.active || memData.used) / memData.total) * 100,
+      used: Math.round(usedBytes / (1024 * 1024 * 1024) * 10) / 10,
+      total: Math.round(totalBytes / (1024 * 1024 * 1024) * 10) / 10,
+      usage: (usedBytes / totalBytes) * 100,
     };
 
     if (mainWindow && !mainWindow.isDestroyed()) {
