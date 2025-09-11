@@ -50,33 +50,60 @@ The AUR package automatically handles installation, desktop integration, and sys
 
 ## Screenshots
 
+<!-- markdownlint-disable MD033 MD022 -->
+
+<table>
+<tr>
+<td width="50%">
+
 ### Download & Setup
 
-<img src="screenshots/download.png" alt="Download Interface" width="600">
+<img src="screenshots/download.png" alt="Download Interface" width="400">
+
+</td>
+<td width="50%">
 
 ### Model Launch Configuration
 
-<img src="screenshots/launch.png" alt="Launch Configuration" width="600">
+<img src="screenshots/launch.png" alt="Launch Configuration" width="400">
 
-### Terminal Output
-
-<img src="screenshots/terminal.png" alt="Terminal Interface" width="600">
+</td>
+</tr>
+<tr>
+<td width="50%">
 
 ### Text Generation
 
-<img src="screenshots/text-story.png" alt="Text Story Generation" width="600">
+<img src="screenshots/text-story.png" alt="Text Story Generation" width="400">
+
+</td>
+<td width="50%">
 
 ### Image Generation
 
-<img src="screenshots/gen-img.png" alt="Image Generation" width="600">
+<img src="screenshots/gen-img.png" alt="Image Generation" width="400">
 
-### Seamless SillyTavern integration
+</td>
+</tr>
+<tr>
+<td width="50%">
 
-<img src="screenshots/sillytavern.png" alt="SillyTavern integration" width="600">
+### SillyTavern integration
 
-### Seamless OpenWebUI integration
+<img src="screenshots/sillytavern.png" alt="SillyTavern integration" width="400">
 
-<img src="screenshots/openwebui.png" alt="SillyTavern integration" width="600">
+</td>
+<td width="50%">
+
+### OpenWebUI integration
+
+<img src="screenshots/openwebui.png" alt="OpenWebUI integration" width="400">
+
+</td>
+</tr>
+</table>
+
+<!-- markdownlint-enable MD033 MD022 -->
 
 ### Future features
 
