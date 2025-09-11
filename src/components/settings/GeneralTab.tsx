@@ -48,7 +48,7 @@ export const GeneralTab = ({
     () => [
       {
         value: 'koboldcpp',
-        label: 'Built-in Interface',
+        label: 'Built-in',
         badges: ['Text', 'Image'],
       },
       {

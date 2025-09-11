@@ -1,28 +1,5 @@
 @import '@mantine/core/styles.css';
 
-.mantine-AppShell-main {
-  overflow: auto !important;
-  height: calc(100vh - 2.5rem) !important;
-  position: relative !important;
-  top: 2.5rem !important;
-  margin-top: 0 !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  min-height: calc(100vh - 2.5rem) !important;
-}
-
-.mantine-AppShell-root {
-  --app-shell-header-offset: 2.5rem;
-  --app-shell-navbar-offset: 0rem;
-  --app-shell-aside-offset: 0rem;
-  --app-shell-footer-offset: 0rem;
-}
-
-/* TODO: something (mantine?) is setting this sometimes to "none" on the terminal tab */
-body {
-  user-select: auto !important;
-}
-
 /* Custom scrollbars */
 ::-webkit-scrollbar {
   width: 0.5rem;

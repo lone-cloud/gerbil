@@ -55,7 +55,7 @@ export const BackendSelector = () => {
             <Text size="sm" fw={500}>
               Backend
             </Text>
-            <InfoTooltip label="Select a backend to use. CUDA runs on NVIDIA GPUs, and is much faster. ROCm is the AMD equivalent. Vulkan and CLBlast work on all GPUs." />
+            <InfoTooltip label="Select a backend to use to run LLMs. CUDA runs on NVIDIA GPUs, and is much faster. ROCm is the AMD equivalent. Vulkan and CLBlast work on all GPUs." />
           </Group>
           <Select
             placeholder={

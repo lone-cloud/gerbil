@@ -9,6 +9,7 @@ import {
   Code,
   TextInput,
   Button,
+  Box,
 } from '@mantine/core';
 import { useState } from 'react';
 
@@ -543,68 +544,6 @@ export const CommandLineArgumentsModal = ({
     }
   };
 
-  const renderArgument = (arg: ArgumentInfo) => (
-    <Stack
-      key={arg.flag}
-      gap="xs"
-      p="sm"
-      style={{ borderLeft: '3px solid var(--mantine-color-blue-4)' }}
-    >
-      <Group gap="xs" wrap="wrap" justify="space-between">
-        <Group gap="xs" wrap="wrap" style={{ flex: 1 }}>
-          <Code style={{ fontSize: '0.875em', fontWeight: 600 }}>
-            {arg.flag}
-          </Code>
-          {arg.aliases &&
-            arg.aliases.map((alias) => (
-              <Code key={alias} style={{ fontSize: '0.75em' }} c="dimmed">
-                {alias}
-              </Code>
-            ))}
-          {arg.type && (
-            <Badge size="xs" variant="light" color="blue">
-              {arg.type}
-            </Badge>
-          )}
-        </Group>
-
-        {onAddArgument && (
-          <Button
-            size="xs"
-            variant="light"
-            onClick={() => handleAddArgument(arg)}
-          >
-            Add
-          </Button>
-        )}
-      </Group>
-
-      <Text size="sm" c="dimmed">
-        {arg.description}
-      </Text>
-
-      {(arg.metavar || arg.default !== undefined || arg.choices) && (
-        <Group gap="lg">
-          {arg.metavar && (
-            <Text size="xs" c="dimmed">
-              <strong>Format:</strong> {arg.metavar}
-            </Text>
-          )}
-          {arg.default !== undefined && (
-            <Text size="xs" c="dimmed">
-              <strong>Default:</strong> {String(arg.default)}
-            </Text>
-          )}
-          {arg.choices && (
-            <Text size="xs" c="dimmed">
-              <strong>Choices:</strong> {arg.choices.join(', ')}
-            </Text>
-          )}
-        </Group>
-      )}
-    </Stack>
-  );
-
   return (
     <Modal
       opened={opened}
@@ -638,11 +577,97 @@ export const CommandLineArgumentsModal = ({
                 </Group>
               </Accordion.Control>
               <Accordion.Panel>
-                <Stack gap="md">{args.map(renderArgument)}</Stack>
+                <Stack gap="md">
+                  {args.map((arg) => (
+                    <Stack
+                      key={arg.flag}
+                      gap="xs"
+                      p="sm"
+                      style={{
+                        borderLeft: '3px solid var(--mantine-color-blue-4)',
+                      }}
+                    >
+                      <Group gap="xs" wrap="wrap" justify="space-between">
+                        <Group gap="xs" wrap="wrap" style={{ flex: 1 }}>
+                          <Code
+                            style={{ fontSize: '0.875em', fontWeight: 600 }}
+                          >
+                            {arg.flag}
+                          </Code>
+                          {arg.aliases &&
+                            arg.aliases.map((alias) => (
+                              <Code
+                                key={alias}
+                                style={{ fontSize: '0.75em' }}
+                                c="dimmed"
+                              >
+                                {alias}
+                              </Code>
+                            ))}
+                          {arg.type && (
+                            <Badge size="xs" variant="light" color="blue">
+                              {arg.type}
+                            </Badge>
+                          )}
+                        </Group>
+
+                        {onAddArgument && (
+                          <Button
+                            size="xs"
+                            variant="light"
+                            onClick={() => handleAddArgument(arg)}
+                          >
+                            Add
+                          </Button>
+                        )}
+                      </Group>
+
+                      <Text size="sm" c="dimmed">
+                        {arg.description}
+                      </Text>
+
+                      {(arg.metavar ||
+                        arg.default !== undefined ||
+                        arg.choices) && (
+                        <Group gap="lg">
+                          {arg.metavar && (
+                            <Text size="xs" c="dimmed">
+                              <strong>Format:</strong> {arg.metavar}
+                            </Text>
+                          )}
+                          {arg.default !== undefined && (
+                            <Text size="xs" c="dimmed">
+                              <strong>Default:</strong> {String(arg.default)}
+                            </Text>
+                          )}
+                          {arg.choices && (
+                            <Text size="xs" c="dimmed">
+                              <strong>Choices:</strong> {arg.choices.join(', ')}
+                            </Text>
+                          )}
+                        </Group>
+                      )}
+                    </Stack>
+                  ))}
+                </Stack>
               </Accordion.Panel>
             </Accordion.Item>
           ))}
         </Accordion>
+
+        <Box
+          style={{
+            backgroundColor: 'var(--mantine-color-body)',
+            padding: '0.5rem 1.5rem 0',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            flexShrink: 0,
+          }}
+        >
+          <Button onClick={onClose} variant="filled">
+            Close
+          </Button>
+        </Box>
       </Stack>
     </Modal>
   );
