@@ -100,10 +100,10 @@ export const FRONTENDS = {
 } as const;
 
 export const ZOOM = {
-  MIN_LEVEL: -5,
-  MAX_LEVEL: 5,
+  MIN_LEVEL: -3,
+  MAX_LEVEL: 3,
   MIN_PERCENTAGE: 25,
-  MAX_PERCENTAGE: 500,
+  MAX_PERCENTAGE: 300,
   DEFAULT_LEVEL: 0,
   DEFAULT_PERCENTAGE: 100,
 } as const;
