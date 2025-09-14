@@ -52,11 +52,11 @@ const config = [
     plugins: {
       '@typescript-eslint': tseslint,
       'react-hooks': reactHooks,
-      react: react,
-      import: importPlugin,
-      sonarjs: sonarjs,
+      react,
+      sonarjs,
       'no-comments': noComments,
-      promise: promise,
+      import: importPlugin,
+      promise,
     },
     settings: {
       react: {
@@ -135,6 +135,18 @@ const config = [
           message:
             'Direct setting of currentKoboldBinary config is forbidden. Use window.electronAPI.kobold.setCurrentVersion() instead.',
         },
+        {
+          selector:
+            'ExpressionStatement[expression.type="AwaitExpression"]:has(CallExpression[callee.name="ensureDir"]) + ExpressionStatement[expression.type="AwaitExpression"]:has(CallExpression[callee.name="ensureDir"])',
+          message:
+            'Sequential ensureDir() calls detected. These can run in parallel using Promise.all().',
+        },
+        {
+          selector:
+            'ExpressionStatement[expression.type="AwaitExpression"]:has(CallExpression[callee.object.name="fs"][callee.property.name=/^(unlink|rmdir|mkdir|writeFile)$/]) + ExpressionStatement[expression.type="AwaitExpression"]:has(CallExpression[callee.object.name="fs"][callee.property.name=/^(unlink|rmdir|mkdir|writeFile)$/])',
+          message:
+            'Sequential file system operations detected. Independent operations can run in parallel using Promise.all().',
+        },
       ],
 
       'import/no-default-export': 'error',
@@ -156,21 +168,24 @@ const config = [
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/return-await': ['error', 'never'],
+      '@typescript-eslint/prefer-promise-reject-errors': 'error',
 
       'sonarjs/cognitive-complexity': ['warn', 25],
 
-      // Promise rules to prevent sequential awaits (no warnings, only errors)
-      'promise/prefer-await-to-then': 'error', // Enforce async/await
-      'promise/prefer-await-to-callbacks': 'off', // Too aggressive for Electron APIs
-      'promise/no-nesting': 'error', // No nested promises
-      'promise/no-promise-in-callback': 'off', // Common in Electron
-      'promise/no-callback-in-promise': 'off', // Common in Electron
-      'promise/avoid-new': 'off', // Sometimes needed for wrapping APIs
+      // Promise rules to prevent sequential awaits (smarter detection)
+      'promise/prefer-await-to-then': 'error',
+      'promise/prefer-await-to-callbacks': 'off',
+      'promise/no-nesting': 'error',
+      'promise/no-promise-in-callback': 'off',
+      'promise/no-callback-in-promise': 'off',
+      'promise/avoid-new': 'off',
       'promise/no-new-statics': 'error',
       'promise/no-return-wrap': 'error',
       'promise/param-names': 'error',
-      'promise/catch-or-return': 'off', // Too strict for some patterns
+      'promise/catch-or-return': 'off',
       'promise/no-native': 'off',
+
+      // Node.js specific async rules
 
       'no-comments/disallowComments': 'error',
     },
