@@ -1,17 +1,18 @@
 import { spawn } from 'child_process';
 import { join } from 'path';
-import { homedir } from 'os';
 import { access } from 'fs/promises';
 import type { ChildProcess } from 'child_process';
+import yauzl from 'yauzl';
 
 import { logError } from './logging';
 import { sendKoboldOutput } from './window';
 import { getInstallDir } from './config';
-import { COMFYUI, SERVER_READY_SIGNALS } from '@/constants';
+import { COMFYUI, SERVER_READY_SIGNALS, GITHUB_API } from '@/constants';
 import { terminateProcess } from '@/utils/node/process';
 import { parseKoboldConfig } from '@/utils/node/kobold';
 import { getAppVersion, ensureDir } from '@/utils/node/fs';
 import { getGPUData } from '@/utils/node/gpu';
+import { getUvEnvironment } from './dependencies';
 
 let comfyUIProcess: ChildProcess | null = null;
 
@@ -22,39 +23,6 @@ process.on('SIGINT', () => {
 process.on('SIGTERM', () => {
   void cleanup();
 });
-
-async function getUvEnvironment() {
-  const env = { ...process.env };
-
-  const uvPaths = [
-    join(homedir(), '.cargo', 'bin'),
-    join(homedir(), '.local', 'bin'),
-  ];
-
-  const existingPaths: string[] = [];
-  for (const path of uvPaths) {
-    try {
-      await access(path);
-      existingPaths.push(path);
-    } catch {
-      void 0;
-    }
-  }
-
-  if (existingPaths.length > 0) {
-    const pathSeparator = process.platform === 'win32' ? ';' : ':';
-    env.PATH = `${existingPaths.join(pathSeparator)}${pathSeparator}${env.PATH}`;
-  }
-
-  if (process.platform === 'win32') {
-    env.PYTHONIOENCODING = 'utf-8';
-    env.PYTHONLEGACYWINDOWSSTDIO = '1';
-    env.PYTHONUTF8 = '1';
-    env.CHCP = '65001';
-  }
-
-  return env;
-}
 
 async function getPyTorchInstallArgs(pythonPath: string) {
   const args = [
@@ -110,8 +78,6 @@ async function ensureComfyUIInstalled() {
     sendKoboldOutput('ComfyUI not found, installing via uv...');
 
     const env = await getUvEnvironment();
-    env.PYTHONIOENCODING = 'utf-8';
-    env.PYTHONUNBUFFERED = '1';
 
     sendKoboldOutput(
       'Creating virtual environment and installing ComfyUI dependencies...'
@@ -134,9 +100,7 @@ async function ensureComfyUIInstalled() {
               'Virtual environment created, downloading ComfyUI...'
             );
 
-            const response = await fetch(
-              'https://github.com/comfyanonymous/ComfyUI/archive/refs/heads/master.zip'
-            );
+            const response = await fetch(GITHUB_API.COMFYUI_DOWNLOAD_URL);
             if (!response.ok) {
               throw new Error(
                 `Failed to download ComfyUI: ${response.statusText}`
@@ -174,81 +138,132 @@ async function ensureComfyUIInstalled() {
               `ComfyUI downloaded (${Math.round(zipStats.size / 1024 / 1024)}MB), extracting...`
             );
 
-            const extractProcess = spawn(
-              'unzip',
-              ['-o', zipPath, '-d', comfyUIWorkspace],
-              {
-                stdio: 'pipe',
-                env,
-              }
-            );
-
-            extractProcess.on('exit', async (extractCode) => {
-              if (extractCode === 0) {
-                try {
-                  const extractedDir = path.join(
-                    comfyUIWorkspace,
-                    'ComfyUI-master'
-                  );
-                  const files = await fs.readdir(extractedDir);
-
-                  for (const file of files) {
-                    const srcPath = path.join(extractedDir, file);
-                    const destPath = path.join(comfyUIWorkspace, file);
-                    await fs.rename(srcPath, destPath);
+            try {
+              await new Promise<void>((resolve, reject) => {
+                yauzl.open(zipPath, { lazyEntries: true }, (err, zipfile) => {
+                  if (err) {
+                    reject(err);
+                    return;
                   }
 
-                  await fs.rmdir(extractedDir);
-                  await fs.unlink(zipPath);
-
-                  sendKoboldOutput(
-                    'ComfyUI extracted, installing dependencies...'
-                  );
-
-                  const requirementsPath = join(
-                    comfyUIWorkspace,
-                    'requirements.txt'
-                  );
-                  const requirementsExists = await fs
-                    .access(requirementsPath)
-                    .then(() => true)
-                    .catch(() => false);
-
-                  if (!requirementsExists) {
-                    throw new Error(
-                      'requirements.txt not found in ComfyUI directory'
-                    );
+                  if (!zipfile) {
+                    reject(new Error('Failed to open zip file'));
+                    return;
                   }
 
-                  const pythonPath = join(
-                    comfyUIWorkspace,
-                    '.venv',
-                    'bin',
-                    'python'
-                  );
-                  const torchInstallArgs =
-                    await getPyTorchInstallArgs(pythonPath);
+                  zipfile.readEntry();
 
-                  const torchInstallProcess = spawn('uv', torchInstallArgs, {
-                    stdio: 'pipe',
-                    env,
+                  zipfile.on('entry', (entry) => {
+                    if (/\/$/.test(entry.fileName)) {
+                      zipfile.readEntry();
+                    } else {
+                      zipfile.openReadStream(entry, (err, readStream) => {
+                        if (err) {
+                          reject(err);
+                          return;
+                        }
+
+                        if (!readStream) {
+                          reject(new Error('Failed to create read stream'));
+                          return;
+                        }
+
+                        const fileName = entry.fileName.replace(/^[^/]+\//, '');
+                        const outputPath = path.join(
+                          comfyUIWorkspace,
+                          fileName
+                        );
+
+                        fs.mkdir(path.dirname(outputPath), { recursive: true })
+                          .then(() => {
+                            const writeStream = createWriteStream(outputPath);
+                            readStream.pipe(writeStream);
+
+                            writeStream.on('close', () => {
+                              zipfile.readEntry();
+                            });
+
+                            writeStream.on('error', reject);
+                          })
+                          .catch(reject);
+                      });
+                    }
                   });
 
-                  torchInstallProcess.on('exit', (torchCode: number | null) => {
-                    if (torchCode === 0) {
+                  zipfile.on('end', () => {
+                    resolve();
+                  });
+
+                  zipfile.on('error', reject);
+                });
+              });
+
+              // eslint-disable-next-line no-restricted-syntax
+              await fs.unlink(zipPath);
+
+              sendKoboldOutput('ComfyUI extracted, installing dependencies...');
+
+              const requirementsPath = join(
+                comfyUIWorkspace,
+                'requirements.txt'
+              );
+              const requirementsExists = await fs
+                .access(requirementsPath)
+                .then(() => true)
+                .catch(() => false);
+
+              if (!requirementsExists) {
+                throw new Error(
+                  'requirements.txt not found in ComfyUI directory'
+                );
+              }
+
+              const pythonPath = join(
+                comfyUIWorkspace,
+                '.venv',
+                'bin',
+                'python'
+              );
+              const torchInstallArgs = await getPyTorchInstallArgs(pythonPath);
+
+              const torchInstallProcess = spawn('uv', torchInstallArgs, {
+                stdio: 'pipe',
+                env,
+              });
+
+              torchInstallProcess.on('exit', (torchCode: number | null) => {
+                if (torchCode === 0) {
+                  sendKoboldOutput(
+                    'PyTorch with ROCm installed, installing remaining dependencies...'
+                  );
+
+                  const pipInstallProcess = spawn(
+                    'uv',
+                    [
+                      'pip',
+                      'install',
+                      '--python',
+                      join(comfyUIWorkspace, '.venv', 'bin', 'python'),
+                      '-r',
+                      requirementsPath,
+                    ],
+                    {
+                      stdio: 'pipe',
+                      env,
+                    }
+                  );
+
+                  pipInstallProcess.on('exit', async (pipCode) => {
+                    if (pipCode === 0) {
                       sendKoboldOutput(
-                        'PyTorch with ROCm installed, installing remaining dependencies...'
+                        'Dependencies installation completed, verifying...'
                       );
 
-                      const pipInstallProcess = spawn(
-                        'uv',
+                      const verifyProcess = spawn(
+                        join(comfyUIWorkspace, '.venv', 'bin', 'python'),
                         [
-                          'pip',
-                          'install',
-                          '--python',
-                          join(comfyUIWorkspace, '.venv', 'bin', 'python'),
-                          '-r',
-                          requirementsPath,
+                          '-c',
+                          'import einops; print("einops found:", einops.__version__)',
                         ],
                         {
                           stdio: 'pipe',
@@ -256,136 +271,89 @@ async function ensureComfyUIInstalled() {
                         }
                       );
 
-                      pipInstallProcess.on('exit', async (pipCode) => {
-                        if (pipCode === 0) {
-                          sendKoboldOutput(
-                            'Dependencies installation completed, verifying...'
-                          );
-
-                          const verifyProcess = spawn(
-                            join(comfyUIWorkspace, '.venv', 'bin', 'python'),
-                            [
-                              '-c',
-                              'import einops; print("einops found:", einops.__version__)',
-                            ],
-                            {
-                              stdio: 'pipe',
-                              env,
-                            }
-                          );
-
-                          verifyProcess.on('exit', (verifyCode) => {
-                            if (verifyCode === 0) {
-                              sendKoboldOutput(
-                                'ComfyUI installed successfully!'
-                              );
-                              resolve();
-                            } else {
-                              sendKoboldOutput(
-                                'Warning: einops verification failed, but continuing...'
-                              );
-                              resolve();
-                            }
-                          });
-
-                          if (verifyProcess.stdout) {
-                            verifyProcess.stdout.on('data', (data: Buffer) => {
-                              sendKoboldOutput(
-                                `Verify: ${data.toString('utf8')}`,
-                                true
-                              );
-                            });
-                          }
-
-                          if (verifyProcess.stderr) {
-                            verifyProcess.stderr.on('data', (data: Buffer) => {
-                              sendKoboldOutput(
-                                `Verify Error: ${data.toString('utf8')}`,
-                                true
-                              );
-                            });
-                          }
+                      verifyProcess.on('exit', (verifyCode) => {
+                        if (verifyCode === 0) {
+                          sendKoboldOutput('ComfyUI installed successfully!');
+                          resolve();
                         } else {
-                          reject(
-                            new Error(
-                              `Dependency installation failed with code ${pipCode}`
-                            )
+                          sendKoboldOutput(
+                            'Warning: einops verification failed, but continuing...'
                           );
+                          resolve();
                         }
                       });
 
-                      pipInstallProcess.on('error', (error) => {
-                        reject(error);
-                      });
-
-                      if (pipInstallProcess.stdout) {
-                        pipInstallProcess.stdout.on('data', (data: Buffer) => {
-                          sendKoboldOutput(data.toString('utf8'), true);
+                      if (verifyProcess.stdout) {
+                        verifyProcess.stdout.on('data', (data: Buffer) => {
+                          sendKoboldOutput(
+                            `Verify: ${data.toString('utf8')}`,
+                            true
+                          );
                         });
                       }
 
-                      if (pipInstallProcess.stderr) {
-                        pipInstallProcess.stderr.on('data', (data: Buffer) => {
-                          sendKoboldOutput(data.toString('utf8'), true);
+                      if (verifyProcess.stderr) {
+                        verifyProcess.stderr.on('data', (data: Buffer) => {
+                          sendKoboldOutput(
+                            `Verify Error: ${data.toString('utf8')}`,
+                            true
+                          );
                         });
                       }
                     } else {
                       reject(
                         new Error(
-                          `PyTorch installation failed with code ${torchCode}`
+                          `Dependency installation failed with code ${pipCode}`
                         )
                       );
                     }
                   });
 
-                  torchInstallProcess.on('error', (error) => {
+                  pipInstallProcess.on('error', (error) => {
                     reject(error);
                   });
 
-                  if (torchInstallProcess.stdout) {
-                    torchInstallProcess.stdout.on('data', (data: Buffer) => {
+                  if (pipInstallProcess.stdout) {
+                    pipInstallProcess.stdout.on('data', (data: Buffer) => {
                       sendKoboldOutput(data.toString('utf8'), true);
                     });
                   }
 
-                  if (torchInstallProcess.stderr) {
-                    torchInstallProcess.stderr.on('data', (data: Buffer) => {
+                  if (pipInstallProcess.stderr) {
+                    pipInstallProcess.stderr.on('data', (data: Buffer) => {
                       sendKoboldOutput(data.toString('utf8'), true);
                     });
                   }
-                } catch (error) {
+                } else {
                   reject(
                     new Error(
-                      `Failed to extract ComfyUI: ${error instanceof Error ? error.message : String(error)}`
+                      `PyTorch installation failed with code ${torchCode}`
                     )
                   );
                 }
-              } else {
-                reject(
-                  new Error(
-                    `Failed to extract ComfyUI: unzip exit code ${extractCode}`
-                  )
-                );
+              });
+
+              torchInstallProcess.on('error', (error) => {
+                reject(error);
+              });
+
+              if (torchInstallProcess.stdout) {
+                torchInstallProcess.stdout.on('data', (data: Buffer) => {
+                  sendKoboldOutput(data.toString('utf8'), true);
+                });
               }
-            });
 
-            extractProcess.on('error', (error) => {
-              reject(new Error(`Extraction process error: ${error.message}`));
-            });
-
-            if (extractProcess.stdout) {
-              extractProcess.stdout.on('data', (data: Buffer) => {
-                sendKoboldOutput(data.toString('utf8'), true);
-              });
-            }
-
-            if (extractProcess.stderr) {
-              extractProcess.stderr.on('data', (data: Buffer) => {
-                sendKoboldOutput(
-                  `Extract stderr: ${data.toString('utf8')}`,
-                  true
-                );
-              });
+              if (torchInstallProcess.stderr) {
+                torchInstallProcess.stderr.on('data', (data: Buffer) => {
+                  sendKoboldOutput(data.toString('utf8'), true);
+                });
+              }
+            } catch (error) {
+              reject(
+                new Error(
+                  `Failed to extract ComfyUI: ${error instanceof Error ? error.message : String(error)}`
+                )
+              );
             }
           } catch (error) {
             reject(
@@ -477,8 +445,7 @@ export async function startFrontend(args: string[]) {
     const comfyUIWorkspace = join(installDir, 'comfyui-workspace');
     const comfyUIMainPath = join(comfyUIWorkspace, 'main.py');
 
-    await ensureDir(comfyUIDataDir);
-    await ensureDir(comfyUIWorkspace);
+    await Promise.all([ensureDir(comfyUIDataDir), ensureDir(comfyUIWorkspace)]);
 
     const comfyUIArgs = [
       comfyUIMainPath,

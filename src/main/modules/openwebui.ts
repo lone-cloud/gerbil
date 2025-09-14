@@ -1,8 +1,6 @@
 import { spawn } from 'child_process';
 import type { ChildProcess } from 'child_process';
 import { join } from 'path';
-import { homedir } from 'os';
-import { access } from 'fs/promises';
 
 import { logError } from './logging';
 import { sendKoboldOutput } from './window';
@@ -11,6 +9,7 @@ import { OPENWEBUI, SERVER_READY_SIGNALS } from '@/constants';
 import { terminateProcess } from '@/utils/node/process';
 import { parseKoboldConfig } from '@/utils/node/kobold';
 import { getAppVersion } from '@/utils/node/fs';
+import { getUvEnvironment } from './dependencies';
 
 let openWebUIProcess: ChildProcess | null = null;
 
@@ -24,47 +23,9 @@ process.on('SIGTERM', () => {
   void cleanup();
 });
 
-async function getUvEnvironment() {
-  const env = { ...process.env };
-
-  const uvPaths = [
-    join(homedir(), '.cargo', 'bin'),
-    join(homedir(), '.local', 'bin'),
-  ];
-
-  const existingPaths: string[] = [];
-  for (const path of uvPaths) {
-    try {
-      await access(path);
-      existingPaths.push(path);
-    } catch {
-      void 0;
-    }
-  }
-
-  if (existingPaths.length > 0) {
-    const pathSeparator = process.platform === 'win32' ? ';' : ':';
-    env.PATH = `${existingPaths.join(pathSeparator)}${pathSeparator}${env.PATH}`;
-  }
-
-  if (process.platform === 'win32') {
-    env.PYTHONIOENCODING = 'utf-8';
-    env.PYTHONLEGACYWINDOWSSTDIO = '1';
-    env.PYTHONUTF8 = '1';
-    env.CHCP = '65001';
-  }
-
-  return env;
-}
-
 async function createUvProcess(args: string[], env?: Record<string, string>) {
   const uvEnv = await getUvEnvironment();
   const mergedEnv = { ...uvEnv, ...env };
-
-  if (process.platform === 'win32') {
-    mergedEnv.PYTHONIOENCODING = 'utf-8';
-    mergedEnv.PYTHONUTF8 = '1';
-  }
 
   return spawn('uvx', args, {
     stdio: ['pipe', 'pipe', 'pipe'],

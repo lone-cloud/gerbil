@@ -2,7 +2,6 @@ import { spawn } from 'child_process';
 import { createServer, request, type Server } from 'http';
 import { homedir } from 'os';
 import { join } from 'path';
-import { access, readdir } from 'fs/promises';
 import type { ChildProcess } from 'child_process';
 
 import { logError } from './logging';
@@ -11,6 +10,7 @@ import { SILLYTAVERN, SERVER_READY_SIGNALS } from '@/constants';
 import { terminateProcess } from '@/utils/node/process';
 import { pathExists, readJsonFile, writeJsonFile } from '@/utils/node/fs';
 import { parseKoboldConfig } from '@/utils/node/kobold';
+import { getNodeEnvironment } from './dependencies';
 
 let sillyTavernProcess: ChildProcess | null = null;
 let proxyServer: Server | null = null;
@@ -67,85 +67,6 @@ async function getSillyTavernDataRoot() {
 async function getSillyTavernSettingsPath() {
   const dataRoot = await getSillyTavernDataRoot();
   return join(dataRoot, 'default-user', 'settings.json');
-}
-
-async function tryAddPathToEnv(
-  env: Record<string, string | undefined>,
-  path: string
-) {
-  const pathSeparator = process.platform === 'win32' ? ';' : ':';
-  if (!env.PATH?.includes(path)) {
-    env.PATH = `${path}${pathSeparator}${env.PATH}`;
-    return true;
-  }
-  return false;
-}
-
-async function tryVersionManagerPath(
-  basePath: string,
-  env: Record<string, string | undefined>
-) {
-  try {
-    await access(basePath);
-    const versions = await readdir(basePath);
-    if (versions.length > 0) {
-      const latestVersion = versions.sort().pop();
-      if (latestVersion) {
-        const binSubPath = basePath.includes('fnm')
-          ? join('installation', 'bin')
-          : 'bin';
-        const nodeBinPath = join(basePath, latestVersion, binSubPath);
-
-        try {
-          await access(nodeBinPath);
-          return tryAddPathToEnv(env, nodeBinPath);
-        } catch {
-          return false;
-        }
-      }
-    }
-  } catch {
-    return false;
-  }
-  return false;
-}
-
-async function getNodeEnvironment() {
-  const env = { ...process.env };
-
-  if (process.platform === 'win32') {
-    return env;
-  }
-
-  const versionManagerPaths = [
-    join(homedir(), '.local', 'share', 'fnm', 'node-versions'),
-    join(homedir(), '.nvm', 'versions', 'node'),
-    join(homedir(), '.volta', 'tools', 'image', 'node'),
-    join(homedir(), '.asdf', 'installs', 'nodejs'),
-  ];
-
-  const systemPaths: string[] = [];
-  if (process.platform === 'darwin') {
-    systemPaths.push('/opt/homebrew/bin', '/usr/local/bin');
-  }
-
-  for (const systemPath of systemPaths) {
-    try {
-      await access(systemPath);
-      await tryAddPathToEnv(env, systemPath);
-      return env;
-    } catch {
-      continue;
-    }
-  }
-
-  for (const versionPath of versionManagerPaths) {
-    if (await tryVersionManagerPath(versionPath, env)) {
-      return env;
-    }
-  }
-
-  return env;
 }
 
 async function createNpxProcess(args: string[]) {
