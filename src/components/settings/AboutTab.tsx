@@ -15,11 +15,14 @@ import {
 } from '@mantine/core';
 import { Github, FolderOpen, Copy } from 'lucide-react';
 import { safeExecute } from '@/utils/logger';
+import { useLogoClickSounds } from '@/hooks/useLogoClickSounds';
 import type { VersionInfo } from '@/types/electron';
 import { PRODUCT_NAME } from '@/constants';
-import iconUrl from '/icon.png';
+import icon from '/icon.png';
+
 export const AboutTab = () => {
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
+  const { handleLogoClick, getLogoStyles } = useLogoClickSounds();
   useEffect(() => {
     const loadVersionInfo = async () => {
       const info = await safeExecute(
@@ -73,11 +76,16 @@ export const AboutTab = () => {
       <Card withBorder radius="md" p="xs">
         <Group align="center" gap="lg" wrap="nowrap">
           <Image
-            src={iconUrl}
+            src={icon}
             alt={PRODUCT_NAME}
             w={64}
             h={64}
-            style={{ minWidth: 64, minHeight: 64 }}
+            onClick={handleLogoClick}
+            style={{
+              minWidth: 64,
+              minHeight: 64,
+              ...getLogoStyles(),
+            }}
           />
           <div style={{ flex: 1, minWidth: 0 }}>
             <Group align="center" gap="md" wrap="nowrap">

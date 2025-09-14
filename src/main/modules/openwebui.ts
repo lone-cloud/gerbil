@@ -102,7 +102,11 @@ export async function startFrontend(args: string[]) {
       envConfig.AUTOMATIC1111_BASE_URL = `${koboldUrl}/sdapi/v1`;
       envConfig.ENABLE_IMAGE_GENERATION = 'true';
       envConfig.IMAGE_GENERATION_ENGINE = 'automatic1111';
-      envConfig.IMAGE_GENERATION_MODEL = 'sd_xl_base_1.0.safetensors';
+      envConfig.AUTOMATIC1111_CFG_SCALE = '7';
+      envConfig.AUTOMATIC1111_SAMPLER = 'DPM++ 2M Karras';
+      envConfig.AUTOMATIC1111_SCHEDULER = 'karras';
+      envConfig.IMAGE_STEPS = '20';
+      envConfig.ENABLE_IMAGE_GENERATION_FILTER = 'false';
     }
 
     openWebUIProcess = await createUvProcess(openWebUIArgs, envConfig);

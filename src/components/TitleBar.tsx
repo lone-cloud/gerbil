@@ -16,11 +16,11 @@ import {
   Settings,
 } from 'lucide-react';
 import { useState } from 'react';
-import { soundAssets, playSound, initializeAudio } from '@/utils/sounds';
 import { useAppUpdateChecker } from '@/hooks/useAppUpdateChecker';
 import { useInterfaceOptions } from '@/hooks/useInterfaceSelection';
+import { useLogoClickSounds } from '@/hooks/useLogoClickSounds';
 import { SettingsModal } from '@/components/settings/SettingsModal';
-import iconUrl from '/icon.png';
+import icon from '/icon.png';
 import { PRODUCT_NAME, TITLEBAR_HEIGHT } from '@/constants';
 import type { InterfaceTab, Screen } from '@/types';
 
@@ -42,9 +42,7 @@ export const TitleBar = ({
   });
   const { hasUpdate, releaseUrl } = useAppUpdateChecker();
   const interfaceOptions = useInterfaceOptions();
-  const [logoClickCount, setLogoClickCount] = useState(0);
-  const [isElephantMode, setIsElephantMode] = useState(false);
-  const [isMouseSqueaking, setIsMouseSqueaking] = useState(false);
+  const { handleLogoClick, getLogoStyles } = useLogoClickSounds();
   const [isMaximized, setIsMaximized] = useState(false);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
@@ -60,32 +58,6 @@ export const TitleBar = ({
 
   const handleClose = () => {
     window.electronAPI.app.closeWindow();
-  };
-
-  const handleLogoClick = async () => {
-    await initializeAudio();
-    setLogoClickCount((prev) => prev + 1);
-
-    try {
-      if (logoClickCount >= 10 && Math.random() < 0.1) {
-        setIsElephantMode(true);
-        await playSound(soundAssets.elephant, 0.6);
-
-        setTimeout(() => {
-          setIsElephantMode(false);
-        }, 1500);
-      } else {
-        setIsMouseSqueaking(true);
-        const squeakNumber = Math.floor(Math.random() * 5);
-        await playSound(soundAssets.mouseSqueaks[squeakNumber], 0.4);
-
-        setTimeout(() => {
-          setIsMouseSqueaking(false);
-        }, 300);
-      }
-    } catch {
-      void 0;
-    }
   };
 
   return (
@@ -113,23 +85,11 @@ export const TitleBar = ({
           style={{ WebkitAppRegion: 'no-drag' }}
         >
           <Image
-            src={iconUrl}
+            src={icon}
             alt={PRODUCT_NAME}
             w={24}
             h={24}
-            style={{
-              cursor: 'pointer',
-              userSelect: 'none',
-              transition: 'transform 0.15s ease-in-out',
-              transform: isElephantMode
-                ? 'scale(1.3) rotate(5deg)'
-                : 'scale(1) rotate(0deg)',
-              animation: isElephantMode
-                ? 'elephantShake 1.5s ease-in-out'
-                : isMouseSqueaking
-                  ? 'mouseSqueak 0.3s ease-in-out'
-                  : 'none',
-            }}
+            style={getLogoStyles()}
             onClick={handleLogoClick}
           />
         </Group>

@@ -285,30 +285,64 @@ export const GeneralTab = ({
         />
 
         <Box mt="sm">
-          {frontendConfigs
-            .filter((config) => !isFrontendAvailable(config.value))
-            .map((config) => {
+          {(() => {
+            const disabledFrontends = frontendConfigs.filter(
+              (config) => !isFrontendAvailable(config.value)
+            );
+
+            const requirementGroups = new Map<string, string[]>();
+
+            disabledFrontends.forEach((config) => {
               const unmetReqs = getUnmetRequirementsForFrontend(config.value);
-              return (
-                <Text key={config.value} size="sm" c="orange" mb="xs">
-                  {config.label} is disabled - requires{' '}
-                  {unmetReqs.map((req, index) => (
-                    <span key={req.id}>
-                      <Anchor
-                        href={req.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        c="orange"
-                        td="underline"
-                      >
-                        {req.name}
-                      </Anchor>
-                      {index < unmetReqs.length - 1 ? ', ' : ''}
-                    </span>
-                  ))}
-                </Text>
-              );
-            })}
+              const reqKey = unmetReqs.map((req) => req.id).join(',');
+              if (!requirementGroups.has(reqKey)) {
+                requirementGroups.set(reqKey, []);
+              }
+              requirementGroups.get(reqKey)!.push(config.label);
+            });
+
+            return Array.from(requirementGroups.entries()).map(
+              ([reqKey, frontendLabels]) => {
+                const firstDisabledFrontend = disabledFrontends.find(
+                  (config) =>
+                    getUnmetRequirementsForFrontend(config.value)
+                      .map((req) => req.id)
+                      .join(',') === reqKey
+                );
+                const unmetReqs = firstDisabledFrontend
+                  ? getUnmetRequirementsForFrontend(firstDisabledFrontend.value)
+                  : [];
+
+                const frontendText =
+                  frontendLabels.length === 1
+                    ? frontendLabels[0]
+                    : frontendLabels.length === 2
+                      ? `${frontendLabels[0]} and ${frontendLabels[1]}`
+                      : `${frontendLabels.slice(0, -1).join(', ')}, and ${frontendLabels[frontendLabels.length - 1]}`;
+
+                const isAre = frontendLabels.length === 1 ? 'is' : 'are';
+
+                return (
+                  <Text key={reqKey} size="sm" c="orange" mb="xs">
+                    {frontendText} {isAre} disabled - requires{' '}
+                    {unmetReqs.map((req, index) => (
+                      <span key={req.id}>
+                        <Anchor
+                          href={req.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          td="underline"
+                        >
+                          {req.name}
+                        </Anchor>
+                        {index < unmetReqs.length - 1 ? ', ' : ''}
+                      </span>
+                    ))}
+                  </Text>
+                );
+              }
+            );
+          })()}
         </Box>
       </div>
     </Stack>
