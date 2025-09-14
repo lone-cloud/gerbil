@@ -50,6 +50,7 @@ import {
 } from '@/main/modules/binary';
 import { startMonitoring, stopMonitoring } from '@/main/modules/monitoring';
 import type { FrontendPreference } from '@/types';
+import { getAppVersion } from '@/utils/node/fs';
 
 async function launchKoboldCppWithCustomFrontends(args: string[] = []) {
   try {
@@ -152,10 +153,10 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('config:set', (_, key, value) => setConfig(key, value));
 
-  ipcMain.handle('app:getVersion', () => app.getVersion());
+  ipcMain.handle('app:getVersion', () => getAppVersion());
 
   ipcMain.handle('app:getVersionInfo', () => ({
-    appVersion: app.getVersion(),
+    appVersion: getAppVersion(),
     electronVersion: process.versions.electron,
     nodeVersion: process.versions.node,
     chromeVersion: process.versions.chrome,
