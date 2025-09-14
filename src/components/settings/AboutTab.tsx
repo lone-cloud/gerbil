@@ -81,7 +81,7 @@ export const AboutTab = () => {
           />
           <div style={{ flex: 1, minWidth: 0 }}>
             <Group align="center" gap="md" wrap="nowrap">
-              <Text size="xl" fw={700}>
+              <Text size="xl" fw={600}>
                 {PRODUCT_NAME}
               </Text>
               <Badge

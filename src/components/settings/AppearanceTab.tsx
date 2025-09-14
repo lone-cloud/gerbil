@@ -190,20 +190,6 @@ export const AppearanceTab = () => {
               min={ZOOM.MIN_LEVEL}
               max={ZOOM.MAX_LEVEL}
               step={0.25}
-              marks={[
-                {
-                  value: ZOOM.MIN_LEVEL,
-                  label: `${ZOOM.MIN_PERCENTAGE}%`,
-                },
-                {
-                  value: ZOOM.DEFAULT_LEVEL,
-                  label: `${ZOOM.DEFAULT_PERCENTAGE}%`,
-                },
-                {
-                  value: ZOOM.MAX_LEVEL,
-                  label: `${ZOOM.MAX_PERCENTAGE}%`,
-                },
-              ]}
               label={(value) => `${zoomLevelToPercentage(value)}%`}
               style={{ marginBottom: '0.5rem' }}
             />

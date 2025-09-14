@@ -1,7 +1,7 @@
 {
   "name": "gerbil",
   "productName": "Gerbil",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Run Large Language Models locally",
   "main": "out/main/index.js",
   "homepage": "./",
@@ -64,6 +64,7 @@
     "vite": "^7.1.5"
   },
   "dependencies": {
+    "@fontsource/inter": "^5.2.7",
     "@mantine/core": "^8.3.1",
     "@mantine/hooks": "^8.3.1",
     "@types/yauzl": "^2.10.3",
