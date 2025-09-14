@@ -17,7 +17,7 @@ import { dialog } from 'electron';
 import axios from 'axios';
 
 import { execa } from 'execa';
-import { terminateProcess } from '@/utils/process';
+import { terminateProcess } from '@/utils/node/process';
 import {
   getInstallDir,
   setInstallDir,
@@ -31,15 +31,15 @@ import {
   KLITE_CSS_OVERRIDE,
   KLITE_AUTOSCROLL_PATCHES,
 } from '@/constants/patches';
-import { pathExists, readJsonFile, writeJsonFile } from '@/utils/fs';
+import { pathExists, readJsonFile, writeJsonFile } from '@/utils/node/fs';
 import { stripAssetExtensions } from '@/utils/version';
-import { parseKoboldConfig } from '@/utils/kobold';
+import { parseKoboldConfig } from '@/utils/node/kobold';
+import { getAssetPath } from '@/utils/node/assets';
 import type {
   GitHubAsset,
   InstalledVersion,
   KoboldConfig,
 } from '@/types/electron';
-import { isDevelopment } from '@/utils/environment';
 import type { FrontendPreference } from '@/types';
 
 let koboldProcess: ChildProcess | null = null;
@@ -48,7 +48,7 @@ async function removeDirectoryWithRetry(
   dirPath: string,
   maxRetries = 3,
   delayMs = 1000
-): Promise<void> {
+) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       await rm(dirPath, { recursive: true, force: true });
@@ -78,7 +78,7 @@ async function removeDirectoryWithRetry(
 async function handleExistingDirectory(
   unpackedDirPath: string,
   isUpdate: boolean
-): Promise<void> {
+) {
   if (!isUpdate || !(await pathExists(unpackedDirPath))) {
     return;
   }
@@ -101,10 +101,7 @@ async function handleExistingDirectory(
   }
 }
 
-async function downloadFile(
-  asset: GitHubAsset,
-  tempPackedFilePath: string
-): Promise<void> {
+async function downloadFile(asset: GitHubAsset, tempPackedFilePath: string) {
   const writer = createWriteStream(tempPackedFilePath);
   let downloadedBytes = 0;
 
@@ -150,7 +147,7 @@ async function downloadFile(
 async function setupLauncher(
   tempPackedFilePath: string,
   unpackedDirPath: string
-): Promise<string> {
+) {
   let launcherPath = await getLauncherPath(unpackedDirPath);
 
   if (!launcherPath || !(await pathExists(launcherPath))) {
@@ -216,10 +213,7 @@ export async function downloadRelease(asset: GitHubAsset) {
   }
 }
 
-async function unpackKoboldCpp(
-  packedPath: string,
-  unpackDir: string
-): Promise<void> {
+async function unpackKoboldCpp(packedPath: string, unpackDir: string) {
   try {
     await execa(packedPath, ['--unpack', unpackDir], {
       timeout: 60000,
@@ -293,18 +287,8 @@ async function patchKcppSduiEmbd(unpackedDir: string) {
       join(unpackedDir, '_internal', 'kcpp_sdui.embd'),
       join(unpackedDir, 'kcpp_sdui.embd'),
     ];
-    let sourceAssetPath;
 
-    if (isDevelopment) {
-      sourceAssetPath = join(__dirname, '../../assets', 'kcpp_sdui.embd');
-    } else {
-      sourceAssetPath = join(
-        process.resourcesPath,
-        '..',
-        'assets',
-        'kcpp_sdui.embd'
-      );
-    }
+    const sourceAssetPath = getAssetPath('kcpp_sdui.embd');
 
     for (const targetPath of possiblePaths) {
       if (await pathExists(targetPath)) {
@@ -438,7 +422,7 @@ export async function parseConfigFile(filePath: string) {
 export async function saveConfigFile(
   configFileName: string,
   configData: KoboldConfig
-): Promise<boolean> {
+) {
   try {
     const installDir = getInstallDir();
     const configPath = join(installDir, configFileName);
@@ -634,8 +618,6 @@ export async function launchKoboldCpp(
       } else {
         await patchKliteEmbd(binaryDir);
       }
-    } else if (frontendPreference === 'openwebui' && isImageMode) {
-      await patchKcppSduiEmbd(binaryDir);
     }
 
     const finalArgs = [...args];

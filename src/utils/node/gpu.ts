@@ -198,6 +198,55 @@ async function getLinuxGPUData() {
     for (const card of cardEntries) {
       const devicePath = join(drmPath, card, 'device');
 
+      let deviceName = 'Unknown GPU';
+
+      try {
+        const deviceNameData = await readFile(`${devicePath}/device`, 'utf8');
+        const deviceId = deviceNameData.trim();
+
+        const vendorData = await readFile(`${devicePath}/vendor`, 'utf8');
+        const vendorId = vendorData.trim();
+
+        const modalias = await readFile(`${devicePath}/modalias`, 'utf8');
+
+        if (vendorId === '0x1002') {
+          deviceName = 'AMD GPU';
+        } else if (vendorId === '0x10de') {
+          deviceName = 'NVIDIA GPU';
+        } else if (vendorId === '0x8086') {
+          deviceName = 'Intel GPU';
+        } else {
+          deviceName = `GPU (${vendorId}:${deviceId})`;
+        }
+
+        if (modalias.includes('i915')) {
+          deviceName = 'Intel GPU';
+        } else if (modalias.includes('amdgpu')) {
+          deviceName = 'AMD GPU';
+        } else if (
+          modalias.includes('nouveau') ||
+          modalias.includes('nvidia')
+        ) {
+          deviceName = 'NVIDIA GPU';
+        }
+      } catch {
+        try {
+          const modalias = await readFile(`${devicePath}/modalias`, 'utf8');
+          if (modalias.includes('i915')) {
+            deviceName = 'Intel GPU';
+          } else if (modalias.includes('amdgpu')) {
+            deviceName = 'AMD GPU';
+          } else if (
+            modalias.includes('nouveau') ||
+            modalias.includes('nvidia')
+          ) {
+            deviceName = 'NVIDIA GPU';
+          }
+        } catch {
+          void 0;
+        }
+      }
+
       try {
         const usageData = await readFile(
           `${devicePath}/gpu_busy_percent`,
@@ -219,13 +268,18 @@ async function getLinuxGPUData() {
           (parseInt(memTotalData.trim(), 10) || 0) / (1024 * 1024 * 1024);
 
         gpus.push({
-          deviceName: 'GPU',
+          deviceName,
           usage,
           memoryUsed,
           memoryTotal,
         });
       } catch {
-        continue;
+        gpus.push({
+          deviceName,
+          usage: 0,
+          memoryUsed: 0,
+          memoryTotal: 0,
+        });
       }
     }
 

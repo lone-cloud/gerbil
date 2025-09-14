@@ -4,11 +4,17 @@ export interface ConfigFile {
   size: number;
 }
 
-export type InterfaceTab = 'terminal' | 'chat';
+export type InterfaceTab = 'terminal' | 'chat-text' | 'chat-image';
+
+export type ChatMode = 'text' | 'image';
 
 export type SdConvDirectMode = 'off' | 'vaeonly' | 'full';
 
-export type FrontendPreference = 'koboldcpp' | 'sillytavern' | 'openwebui';
+export type FrontendPreference =
+  | 'koboldcpp'
+  | 'sillytavern'
+  | 'openwebui'
+  | 'comfyui';
 
 export type Screen = 'welcome' | 'download' | 'launch' | 'interface';
 

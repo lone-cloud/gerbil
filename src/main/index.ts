@@ -1,15 +1,11 @@
-import { readJsonFile } from '@/utils/fs';
-import { join } from 'path';
+import { getAppVersion } from '@/utils/node/fs';
 
 if (process.argv[1] === '--version') {
   (async () => {
     try {
-      const packageJsonPath = join(__dirname, '../../package.json');
-      const packageJson = await readJsonFile<{ version: string }>(
-        packageJsonPath
-      );
+      const version = await getAppVersion();
       // eslint-disable-next-line no-console
-      console.log(packageJson?.version || 'unknown');
+      console.log(version);
     } catch {
       // eslint-disable-next-line no-console
       console.log('unknown');

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { safeExecute } from '@/utils/logger';
-import type { BackendOption } from '@/types';
+import type { BackendOption, BackendSupport } from '@/types';
 
 export interface Warning {
   type: 'warning' | 'info';
@@ -20,7 +20,7 @@ const checkModelWarnings = (
   model: string,
   sdmodel: string,
   configLoaded: boolean
-): Warning[] => {
+) => {
   const hasTextModel = model?.trim() !== '';
   const hasImageModel = sdmodel.trim() !== '';
   const showModelPriorityWarning = hasTextModel && hasImageModel;
@@ -32,7 +32,7 @@ const checkModelWarnings = (
     warnings.push({
       type: 'warning',
       message:
-        'Both text and image generation models are selected. The image generation model will take priority and be used for launch.',
+        'Both text and image generation models are selected. This may load both models into VRAM simultaneously, which requires significant memory (typically 16GB+ VRAM recommended). Ensure your system has sufficient VRAM to avoid crashes or poor performance.',
     });
   }
 
@@ -46,11 +46,6 @@ const checkModelWarnings = (
 
   return warnings;
 };
-
-interface BackendSupport {
-  cuda: boolean;
-  rocm: boolean;
-}
 
 interface GpuCapabilities {
   cuda: { supported: boolean };
@@ -116,20 +111,21 @@ const checkVramWarnings = async (backend: string): Promise<Warning[]> => {
     );
 
     if (gpuMemoryInfo) {
+      const lowVramThreshold = 8;
       const lowVramGpus = gpuMemoryInfo.filter(
-        (gpu) => typeof gpu.totalMemoryGB === 'number' && gpu.totalMemoryGB < 8
+        (gpu) =>
+          typeof gpu.totalMemoryGB === 'number' &&
+          gpu.totalMemoryGB < lowVramThreshold
       );
 
       if (lowVramGpus.length > 0) {
+        const memoryDetails = lowVramGpus
+          .map((gpu) => `${gpu.deviceName}: ${gpu.totalMemoryGB!.toFixed(1)}GB`)
+          .join(', ');
+
         warnings.push({
           type: 'warning',
-          message: `Low VRAM detected (${lowVramGpus
-            .map(
-              (gpu) => `${gpu.deviceName}: ${gpu.totalMemoryGB!.toFixed(1)}GB`
-            )
-            .join(
-              ', '
-            )}). Consider using smaller models, reducing GPU layers, or enabling the "Low VRAM" option on the Advanced tab.`,
+          message: `Low VRAM detected (${memoryDetails}). Consider using smaller models, reducing GPU layers, or enabling the "Low VRAM" option on the Advanced tab.`,
         });
       }
     }
@@ -144,7 +140,7 @@ const checkCpuWarnings = (
   noavx2: boolean,
   failsafe: boolean,
   availableBackends: BackendOption[]
-): Warning[] => {
+) => {
   const warnings: Warning[] = [];
 
   if (backend !== 'cpu') {

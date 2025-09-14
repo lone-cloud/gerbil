@@ -2,7 +2,7 @@ import { platform } from 'process';
 import si from 'systeminformation';
 import { BrowserWindow } from 'electron';
 import { logError } from '@/main/modules/logging';
-import { getGPUData } from '@/utils/gpu';
+import { getGPUData } from '@/utils/node/gpu';
 
 export interface CpuMetrics {
   usage: number;

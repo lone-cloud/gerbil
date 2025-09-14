@@ -1,6 +1,6 @@
 import { logError } from '@/main/modules/logging';
-import { readJsonFile, writeJsonFile } from '@/utils/fs';
-import { getConfigDir } from '@/utils/path';
+import { readJsonFile, writeJsonFile } from '@/utils/node/fs';
+import { getConfigDir } from '@/utils/node/path';
 import type { FrontendPreference } from '@/types';
 import type { MantineColorScheme } from '@mantine/core';
 import { homedir } from 'os';
@@ -105,7 +105,7 @@ export async function setColorScheme(colorScheme: MantineColorScheme) {
   await saveConfig();
 }
 
-export function getBackgroundColor(): string {
+export function getBackgroundColor() {
   const colorScheme = getColorScheme();
 
   if (colorScheme === 'light') {

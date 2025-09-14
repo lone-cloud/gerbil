@@ -55,7 +55,7 @@ const saveToCache = (releases: DownloadItem[]) => {
 const transformReleaseToDownloadItems = (
   release: GitHubRelease,
   platform: string
-): DownloadItem[] => {
+) => {
   const version = release.tag_name?.replace(/^v/, '') || 'unknown';
   const platformAssets = filterAssetsByPlatform(release.assets, platform);
 
@@ -131,18 +131,7 @@ const getLatestReleaseWithDownloadStatus =
     }
   };
 
-interface UseKoboldVersionsReturn {
-  platform: string;
-  availableDownloads: DownloadItem[];
-  loadingPlatform: boolean;
-  loadingRemote: boolean;
-  downloading: string | null;
-  downloadProgress: Record<string, number>;
-  handleDownload: (params: HandleDownloadParams) => Promise<boolean>;
-  getLatestReleaseWithDownloadStatus: () => Promise<ReleaseWithStatus | null>;
-}
-
-export const useKoboldVersions = (): UseKoboldVersionsReturn => {
+export const useKoboldVersions = () => {
   const [platform, setPlatform] = useState('');
 
   const [availableDownloads, setAvailableDownloads] = useState<DownloadItem[]>(

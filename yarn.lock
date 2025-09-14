@@ -1280,12 +1280,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^24.3.1":
-  version: 24.3.1
-  resolution: "@types/node@npm:24.3.1"
+"@types/node@npm:*, @types/node@npm:^24.3.3":
+  version: 24.3.3
+  resolution: "@types/node@npm:24.3.3"
   dependencies:
     undici-types: "npm:~7.10.0"
-  checksum: 10c0/99b86fc32294fcd61136ca1f771026443a1e370e9f284f75e243b29299dd878e18c193deba1ce29a374932db4e30eb80826e1049b9aad02d36f5c30b94b6f928
+  checksum: 10c0/5324108314b3d9abaafd82ea04a91ea6904580c1fbe47c52600881ae250fef3b2d3d28c7d68cb979b07241d29fe889b66bd9f92346902bea65a3e562937c7d9a
   languageName: node
   linkType: hard
 
@@ -1317,12 +1317,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^19.1.12":
-  version: 19.1.12
-  resolution: "@types/react@npm:19.1.12"
+"@types/react@npm:^19.1.13":
+  version: 19.1.13
+  resolution: "@types/react@npm:19.1.13"
   dependencies:
     csstype: "npm:^3.0.2"
-  checksum: 10c0/e35912b43da0caaab5252444bab87a31ca22950cde2822b3b3dc32e39c2d42dad1a4cf7b5dde9783aa2d007f0b2cba6ab9563fc6d2dbcaaa833b35178118767c
+  checksum: 10c0/75e35b54883f5ed07d3b5cb16a4711b6dbb7ec6b74301bcb9bfa697c9d9fff022ec508e1719e7b2c69e2e8b042faac1125be7717b5e5e084f816a2c88e136920
   languageName: node
   linkType: hard
 
@@ -1860,14 +1860,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.12.0":
-  version: 1.12.0
-  resolution: "axios@npm:1.12.0"
+"axios@npm:^1.12.1":
+  version: 1.12.1
+  resolution: "axios@npm:1.12.1"
   dependencies:
     follow-redirects: "npm:^1.15.6"
     form-data: "npm:^4.0.4"
     proxy-from-env: "npm:^1.1.0"
-  checksum: 10c0/44a1e4cfb69a2d59aa12bbc441a336e5c18e87c02b904c509fd33607d94e8cb8cc221c17e9d53f67841a4efe13abf1aa1497c85df390cdb8681ee723998d11b0
+  checksum: 10c0/eda4dff56c02d13b950fd9487b678ac197ce5f21dfc98df73632df29e45d8dd24602a34e8d9b6e016d84a41ef7fd7fc4a7618060a72cc536b91cda1eaa9cd907
   languageName: node
   linkType: hard
 
@@ -3640,13 +3640,13 @@ __metadata:
     "@eslint/js": "npm:^9.35.0"
     "@mantine/core": "npm:^8.3.1"
     "@mantine/hooks": "npm:^8.3.1"
-    "@types/node": "npm:^24.3.1"
-    "@types/react": "npm:^19.1.12"
+    "@types/node": "npm:^24.3.3"
+    "@types/react": "npm:^19.1.13"
     "@types/react-dom": "npm:^19.1.9"
     "@typescript-eslint/eslint-plugin": "npm:^8.43.0"
     "@typescript-eslint/parser": "npm:^8.43.0"
     "@vitejs/plugin-react": "npm:^5.0.2"
-    axios: "npm:^1.12.0"
+    axios: "npm:^1.12.1"
     cross-env: "npm:^10.0.0"
     electron: "npm:^38.1.0"
     electron-builder: "npm:^26.0.12"
@@ -3667,7 +3667,7 @@ __metadata:
     react-dom: "npm:^19.1.1"
     react-error-boundary: "npm:^6.0.0"
     rollup-plugin-visualizer: "npm:^6.0.3"
-    systeminformation: "npm:^5.27.8"
+    systeminformation: "npm:^5.27.9"
     typescript: "npm:^5.9.2"
     vite: "npm:^7.1.5"
     winston: "npm:^3.17.0"
@@ -6684,12 +6684,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"systeminformation@npm:^5.27.8":
-  version: 5.27.8
-  resolution: "systeminformation@npm:5.27.8"
+"systeminformation@npm:^5.27.9":
+  version: 5.27.9
+  resolution: "systeminformation@npm:5.27.9"
   bin:
     systeminformation: lib/cli.js
-  checksum: 10c0/af9db47efa923dac76f4f798582ac78ffc6fe1397a32bb99f9662d6b152b54466d05b0b02f72156a4af6c16db1b587bb7ce755dd37f415c7703494b14b21e37a
+  checksum: 10c0/d65aeb68e40d432fb1ec6e1723fa147959cbeb1b43a25c2014b768f0ee099266da6370b3f1593a6a7ca77643f58c9b754d470d225a7afd466d1108c846a67a3c
   conditions: (os=darwin | os=linux | os=win32 | os=freebsd | os=openbsd | os=netbsd | os=sunos | os=android)
   languageName: node
   linkType: hard

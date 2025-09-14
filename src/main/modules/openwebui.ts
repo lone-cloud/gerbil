@@ -8,8 +8,9 @@ import { logError } from './logging';
 import { sendKoboldOutput } from './window';
 import { getInstallDir } from './config';
 import { OPENWEBUI, SERVER_READY_SIGNALS } from '@/constants';
-import { terminateProcess } from '@/utils/process';
-import { parseKoboldConfig } from '@/utils/kobold';
+import { terminateProcess } from '@/utils/node/process';
+import { parseKoboldConfig } from '@/utils/node/kobold';
+import { getAppVersion } from '@/utils/node/fs';
 
 let openWebUIProcess: ChildProcess | null = null;
 
@@ -54,32 +55,6 @@ async function getUvEnvironment() {
   }
 
   return env;
-}
-
-export async function isUvAvailable() {
-  try {
-    const env = await getUvEnvironment();
-    const testProcess = spawn('uv', ['--version'], { stdio: 'pipe', env });
-
-    return new Promise<boolean>((resolve) => {
-      const timeout = setTimeout(() => {
-        testProcess.kill();
-        resolve(false);
-      }, 10000);
-
-      testProcess.on('exit', (code) => {
-        clearTimeout(timeout);
-        resolve(code === 0);
-      });
-
-      testProcess.on('error', () => {
-        clearTimeout(timeout);
-        resolve(false);
-      });
-    });
-  } catch {
-    return false;
-  }
 }
 
 async function createUvProcess(args: string[], env?: Record<string, string>) {
@@ -134,18 +109,10 @@ export async function startFrontend(args: string[]) {
       isImageMode,
     } = parseKoboldConfig(args);
 
-    if (isImageMode) {
-      return;
-    }
-
-    await stopFrontend();
+    const [, appVersion] = await Promise.all([stopFrontend(), getAppVersion()]);
 
     sendKoboldOutput(
-      `Preparing Open WebUI to connect at ${koboldHost}:${koboldPort}...`
-    );
-
-    sendKoboldOutput(
-      `Starting ${config.name} frontend on port ${config.port}...`
+      `Preparing Open WebUI to connect at ${koboldHost}:${koboldPort}${isImageMode ? ' (with image generation)' : ''}...`
     );
 
     const koboldUrl = `http://${koboldHost}:${koboldPort}`;
@@ -156,17 +123,30 @@ export async function startFrontend(args: string[]) {
       config.port.toString(),
     ];
 
-    sendKoboldOutput('Starting Open WebUI with uv...');
+    sendKoboldOutput(
+      `Starting Open WebUI with uv${isImageMode ? ' (image generation enabled)' : ''}...`
+    );
 
     const installDir = getInstallDir();
     const openWebUIDataDir = join(installDir, 'openwebui-data');
 
-    openWebUIProcess = await createUvProcess(openWebUIArgs, {
+    const envConfig: Record<string, string> = {
       OPENAI_API_BASE_URL: `${koboldUrl}/v1`,
-      OPENAI_API_KEY: 'kobold',
       DATA_DIR: openWebUIDataDir,
       WEBUI_AUTH: 'false',
-    });
+      WEBUI_SECRET_KEY: 'gerbil',
+      ENABLE_OLLAMA_API: 'false',
+      USER_AGENT: `Gerbil/${appVersion}`,
+    };
+
+    if (isImageMode) {
+      envConfig.AUTOMATIC1111_BASE_URL = `${koboldUrl}/sdapi/v1`;
+      envConfig.ENABLE_IMAGE_GENERATION = 'true';
+      envConfig.IMAGE_GENERATION_ENGINE = 'automatic1111';
+      envConfig.IMAGE_GENERATION_MODEL = 'sd_xl_base_1.0.safetensors';
+    }
+
+    openWebUIProcess = await createUvProcess(openWebUIArgs, envConfig);
 
     if (openWebUIProcess.stdout) {
       openWebUIProcess.stdout.on('data', (data: Buffer) => {
@@ -211,7 +191,10 @@ export async function startFrontend(args: string[]) {
 
     sendKoboldOutput(`Open WebUI is ready and auto-configured!`);
     sendKoboldOutput(`Access Open WebUI at: http://localhost:${config.port}`);
-    sendKoboldOutput(`Connection: ${koboldUrl}/v1 (auto-configured)`);
+    sendKoboldOutput(`Text Generation: ${koboldUrl}/v1 (auto-configured)`);
+    if (isImageMode) {
+      sendKoboldOutput(`Image Generation: ${koboldUrl} (auto-configured)`);
+    }
   } catch (error) {
     logError('Failed to start Open WebUI frontend:', error as Error);
     sendKoboldOutput(`Failed to start Open WebUI: ${(error as Error).message}`);

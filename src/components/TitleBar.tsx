@@ -18,35 +18,30 @@ import {
 import { useState } from 'react';
 import { soundAssets, playSound, initializeAudio } from '@/utils/sounds';
 import { useAppUpdateChecker } from '@/hooks/useAppUpdateChecker';
-import { useLaunchConfigStore } from '@/stores/launchConfig';
+import { useInterfaceOptions } from '@/hooks/useInterfaceSelection';
 import { SettingsModal } from '@/components/settings/SettingsModal';
-import { safeExecute } from '@/utils/logger';
 import iconUrl from '/icon.png';
-import { FRONTENDS, PRODUCT_NAME, TITLEBAR_HEIGHT } from '@/constants';
-import type { FrontendPreference, InterfaceTab, Screen } from '@/types';
+import { PRODUCT_NAME, TITLEBAR_HEIGHT } from '@/constants';
+import type { InterfaceTab, Screen } from '@/types';
 
 interface TitleBarProps {
   currentScreen: Screen;
   currentTab: InterfaceTab;
-  onTabChange: (tab: InterfaceTab) => void;
   onEject: () => void;
-  frontendPreference: FrontendPreference;
-  onFrontendPreferenceChange: (preference: FrontendPreference) => void;
+  onTabChange: (tab: InterfaceTab) => void;
 }
 
 export const TitleBar = ({
   currentScreen,
   currentTab,
-  onTabChange,
   onEject,
-  frontendPreference,
-  onFrontendPreferenceChange,
+  onTabChange,
 }: TitleBarProps) => {
   const computedColorScheme = useComputedColorScheme('light', {
     getInitialValueInEffect: true,
   });
   const { hasUpdate, releaseUrl } = useAppUpdateChecker();
-  const { isImageGenerationMode } = useLaunchConfigStore();
+  const interfaceOptions = useInterfaceOptions();
   const [logoClickCount, setLogoClickCount] = useState(0);
   const [isElephantMode, setIsElephantMode] = useState(false);
   const [isMouseSqueaking, setIsMouseSqueaking] = useState(false);
@@ -160,27 +155,7 @@ export const TitleBar = ({
               }}
               onDropdownOpen={() => setIsSelectOpen(true)}
               onDropdownClose={() => setIsSelectOpen(false)}
-              data={[
-                {
-                  value: 'chat',
-                  label: (() => {
-                    if (frontendPreference === 'sillytavern') {
-                      return FRONTENDS.SILLYTAVERN;
-                    }
-                    if (
-                      frontendPreference === 'openwebui' &&
-                      !isImageGenerationMode
-                    ) {
-                      return FRONTENDS.OPENWEBUI;
-                    }
-                    return isImageGenerationMode
-                      ? FRONTENDS.STABLE_UI
-                      : FRONTENDS.KOBOLDAI_LITE;
-                  })(),
-                },
-                { value: 'terminal', label: 'Terminal' },
-                { value: 'eject', label: 'Eject' },
-              ]}
+              data={interfaceOptions}
               renderOption={({ option }) => (
                 <Box
                   style={{
@@ -207,7 +182,6 @@ export const TitleBar = ({
                   textAlign: 'center',
                   backgroundColor: 'transparent',
                   border: 'none',
-                  fontWeight: 500,
                   userSelect: 'none',
                   cursor: 'pointer',
                 },
@@ -303,17 +277,7 @@ export const TitleBar = ({
       <SettingsModal
         isOnInterfaceScreen={currentScreen === 'interface'}
         opened={settingsModalOpen}
-        onClose={async () => {
-          setSettingsModalOpen(false);
-          const preference = await safeExecute(
-            () =>
-              window.electronAPI.config.get(
-                'frontendPreference'
-              ) as Promise<FrontendPreference>,
-            'Failed to load frontend preference:'
-          );
-          onFrontendPreferenceChange(preference || 'koboldcpp');
-        }}
+        onClose={() => setSettingsModalOpen(false)}
         currentScreen={currentScreen || undefined}
       />
     </AppShell.Header>

@@ -8,9 +8,9 @@ import type { ChildProcess } from 'child_process';
 import { logError } from './logging';
 import { sendKoboldOutput } from './window';
 import { SILLYTAVERN, SERVER_READY_SIGNALS } from '@/constants';
-import { terminateProcess } from '@/utils/process';
-import { pathExists, readJsonFile, writeJsonFile } from '@/utils/fs';
-import { parseKoboldConfig } from '@/utils/kobold';
+import { terminateProcess } from '@/utils/node/process';
+import { pathExists, readJsonFile, writeJsonFile } from '@/utils/node/fs';
+import { parseKoboldConfig } from '@/utils/node/kobold';
 
 let sillyTavernProcess: ChildProcess | null = null;
 let proxyServer: Server | null = null;
@@ -146,36 +146,6 @@ async function getNodeEnvironment() {
   }
 
   return env;
-}
-
-export async function isNpxAvailable() {
-  try {
-    const env = await getNodeEnvironment();
-    const testProcess = spawn('npx', ['--version'], {
-      stdio: 'pipe',
-      env,
-      shell: process.platform === 'win32',
-    });
-
-    return new Promise<boolean>((resolve) => {
-      const timeout = setTimeout(() => {
-        testProcess.kill();
-        resolve(false);
-      }, 5000);
-
-      testProcess.on('exit', (code) => {
-        clearTimeout(timeout);
-        resolve(code === 0);
-      });
-
-      testProcess.on('error', () => {
-        clearTimeout(timeout);
-        resolve(false);
-      });
-    });
-  } catch {
-    return false;
-  }
 }
 
 async function createNpxProcess(args: string[]) {
@@ -515,7 +485,6 @@ export async function cleanup() {
 
 export function getSillyTavernManager() {
   return {
-    isNpxAvailable,
     startFrontend,
     stopFrontend,
     cleanup,

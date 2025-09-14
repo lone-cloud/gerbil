@@ -38,6 +38,7 @@ interface LaunchConfigState {
   moecpu: number;
   moeexperts: number;
   isImageGenerationMode: boolean;
+  isTextMode: boolean;
 
   setGpuLayers: (layers: number) => void;
   setAutoGpuLayers: (auto: boolean) => void;
@@ -126,11 +127,16 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   moeexperts: -1,
 
   isImageGenerationMode: false,
+  isTextMode: false,
 
   setGpuLayers: (layers) => set({ gpuLayers: layers }),
   setAutoGpuLayers: (auto) => set({ autoGpuLayers: auto }),
   setContextSize: (size) => set({ contextSize: size }),
-  setModel: (path) => set({ model: path }),
+  setModel: (path) =>
+    set({
+      model: path,
+      isTextMode: Boolean(path?.trim()),
+    }),
   setAdditionalArguments: (args) => set({ additionalArguments: args }),
   setPort: (port) => set({ port }),
   setHost: (host) => set({ host }),
@@ -198,6 +204,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
 
       if (typeof configData.model === 'string') {
         updates.model = configData.model;
+        updates.isTextMode = Boolean(configData.model?.trim());
       }
 
       if (typeof configData.additionalArguments === 'string') {
@@ -399,7 +406,10 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
       'Select a Text Model File'
     );
     if (result) {
-      set({ model: result });
+      set({
+        model: result,
+        isTextMode: Boolean(result?.trim()),
+      });
     }
   },
 
