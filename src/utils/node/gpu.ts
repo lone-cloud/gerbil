@@ -182,7 +182,7 @@ foreach ($gpu in $gpus) {
     setTimeout(() => {
       powershell.kill('SIGTERM');
       resolve([]);
-    }, 3000);
+    }, 5000);
   });
 }
 

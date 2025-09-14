@@ -35,8 +35,6 @@ async function createUvProcess(args: string[], env?: Record<string, string>) {
 }
 
 async function waitForOpenWebUIToStart() {
-  sendKoboldOutput('Waiting for Open WebUI to start...');
-
   return new Promise<void>((resolve, reject) => {
     const checkForOutput = (data: Buffer) => {
       const output = data.toString();

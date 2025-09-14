@@ -1,41 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
+import { useFrontendPreferenceStore } from '@/stores/frontendPreference';
 import {
   getAvailableInterfaceOptions,
   getDefaultInterfaceTab,
   getServerInterfaceInfo,
 } from '@/utils/interface';
-import { safeExecute } from '@/utils/logger';
-import type { FrontendPreference } from '@/types';
 
 export function useFrontendPreference() {
-  const [frontendPreference, setFrontendPreference] =
-    useState<FrontendPreference>('koboldcpp');
+  const { frontendPreference, setFrontendPreference, loadFromConfig } =
+    useFrontendPreferenceStore();
 
   useEffect(() => {
-    const loadPreference = async () => {
-      await safeExecute(async () => {
-        const preference = (await window.electronAPI.config.get(
-          'frontendPreference'
-        )) as FrontendPreference;
-
-        setFrontendPreference(preference || 'koboldcpp');
-      }, 'Error loading frontend preference:');
-    };
-
-    loadPreference();
-  }, []);
-
-  const updateFrontendPreference = async (preference: FrontendPreference) => {
-    setFrontendPreference(preference);
-    await safeExecute(async () => {
-      await window.electronAPI.config.set('frontendPreference', preference);
-    }, 'Error saving frontend preference:');
-  };
+    loadFromConfig();
+  }, [loadFromConfig]);
 
   return {
     frontendPreference,
-    setFrontendPreference: updateFrontendPreference,
+    setFrontendPreference,
   };
 }
 
