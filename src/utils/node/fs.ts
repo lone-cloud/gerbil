@@ -1,6 +1,5 @@
 import { readFile, writeFile, access, mkdir } from 'fs/promises';
 import { constants } from 'fs';
-import { join } from 'path';
 
 export const pathExists = async (path: string) => {
   try {
@@ -11,9 +10,7 @@ export const pathExists = async (path: string) => {
   }
 };
 
-export const readJsonFile = async <T = unknown>(
-  path: string
-): Promise<T | null> => {
+export const readJsonFile = async <T = unknown>(path: string) => {
   try {
     const content = await readFile(path, 'utf-8');
     return JSON.parse(content) as T;
@@ -37,14 +34,7 @@ export const ensureDir = async (path: string) => {
   }
 };
 
-export const getAppVersion = async (): Promise<string> => {
-  try {
-    const packageJsonPath = join(__dirname, '../../../package.json');
-    const packageJson = await readJsonFile<{ version: string }>(
-      packageJsonPath
-    );
-    return packageJson?.version || 'unknown';
-  } catch {
-    return 'unknown';
-  }
+export const getAppVersion = async () => {
+  const { app } = await import('electron');
+  return app.getVersion();
 };
