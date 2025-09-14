@@ -15,15 +15,13 @@ import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import { safeExecute } from '@/utils/logger';
 import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
 import type { DownloadItem } from '@/types/electron';
-import type { InterfaceTab, FrontendPreference, Screen } from '@/types';
+import type { InterfaceTab, Screen } from '@/types';
 
 export const App = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen | null>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [activeInterfaceTab, setActiveInterfaceTab] =
     useState<InterfaceTab>('terminal');
-  const [frontendPreference, setFrontendPreference] =
-    useState<FrontendPreference>('koboldcpp');
   const [ejectConfirmModalOpen, setEjectConfirmModalOpen] = useState(false);
   const isInterfaceScreen = currentScreen === 'interface';
 
@@ -43,15 +41,10 @@ export const App = () => {
   useEffect(() => {
     const checkInstallation = async () => {
       await safeExecute(async () => {
-        const [currentVersion, hasSeenWelcome, preference] = await Promise.all([
+        const [currentVersion, hasSeenWelcome] = await Promise.all([
           window.electronAPI.kobold.getCurrentVersion(),
           window.electronAPI.config.get('hasSeenWelcome') as Promise<boolean>,
-          window.electronAPI.config.get(
-            'frontendPreference'
-          ) as Promise<FrontendPreference>,
         ]);
-
-        setFrontendPreference(preference || 'koboldcpp');
 
         if (!hasSeenWelcome) {
           setCurrentScreen('welcome');
@@ -150,12 +143,10 @@ export const App = () => {
       padding={isInterfaceScreen ? 0 : 'md'}
     >
       <TitleBar
-        currentScreen={currentScreen || 'welcome'}
+        currentScreen={currentScreen || 'launch'}
         currentTab={activeInterfaceTab}
-        onTabChange={setActiveInterfaceTab}
         onEject={handleEject}
-        frontendPreference={frontendPreference}
-        onFrontendPreferenceChange={setFrontendPreference}
+        onTabChange={setActiveInterfaceTab}
       />
 
       <AppShell.Main
@@ -210,7 +201,6 @@ export const App = () => {
                 <InterfaceScreen
                   activeTab={activeInterfaceTab}
                   onTabChange={setActiveInterfaceTab}
-                  frontendPreference={frontendPreference}
                 />
               </ScreenTransition>
             </>

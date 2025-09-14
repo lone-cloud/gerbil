@@ -169,11 +169,8 @@ export interface LogsAPI {
   logError: (message: string, error?: Error) => Promise<void>;
 }
 
-export interface SillyTavernAPI {
+export interface DependenciesAPI {
   isNpxAvailable: () => Promise<boolean>;
-}
-
-export interface OpenWebUIAPI {
   isUvAvailable: () => Promise<boolean>;
 }
 
@@ -195,8 +192,7 @@ declare global {
       app: AppAPI;
       config: ConfigAPI;
       logs: LogsAPI;
-      sillytavern: SillyTavernAPI;
-      openwebui: OpenWebUIAPI;
+      dependencies: DependenciesAPI;
       monitoring: MonitoringAPI;
     };
   }

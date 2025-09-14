@@ -3,14 +3,14 @@ import { join } from 'path';
 import { stripVTControlCharacters } from 'util';
 import { PRODUCT_NAME } from '../../constants';
 import type { IPCChannel, IPCChannelPayloads } from '@/types/ipc';
-import { isDevelopment } from '@/utils/environment';
+import { isDevelopment } from '@/utils/node/environment';
 import { getBackgroundColor } from './config';
 
 let mainWindow: BrowserWindow | null = null;
 
 export function createMainWindow() {
   const { size } = screen.getPrimaryDisplay();
-  const windowHeight = Math.floor(size.height * 0.86);
+  const windowHeight = Math.floor(size.height * 0.9);
   const windowWidth = 800;
 
   const icon = isDevelopment
@@ -192,7 +192,7 @@ export function getMainWindow() {
 export function sendToRenderer<T extends IPCChannel>(
   channel: T,
   ...args: IPCChannelPayloads[T]
-): void {
+) {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send(channel, ...args);
   }

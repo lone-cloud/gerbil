@@ -2,7 +2,7 @@ import { app } from 'electron';
 import { join } from 'path';
 import { createLogger, format, type Logger } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
-import { isDevelopment } from '@/utils/environment';
+import { isDevelopment } from '@/utils/node/environment';
 
 let logger: Logger | null = null;
 let isInitialized = false;
@@ -70,11 +70,6 @@ export const flushLogs = () => {
   ) {
     (fileTransport as { flush: () => void }).flush();
   }
-};
-
-export const logDebug = (message: string) => {
-  // eslint-disable-next-line no-console
-  console.log(message);
 };
 
 const setupGlobalErrorHandlers = () => {

@@ -19,6 +19,7 @@ export const SERVER_READY_SIGNALS = {
   KOBOLDCPP: 'Please connect to custom endpoint at',
   SILLYTAVERN: 'SillyTavern is listening on',
   OPENWEBUI: 'Waiting for application startup.',
+  COMFYUI: 'Starting server',
 } as const;
 
 export const DEFAULT_CONTEXT_SIZE = 4096;
@@ -41,6 +42,13 @@ export const SILLYTAVERN = {
 
 export const OPENWEBUI = {
   PORT: 8080,
+  get URL() {
+    return `http://localhost:${this.PORT}`;
+  },
+} as const;
+
+export const COMFYUI = {
+  PORT: 8188,
   get URL() {
     return `http://localhost:${this.PORT}`;
   },
@@ -81,6 +89,7 @@ export const FRONTENDS = {
   STABLE_UI: 'Stable UI',
   SILLYTAVERN: 'SillyTavern',
   OPENWEBUI: 'Open WebUI',
+  COMFYUI: 'ComfyUI',
 } as const;
 
 export const ZOOM = {

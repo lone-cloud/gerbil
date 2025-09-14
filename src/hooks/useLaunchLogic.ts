@@ -43,14 +43,17 @@ interface LaunchArgs {
 }
 
 const buildModelArgs = (
-  isImageMode: boolean,
   model: string,
   sdmodel: string,
   launchArgs: LaunchArgs
 ): string[] => {
   const args: string[] = [];
 
-  if (isImageMode) {
+  if (model.trim() !== '') {
+    args.push('--model', model);
+  }
+
+  if (sdmodel.trim() !== '') {
     args.push('--sdmodel', sdmodel);
 
     const imageModels = [
@@ -75,8 +78,6 @@ const buildModelArgs = (
     if (launchArgs.sdconvdirect !== 'off') {
       args.push('--sdconvdirect', launchArgs.sdconvdirect);
     }
-  } else {
-    args.push('--model', model);
   }
 
   return args;
@@ -137,7 +138,7 @@ const buildConfigArgs = (
   return args;
 };
 
-const buildCudaArgs = (launchArgs: LaunchArgs): string[] => {
+const buildCudaArgs = (launchArgs: LaunchArgs) => {
   const cudaArgs = ['--usecuda'];
   cudaArgs.push(launchArgs.lowvram ? 'lowvram' : 'normal');
 
@@ -151,9 +152,9 @@ const buildCudaArgs = (launchArgs: LaunchArgs): string[] => {
   return cudaArgs;
 };
 
-const buildVulkanArgs = (): string[] => ['--usevulkan'];
+const buildVulkanArgs = () => ['--usevulkan'];
 
-const buildClblastArgs = (launchArgs: LaunchArgs): string[] => {
+const buildClblastArgs = (launchArgs: LaunchArgs) => {
   const clblastArgs = ['--useclblast'];
 
   if (
@@ -179,7 +180,7 @@ const buildClblastArgs = (launchArgs: LaunchArgs): string[] => {
   return clblastArgs;
 };
 
-const addTensorSplitArgs = (args: string[], launchArgs: LaunchArgs): void => {
+const addTensorSplitArgs = (args: string[], launchArgs: LaunchArgs) => {
   if (launchArgs.tensorSplit && launchArgs.tensorSplit.trim()) {
     const tensorValues = launchArgs.tensorSplit
       .split(',')
@@ -192,7 +193,7 @@ const addTensorSplitArgs = (args: string[], launchArgs: LaunchArgs): void => {
   }
 };
 
-const buildBackendArgs = (launchArgs: LaunchArgs): string[] => {
+const buildBackendArgs = (launchArgs: LaunchArgs) => {
   const args: string[] = [];
 
   if (!launchArgs.backend || launchArgs.backend === 'cpu') {
@@ -246,10 +247,10 @@ export const useLaunchLogic = ({
 
   const handleLaunch = useCallback(
     async (launchArgs: LaunchArgs) => {
-      const isImageMode = sdmodel.trim() !== '';
-      const isTextMode = model.trim() !== '';
+      const hasTextModel = model.trim() !== '';
+      const hasImageModel = sdmodel.trim() !== '';
 
-      if (isLaunching || (!isImageMode && !isTextMode)) {
+      if (isLaunching || (!hasTextModel && !hasImageModel)) {
         return;
       }
 
@@ -259,8 +260,8 @@ export const useLaunchLogic = ({
 
       try {
         const args: string[] = [
-          ...buildModelArgs(isImageMode, model, sdmodel, launchArgs),
-          ...buildConfigArgs(isImageMode, launchArgs),
+          ...buildModelArgs(model, sdmodel, launchArgs),
+          ...buildConfigArgs(hasImageModel, launchArgs),
           ...buildBackendArgs(launchArgs),
         ];
 

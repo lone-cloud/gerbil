@@ -12,10 +12,11 @@ import { logError } from '@/main/modules/logging';
 import { cleanup } from '@/main/modules/koboldcpp';
 import { getSillyTavernManager } from '@/main/modules/sillytavern';
 import { cleanup as cleanupOpenWebUI } from '@/main/modules/openwebui';
+import { cleanup as cleanupComfyUI } from '@/main/modules/comfyui';
 import { setupIPCHandlers } from '@/main/ipc';
-import { ensureDir } from '@/utils/fs';
+import { ensureDir } from '@/utils/node/fs';
 
-export async function initializeApp(): Promise<void> {
+export async function initializeApp() {
   const installDir = getInstallDir();
 
   await app.whenReady();
@@ -42,6 +43,7 @@ export async function initializeApp(): Promise<void> {
         cleanup(),
         getSillyTavernManager().cleanup(),
         cleanupOpenWebUI(),
+        cleanupComfyUI(),
       ];
 
       const timeoutPromise = new Promise<void>((resolve) => {

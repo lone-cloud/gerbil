@@ -1,26 +1,22 @@
 import { Box, Text, Stack } from '@mantine/core';
-import {
-  SILLYTAVERN,
-  OPENWEBUI,
-  FRONTENDS,
-  TITLEBAR_HEIGHT,
-  STATUSBAR_HEIGHT,
-} from '@/constants';
-import { useLaunchConfigStore } from '@/stores/launchConfig';
-import type { FrontendPreference } from '@/types';
+import { TITLEBAR_HEIGHT, STATUSBAR_HEIGHT } from '@/constants';
+import { useServerInterfaceInfo } from '@/hooks/useInterfaceSelection';
 
 interface ServerTabProps {
   serverUrl?: string;
   isServerReady?: boolean;
-  frontendPreference?: FrontendPreference;
+  activeTab?: string;
 }
 
 export const ServerTab = ({
   serverUrl,
   isServerReady,
-  frontendPreference = 'koboldcpp',
+  activeTab,
 }: ServerTabProps) => {
-  const { isImageGenerationMode } = useLaunchConfigStore();
+  const { url: iframeUrl, title } = useServerInterfaceInfo(
+    serverUrl || '',
+    activeTab
+  );
 
   if (!isServerReady || !serverUrl) {
     return (
@@ -38,28 +34,16 @@ export const ServerTab = ({
             Waiting for the server to start...
           </Text>
           <Text c="dimmed" size="sm">
-            The {isImageGenerationMode ? 'image generation' : 'chat'} interface
-            will load automatically when ready
+            The{' '}
+            {title.toLowerCase().includes('ui') ||
+            title.toLowerCase().includes('comfy')
+              ? 'image generation'
+              : 'chat'}{' '}
+            interface will load automatically when ready
           </Text>
         </Stack>
       </Box>
     );
-  }
-
-  let iframeUrl: string;
-  let title: string;
-
-  if (frontendPreference === 'sillytavern') {
-    iframeUrl = SILLYTAVERN.PROXY_URL;
-    title = FRONTENDS.SILLYTAVERN;
-  } else if (frontendPreference === 'openwebui' && !isImageGenerationMode) {
-    iframeUrl = OPENWEBUI.URL;
-    title = FRONTENDS.OPENWEBUI;
-  } else {
-    iframeUrl = isImageGenerationMode ? `${serverUrl}/sdui` : serverUrl;
-    title = isImageGenerationMode
-      ? FRONTENDS.STABLE_UI
-      : FRONTENDS.KOBOLDAI_LITE;
   }
 
   return (
@@ -79,7 +63,7 @@ export const ServerTab = ({
           border: 'none',
           borderRadius: 'inherit',
         }}
-        allow="clipboard-read; clipboard-write"
+        allow="clipboard-read; clipboard-write; fullscreen; microphone; geolocation; camera; autoplay"
       />
     </Box>
   );

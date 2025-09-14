@@ -19,11 +19,10 @@ import {
 } from '@/constants';
 import { handleTerminalOutput, processTerminalContent } from '@/utils/terminal';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
-import type { FrontendPreference } from '@/types';
+import { useFrontendPreference } from '@/hooks/useInterfaceSelection';
 
 interface TerminalTabProps {
   onServerReady: (url: string) => void;
-  frontendPreference?: FrontendPreference;
 }
 
 export interface TerminalTabRef {
@@ -31,8 +30,9 @@ export interface TerminalTabRef {
 }
 
 export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
-  ({ onServerReady, frontendPreference = 'koboldcpp' }, ref) => {
+  ({ onServerReady }, ref) => {
     const { host, port, isImageGenerationMode } = useLaunchConfigStore();
+    const { frontendPreference } = useFrontendPreference();
     const computedColorScheme = useComputedColorScheme('light', {
       getInitialValueInEffect: true,
     });
@@ -92,11 +92,13 @@ export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
 
               if (frontendPreference === 'sillytavern') {
                 signalToCheck = SERVER_READY_SIGNALS.SILLYTAVERN;
-              } else if (
-                frontendPreference === 'openwebui' &&
-                !isImageGenerationMode
-              ) {
+              } else if (frontendPreference === 'openwebui') {
                 signalToCheck = SERVER_READY_SIGNALS.OPENWEBUI;
+              } else if (
+                frontendPreference === 'comfyui' &&
+                isImageGenerationMode
+              ) {
+                signalToCheck = SERVER_READY_SIGNALS.COMFYUI;
               }
 
               if (newData.includes(signalToCheck)) {

@@ -1,4 +1,5 @@
 import { ipcMain, shell, app } from 'electron';
+import { join } from 'path';
 import * as os from 'os';
 import type { MantineColorScheme } from '@mantine/core';
 import {
@@ -23,13 +24,18 @@ import {
   getColorScheme,
   setColorScheme,
 } from '@/main/modules/config';
-import { logError, getLogsDirectory } from '@/main/modules/logging';
+import { logError } from '@/main/modules/logging';
 import { getSillyTavernManager } from '@/main/modules/sillytavern';
 import {
   startFrontend as startOpenWebUIFrontend,
   stopFrontend as stopOpenWebUIFrontend,
-  isUvAvailable,
 } from '@/main/modules/openwebui';
+import {
+  startFrontend as startComfyUIFrontend,
+  stopFrontend as stopComfyUIFrontend,
+} from '@/main/modules/comfyui';
+import { isUvAvailable, isNpxAvailable } from '@/main/modules/dependencies';
+import { parseKoboldConfig } from '@/utils/node/kobold';
 import { getMainWindow } from '@/main/modules/window';
 import {
   detectGPU,
@@ -53,10 +59,14 @@ async function launchKoboldCppWithCustomFrontends(args: string[] = []) {
 
     const result = await launchKoboldCpp(args, frontendPreference);
 
+    const { isImageMode } = parseKoboldConfig(args);
+
     if (frontendPreference === 'sillytavern') {
       getSillyTavernManager().startFrontend(args);
     } else if (frontendPreference === 'openwebui') {
       startOpenWebUIFrontend(args);
+    } else if (frontendPreference === 'comfyui' && isImageMode) {
+      startComfyUIFrontend(args);
     }
 
     return result;
@@ -127,6 +137,7 @@ export function setupIPCHandlers() {
     stopKoboldCpp();
     getSillyTavernManager().stopFrontend();
     stopOpenWebUIFrontend();
+    stopComfyUIFrontend();
   });
 
   ipcMain.handle('kobold:parseConfigFile', (_, filePath) =>
@@ -156,7 +167,7 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('app:showLogsFolder', async () => {
     try {
-      const logsDir = getLogsDirectory();
+      const logsDir = join(app.getPath('userData'), 'logs');
       await shell.openPath(logsDir);
       return { success: true };
     } catch (error) {
@@ -225,11 +236,9 @@ export function setupIPCHandlers() {
     logError(message, error);
   });
 
-  ipcMain.handle('sillytavern:isNpxAvailable', () =>
-    getSillyTavernManager().isNpxAvailable()
-  );
+  ipcMain.handle('dependencies:isNpxAvailable', () => isNpxAvailable());
 
-  ipcMain.handle('openwebui:isUvAvailable', () => isUvAvailable());
+  ipcMain.handle('dependencies:isUvAvailable', () => isUvAvailable());
 
   ipcMain.handle('monitoring:start', () => {
     const mainWindow = getMainWindow();

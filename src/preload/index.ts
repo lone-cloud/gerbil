@@ -4,8 +4,7 @@ import type {
   AppAPI,
   ConfigAPI,
   LogsAPI,
-  SillyTavernAPI,
-  OpenWebUIAPI,
+  DependenciesAPI,
   MonitoringAPI,
 } from '@/types/electron';
 
@@ -100,12 +99,9 @@ const logsAPI: LogsAPI = {
     ipcRenderer.invoke('logs:logError', message, error),
 };
 
-const sillyTavernAPI: SillyTavernAPI = {
-  isNpxAvailable: () => ipcRenderer.invoke('sillytavern:isNpxAvailable'),
-};
-
-const openwebUIAPI: OpenWebUIAPI = {
-  isUvAvailable: () => ipcRenderer.invoke('openwebui:isUvAvailable'),
+const dependenciesAPI: DependenciesAPI = {
+  isUvAvailable: () => ipcRenderer.invoke('dependencies:isUvAvailable'),
+  isNpxAvailable: () => ipcRenderer.invoke('dependencies:isNpxAvailable'),
 };
 
 const monitoringAPI: MonitoringAPI = {
@@ -136,7 +132,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   app: appAPI,
   config: configAPI,
   logs: logsAPI,
-  sillytavern: sillyTavernAPI,
-  openwebui: openwebUIAPI,
+  dependencies: dependenciesAPI,
   monitoring: monitoringAPI,
 });

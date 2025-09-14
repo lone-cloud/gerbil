@@ -23,10 +23,10 @@ const stripVersionSuffix = (displayName: string) =>
   );
 
 export const compareVersions = (versionA: string, versionB: string) => {
-  const cleanVersion = (version: string): string =>
+  const cleanVersion = (version: string) =>
     version.replace(/^v/, '').replace(/[^0-9.]/g, '');
 
-  const parseVersion = (version: string): number[] =>
+  const parseVersion = (version: string) =>
     cleanVersion(version)
       .split('.')
       .map((num) => parseInt(num, 10) || 0);

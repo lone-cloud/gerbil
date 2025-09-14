@@ -40,5 +40,5 @@ export const isAssetCompatibleWithPlatform = (
 export const filterAssetsByPlatform = <T extends { name: string }>(
   assets: T[],
   platform: string
-): T[] =>
+) =>
   assets.filter((asset) => isAssetCompatibleWithPlatform(asset.name, platform));

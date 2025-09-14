@@ -4,7 +4,7 @@ import { AlertTriangle, FolderOpen } from 'lucide-react';
 import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary';
 import { safeExecute } from '@/utils/logger';
 
-interface Props {
+interface ErrorBoundaryProps {
   children: ReactNode;
 }
 
@@ -70,7 +70,7 @@ const ErrorFallback = ({
   </Center>
 );
 
-export const ErrorBoundary = ({ children }: Props) => (
+export const ErrorBoundary = ({ children }: ErrorBoundaryProps) => (
   <ReactErrorBoundary
     FallbackComponent={ErrorFallback}
     onError={(error) => {

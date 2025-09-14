@@ -10,7 +10,6 @@ import {
   Select,
   Box,
   Anchor,
-  Badge,
 } from '@mantine/core';
 import { Folder, FolderOpen, Monitor } from 'lucide-react';
 import type { FrontendPreference } from '@/types';
@@ -62,12 +61,13 @@ export const GeneralTab = ({
             url: 'https://nodejs.org/',
           },
         ],
-        requirementCheck: () => window.electronAPI.sillytavern.isNpxAvailable(),
+        requirementCheck: () =>
+          window.electronAPI.dependencies.isNpxAvailable(),
       },
       {
         value: 'openwebui',
         label: FRONTENDS.OPENWEBUI,
-        badges: ['Text'],
+        badges: ['Text', 'Image'],
         requirements: [
           {
             id: 'uv',
@@ -75,7 +75,20 @@ export const GeneralTab = ({
             url: 'https://docs.astral.sh/uv/getting-started/installation/',
           },
         ],
-        requirementCheck: () => window.electronAPI.openwebui.isUvAvailable(),
+        requirementCheck: () => window.electronAPI.dependencies.isUvAvailable(),
+      },
+      {
+        value: 'comfyui',
+        label: FRONTENDS.COMFYUI,
+        badges: ['Image'],
+        requirements: [
+          {
+            id: 'uv',
+            name: 'uv',
+            url: 'https://docs.astral.sh/uv/getting-started/installation/',
+          },
+        ],
+        requirementCheck: () => window.electronAPI.dependencies.isUvAvailable(),
       },
     ],
     []
@@ -182,7 +195,10 @@ export const GeneralTab = ({
   };
 
   const handleFrontendPreferenceChange = async (value: string | null) => {
-    if (!value || !['koboldcpp', 'sillytavern', 'openwebui'].includes(value))
+    if (
+      !value ||
+      !['koboldcpp', 'sillytavern', 'openwebui', 'comfyui'].includes(value)
+    )
       return;
 
     const success = await tryExecute(
@@ -192,30 +208,6 @@ export const GeneralTab = ({
     if (success) {
       setFrontendPreference(value as FrontendPreference);
     }
-  };
-
-  const renderSelectOption = ({
-    option,
-  }: {
-    option: { value: string; label: string; disabled?: boolean };
-  }) => {
-    const config = frontendConfigs.find((c) => c.value === option.value);
-    if (!config) return <Text>{option.label}</Text>;
-
-    return (
-      <Group justify="space-between" wrap="nowrap">
-        <Text size="sm" truncate c={option.disabled ? 'dimmed' : undefined}>
-          {config.label}
-        </Text>
-        <Group gap={4}>
-          {config.badges.map((badge) => (
-            <Badge key={badge} size="sm" variant="light" color="blue">
-              {badge}
-            </Badge>
-          ))}
-        </Group>
-      </Group>
-    );
   };
 
   return (
@@ -290,7 +282,6 @@ export const GeneralTab = ({
             disabled: !isFrontendAvailable(config.value),
           }))}
           leftSection={<Monitor style={{ width: rem(16), height: rem(16) }} />}
-          renderOption={renderSelectOption}
         />
 
         <Box mt="sm">

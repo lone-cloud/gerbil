@@ -4,32 +4,32 @@ import {
   TerminalTab,
   type TerminalTabRef,
 } from '@/components/screens/Interface/TerminalTab';
-import type { InterfaceTab, FrontendPreference } from '@/types';
+import { useDefaultInterfaceTab } from '@/hooks/useInterfaceSelection';
+import type { InterfaceTab } from '@/types';
 
 interface InterfaceScreenProps {
   activeTab?: InterfaceTab | null;
   onTabChange?: (tab: InterfaceTab) => void;
-  frontendPreference?: FrontendPreference;
 }
 
 export const InterfaceScreen = ({
   activeTab,
   onTabChange,
-  frontendPreference = 'koboldcpp',
 }: InterfaceScreenProps) => {
   const [serverUrl, setServerUrl] = useState<string>('');
   const [isServerReady, setIsServerReady] = useState<boolean>(false);
   const terminalTabRef = useRef<TerminalTabRef>(null);
+  const defaultInterfaceTab = useDefaultInterfaceTab();
 
   const handleServerReady = useCallback(
     (url: string) => {
       setServerUrl(url);
       setIsServerReady(true);
       if (onTabChange) {
-        onTabChange('chat');
+        onTabChange(defaultInterfaceTab);
       }
     },
-    [onTabChange]
+    [onTabChange, defaultInterfaceTab]
   );
 
   useEffect(() => {
@@ -50,13 +50,16 @@ export const InterfaceScreen = ({
       <div
         style={{
           flex: 1,
-          display: activeTab === 'chat' ? 'block' : 'none',
+          display:
+            activeTab === 'chat-text' || activeTab === 'chat-image'
+              ? 'block'
+              : 'none',
         }}
       >
         <ServerTab
           serverUrl={serverUrl}
           isServerReady={isServerReady}
-          frontendPreference={frontendPreference}
+          activeTab={activeTab || undefined}
         />
       </div>
       <div
@@ -65,11 +68,7 @@ export const InterfaceScreen = ({
           display: activeTab === 'terminal' ? 'block' : 'none',
         }}
       >
-        <TerminalTab
-          ref={terminalTabRef}
-          onServerReady={handleServerReady}
-          frontendPreference={frontendPreference}
-        />
+        <TerminalTab ref={terminalTabRef} onServerReady={handleServerReady} />
       </div>
     </div>
   );

@@ -1,11 +1,11 @@
 /* eslint-disable no-console */
 import { spawn } from 'child_process';
 
-import { terminateProcess } from '@/utils/process';
-import { pathExists, readJsonFile } from '@/utils/fs';
-import { getConfigDir } from '@/utils/path';
+import { terminateProcess } from '@/utils/node/process';
+import { pathExists, readJsonFile } from '@/utils/node/fs';
+import { getConfigDir } from '@/utils/node/path';
 
-async function getCurrentKoboldBinary(): Promise<string | null> {
+async function getCurrentKoboldBinary() {
   try {
     const configPath = getConfigDir();
     if (!(await pathExists(configPath))) {
@@ -21,7 +21,7 @@ async function getCurrentKoboldBinary(): Promise<string | null> {
   }
 }
 
-export async function handleCliMode(args: string[]): Promise<void> {
+export async function handleCliMode(args: string[]) {
   const currentBinary = await getCurrentKoboldBinary();
 
   if (!currentBinary) {

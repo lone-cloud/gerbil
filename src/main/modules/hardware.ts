@@ -1,8 +1,8 @@
 /* eslint-disable no-comments/disallowComments */
 import si from 'systeminformation';
 import { logError } from '@/main/modules/logging';
-import { terminateProcess } from '@/utils/process';
-import { getGPUData } from '@/utils/gpu';
+import { terminateProcess } from '@/utils/node/process';
+import { getGPUData } from '@/utils/node/gpu';
 import type {
   CPUCapabilities,
   GPUCapabilities,

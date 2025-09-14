@@ -31,12 +31,12 @@ export const isAssetStandard = (assetName: string) => {
 
 export const sortDownloadsByType = <T extends { name: string }>(
   downloads: T[]
-): T[] =>
+) =>
   [...downloads].sort((a, b) => {
     const aName = stripAssetExtensions(a.name).toLowerCase();
     const bName = stripAssetExtensions(b.name).toLowerCase();
 
-    const getOrderPriority = (name: string): number => {
+    const getOrderPriority = (name: string) => {
       if (isAssetStandard(name)) return 0;
       if (name.includes(ASSET_SUFFIXES.ROCM)) return 1;
       if (name.endsWith(ASSET_SUFFIXES.NOCUDA)) return 2;

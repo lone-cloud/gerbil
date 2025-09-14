@@ -1,5 +1,5 @@
 import { join, dirname } from 'path';
-import { pathExists } from '@/utils/fs';
+import { pathExists } from '@/utils/node/fs';
 import { logError } from './logging';
 import { getCurrentBinaryInfo } from './koboldcpp';
 import { detectGPUCapabilities, detectCPU } from './hardware';
