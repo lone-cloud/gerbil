@@ -353,8 +353,7 @@ function parseClInfoOutput(output: string) {
       const deviceName = findDeviceNameInClInfo(lines, i);
 
       if (deviceName && currentPlatform) {
-        const deviceLabel = `${formatDeviceName(deviceName)} (${currentPlatform})`;
-        devices.push(deviceLabel);
+        devices.push(formatDeviceName(deviceName));
       }
     }
   }

@@ -1,12 +1,12 @@
 import { logError } from '@/main/modules/logging';
 import { readJsonFile, writeJsonFile } from '@/utils/node/fs';
 import { getConfigDir } from '@/utils/node/path';
-import type { FrontendPreference } from '@/types';
-import type { MantineColorScheme } from '@mantine/core';
 import { homedir } from 'os';
 import { join } from 'path';
 import { nativeTheme } from 'electron';
 import { PRODUCT_NAME } from '@/constants';
+import type { FrontendPreference } from '@/types';
+import type { MantineColorScheme } from '@mantine/core';
 
 type ConfigValue = string | number | boolean | unknown[] | undefined;
 

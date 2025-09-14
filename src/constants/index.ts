@@ -72,6 +72,9 @@ export const GITHUB_API = {
   get COMFYUI_DOWNLOAD_URL() {
     return `https://github.com/${this.COMFYUI_REPO}/archive/refs/heads/master.zip`;
   },
+  get COMFYUI_LATEST_COMMIT_URL() {
+    return `${this.BASE_URL}/repos/${this.COMFYUI_REPO}/commits/master`;
+  },
 } as const;
 
 export const ASSET_SUFFIXES = {
