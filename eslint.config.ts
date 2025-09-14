@@ -172,7 +172,6 @@ const config = [
 
       'sonarjs/cognitive-complexity': ['warn', 25],
 
-      // Promise rules to prevent sequential awaits (smarter detection)
       'promise/prefer-await-to-then': 'error',
       'promise/prefer-await-to-callbacks': 'off',
       'promise/no-nesting': 'error',
@@ -184,8 +183,6 @@ const config = [
       'promise/param-names': 'error',
       'promise/catch-or-return': 'off',
       'promise/no-native': 'off',
-
-      // Node.js specific async rules
 
       'no-comments/disallowComments': 'error',
     },

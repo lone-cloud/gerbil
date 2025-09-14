@@ -274,12 +274,7 @@ async function getLinuxGPUData() {
           memoryTotal,
         });
       } catch {
-        gpus.push({
-          deviceName,
-          usage: 0,
-          memoryUsed: 0,
-          memoryTotal: 0,
-        });
+        continue;
       }
     }
 
