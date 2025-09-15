@@ -155,8 +155,8 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('app:getVersion', () => getAppVersion());
 
-  ipcMain.handle('app:getVersionInfo', () => ({
-    appVersion: getAppVersion(),
+  ipcMain.handle('app:getVersionInfo', async () => ({
+    appVersion: await getAppVersion(),
     electronVersion: process.versions.electron,
     nodeVersion: process.versions.node,
     chromeVersion: process.versions.chrome,
@@ -222,6 +222,18 @@ export function setupIPCHandlers() {
       await setColorScheme(colorScheme);
     }
   );
+
+  ipcMain.handle('app:openExternal', async (_, url: string) => {
+    try {
+      await shell.openExternal(url);
+      return { success: true };
+    } catch (error) {
+      logError('Failed to open external URL:', error as Error);
+      throw new Error(
+        `Failed to open external URL: ${(error as Error).message}`
+      );
+    }
+  });
 
   const mainWindow = getMainWindow();
   if (mainWindow) {

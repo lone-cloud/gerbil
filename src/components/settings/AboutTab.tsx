@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import {
   Text,
   Stack,
-  Anchor,
   Group,
   Card,
   Image,
@@ -105,19 +104,25 @@ export const AboutTab = () => {
               Run Large Language Models locally
             </Text>
             <Group gap="md" mt="md">
-              <Anchor
-                href="https://github.com/lone-cloud/gerbil"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Button
+                variant="subtle"
+                size="compact-sm"
+                leftSection={
+                  <Github style={{ width: rem(16), height: rem(16) }} />
+                }
+                onClick={async () => {
+                  await safeExecute(
+                    () =>
+                      window.electronAPI.app.openExternal(
+                        'https://github.com/lone-cloud/gerbil'
+                      ),
+                    'Failed to open GitHub link'
+                  );
+                }}
                 style={{ textDecoration: 'none' }}
               >
-                <Group gap="xs" align="center">
-                  <Github style={{ width: rem(16), height: rem(16) }} />
-                  <Text size="sm" fw={500}>
-                    GitHub
-                  </Text>
-                </Group>
-              </Anchor>
+                GitHub
+              </Button>
 
               <Button
                 variant="light"

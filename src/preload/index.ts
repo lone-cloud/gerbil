@@ -87,6 +87,7 @@ const appAPI: AppAPI = {
   getColorScheme: () => ipcRenderer.invoke('app:getColorScheme'),
   setColorScheme: (colorScheme) =>
     ipcRenderer.invoke('app:setColorScheme', colorScheme),
+  openExternal: (url) => ipcRenderer.invoke('app:openExternal', url),
 };
 
 const configAPI: ConfigAPI = {
