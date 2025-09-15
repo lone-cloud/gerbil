@@ -158,6 +158,7 @@ export interface AppAPI {
   setZoomLevel: (level: number) => Promise<void>;
   getColorScheme: () => Promise<MantineColorScheme>;
   setColorScheme: (colorScheme: MantineColorScheme) => Promise<void>;
+  openExternal: (url: string) => Promise<void>;
 }
 
 export interface ConfigAPI {

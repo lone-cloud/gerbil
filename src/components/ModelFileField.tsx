@@ -57,10 +57,7 @@ export const ModelFileField = ({
         </Button>
         {showSearchHF && (
           <Button
-            component="a"
-            href={searchUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+            onClick={() => window.electronAPI.app.openExternal(searchUrl!)}
             variant="outline"
             leftSection={<Search size={16} />}
           >
