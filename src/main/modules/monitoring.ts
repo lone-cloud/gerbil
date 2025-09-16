@@ -1,4 +1,3 @@
-import { platform } from 'process';
 import si from 'systeminformation';
 import { BrowserWindow } from 'electron';
 import { logError } from '@/main/modules/logging';
@@ -46,7 +45,7 @@ let cpuInterval: ReturnType<typeof setInterval> | null = null;
 let memoryInterval: ReturnType<typeof setInterval> | null = null;
 let gpuInterval: ReturnType<typeof setInterval> | null = null;
 let isRunning = false;
-const updateFrequency = platform === 'win32' ? 2000 : 1000;
+const updateFrequency = 1000;
 let mainWindow: BrowserWindow | null = null;
 
 export function startMonitoring(window: BrowserWindow) {
@@ -91,7 +90,7 @@ async function collectAndSendCpuMetrics() {
   try {
     const cpuData = await si.currentLoad();
     const metrics: CpuMetrics = {
-      usage: cpuData.currentLoad,
+      usage: Math.round(cpuData.currentLoad),
     };
 
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -108,9 +107,9 @@ async function collectAndSendMemoryMetrics() {
     const usedBytes = memData.active || memData.used;
     const totalBytes = memData.total;
     const metrics: MemoryMetrics = {
-      used: Math.round((usedBytes / (1024 * 1024 * 1024)) * 10) / 10,
-      total: Math.round((totalBytes / (1024 * 1024 * 1024)) * 10) / 10,
-      usage: (usedBytes / totalBytes) * 100,
+      used: usedBytes / (1024 * 1024 * 1024),
+      total: totalBytes / (1024 * 1024 * 1024),
+      usage: Math.round((usedBytes / totalBytes) * 100),
     };
 
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -127,12 +126,12 @@ async function collectAndSendGpuMetrics() {
     const metrics: GpuMetrics = {
       gpus: gpuData.map((gpuInfo) => ({
         name: gpuInfo.deviceName,
-        usage: gpuInfo.usage,
+        usage: Math.round(gpuInfo.usage),
         memoryUsed: gpuInfo.memoryUsed,
         memoryTotal: gpuInfo.memoryTotal,
         memoryUsage:
           gpuInfo.memoryTotal > 0
-            ? (gpuInfo.memoryUsed / gpuInfo.memoryTotal) * 100
+            ? Math.round((gpuInfo.memoryUsed / gpuInfo.memoryTotal) * 100)
             : 0,
       })),
     };

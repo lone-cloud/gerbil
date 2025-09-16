@@ -1287,12 +1287,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^24.5.0":
-  version: 24.5.0
-  resolution: "@types/node@npm:24.5.0"
+"@types/node@npm:*, @types/node@npm:^24.5.1":
+  version: 24.5.1
+  resolution: "@types/node@npm:24.5.1"
   dependencies:
     undici-types: "npm:~7.12.0"
-  checksum: 10c0/c5beff68481e2cc667279a1478b34a1cfd048dbff914219cb5888967938d134907836b6c4d6d141dc862489cb09ef28f7d446c7a3b475181fd126c0fcd2916fa
+  checksum: 10c0/5f0cb038be789b58170e616452ba1f8ebb85bf2fbce58a7e32b1eb08391f64f5e31a9cdbccefbfcd9e6d73b66b564b5e037a1d678ab20213559a32e1d7b6ce17
   languageName: node
   linkType: hard
 
@@ -2705,16 +2705,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:^38.1.0":
-  version: 38.1.0
-  resolution: "electron@npm:38.1.0"
+"electron@npm:^38.1.1":
+  version: 38.1.1
+  resolution: "electron@npm:38.1.1"
   dependencies:
     "@electron/get": "npm:^2.0.0"
     "@types/node": "npm:^22.7.7"
     extract-zip: "npm:^2.0.1"
   bin:
     electron: cli.js
-  checksum: 10c0/186082b15862b0e9617828ca395a79311ebe2a713bb2eb15a67cf6bea208e8cda892395a143e72915e189088ac71e91b29c1a46a0c4d343022cbc33004d4d302
+  checksum: 10c0/0b1e5955679de6b9a9a12fa7a51beaaa5dcf15655888670c39e3a49914f8dba580a1f94b46d83e7f8e5dc7fd22c16b130dd5040208d7a86431cf06e16933d9e8
   languageName: node
   linkType: hard
 
@@ -3648,7 +3648,7 @@ __metadata:
     "@fontsource/inter": "npm:^5.2.7"
     "@mantine/core": "npm:^8.3.1"
     "@mantine/hooks": "npm:^8.3.1"
-    "@types/node": "npm:^24.5.0"
+    "@types/node": "npm:^24.5.1"
     "@types/react": "npm:^19.1.13"
     "@types/react-dom": "npm:^19.1.9"
     "@types/yauzl": "npm:^2.10.3"
@@ -3657,7 +3657,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:^5.0.2"
     axios: "npm:^1.12.2"
     cross-env: "npm:^10.0.0"
-    electron: "npm:^38.1.0"
+    electron: "npm:^38.1.1"
     electron-builder: "npm:^26.0.12"
     electron-vite: "npm:^4.0.0"
     eslint: "npm:^9.35.0"
@@ -3676,7 +3676,7 @@ __metadata:
     react-dom: "npm:^19.1.1"
     react-error-boundary: "npm:^6.0.0"
     rollup-plugin-visualizer: "npm:^6.0.3"
-    systeminformation: "npm:^5.27.9"
+    systeminformation: "npm:^5.27.10"
     typescript: "npm:^5.9.2"
     vite: "npm:^7.1.5"
     winston: "npm:^3.17.0"
@@ -6694,12 +6694,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"systeminformation@npm:^5.27.9":
-  version: 5.27.9
-  resolution: "systeminformation@npm:5.27.9"
+"systeminformation@npm:^5.27.10":
+  version: 5.27.10
+  resolution: "systeminformation@npm:5.27.10"
   bin:
     systeminformation: lib/cli.js
-  checksum: 10c0/d65aeb68e40d432fb1ec6e1723fa147959cbeb1b43a25c2014b768f0ee099266da6370b3f1593a6a7ca77643f58c9b754d470d225a7afd466d1108c846a67a3c
+  checksum: 10c0/aaaafb3d5738150e4d63908b4516f712810ed9047dc69ba061eacb1c2aa2824bfc352a1dff596e9d81db8a75c2f27da1a3e5daaa88fffb658a3f5a68288a1d02
   conditions: (os=darwin | os=linux | os=win32 | os=freebsd | os=openbsd | os=netbsd | os=sunos | os=android)
   languageName: node
   linkType: hard
