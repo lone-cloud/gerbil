@@ -3,6 +3,31 @@ import { join } from 'path';
 import { spawn } from 'child_process';
 import { platform } from 'process';
 
+interface CachedGPUInfo {
+  deviceName: string;
+  devicePath: string;
+  memoryTotal: number;
+}
+
+interface WindowsCachedGPUInfo {
+  deviceName: string;
+  memoryTotal: number;
+  luid: string;
+}
+
+interface GPUData {
+  deviceName: string;
+  usage: number;
+  memoryUsed: number;
+  memoryTotal: number;
+}
+
+let linuxGpuCache: CachedGPUInfo[] | null = null;
+let windowsGpuCache: WindowsCachedGPUInfo[] | null = null;
+
+let linuxCachePromise: Promise<CachedGPUInfo[]> | null = null;
+let windowsCachePromise: Promise<WindowsCachedGPUInfo[]> | null = null;
+
 export async function getGPUData() {
   if (platform === 'win32') {
     return getWindowsGPUData();
@@ -13,19 +38,20 @@ export async function getGPUData() {
   }
 }
 
-async function getWindowsGPUData() {
-  return new Promise<
-    {
-      deviceName: string;
-      usage: number;
-      memoryUsed: number;
-      memoryTotal: number;
-    }[]
-  >((resolve) => {
+async function initializeWindowsGPUCache() {
+  if (windowsGpuCache !== null) {
+    return windowsGpuCache;
+  }
+
+  if (windowsCachePromise !== null) {
+    return windowsCachePromise;
+  }
+
+  windowsCachePromise = new Promise((resolve) => {
     const script = `
-# Get GPU basic info and total VRAM from registry
 $gpus = Get-WmiObject -Class Win32_VideoController | Where-Object {$_.Name -notlike "*Microsoft*"}
 $correctVRAM = @{}
+$gpuToLuid = @{}
 
 try {
   $regPath = "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}"
@@ -42,196 +68,342 @@ try {
   }
 } catch {}
 
-# Get VRAM usage from GPU Adapter Memory counters (what Task Manager uses)
-$vramUsageByLuid = @{}
 try {
   $adapterMemory = Get-Counter "\\GPU Adapter Memory(*)\\Dedicated Usage" -ErrorAction SilentlyContinue
   if ($adapterMemory) {
     foreach ($sample in $adapterMemory.CounterSamples) {
       $instanceName = $sample.InstanceName
-      $usageBytes = $sample.CookedValue
-      $vramUsageByLuid[$instanceName] = $usageBytes
-    }
-  }
-} catch {}
-
-# Get GPU utilization from performance counters  
-$gpuUtilization = @{}
-try {
-  $engineCounters = Get-Counter "\\GPU Engine(*)\\Utilization Percentage" -ErrorAction SilentlyContinue
-  if ($engineCounters) {
-    $utilizationByLuid = @{}
-    foreach ($sample in $engineCounters.CounterSamples) {
-      $instanceName = $sample.InstanceName
-      $utilization = $sample.CookedValue
-      
-      if ($instanceName -match "luid_(0x[0-9a-fA-F]+_0x[0-9a-fA-F]+)") {
+      if ($instanceName -match "luid_(0x[0-9a-fA-F]+_0x[0-9a-fA-F]+)_([^_]+)") {
         $luid = $matches[1]
-        if (-not $utilizationByLuid[$luid]) {
-          $utilizationByLuid[$luid] = 0
-        }
-        $utilizationByLuid[$luid] = [Math]::Max($utilizationByLuid[$luid], $utilization)
-      }
-    }
-    
-    # Find the main GPU LUID (the one with actual VRAM usage)
-    $mainLuid = ""
-    $maxVramUsage = 0
-    foreach ($luid in $vramUsageByLuid.Keys) {
-      if ($vramUsageByLuid[$luid] -gt $maxVramUsage) {
-        $maxVramUsage = $vramUsageByLuid[$luid]
-        $mainLuid = $luid
-      }
-    }
-    
-    # Extract LUID from main adapter
-    if ($mainLuid -match "luid_(0x[0-9a-fA-F]+_0x[0-9a-fA-F]+)") {
-      $mainLuidKey = $matches[1]
-      foreach ($gpu in $gpus) {
-        if ($utilizationByLuid[$mainLuidKey]) {
-          $gpuUtilization[$gpu.Name] = $utilizationByLuid[$mainLuidKey]
+        $gpuNameFromCounter = $matches[2]
+        
+        foreach ($gpu in $gpus) {
+          $cleanGpuName = $gpu.Name -replace '[^a-zA-Z0-9]', ''
+          $cleanCounterName = $gpuNameFromCounter -replace '[^a-zA-Z0-9]', ''
+          
+          if ($cleanGpuName -eq $cleanCounterName -or $gpu.Name -like "*$gpuNameFromCounter*") {
+            $gpuToLuid[$gpu.Name] = $luid
+            break
+          }
         }
       }
     }
   }
 } catch {}
 
-# Output results
 foreach ($gpu in $gpus) {
   $totalVRAM = $correctVRAM[$gpu.Name]
   if (-not $totalVRAM -or $totalVRAM -le 0) {
     $totalVRAM = $gpu.AdapterRAM
   }
   
-  # Get VRAM usage for the main GPU (highest usage LUID)
-  $usedVRAM = 0
-  $maxUsage = 0
-  foreach ($luid in $vramUsageByLuid.Keys) {
-    $usage = $vramUsageByLuid[$luid]
-    if ($usage -gt $maxUsage) {
-      $maxUsage = $usage
-      $usedVRAM = $usage
-    }
+  $luid = $gpuToLuid[$gpu.Name]
+  if ($luid) {
+    Write-Output "$($gpu.Name)|$totalVRAM|$luid"
   }
-  
-  $utilization = 0
-  if ($gpuUtilization[$gpu.Name]) {
-    $utilization = $gpuUtilization[$gpu.Name]
-  }
-  
-  Write-Output "$($gpu.Name)|$totalVRAM|$usedVRAM|$utilization"
 }
 `;
 
-    const powershell = spawn(
-      'powershell.exe',
-      [
-        '-NoProfile',
-        '-NonInteractive',
-        '-ExecutionPolicy',
-        'Bypass',
-        '-Command',
-        script,
-      ],
-      {
-        stdio: ['pipe', 'pipe', 'pipe'],
-        windowsHide: true,
-        shell: false,
+    let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+    let powershellProcess: ReturnType<typeof spawn> | null = null;
+
+    const cleanup = () => {
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+        timeoutHandle = null;
       }
-    );
+      if (powershellProcess && !powershellProcess.killed) {
+        powershellProcess.kill('SIGTERM');
+      }
+    };
 
-    let output = '';
+    try {
+      powershellProcess = spawn(
+        'powershell.exe',
+        [
+          '-NoProfile',
+          '-NonInteractive',
+          '-ExecutionPolicy',
+          'Bypass',
+          '-Command',
+          script,
+        ],
+        {
+          stdio: ['pipe', 'pipe', 'pipe'],
+          windowsHide: true,
+          shell: false,
+        }
+      );
 
-    powershell.stdout.on('data', (data) => {
-      output += data.toString();
-    });
+      let output = '';
 
-    powershell.on('close', (code) => {
-      const gpus: {
-        deviceName: string;
-        usage: number;
-        memoryUsed: number;
-        memoryTotal: number;
-      }[] = [];
+      if (powershellProcess.stdout) {
+        powershellProcess.stdout.on('data', (data) => {
+          output += data.toString();
+        });
+      }
 
-      if (code === 0 && output.trim()) {
-        const lines = output.trim().split('\n');
-        for (const line of lines) {
-          const parts = line.split('|');
-          if (parts.length === 4 && parts[0]) {
-            const name = parts[0].trim();
-            const totalRAM = parseInt(parts[1]) || 0;
-            const usedRAM = parseInt(parts[2]) || 0;
-            const utilization = parseFloat(parts[3]) || 0;
+      powershellProcess.on('close', (code) => {
+        cleanup();
+        const gpus = [];
 
-            gpus.push({
-              deviceName: name,
-              usage: Math.round(utilization * 100) / 100,
-              memoryUsed: usedRAM > 0 ? usedRAM / (1024 * 1024 * 1024) : 0,
-              memoryTotal: totalRAM > 0 ? totalRAM / (1024 * 1024 * 1024) : 0,
-            });
+        if (code === 0 && output.trim()) {
+          const lines = output.trim().split('\n');
+          for (const line of lines) {
+            const parts = line.split('|');
+            if (parts.length === 3 && parts[0]) {
+              const name = parts[0].trim();
+              const totalRAM = parseInt(parts[1]) || 0;
+              const luid = parts[2].trim();
+
+              if (name && luid && totalRAM >= 0) {
+                gpus.push({
+                  deviceName: name,
+                  memoryTotal:
+                    totalRAM > 0 ? totalRAM / (1024 * 1024 * 1024) : 0,
+                  luid,
+                });
+              }
+            }
           }
         }
-      }
 
-      resolve(gpus);
-    });
+        windowsGpuCache = gpus;
+        windowsCachePromise = null;
+        resolve(gpus);
+      });
 
-    powershell.on('error', () => resolve([]));
+      powershellProcess.on('error', () => {
+        cleanup();
+        windowsGpuCache = [];
+        windowsCachePromise = null;
+        resolve([]);
+      });
 
-    setTimeout(() => {
-      powershell.kill('SIGTERM');
+      timeoutHandle = setTimeout(() => {
+        cleanup();
+        windowsGpuCache = [];
+        windowsCachePromise = null;
+        resolve([]);
+      }, 8000);
+    } catch {
+      cleanup();
+      windowsGpuCache = [];
+      windowsCachePromise = null;
       resolve([]);
-    }, 5000);
+    }
   });
+
+  return windowsCachePromise;
 }
 
-async function getLinuxGPUData() {
+async function getWindowsGPUData() {
   try {
-    const drmPath = '/sys/class/drm';
-    const entries = await readdir(drmPath);
-    const cardEntries = entries.filter(
-      (entry) => entry.startsWith('card') && !entry.includes('-')
-    );
+    const cachedGPUs = await initializeWindowsGPUCache();
 
-    const gpus = [];
-    for (const card of cardEntries) {
-      const devicePath = join(drmPath, card, 'device');
+    return new Promise<GPUData[]>((resolve) => {
+      const script = `
+$vramUsageByLuid = @{}
+$utilizationByLuid = @{}
+$job1 = $null
+$job2 = $null
 
-      let deviceName = 'Unknown GPU';
+try {
+  $job1 = Start-Job -ScriptBlock {
+    try {
+      $adapterMemory = Get-Counter "\\GPU Adapter Memory(*)\\Dedicated Usage" -ErrorAction SilentlyContinue
+      if ($adapterMemory) {
+        $result = @{}
+        foreach ($sample in $adapterMemory.CounterSamples) {
+          $instanceName = $sample.InstanceName
+          $usageBytes = $sample.CookedValue
+          if ($instanceName -match "luid_(0x[0-9a-fA-F]+_0x[0-9a-fA-F]+)") {
+            $luid = $matches[1]
+            $result[$luid] = $usageBytes
+          }
+        }
+        return $result
+      }
+    } catch {}
+    return @{}
+  }
+
+  $job2 = Start-Job -ScriptBlock {
+    try {
+      $engineCounters = Get-Counter "\\GPU Engine(*)\\Utilization Percentage" -ErrorAction SilentlyContinue
+      if ($engineCounters) {
+        $result = @{}
+        foreach ($sample in $engineCounters.CounterSamples) {
+          $instanceName = $sample.InstanceName
+          $utilization = $sample.CookedValue
+          
+          if ($instanceName -match "luid_(0x[0-9a-fA-F]+_0x[0-9a-fA-F]+)") {
+            $luid = $matches[1]
+            if (-not $result[$luid]) {
+              $result[$luid] = 0
+            }
+            $result[$luid] = [Math]::Max($result[$luid], $utilization)
+          }
+        }
+        return $result
+      }
+    } catch {}
+    return @{}
+  }
+
+  if ($job1) { $vramUsageByLuid = Receive-Job $job1 -Wait }
+  if ($job2) { $utilizationByLuid = Receive-Job $job2 -Wait }
+
+} catch {}
+finally {
+  if ($job1) { Remove-Job $job1 -Force -ErrorAction SilentlyContinue }
+  if ($job2) { Remove-Job $job2 -Force -ErrorAction SilentlyContinue }
+}
+
+foreach ($luid in $vramUsageByLuid.Keys) {
+  $vramUsed = $vramUsageByLuid[$luid]
+  $utilization = 0
+  if ($utilizationByLuid[$luid]) {
+    $utilization = $utilizationByLuid[$luid]
+  }
+  Write-Output "$luid|$vramUsed|$utilization"
+}
+`;
+
+      let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+      let powershellProcess: ReturnType<typeof spawn> | null = null;
+
+      const cleanup = () => {
+        if (timeoutHandle) {
+          clearTimeout(timeoutHandle);
+          timeoutHandle = null;
+        }
+        if (powershellProcess && !powershellProcess.killed) {
+          powershellProcess.kill('SIGTERM');
+        }
+      };
 
       try {
-        const deviceNameData = await readFile(`${devicePath}/device`, 'utf8');
-        const deviceId = deviceNameData.trim();
+        powershellProcess = spawn(
+          'powershell.exe',
+          [
+            '-NoProfile',
+            '-NonInteractive',
+            '-ExecutionPolicy',
+            'Bypass',
+            '-Command',
+            script,
+          ],
+          {
+            stdio: ['pipe', 'pipe', 'pipe'],
+            windowsHide: true,
+            shell: false,
+          }
+        );
 
-        const vendorData = await readFile(`${devicePath}/vendor`, 'utf8');
-        const vendorId = vendorData.trim();
+        let output = '';
 
-        const modalias = await readFile(`${devicePath}/modalias`, 'utf8');
-
-        if (vendorId === '0x1002') {
-          deviceName = 'AMD GPU';
-        } else if (vendorId === '0x10de') {
-          deviceName = 'NVIDIA GPU';
-        } else if (vendorId === '0x8086') {
-          deviceName = 'Intel GPU';
-        } else {
-          deviceName = `GPU (${vendorId}:${deviceId})`;
+        if (powershellProcess.stdout) {
+          powershellProcess.stdout.on('data', (data) => {
+            output += data.toString();
+          });
         }
 
-        if (modalias.includes('i915')) {
-          deviceName = 'Intel GPU';
-        } else if (modalias.includes('amdgpu')) {
-          deviceName = 'AMD GPU';
-        } else if (
-          modalias.includes('nouveau') ||
-          modalias.includes('nvidia')
-        ) {
-          deviceName = 'NVIDIA GPU';
-        }
+        powershellProcess.on('close', (code) => {
+          cleanup();
+          const gpus: GPUData[] = [];
+
+          if (code === 0 && output.trim() && cachedGPUs.length > 0) {
+            const luidToData = new Map<
+              string,
+              { vramUsed: number; utilization: number }
+            >();
+
+            const lines = output.trim().split('\n');
+            for (const line of lines) {
+              const parts = line.split('|');
+              if (parts.length === 3) {
+                const luid = parts[0].trim();
+                const vramUsed = Math.max(0, parseInt(parts[1]) || 0);
+                const utilization = Math.max(
+                  0,
+                  Math.min(100, parseFloat(parts[2]) || 0)
+                );
+
+                luidToData.set(luid, { vramUsed, utilization });
+              }
+            }
+
+            for (const cachedGPU of cachedGPUs) {
+              const gpuData = luidToData.get(cachedGPU.luid);
+              if (gpuData) {
+                gpus.push({
+                  deviceName: cachedGPU.deviceName,
+                  usage: gpuData.utilization,
+                  memoryUsed:
+                    gpuData.vramUsed > 0
+                      ? parseFloat(
+                          (gpuData.vramUsed / (1024 * 1024 * 1024)).toFixed(2)
+                        )
+                      : 0,
+                  memoryTotal: parseFloat(
+                    Math.max(0, cachedGPU.memoryTotal).toFixed(2)
+                  ),
+                });
+              }
+            }
+          }
+
+          resolve(gpus);
+        });
+
+        powershellProcess.on('error', () => {
+          cleanup();
+          resolve([]);
+        });
+
+        timeoutHandle = setTimeout(() => {
+          cleanup();
+          resolve([]);
+        }, 8000);
       } catch {
+        cleanup();
+        resolve([]);
+      }
+    });
+  } catch {
+    return [];
+  }
+}
+
+async function initializeLinuxGPUCache() {
+  if (linuxGpuCache !== null) {
+    return linuxGpuCache;
+  }
+
+  if (linuxCachePromise !== null) {
+    return linuxCachePromise;
+  }
+
+  linuxCachePromise = (async () => {
+    try {
+      const drmPath = '/sys/class/drm';
+      const entries = await readdir(drmPath);
+      const cardEntries = entries.filter(
+        (entry) => entry.startsWith('card') && !entry.includes('-')
+      );
+
+      const gpus = [];
+      for (const card of cardEntries) {
+        const devicePath = join(drmPath, card, 'device');
+
+        let deviceName = 'Unknown GPU';
+
         try {
-          const modalias = await readFile(`${devicePath}/modalias`, 'utf8');
+          const [modalias] = await Promise.all([
+            readFile(`${devicePath}/modalias`, 'utf8').catch(() => ''),
+          ]);
+
           if (modalias.includes('i915')) {
             deviceName = 'Intel GPU';
           } else if (modalias.includes('amdgpu')) {
@@ -241,37 +413,96 @@ async function getLinuxGPUData() {
             modalias.includes('nvidia')
           ) {
             deviceName = 'NVIDIA GPU';
+          } else {
+            try {
+              const [vendorData, deviceData] = await Promise.all([
+                readFile(`${devicePath}/vendor`, 'utf8').catch(() => ''),
+                readFile(`${devicePath}/device`, 'utf8').catch(() => ''),
+              ]);
+
+              const vendorId = vendorData.trim();
+              const deviceId = deviceData.trim();
+
+              if (vendorId === '0x1002') {
+                deviceName = 'AMD GPU';
+              } else if (vendorId === '0x10de') {
+                deviceName = 'NVIDIA GPU';
+              } else if (vendorId === '0x8086') {
+                deviceName = 'Intel GPU';
+              } else {
+                deviceName = `GPU (${vendorId}:${deviceId})`;
+              }
+            } catch {
+              void 0;
+            }
           }
         } catch {
           void 0;
         }
+
+        try {
+          const memTotalData = await readFile(
+            `${devicePath}/mem_info_vram_total`,
+            'utf8'
+          );
+          const memoryTotal = Math.max(
+            0,
+            (parseInt(memTotalData.trim(), 10) || 0) / (1024 * 1024 * 1024)
+          );
+
+          if (memoryTotal > 0) {
+            gpus.push({
+              deviceName,
+              devicePath,
+              memoryTotal,
+            });
+          }
+        } catch {
+          continue;
+        }
       }
 
-      try {
-        const usageData = await readFile(
-          `${devicePath}/gpu_busy_percent`,
-          'utf8'
-        );
-        const memUsedData = await readFile(
-          `${devicePath}/mem_info_vram_used`,
-          'utf8'
-        );
-        const memTotalData = await readFile(
-          `${devicePath}/mem_info_vram_total`,
-          'utf8'
-        );
+      linuxGpuCache = gpus;
+      linuxCachePromise = null;
+      return gpus;
+    } catch {
+      linuxGpuCache = [];
+      linuxCachePromise = null;
+      return [];
+    }
+  })();
 
-        const usage = parseInt(usageData.trim(), 10) || 0;
-        const memoryUsed =
-          (parseInt(memUsedData.trim(), 10) || 0) / (1024 * 1024 * 1024);
-        const memoryTotal =
-          (parseInt(memTotalData.trim(), 10) || 0) / (1024 * 1024 * 1024);
+  return linuxCachePromise;
+}
+
+async function getLinuxGPUData() {
+  try {
+    const cachedGPUs = await initializeLinuxGPUCache();
+
+    const gpus: GPUData[] = [];
+    for (const cachedGPU of cachedGPUs) {
+      try {
+        const [usageData, memUsedData] = await Promise.all([
+          readFile(`${cachedGPU.devicePath}/gpu_busy_percent`, 'utf8'),
+          readFile(`${cachedGPU.devicePath}/mem_info_vram_used`, 'utf8'),
+        ]);
+
+        const usage = Math.max(
+          0,
+          Math.min(100, parseInt(usageData.trim(), 10) || 0)
+        );
+        const memoryUsed = Math.max(
+          0,
+          (parseInt(memUsedData.trim(), 10) || 0) / (1024 * 1024 * 1024)
+        );
 
         gpus.push({
-          deviceName,
+          deviceName: cachedGPU.deviceName,
           usage,
-          memoryUsed,
-          memoryTotal,
+          memoryUsed: parseFloat(memoryUsed.toFixed(2)),
+          memoryTotal: parseFloat(
+            Math.max(0, cachedGPU.memoryTotal).toFixed(2)
+          ),
         });
       } catch {
         continue;

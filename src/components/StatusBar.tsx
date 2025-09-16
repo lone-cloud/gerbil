@@ -65,14 +65,14 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
         <>
           <PerformanceBadge
             label="CPU"
-            value={`${cpuMetrics.usage.toFixed(1)}%`}
-            tooltipLabel={`${cpuMetrics.usage.toFixed(1)}%`}
+            value={`${cpuMetrics.usage}%`}
+            tooltipLabel={`${cpuMetrics.usage}%`}
           />
 
           <PerformanceBadge
             label="RAM"
-            value={`${memoryMetrics.usage.toFixed(1)}%`}
-            tooltipLabel={`${memoryMetrics.used.toFixed(1)} GB / ${memoryMetrics.total.toFixed(1)} GB (${memoryMetrics.usage.toFixed(1)}%)`}
+            value={`${memoryMetrics.usage}%`}
+            tooltipLabel={`${memoryMetrics.used.toFixed(2)} GB / ${memoryMetrics.total.toFixed(2)} GB (${memoryMetrics.usage}%)`}
           />
         </>
       )}
@@ -81,14 +81,14 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
         <Group gap="xs" key={`gpu-${index}`}>
           <PerformanceBadge
             label={`GPU${gpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}`}
-            value={`${gpu.usage.toFixed(1)}%`}
-            tooltipLabel={`${gpu.usage.toFixed(1)}%`}
+            value={`${gpu.usage}%`}
+            tooltipLabel={`${gpu.usage}%`}
           />
 
           <PerformanceBadge
             label={`VRAM${gpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}`}
-            value={`${gpu.memoryUsage.toFixed(1)}%`}
-            tooltipLabel={`${gpu.memoryUsed.toFixed(1)} GB / ${gpu.memoryTotal.toFixed(1)} GB (${gpu.memoryUsage.toFixed(1)}%)`}
+            value={`${gpu.memoryUsage}%`}
+            tooltipLabel={`${gpu.memoryUsed.toFixed(2)} GB / ${gpu.memoryTotal.toFixed(2)} GB (${gpu.memoryUsage}%)`}
           />
         </Group>
       ))}
