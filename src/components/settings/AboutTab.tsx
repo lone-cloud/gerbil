@@ -34,6 +34,7 @@ export const AboutTab = () => {
     };
     loadVersionInfo();
   }, []);
+
   if (!versionInfo) {
     return (
       <Center h="100%">
@@ -45,23 +46,40 @@ export const AboutTab = () => {
   const versionItems = [
     { label: PRODUCT_NAME, value: versionInfo.appVersion },
     { label: 'Electron', value: versionInfo.electronVersion },
-    { label: 'Node.js', value: versionInfo.nodeVersion },
+    {
+      label: 'Node.js',
+      value:
+        versionInfo.nodeJsSystemVersion &&
+        versionInfo.nodeJsSystemVersion !== versionInfo.nodeVersion
+          ? `${versionInfo.nodeVersion} (System: ${versionInfo.nodeJsSystemVersion})`
+          : versionInfo.nodeVersion,
+    },
     { label: 'Chromium', value: versionInfo.chromeVersion },
     { label: 'V8', value: versionInfo.v8Version },
     {
-      label: 'Operating System',
+      label: 'OS',
       value: `${versionInfo.platform} ${versionInfo.arch} (${versionInfo.osVersion})`,
     },
+    ...(versionInfo.uvVersion
+      ? [{ label: 'uv', value: versionInfo.uvVersion }]
+      : []),
   ];
 
   const copyVersionInfo = async () => {
+    const nodeJsInfo =
+      versionInfo.nodeJsSystemVersion &&
+      versionInfo.nodeJsSystemVersion !== versionInfo.nodeVersion
+        ? `${versionInfo.nodeVersion} (system: ${versionInfo.nodeJsSystemVersion})`
+        : versionInfo.nodeVersion;
+
     const info = [
       `${PRODUCT_NAME}: ${versionInfo.appVersion}`,
       `Electron: ${versionInfo.electronVersion}`,
-      `Node.js: ${versionInfo.nodeVersion}`,
+      `Node.js: ${nodeJsInfo}`,
       `Chromium: ${versionInfo.chromeVersion}`,
       `V8: ${versionInfo.v8Version}`,
       `OS: ${versionInfo.platform} ${versionInfo.arch} (${versionInfo.osVersion})`,
+      ...(versionInfo.uvVersion ? [`uv: ${versionInfo.uvVersion}`] : []),
     ].join('\n');
 
     await safeExecute(

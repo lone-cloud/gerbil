@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Badge, Group, Tooltip, useComputedColorScheme } from '@mantine/core';
+import { Group, useComputedColorScheme } from '@mantine/core';
 import type {
   CpuMetrics,
   MemoryMetrics,
   GpuMetrics,
 } from '@/main/modules/monitoring';
+import { PerformanceBadge } from './PerformanceBadge';
 
 interface StatusBarProps {
   maxDataPoints?: number;
@@ -62,57 +63,33 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
     >
       {cpuMetrics && memoryMetrics && (
         <>
-          <Tooltip label={`${cpuMetrics.usage.toFixed(1)}%`} position="top">
-            <Badge
-              size="sm"
-              variant="light"
-              style={{ minWidth: '5rem', textAlign: 'center' }}
-            >
-              CPU: {cpuMetrics.usage.toFixed(1)}%
-            </Badge>
-          </Tooltip>
+          <PerformanceBadge
+            label="CPU"
+            value={`${cpuMetrics.usage.toFixed(1)}%`}
+            tooltipLabel={`${cpuMetrics.usage.toFixed(1)}%`}
+          />
 
-          <Tooltip
-            label={`${memoryMetrics.used.toFixed(1)} GB / ${memoryMetrics.total.toFixed(1)} GB (${memoryMetrics.usage.toFixed(1)}%)`}
-            position="top"
-          >
-            <Badge
-              size="sm"
-              variant="light"
-              style={{ minWidth: '5rem', textAlign: 'center' }}
-            >
-              RAM: {memoryMetrics.usage.toFixed(1)}%
-            </Badge>
-          </Tooltip>
+          <PerformanceBadge
+            label="RAM"
+            value={`${memoryMetrics.usage.toFixed(1)}%`}
+            tooltipLabel={`${memoryMetrics.used.toFixed(1)} GB / ${memoryMetrics.total.toFixed(1)} GB (${memoryMetrics.usage.toFixed(1)}%)`}
+          />
         </>
       )}
 
       {gpuMetrics?.gpus.map((gpu, index) => (
         <Group gap="xs" key={`gpu-${index}`}>
-          <Tooltip label={`${gpu.usage.toFixed(1)}%`} position="top">
-            <Badge
-              size="sm"
-              variant="light"
-              style={{ minWidth: '5rem', textAlign: 'center' }}
-            >
-              GPU{gpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}:{' '}
-              {gpu.usage.toFixed(1)}%
-            </Badge>
-          </Tooltip>
+          <PerformanceBadge
+            label={`GPU${gpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}`}
+            value={`${gpu.usage.toFixed(1)}%`}
+            tooltipLabel={`${gpu.usage.toFixed(1)}%`}
+          />
 
-          <Tooltip
-            label={`${gpu.memoryUsed.toFixed(1)} GB / ${gpu.memoryTotal.toFixed(1)} GB (${gpu.memoryUsage.toFixed(1)}%)`}
-            position="top"
-          >
-            <Badge
-              size="sm"
-              variant="light"
-              style={{ minWidth: '5rem', textAlign: 'center' }}
-            >
-              VRAM{gpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}:{' '}
-              {gpu.memoryUsage.toFixed(1)}%
-            </Badge>
-          </Tooltip>
+          <PerformanceBadge
+            label={`VRAM${gpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}`}
+            value={`${gpu.memoryUsage.toFixed(1)}%`}
+            tooltipLabel={`${gpu.memoryUsed.toFixed(1)} GB / ${gpu.memoryTotal.toFixed(1)} GB (${gpu.memoryUsage.toFixed(1)}%)`}
+          />
         </Group>
       ))}
     </Group>
