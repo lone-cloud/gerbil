@@ -34,7 +34,12 @@ import {
   startFrontend as startComfyUIFrontend,
   stopFrontend as stopComfyUIFrontend,
 } from '@/main/modules/comfyui';
-import { isUvAvailable, isNpxAvailable } from '@/main/modules/dependencies';
+import {
+  isUvAvailable,
+  isNpxAvailable,
+  getUvVersion,
+  getSystemNodeVersion,
+} from '@/main/modules/dependencies';
 import { parseKoboldConfig } from '@/utils/node/kobold';
 import { getMainWindow } from '@/main/modules/window';
 import {
@@ -48,6 +53,7 @@ import {
   detectBackendSupport,
   getAvailableBackends,
 } from '@/main/modules/binary';
+import { openPerformanceManager } from '@/main/modules/performance';
 import { startMonitoring, stopMonitoring } from '@/main/modules/monitoring';
 import type { FrontendPreference } from '@/types';
 import { getAppVersion } from '@/utils/node/fs';
@@ -155,16 +161,26 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('app:getVersion', () => getAppVersion());
 
-  ipcMain.handle('app:getVersionInfo', async () => ({
-    appVersion: await getAppVersion(),
-    electronVersion: process.versions.electron,
-    nodeVersion: process.versions.node,
-    chromeVersion: process.versions.chrome,
-    v8Version: process.versions.v8,
-    osVersion: os.release(),
-    platform: process.platform,
-    arch: process.arch,
-  }));
+  ipcMain.handle('app:getVersionInfo', async () => {
+    const [appVersion, nodeJsSystemVersion, uvVersion] = await Promise.all([
+      getAppVersion(),
+      getSystemNodeVersion(),
+      getUvVersion(),
+    ]);
+
+    return {
+      appVersion,
+      electronVersion: process.versions.electron,
+      nodeVersion: process.versions.node,
+      chromeVersion: process.versions.chrome,
+      v8Version: process.versions.v8,
+      osVersion: os.release(),
+      platform: process.platform,
+      arch: process.arch,
+      nodeJsSystemVersion,
+      uvVersion,
+    };
+  });
 
   ipcMain.handle('app:showLogsFolder', async () => {
     try {
@@ -244,6 +260,8 @@ export function setupIPCHandlers() {
       }
     });
   }
+
+  ipcMain.handle('app:openPerformanceManager', () => openPerformanceManager());
 
   ipcMain.handle('logs:logError', (_, message: string, error?: Error) => {
     logError(message, error);

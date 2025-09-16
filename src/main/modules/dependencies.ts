@@ -3,30 +3,85 @@ import { access, readdir } from 'fs/promises';
 import { homedir } from 'os';
 import { join } from 'path';
 
-export async function isUvAvailable() {
-  try {
-    const env = await getUvEnvironment();
-    const testProcess = spawn('uv', ['--version'], { stdio: 'pipe', env });
+interface CommandResult {
+  success: boolean;
+  output?: string;
+}
 
-    return new Promise<boolean>((resolve) => {
-      const timeout = setTimeout(() => {
+async function executeCommand(
+  command: string,
+  args: string[],
+  env: Record<string, string | undefined>,
+  timeout = 5000,
+  useShell = false
+) {
+  try {
+    const testProcess = spawn(command, args, {
+      stdio: 'pipe',
+      env,
+      shell: useShell,
+    });
+
+    return new Promise<CommandResult>((resolve) => {
+      let output = '';
+      const timeoutId = setTimeout(() => {
         testProcess.kill();
-        resolve(false);
-      }, 10000);
+        resolve({ success: false });
+      }, timeout);
+
+      testProcess.stdout?.on('data', (data) => {
+        output += data.toString();
+      });
 
       testProcess.on('exit', (code) => {
-        clearTimeout(timeout);
-        resolve(code === 0);
+        clearTimeout(timeoutId);
+        resolve({
+          success: code === 0,
+          output: code === 0 ? output.trim() : undefined,
+        });
       });
 
       testProcess.on('error', () => {
-        clearTimeout(timeout);
-        resolve(false);
+        clearTimeout(timeoutId);
+        resolve({ success: false });
       });
     });
   } catch {
-    return false;
+    return { success: false };
   }
+}
+
+export async function getUvVersion() {
+  const env = await getUvEnvironment();
+  const result = await executeCommand('uv', ['--version'], env);
+
+  if (result.success && result.output) {
+    const version = result.output.match(/uv\s+(\d+\.\d+\.\d+)/i);
+    return version ? version[1] : result.output;
+  }
+  return null;
+}
+
+export async function getSystemNodeVersion() {
+  const env = await getNodeEnvironment();
+  const result = await executeCommand(
+    'node',
+    ['--version'],
+    env,
+    5000,
+    process.platform === 'win32'
+  );
+
+  if (result.success && result.output) {
+    return result.output.replace(/^v/, '') || null;
+  }
+  return null;
+}
+
+export async function isUvAvailable() {
+  const env = await getUvEnvironment();
+  const result = await executeCommand('uv', ['--version'], env, 10000);
+  return result.success;
 }
 
 export async function getUvEnvironment() {
@@ -63,33 +118,15 @@ export async function getUvEnvironment() {
 }
 
 export async function isNpxAvailable() {
-  try {
-    const env = await getNodeEnvironment();
-    const testProcess = spawn('npx', ['--version'], {
-      stdio: 'pipe',
-      env,
-      shell: process.platform === 'win32',
-    });
-
-    return new Promise<boolean>((resolve) => {
-      const timeout = setTimeout(() => {
-        testProcess.kill();
-        resolve(false);
-      }, 5000);
-
-      testProcess.on('exit', (code) => {
-        clearTimeout(timeout);
-        resolve(code === 0);
-      });
-
-      testProcess.on('error', () => {
-        clearTimeout(timeout);
-        resolve(false);
-      });
-    });
-  } catch {
-    return false;
-  }
+  const env = await getNodeEnvironment();
+  const result = await executeCommand(
+    'npx',
+    ['--version'],
+    env,
+    5000,
+    process.platform === 'win32'
+  );
+  return result.success;
 }
 
 export async function getNodeEnvironment() {

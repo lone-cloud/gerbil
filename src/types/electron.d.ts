@@ -145,6 +145,8 @@ export interface VersionInfo {
   osVersion: string;
   platform: string;
   arch: string;
+  nodeJsSystemVersion?: string;
+  uvVersion?: string;
 }
 
 export interface AppAPI {
@@ -159,6 +161,11 @@ export interface AppAPI {
   getColorScheme: () => Promise<MantineColorScheme>;
   setColorScheme: (colorScheme: MantineColorScheme) => Promise<void>;
   openExternal: (url: string) => Promise<void>;
+  openPerformanceManager: () => Promise<{
+    success: boolean;
+    app?: string;
+    error?: string;
+  }>;
 }
 
 export interface ConfigAPI {
