@@ -19,6 +19,15 @@ export const getAssetDescription = (assetName: string) => {
   return "Standard build that's ideal for most cases.";
 };
 
+export const isWindowsROCmBuild = (assetName: string) => {
+  const name = stripAssetExtensions(assetName).toLowerCase();
+  return (
+    name.includes(ASSET_SUFFIXES.ROCM) &&
+    (assetName.toLowerCase().includes('.exe') ||
+      assetName.toLowerCase().includes('koboldcpp_rocm'))
+  );
+};
+
 export const isAssetStandard = (assetName: string) => {
   const name = stripAssetExtensions(assetName).toLowerCase();
 

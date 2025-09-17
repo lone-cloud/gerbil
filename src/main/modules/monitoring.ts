@@ -1,5 +1,6 @@
 import si from 'systeminformation';
 import { BrowserWindow } from 'electron';
+import { platform } from 'process';
 import { logError } from '@/main/modules/logging';
 import { getGPUData } from '@/utils/node/gpu';
 
@@ -64,10 +65,12 @@ export function startMonitoring(window: BrowserWindow) {
     collectAndSendMemoryMetrics();
   }, updateFrequency);
 
-  collectAndSendGpuMetrics();
-  gpuInterval = setInterval(() => {
+  if (platform === 'linux') {
     collectAndSendGpuMetrics();
-  }, updateFrequency);
+    gpuInterval = setInterval(() => {
+      collectAndSendGpuMetrics();
+    }, updateFrequency);
+  }
 }
 
 export function stopMonitoring() {

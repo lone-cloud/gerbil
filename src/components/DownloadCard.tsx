@@ -12,7 +12,7 @@ import {
 } from '@mantine/core';
 import { Download } from 'lucide-react';
 import { MouseEvent } from 'react';
-import { pretifyBinName } from '@/utils/assets';
+import { pretifyBinName, isWindowsROCmBuild } from '@/utils/assets';
 
 interface DownloadCardProps {
   name: string;
@@ -139,6 +139,11 @@ export const DownloadCard = ({
             {hasUpdate && (
               <Badge variant="light" color="orange" size="sm">
                 Update Available
+              </Badge>
+            )}
+            {isWindowsROCmBuild(name) && (
+              <Badge variant="light" color="yellow" size="sm">
+                Experimental
               </Badge>
             )}
           </Group>
