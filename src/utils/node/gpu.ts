@@ -51,9 +51,10 @@ async function initializeLinuxGPUCache() {
         let deviceName = 'Unknown GPU';
 
         try {
-          const [modalias] = await Promise.all([
-            readFile(`${devicePath}/modalias`, 'utf8').catch(() => ''),
-          ]);
+          const modalias = await readFile(
+            `${devicePath}/modalias`,
+            'utf8'
+          ).catch(() => '');
 
           if (modalias.includes('amdgpu')) {
             deviceName = 'AMD GPU';
