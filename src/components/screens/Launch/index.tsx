@@ -20,9 +20,9 @@ interface LaunchScreenProps {
 export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
   const [configFiles, setConfigFiles] = useState<ConfigFile[]>([]);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  const [, setInstallDir] = useState<string>('');
+  const [, setInstallDir] = useState('');
   const [activeTab, setActiveTab] = useState<string | null>('general');
-  const [configLoaded, setConfigLoaded] = useState<boolean>(false);
+  const [configLoaded, setConfigLoaded] = useState(false);
   const defaultsSetRef = useRef(false);
 
   const {

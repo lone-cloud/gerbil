@@ -16,8 +16,8 @@ export const InterfaceScreen = ({
   activeTab,
   onTabChange,
 }: InterfaceScreenProps) => {
-  const [serverUrl, setServerUrl] = useState<string>('');
-  const [isServerReady, setIsServerReady] = useState<boolean>(false);
+  const [serverUrl, setServerUrl] = useState('');
+  const [isServerReady, setIsServerReady] = useState(false);
   const terminalTabRef = useRef<TerminalTabRef>(null);
   const defaultInterfaceTab = useDefaultInterfaceTab();
 

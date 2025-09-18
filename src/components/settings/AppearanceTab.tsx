@@ -28,7 +28,7 @@ export const AppearanceTab = () => {
   const isDark = computedColorScheme === 'dark';
 
   const [zoomLevel, setZoomLevel] = useState<number>(ZOOM.DEFAULT_LEVEL);
-  const [zoomPercentage, setZoomPercentage] = useState<string>(
+  const [zoomPercentage, setZoomPercentage] = useState(
     ZOOM.DEFAULT_PERCENTAGE.toString()
   );
 
