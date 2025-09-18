@@ -1,4 +1,6 @@
 import { Badge, Tooltip } from '@mantine/core';
+import { useState } from 'react';
+import { safeExecute } from '@/utils/logger';
 
 interface PerformanceBadgeProps {
   label: string;
@@ -11,18 +13,17 @@ export const PerformanceBadge = ({
   value,
   tooltipLabel,
 }: PerformanceBadgeProps) => {
+  const [isHovered, setIsHovered] = useState(false);
+
   const handlePerformanceClick = async () => {
-    try {
-      const result = await window.electronAPI.app.openPerformanceManager();
-      if (!result.success) {
-        window.electronAPI.logs.logError(
-          `Failed to open performance manager: ${result.error}`
-        );
-      }
-    } catch (error) {
+    const result = await safeExecute(
+      () => window.electronAPI.app.openPerformanceManager(),
+      'Failed to open performance manager'
+    );
+
+    if (result && !result.success) {
       window.electronAPI.logs.logError(
-        'Error opening performance manager',
-        error as Error
+        `Failed to open performance manager: ${result.error}`
       );
     }
   };
@@ -36,7 +37,13 @@ export const PerformanceBadge = ({
           minWidth: '5rem',
           textAlign: 'center',
           cursor: 'pointer',
+          transition: 'background-color 0.2s ease',
+          backgroundColor: isHovered
+            ? 'var(--mantine-color-blue-1)'
+            : undefined,
         }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         onClick={handlePerformanceClick}
       >
         {label}: {value}

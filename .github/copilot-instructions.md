@@ -10,6 +10,7 @@
 - Stop asking me to run the "dev" script to test changes
 - Try to move helper functions from component code to their own separate files to help minimize clutter
 - Always use absolute imports (e.g. `import { MyComponent } from '@/components/MyComponent'`)
+- Never add explicit return types to functions. We want to rely on implicit types as much as possible
 
 ### Logging and Error Handling
 

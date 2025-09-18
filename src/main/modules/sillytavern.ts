@@ -5,6 +5,7 @@ import { join } from 'path';
 import type { ChildProcess } from 'child_process';
 
 import { logError } from './logging';
+import { tryExecute } from '@/utils/node/logger';
 import { sendKoboldOutput } from './window';
 import { SILLYTAVERN, SERVER_READY_SIGNALS } from '@/constants';
 import { terminateProcess } from '@/utils/node/process';
@@ -166,7 +167,7 @@ async function setupSillyTavernConfig(
   koboldPort: number,
   isImageMode: boolean
 ) {
-  try {
+  const success = await tryExecute(async () => {
     const configPath = getSillyTavernSettingsPath();
     let settings: Record<string, unknown> = {};
 
@@ -221,10 +222,11 @@ async function setupSillyTavernConfig(
     await writeJsonFile(configPath, settings);
 
     sendKoboldOutput(`SillyTavern configuration updated successfully!`);
-  } catch (error) {
-    logError('Failed to setup SillyTavern config:', error as Error);
+  }, 'Failed to setup SillyTavern config');
+
+  if (!success) {
     sendKoboldOutput(
-      `Failed to configure SillyTavern: ${error instanceof Error ? error.message : String(error)}`
+      `Failed to configure SillyTavern. Check logs for details.`
     );
   }
 }
@@ -396,11 +398,9 @@ export async function stopFrontend() {
 
 export async function cleanup() {
   if (sillyTavernProcess) {
-    try {
+    await tryExecute(async () => {
       await stopFrontend();
-    } catch (error) {
-      logError('Error during SillyTavernManager cleanup:', error as Error);
-    }
+    }, 'Error during SillyTavernManager cleanup');
   }
 }
 

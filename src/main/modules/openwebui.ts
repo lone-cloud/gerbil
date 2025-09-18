@@ -3,6 +3,7 @@ import type { ChildProcess } from 'child_process';
 import { join } from 'path';
 
 import { logError } from './logging';
+import { safeTryExecute, tryExecute } from '@/utils/node/logger';
 import { sendKoboldOutput } from './window';
 import { getInstallDir } from './config';
 import { OPENWEBUI, SERVER_READY_SIGNALS } from '@/constants';
@@ -113,23 +114,19 @@ export async function startFrontend(args: string[]) {
 
     if (openWebUIProcess.stdout) {
       openWebUIProcess.stdout.on('data', (data: Buffer) => {
-        try {
+        safeTryExecute(() => {
           const output = data.toString('utf8');
           sendKoboldOutput(output, true);
-        } catch (error) {
-          logError('Error processing stdout data:', error as Error);
-        }
+        }, 'Error processing stdout data');
       });
     }
 
     if (openWebUIProcess.stderr) {
       openWebUIProcess.stderr.on('data', (data: Buffer) => {
-        try {
+        safeTryExecute(() => {
           const output = data.toString('utf8');
           sendKoboldOutput(output, true);
-        } catch (error) {
-          logError('Error processing stderr data:', error as Error);
-        }
+        }, 'Error processing stderr data');
       });
     }
 
@@ -170,14 +167,12 @@ export async function stopFrontend() {
   if (openWebUIProcess) {
     sendKoboldOutput('Stopping Open WebUI...');
 
-    try {
-      await terminateProcess(openWebUIProcess, {
+    await tryExecute(async () => {
+      await terminateProcess(openWebUIProcess!, {
         logError: (message, error) => logError(message, error),
       });
       sendKoboldOutput('Open WebUI stopped');
-    } catch (error) {
-      logError('Error stopping Open WebUI:', error as Error);
-    }
+    }, 'Error stopping Open WebUI');
 
     openWebUIProcess = null;
   }

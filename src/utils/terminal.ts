@@ -1,7 +1,7 @@
-import { logError } from '@/utils/logger';
+import { tryExecuteImmediate } from '@/utils/logger';
 
 export const handleTerminalOutput = (prevContent: string, newData: string) => {
-  try {
+  const result = tryExecuteImmediate(() => {
     if (newData.includes('\r')) {
       const hasStandaloneCarriageReturns = /\r(?!\n)/g.test(newData);
 
@@ -28,10 +28,9 @@ export const handleTerminalOutput = (prevContent: string, newData: string) => {
     }
 
     return prevContent + newData;
-  } catch (err) {
-    logError('Terminal Basic Error', err as Error);
-    return prevContent + newData;
-  }
+  }, 'Terminal Basic Error');
+
+  return result ?? prevContent + newData;
 };
 
 const URL_REGEX = /(https?:\/\/[^\s<>"{}|\\^`[\]]+)/gi;

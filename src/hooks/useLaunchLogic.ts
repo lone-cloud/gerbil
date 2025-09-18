@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { logError } from '@/utils/logger';
+import { tryExecute } from '@/utils/logger';
 import type { SdConvDirectMode } from '@/types';
 
 interface UseLaunchLogicProps {
@@ -258,7 +258,7 @@ export const useLaunchLogic = ({
 
       onLaunch();
 
-      try {
+      await tryExecute(async () => {
         const args: string[] = [
           ...buildModelArgs(model, sdmodel, launchArgs),
           ...buildConfigArgs(hasImageModel, launchArgs),
@@ -283,11 +283,9 @@ export const useLaunchLogic = ({
             new Error(errorMessage)
           );
         }
-      } catch (err) {
-        logError('Error launching:', err as Error);
-      } finally {
-        setIsLaunching(false);
-      }
+      }, 'Error launching');
+
+      setIsLaunching(false);
     },
     [model, sdmodel, isLaunching, onLaunch]
   );

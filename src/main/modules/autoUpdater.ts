@@ -1,6 +1,7 @@
 import { autoUpdater } from 'electron-updater';
 import { app } from 'electron';
 import { logError } from '@/main/modules/logging';
+import { safeExecute } from '@/utils/node/logger';
 
 export interface UpdateInfo {
   version: string;
@@ -33,25 +34,17 @@ function setupAutoUpdater() {
 
 setupAutoUpdater();
 
-export async function checkForUpdates() {
-  try {
-    const result = await autoUpdater.checkForUpdates();
-    return result !== null;
-  } catch (error) {
-    logError('Failed to check for updates:', error as Error);
-    return false;
-  }
-}
+export const checkForUpdates = async () =>
+  (await safeExecute(
+    () => autoUpdater.checkForUpdates(),
+    'Failed to check for updates'
+  )) !== null;
 
-export async function downloadUpdate() {
-  try {
-    await autoUpdater.downloadUpdate();
-    return true;
-  } catch (error) {
-    logError('Failed to download update:', error as Error);
-    return false;
-  }
-}
+export const downloadUpdate = async () =>
+  (await safeExecute(
+    () => autoUpdater.downloadUpdate(),
+    'Failed to download update'
+  )) !== null;
 
 export function quitAndInstall() {
   if (updateDownloaded) {

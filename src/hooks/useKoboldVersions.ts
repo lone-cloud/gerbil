@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { logError } from '@/utils/logger';
+import { logError, tryExecuteImmediate } from '@/utils/logger';
 import { getROCmDownload } from '@/utils/rocm';
 import { GITHUB_API } from '@/constants';
 import { filterAssetsByPlatform } from '@/utils/platform';
@@ -41,15 +41,13 @@ const loadFromCache = (): CachedReleaseData | null => {
 };
 
 const saveToCache = (releases: DownloadItem[]) => {
-  try {
+  tryExecuteImmediate(() => {
     const data: CachedReleaseData = {
       releases,
       timestamp: Date.now(),
     };
     localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-  } catch (err) {
-    logError('Failed to save releases to cache', err as Error);
-  }
+  }, 'Failed to save releases to cache');
 };
 
 const transformReleaseToDownloadItems = (

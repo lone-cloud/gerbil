@@ -5,6 +5,7 @@ import type { ChildProcess } from 'child_process';
 import yauzl from 'yauzl';
 
 import { logError } from './logging';
+import { safeExecute } from '@/utils/node/logger';
 import { sendKoboldOutput } from './window';
 import { getInstallDir } from './config';
 import { COMFYUI, SERVER_READY_SIGNALS, GITHUB_API } from '@/constants';
@@ -20,7 +21,7 @@ interface ComfyUIVersionInfo {
 }
 
 async function getLatestComfyUIVersion(): Promise<ComfyUIVersionInfo | null> {
-  try {
+  return safeExecute(async () => {
     const response = await fetch(GITHUB_API.COMFYUI_LATEST_COMMIT_URL);
     if (!response.ok) {
       throw new Error(
@@ -33,13 +34,7 @@ async function getLatestComfyUIVersion(): Promise<ComfyUIVersionInfo | null> {
       sha: data.sha,
       date: data.commit.committer.date,
     };
-  } catch (error) {
-    logError(
-      'Failed to fetch latest ComfyUI version',
-      error instanceof Error ? error : undefined
-    );
-    return null;
-  }
+  }, 'Failed to fetch latest ComfyUI version');
 }
 
 async function getCurrentComfyUIVersion(

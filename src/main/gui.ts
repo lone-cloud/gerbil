@@ -8,7 +8,7 @@ import {
   initialize as initializeConfig,
   getInstallDir,
 } from '@/main/modules/config';
-import { logError } from '@/main/modules/logging';
+import { safeExecute } from '@/utils/node/logger';
 import { cleanup } from '@/main/modules/koboldcpp';
 import { getSillyTavernManager } from '@/main/modules/sillytavern';
 import { cleanup as cleanupOpenWebUI } from '@/main/modules/openwebui';
@@ -38,7 +38,7 @@ export async function initializeApp() {
   app.on('before-quit', async (event) => {
     event.preventDefault();
 
-    try {
+    await safeExecute(async () => {
       const cleanupPromises = [
         cleanup(),
         getSillyTavernManager().cleanup(),
@@ -53,9 +53,7 @@ export async function initializeApp() {
       });
 
       await Promise.race([Promise.all(cleanupPromises), timeoutPromise]);
-    } catch (error) {
-      logError('Error during cleanup:', error as Error);
-    }
+    }, 'Error during cleanup');
 
     cleanupWindow();
 
