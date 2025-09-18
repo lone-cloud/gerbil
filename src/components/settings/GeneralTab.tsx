@@ -36,7 +36,7 @@ interface GeneralTabProps {
 export const GeneralTab = ({
   isOnInterfaceScreen = false,
 }: GeneralTabProps) => {
-  const [installDir, setInstallDir] = useState<string>('');
+  const [installDir, setInstallDir] = useState('');
   const [FrontendPreference, setFrontendPreference] =
     useState<FrontendPreference>('koboldcpp');
   const [frontendRequirements, setFrontendRequirements] = useState<

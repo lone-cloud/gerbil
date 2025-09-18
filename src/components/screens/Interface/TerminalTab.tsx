@@ -36,13 +36,13 @@ export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
     const computedColorScheme = useComputedColorScheme('light', {
       getInitialValueInEffect: true,
     });
-    const [terminalContent, setTerminalContent] = useState<string>('');
-    const [isUserScrolling, setIsUserScrolling] = useState<boolean>(false);
-    const [shouldAutoScroll, setShouldAutoScroll] = useState<boolean>(true);
-    const [isVisible, setIsVisible] = useState<boolean>(false);
+    const [terminalContent, setTerminalContent] = useState('');
+    const [isUserScrolling, setIsUserScrolling] = useState(false);
+    const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+    const [isVisible, setIsVisible] = useState(false);
     const scrollAreaRef = useRef<HTMLDivElement>(null);
     const viewportRef = useRef<HTMLDivElement>(null);
-    const lastScrollTop = useRef<number>(0);
+    const lastScrollTop = useRef(0);
 
     const isDark = computedColorScheme === 'dark';
 

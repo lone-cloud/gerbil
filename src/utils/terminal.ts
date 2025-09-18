@@ -1,7 +1,7 @@
-import { tryExecuteImmediate } from '@/utils/logger';
+import { safeTryExecute } from '@/utils/logger';
 
 export const handleTerminalOutput = (prevContent: string, newData: string) => {
-  const result = tryExecuteImmediate(() => {
+  const result = safeTryExecute(() => {
     if (newData.includes('\r')) {
       const hasStandaloneCarriageReturns = /\r(?!\n)/g.test(newData);
 
