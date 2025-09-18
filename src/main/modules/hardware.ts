@@ -1,6 +1,6 @@
 /* eslint-disable no-comments/disallowComments */
 import si from 'systeminformation';
-import { logError } from '@/main/modules/logging';
+import { safeExecute } from '@/utils/node/logger';
 import { terminateProcess } from '@/utils/node/process';
 import { getGPUData } from '@/utils/node/gpu';
 import type {
@@ -23,7 +23,7 @@ export async function detectCPU() {
     return cpuCapabilitiesCache;
   }
 
-  try {
+  const result = await safeExecute(async () => {
     const [cpu, flags] = await Promise.all([si.cpu(), si.cpuFlags()]);
 
     const devices: string[] = [];
@@ -34,23 +34,24 @@ export async function detectCPU() {
     const avx = flags.includes('avx') || flags.includes('AVX');
     const avx2 = flags.includes('avx2') || flags.includes('AVX2');
 
-    cpuCapabilitiesCache = {
+    const capabilities = {
       avx,
       avx2,
       devices,
     };
 
-    return cpuCapabilitiesCache;
-  } catch (error) {
-    logError('CPU detection failed:', error as Error);
-    const fallbackCapabilities = {
-      avx: false,
-      avx2: false,
-      devices: [],
-    };
-    cpuCapabilitiesCache = fallbackCapabilities;
-    return fallbackCapabilities;
-  }
+    cpuCapabilitiesCache = capabilities;
+    return capabilities;
+  }, 'CPU detection failed');
+
+  const fallbackCapabilities = {
+    avx: false,
+    avx2: false,
+    devices: [],
+  };
+
+  cpuCapabilitiesCache = result || fallbackCapabilities;
+  return cpuCapabilitiesCache;
 }
 
 export async function detectGPU() {
@@ -58,7 +59,7 @@ export async function detectGPU() {
     return basicGPUInfoCache;
   }
 
-  try {
+  const result = await safeExecute(async () => {
     const gpuData = await getGPUData();
 
     let hasAMD = false;
@@ -90,23 +91,24 @@ export async function detectGPU() {
       }
     }
 
-    basicGPUInfoCache = {
+    const basicInfo = {
       hasAMD,
       hasNVIDIA,
       gpuInfo: gpuInfo.length > 0 ? gpuInfo : ['No GPU information available'],
     };
 
-    return basicGPUInfoCache;
-  } catch (error) {
-    logError('GPU detection failed:', error as Error);
-    const fallbackGPUInfo = {
-      hasAMD: false,
-      hasNVIDIA: false,
-      gpuInfo: ['GPU detection failed'],
-    };
-    basicGPUInfoCache = fallbackGPUInfo;
-    return fallbackGPUInfo;
-  }
+    basicGPUInfoCache = basicInfo;
+    return basicInfo;
+  }, 'GPU detection failed');
+
+  const fallbackGPUInfo = {
+    hasAMD: false,
+    hasNVIDIA: false,
+    gpuInfo: ['GPU detection failed'],
+  };
+
+  basicGPUInfoCache = result || fallbackGPUInfo;
+  return basicGPUInfoCache;
 }
 
 export async function detectGPUCapabilities() {
@@ -428,10 +430,9 @@ export async function detectGPUMemory() {
     return gpuMemoryInfoCache;
   }
 
-  const memoryInfo: GPUMemoryInfo[] = [];
-
-  try {
+  const result = await safeExecute(async () => {
     const gpuData = await getGPUData();
+    const memoryInfo: GPUMemoryInfo[] = [];
 
     for (const gpu of gpuData) {
       if (gpu.deviceName) {
@@ -448,11 +449,9 @@ export async function detectGPUMemory() {
       }
     }
 
-    gpuMemoryInfoCache = memoryInfo;
-  } catch (error) {
-    logError('GPU memory detection failed:', error as Error);
-    gpuMemoryInfoCache = [];
-  }
+    return memoryInfo;
+  }, 'GPU memory detection failed');
 
+  gpuMemoryInfoCache = result || [];
   return gpuMemoryInfoCache;
 }

@@ -1,8 +1,8 @@
 import si from 'systeminformation';
 import { BrowserWindow } from 'electron';
 import { platform } from 'process';
-import { logError } from '@/main/modules/logging';
 import { getGPUData } from '@/utils/node/gpu';
+import { tryExecute } from '@/utils/node/logger';
 
 export interface CpuMetrics {
   usage: number;
@@ -90,7 +90,7 @@ export function stopMonitoring() {
 }
 
 async function collectAndSendCpuMetrics() {
-  try {
+  await tryExecute(async () => {
     const cpuData = await si.currentLoad();
     const metrics: CpuMetrics = {
       usage: Math.round(cpuData.currentLoad),
@@ -99,13 +99,11 @@ async function collectAndSendCpuMetrics() {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('cpu-metrics', metrics);
     }
-  } catch (error) {
-    logError('Failed to collect CPU metrics:', error as Error);
-  }
+  }, 'Failed to collect CPU metrics');
 }
 
 async function collectAndSendMemoryMetrics() {
-  try {
+  await tryExecute(async () => {
     const memData = await si.mem();
     const usedBytes = memData.active || memData.used;
     const totalBytes = memData.total;
@@ -118,13 +116,11 @@ async function collectAndSendMemoryMetrics() {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('memory-metrics', metrics);
     }
-  } catch (error) {
-    logError('Failed to collect memory metrics:', error as Error);
-  }
+  }, 'Failed to collect memory metrics');
 }
 
 async function collectAndSendGpuMetrics() {
-  try {
+  await tryExecute(async () => {
     const gpuData = await getGPUData();
     const metrics: GpuMetrics = {
       gpus: gpuData.map((gpuInfo) => ({
@@ -142,7 +138,5 @@ async function collectAndSendGpuMetrics() {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('gpu-metrics', metrics);
     }
-  } catch (error) {
-    logError('Failed to collect GPU metrics:', error as Error);
-  }
+  }, 'Failed to collect GPU metrics');
 }

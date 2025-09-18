@@ -1,6 +1,6 @@
 import { spawn } from 'child_process';
 import { platform } from 'process';
-import { logError } from './logging';
+import { safeExecute } from '@/utils/node/logger';
 
 const LINUX_PERFORMANCE_APPS = [
   'resources',
@@ -45,8 +45,8 @@ async function tryLaunchCommand(command: string, args: string[] = []) {
   });
 }
 
-export async function openPerformanceManager() {
-  try {
+export const openPerformanceManager = async () =>
+  (await safeExecute(async () => {
     switch (platform) {
       case 'darwin': {
         const success = await tryLaunchCommand('open', [
@@ -87,9 +87,7 @@ export async function openPerformanceManager() {
         };
       }
     }
-  } catch (error) {
-    const errorMessage = `Failed to open performance manager: ${(error as Error).message}`;
-    logError(errorMessage, error as Error);
-    return { success: false, error: errorMessage };
-  }
-}
+  }, 'Failed to open performance manager')) || {
+    success: false,
+    error: 'Failed to open performance manager',
+  };

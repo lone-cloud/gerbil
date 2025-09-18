@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { logError, safeExecute } from '@/utils/logger';
+import { safeExecute, tryExecute } from '@/utils/logger';
 import { compareVersions } from '@/utils/version';
 import { GITHUB_API } from '@/constants';
 
@@ -40,16 +40,15 @@ export const useAppUpdateChecker = () => {
     if (!canAutoUpdate) return;
 
     setIsDownloading(true);
-    try {
+
+    await tryExecute(async () => {
       const success = await window.electronAPI.updater.downloadUpdate();
       if (success) {
         setIsUpdateDownloaded(true);
       }
-    } catch (err) {
-      logError('Failed to download update:', err as Error);
-    } finally {
-      setIsDownloading(false);
-    }
+    }, 'Failed to download update');
+
+    setIsDownloading(false);
   }, [canAutoUpdate]);
 
   const installUpdate = useCallback(() => {
@@ -59,7 +58,7 @@ export const useAppUpdateChecker = () => {
   }, [isUpdateDownloaded]);
 
   const checkForAppUpdates = useCallback(async () => {
-    try {
+    await tryExecute(async () => {
       const currentVersion = await window.electronAPI.app.getVersion();
 
       const response = await fetch(
@@ -87,9 +86,7 @@ export const useAppUpdateChecker = () => {
       };
 
       setUpdateInfo(updateInfo);
-    } catch (err) {
-      logError('Failed to check for app updates:', err as Error);
-    }
+    }, 'Failed to check for app updates');
   }, []);
 
   useEffect(() => {

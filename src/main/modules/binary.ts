@@ -1,8 +1,8 @@
 import { join, dirname } from 'path';
 import { pathExists } from '@/utils/node/fs';
-import { logError } from './logging';
 import { getCurrentBinaryInfo } from './koboldcpp';
 import { detectGPUCapabilities, detectCPU } from './hardware';
+import { tryExecute, safeExecute } from '@/utils/node/logger';
 import type { BackendOption, BackendSupport } from '@/types';
 
 const backendSupportCache = new Map<string, BackendSupport>();
@@ -22,7 +22,7 @@ async function detectBackendSupportFromPath(koboldBinaryPath: string) {
     cuda: false,
   };
 
-  try {
+  await tryExecute(async () => {
     const binaryDir = dirname(koboldBinaryPath);
     const internalDir = join(binaryDir, '_internal');
 
@@ -60,16 +60,14 @@ async function detectBackendSupportFromPath(koboldBinaryPath: string) {
     support.noavx2 = noavx2;
     support.failsafe = failsafe;
     support.cuda = cuda;
-  } catch (error) {
-    logError('Error detecting backend support:', error as Error);
-  }
+  }, 'Error detecting backend support');
 
   backendSupportCache.set(koboldBinaryPath, support);
   return support;
 }
 
-export async function detectBackendSupport() {
-  try {
+export const detectBackendSupport = async () =>
+  (await safeExecute(async () => {
     const currentBinaryInfo = await getCurrentBinaryInfo();
 
     if (!currentBinaryInfo?.path) {
@@ -77,17 +75,11 @@ export async function detectBackendSupport() {
     }
 
     return detectBackendSupportFromPath(currentBinaryInfo.path);
-  } catch (error) {
-    logError('Error detecting current binary backend support:', error as Error);
-    return null;
-  }
-}
+  }, 'Error detecting current binary backend support')) || null;
 
-// eslint-disable-next-line sonarjs/cognitive-complexity
-export async function getAvailableBackends(
-  includeDisabled = false
-): Promise<BackendOption[]> {
-  try {
+export async function getAvailableBackends(includeDisabled = false) {
+  // eslint-disable-next-line sonarjs/cognitive-complexity
+  const result = await safeExecute(async () => {
     const [currentBinaryInfo, hardwareCapabilities, cpuCapabilities] =
       await Promise.all([
         getCurrentBinaryInfo(),
@@ -177,8 +169,7 @@ export async function getAvailableBackends(
 
     availableBackendsCache.set(cacheKey, backends);
     return backends;
-  } catch (error) {
-    logError('Failed to get available backends:', error as Error);
-    return [{ value: 'cpu', label: 'CPU' }];
-  }
+  }, 'Failed to get available backends');
+
+  return result || [{ value: 'cpu', label: 'CPU' }];
 }

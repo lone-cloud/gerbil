@@ -25,6 +25,7 @@ import {
   setCurrentKoboldBinary,
 } from './config';
 import { logError } from './logging';
+import { tryExecute } from '@/utils/node/logger';
 import { sendKoboldOutput, getMainWindow, sendToRenderer } from './window';
 import { PRODUCT_NAME, SERVER_READY_SIGNALS } from '@/constants';
 import {
@@ -207,9 +208,7 @@ export async function downloadRelease(asset: GitHubAsset) {
     return launcherPath;
   } catch (error) {
     logError('Failed to download or unpack binary:', error as Error);
-    throw new Error(
-      `Failed to download or unpack binary: ${(error as Error).message}`
-    );
+    throw new Error('Failed to download or unpack binary');
   }
 }
 
@@ -232,7 +231,7 @@ async function unpackKoboldCpp(packedPath: string, unpackDir: string) {
 }
 
 async function patchKliteEmbd(unpackedDir: string) {
-  try {
+  await tryExecute(async () => {
     const possiblePaths = [
       join(unpackedDir, '_internal', 'klite.embd'),
       join(unpackedDir, 'klite.embd'),
@@ -276,13 +275,11 @@ async function patchKliteEmbd(unpackedDir: string) {
 
       await writeFile(kliteEmbdPath, patchedContent, 'utf8');
     }
-  } catch (error) {
-    logError('Failed to patch klite.embd:', error as Error);
-  }
+  }, 'Failed to patch klite.embd');
 }
 
 async function patchKcppSduiEmbd(unpackedDir: string) {
-  try {
+  await tryExecute(async () => {
     const possiblePaths = [
       join(unpackedDir, '_internal', 'kcpp_sdui.embd'),
       join(unpackedDir, 'kcpp_sdui.embd'),
@@ -296,9 +293,7 @@ async function patchKcppSduiEmbd(unpackedDir: string) {
         break;
       }
     }
-  } catch (error) {
-    logError('Failed to patch kcpp_sdui.embd:', error as Error);
-  }
+  }, 'Failed to patch kcpp_sdui.embd');
 }
 
 async function getLauncherPath(unpackedDir: string) {

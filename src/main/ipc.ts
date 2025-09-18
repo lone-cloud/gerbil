@@ -25,6 +25,7 @@ import {
   setColorScheme,
 } from '@/main/modules/config';
 import { logError } from '@/main/modules/logging';
+import { safeExecute } from '@/utils/node/logger';
 import { getSillyTavernManager } from '@/main/modules/sillytavern';
 import {
   startFrontend as startOpenWebUIFrontend,
@@ -64,8 +65,8 @@ import {
 import type { FrontendPreference } from '@/types';
 import { getAppVersion } from '@/utils/node/fs';
 
-async function launchKoboldCppWithCustomFrontends(args: string[] = []) {
-  try {
+const launchKoboldCppWithCustomFrontends = async (args: string[] = []) =>
+  (await safeExecute(async () => {
     const frontendPreference = (await getConfig(
       'frontendPreference'
     )) as FrontendPreference;
@@ -83,14 +84,10 @@ async function launchKoboldCppWithCustomFrontends(args: string[] = []) {
     }
 
     return result;
-  } catch (error) {
-    logError('Error in enhanced launch:', error as Error);
-    return {
-      success: false,
-      error: (error as Error).message,
-    };
-  }
-}
+  }, 'Error in enhanced launch')) || {
+    success: false,
+    error: 'Launch failed',
+  };
 
 export function setupIPCHandlers() {
   ipcMain.handle('kobold:downloadRelease', async (_, asset) => ({
@@ -188,18 +185,18 @@ export function setupIPCHandlers() {
     };
   });
 
-  ipcMain.handle('app:showLogsFolder', async () => {
-    try {
-      const logsDir = join(app.getPath('userData'), 'logs');
-      await shell.openPath(logsDir);
-      return { success: true };
-    } catch (error) {
-      logError('Failed to open logs folder:', error as Error);
-      throw new Error(
-        `Failed to open logs folder: ${(error as Error).message}`
-      );
-    }
-  });
+  ipcMain.handle(
+    'app:showLogsFolder',
+    async () =>
+      (await safeExecute(async () => {
+        const logsDir = join(app.getPath('userData'), 'logs');
+        await shell.openPath(logsDir);
+        return { success: true };
+      }, 'Failed to open logs folder')) || {
+        success: false,
+        error: 'Failed to open logs folder',
+      }
+  );
 
   ipcMain.handle('app:minimizeWindow', () => getMainWindow()?.minimize());
 
@@ -239,17 +236,17 @@ export function setupIPCHandlers() {
     }
   );
 
-  ipcMain.handle('app:openExternal', async (_, url: string) => {
-    try {
-      await shell.openExternal(url);
-      return { success: true };
-    } catch (error) {
-      logError('Failed to open external URL:', error as Error);
-      throw new Error(
-        `Failed to open external URL: ${(error as Error).message}`
-      );
-    }
-  });
+  ipcMain.handle(
+    'app:openExternal',
+    async (_, url: string) =>
+      (await safeExecute(async () => {
+        await shell.openExternal(url);
+        return { success: true };
+      }, 'Failed to open external URL')) || {
+        success: false,
+        error: 'Failed to open external URL',
+      }
+  );
 
   const mainWindow = getMainWindow();
   if (mainWindow) {

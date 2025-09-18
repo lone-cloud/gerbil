@@ -1,5 +1,5 @@
-import { logError } from '@/main/modules/logging';
 import { readJsonFile, writeJsonFile } from '@/utils/node/fs';
+import { safeExecute } from '@/utils/node/logger';
 import { getConfigDir } from '@/utils/node/path';
 import { homedir } from 'os';
 import { join } from 'path';
@@ -23,21 +23,19 @@ let config: AppConfig = {};
 let configPath: string;
 
 async function loadConfig() {
-  try {
-    const loadedConfig = await readJsonFile<AppConfig>(configPath);
-    return loadedConfig || {};
-  } catch (error) {
-    logError('Error loading config:', error as Error);
-    return {};
-  }
+  const config = await safeExecute(
+    () => readJsonFile<AppConfig>(configPath),
+    'Error loading config'
+  );
+  return config || {};
 }
 
 async function saveConfig() {
-  try {
-    await writeJsonFile(configPath, config);
-  } catch (error) {
-    logError('Error saving config:', error as Error);
-  }
+  const success = await safeExecute(
+    () => writeJsonFile(configPath, config),
+    'Error saving config'
+  );
+  return success !== null;
 }
 
 export async function initialize() {

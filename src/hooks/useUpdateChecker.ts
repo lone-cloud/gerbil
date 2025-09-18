@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { logError } from '@/utils/logger';
+import { tryExecute, safeExecute } from '@/utils/logger';
 import {
   getDisplayNameFromPath,
   compareVersions,
@@ -27,32 +27,30 @@ export const useUpdateChecker = () => {
 
   useEffect(() => {
     const loadDismissedUpdates = async () => {
-      try {
-        const dismissed = (await window.electronAPI.config.get(
-          'dismissedUpdates'
-        )) as string[] | undefined;
-        if (dismissed) {
-          setDismissedUpdates(new Set(dismissed));
-        }
-        setDismissedUpdatesLoaded(true);
-      } catch (err) {
-        logError('Failed to load dismissed updates:', err as Error);
-        setDismissedUpdatesLoaded(true);
+      const dismissed = await safeExecute(
+        async () =>
+          (await window.electronAPI.config.get('dismissedUpdates')) as
+            | string[]
+            | undefined,
+        'Failed to load dismissed updates'
+      );
+
+      if (dismissed) {
+        setDismissedUpdates(new Set(dismissed));
       }
+      setDismissedUpdatesLoaded(true);
     };
 
     loadDismissedUpdates();
   }, []);
 
   const saveDismissedUpdates = useCallback(async (updates: Set<string>) => {
-    try {
+    await tryExecute(async () => {
       await window.electronAPI.config.set(
         'dismissedUpdates',
         Array.from(updates)
       );
-    } catch (err) {
-      logError('Failed to save dismissed updates:', err as Error);
-    }
+    }, 'Failed to save dismissed updates');
   }, []);
 
   const checkForUpdates = useCallback(async () => {
@@ -62,7 +60,7 @@ export const useUpdateChecker = () => {
 
     setIsChecking(true);
 
-    try {
+    await tryExecute(async () => {
       const [currentVersion, rocmDownload] = await Promise.all([
         window.electronAPI.kobold.getCurrentVersion(),
         getROCmDownload(),
@@ -105,11 +103,9 @@ export const useUpdateChecker = () => {
           }
         }
       }
-    } catch (err) {
-      logError('Failed to check for updates:', err as Error);
-    } finally {
-      setIsChecking(false);
-    }
+    }, 'Failed to check for updates');
+
+    setIsChecking(false);
   }, [dismissedUpdates, dismissedUpdatesLoaded, releases]);
 
   const dismissUpdate = useCallback(async () => {
