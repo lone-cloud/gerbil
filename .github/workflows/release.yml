@@ -181,7 +181,6 @@ jobs:
 
   aur-release:
     needs: release
-    runs-on: ubuntu-latest
     if: needs.release.outputs.is_prerelease != 'true'
     uses: ./.github/workflows/aur-release.yml
     with:
