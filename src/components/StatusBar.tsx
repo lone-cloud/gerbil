@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Group, useComputedColorScheme, AppShell } from '@mantine/core';
+import { Group, AppShell } from '@mantine/core';
+import { useAppColorScheme } from '@/hooks/useAppColorScheme';
 import type {
   CpuMetrics,
   MemoryMetrics,
@@ -17,9 +18,7 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
     null
   );
   const [gpuMetrics, setGpuMetrics] = useState<GpuMetrics | null>(null);
-  const colorScheme = useComputedColorScheme('light', {
-    getInitialValueInEffect: true,
-  });
+  const colorScheme = useAppColorScheme();
 
   useEffect(() => {
     let isMounted = true;

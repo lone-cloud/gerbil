@@ -38,9 +38,7 @@ export const PerformanceBadge = ({
           textAlign: 'center',
           cursor: 'pointer',
           transition: 'background-color 0.2s ease',
-          backgroundColor: isHovered
-            ? 'var(--mantine-color-blue-1)'
-            : undefined,
+          backgroundColor: isHovered ? 'rgba(34, 139, 230, 0.2)' : undefined,
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}

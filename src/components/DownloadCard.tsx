@@ -8,11 +8,11 @@ import {
   Loader,
   Progress,
   rem,
-  useComputedColorScheme,
 } from '@mantine/core';
 import { Download } from 'lucide-react';
 import { MouseEvent } from 'react';
 import { pretifyBinName, isWindowsROCmBuild } from '@/utils/assets';
+import { useAppColorScheme } from '@/hooks/useAppColorScheme';
 
 interface DownloadCardProps {
   name: string;
@@ -47,10 +47,7 @@ export const DownloadCard = ({
   onMakeCurrent,
   onUpdate,
 }: DownloadCardProps) => {
-  const computedColorScheme = useComputedColorScheme('light', {
-    getInitialValueInEffect: true,
-  });
-  const isDark = computedColorScheme === 'dark';
+  const colorScheme = useAppColorScheme();
   const renderActionButtons = () => {
     const buttons = [];
 
@@ -121,8 +118,8 @@ export const DownloadCard = ({
       radius="sm"
       padding="sm"
       {...(isCurrent && {
-        bg: isDark ? 'dark.6' : 'gray.0',
-        bd: `2px solid var(--mantine-color-${isDark ? 'blue-4' : 'blue-6'})`,
+        bg: colorScheme === 'dark' ? 'dark.6' : 'gray.0',
+        bd: `2px solid var(--mantine-color-${colorScheme === 'dark' ? 'blue-4' : 'blue-6'})`,
       })}
     >
       <Group justify="space-between" align="center">

@@ -1,18 +1,11 @@
-import {
-  Group,
-  ActionIcon,
-  Box,
-  Image,
-  Select,
-  useComputedColorScheme,
-  AppShell,
-} from '@mantine/core';
+import { Group, ActionIcon, Box, Image, Select, AppShell } from '@mantine/core';
 import { Minus, Square, X, Copy, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { useInterfaceOptions } from '@/hooks/useInterfaceSelection';
 import { useLogoClickSounds } from '@/hooks/useLogoClickSounds';
 import { SettingsModal } from '@/components/settings/SettingsModal';
 import { UpdateButton } from '@/components/UpdateButton';
+import { useAppColorScheme } from '@/hooks/useAppColorScheme';
 import icon from '/icon.png';
 import { PRODUCT_NAME, TITLEBAR_HEIGHT } from '@/constants';
 import type { InterfaceTab, Screen } from '@/types';
@@ -30,9 +23,7 @@ export const TitleBar = ({
   onEject,
   onTabChange,
 }: TitleBarProps) => {
-  const computedColorScheme = useComputedColorScheme('light', {
-    getInitialValueInEffect: true,
-  });
+  const colorScheme = useAppColorScheme();
   const interfaceOptions = useInterfaceOptions();
   const { handleLogoClick, getLogoStyles } = useLogoClickSounds();
   const [isMaximized, setIsMaximized] = useState(false);
@@ -64,7 +55,7 @@ export const TitleBar = ({
           alignItems: 'center',
           justifyContent: 'space-between',
           backgroundColor:
-            computedColorScheme === 'dark'
+            colorScheme === 'dark'
               ? 'var(--mantine-color-dark-8)'
               : 'var(--mantine-color-gray-1)',
           border: '1px solid var(--mantine-color-default-border)',
