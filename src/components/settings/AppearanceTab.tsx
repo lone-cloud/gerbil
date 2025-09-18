@@ -107,6 +107,11 @@ export const AppearanceTab = () => {
           value={colorScheme}
           onChange={handleColorSchemeChange}
           styles={(theme) => ({
+            root: {
+              border: `0.5px solid ${
+                isDark ? theme.colors.dark[4] : theme.colors.gray[4]
+              }`,
+            },
             indicator: {
               backgroundColor: isDark
                 ? theme.colors.dark[5]

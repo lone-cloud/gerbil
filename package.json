@@ -1,7 +1,7 @@
 {
   "name": "gerbil",
   "productName": "Gerbil",
-  "version": "1.3.4",
+  "version": "1.4.0-beta.1",
   "description": "Run Large Language Models locally",
   "main": "out/main/index.js",
   "homepage": "./",
@@ -19,7 +19,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "compile": "tsc --noEmit",
-    "check-all": "yarn lint && yarn compile",
+    "test": "yarn lint && yarn compile",
     "release": "yarn dlx tsx scripts/release.ts"
   },
   "keywords": [
@@ -39,14 +39,14 @@
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@eslint/js": "^9.35.0",
-    "@types/node": "^24.5.1",
+    "@types/node": "^24.5.2",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "@typescript-eslint/eslint-plugin": "^8.44.0",
     "@typescript-eslint/parser": "^8.44.0",
     "@vitejs/plugin-react": "^5.0.3",
     "cross-env": "^10.0.0",
-    "electron": "^38.1.1",
+    "electron": "^38.1.2",
     "electron-builder": "^26.0.12",
     "electron-vite": "^4.0.0",
     "eslint": "^9.35.0",
@@ -61,7 +61,7 @@
     "prettier": "^3.6.2",
     "rollup-plugin-visualizer": "^6.0.3",
     "typescript": "^5.9.2",
-    "vite": "^7.1.5"
+    "vite": "^7.1.6"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",
@@ -69,6 +69,7 @@
     "@mantine/hooks": "^8.3.1",
     "@types/yauzl": "^2.10.3",
     "axios": "^1.12.2",
+    "electron-updater": "6.6.2",
     "execa": "^9.6.0",
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",
@@ -84,7 +85,11 @@
     "appId": "com.gerbil.app",
     "productName": "Gerbil",
     "compression": "normal",
-    "publish": null,
+    "publish": {
+      "provider": "github",
+      "owner": "lone-cloud",
+      "repo": "gerbil"
+    },
     "electronLanguages": [
       "en-US"
     ],

@@ -196,7 +196,7 @@ async function tryVersionManagerPath(
   return false;
 }
 
-async function tryAddPathToEnv(
+function tryAddPathToEnv(
   env: Record<string, string | undefined>,
   path: string
 ) {

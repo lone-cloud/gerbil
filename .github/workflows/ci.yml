@@ -37,7 +37,7 @@ jobs:
         run: yarn
 
       - name: Run checks (lint, type check, spell check)
-        run: yarn check-all
+        run: yarn test
 
       - name: Test build
         run: yarn build

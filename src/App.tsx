@@ -222,9 +222,7 @@ export const App = () => {
         />
       </AppShell.Main>
 
-      <AppShell.Footer>
-        <StatusBar />
-      </AppShell.Footer>
+      <StatusBar />
 
       <EjectConfirmModal
         opened={ejectConfirmModalOpen}

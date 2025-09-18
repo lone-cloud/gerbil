@@ -55,6 +55,12 @@ import {
 } from '@/main/modules/binary';
 import { openPerformanceManager } from '@/main/modules/performance';
 import { startMonitoring, stopMonitoring } from '@/main/modules/monitoring';
+import {
+  checkForUpdates,
+  downloadUpdate,
+  quitAndInstall,
+  isUpdateDownloaded,
+} from '@/main/modules/autoUpdater';
 import type { FrontendPreference } from '@/types';
 import { getAppVersion } from '@/utils/node/fs';
 
@@ -195,10 +201,7 @@ export function setupIPCHandlers() {
     }
   });
 
-  ipcMain.handle('app:minimizeWindow', () => {
-    const mainWindow = getMainWindow();
-    mainWindow?.minimize();
-  });
+  ipcMain.handle('app:minimizeWindow', () => getMainWindow()?.minimize());
 
   ipcMain.handle('app:maximizeWindow', () => {
     const mainWindow = getMainWindow();
@@ -209,12 +212,9 @@ export function setupIPCHandlers() {
     }
   });
 
-  ipcMain.handle('app:closeWindow', () => {
-    const mainWindow = getMainWindow();
-    mainWindow?.close();
-  });
+  ipcMain.handle('app:closeWindow', () => getMainWindow()?.close());
 
-  ipcMain.handle('app:getZoomLevel', async () => {
+  ipcMain.handle('app:getZoomLevel', () => {
     const mainWindow = getMainWindow();
     if (mainWindow) {
       return mainWindow.webContents.getZoomLevel();
@@ -263,9 +263,9 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('app:openPerformanceManager', () => openPerformanceManager());
 
-  ipcMain.handle('logs:logError', (_, message: string, error?: Error) => {
-    logError(message, error);
-  });
+  ipcMain.handle('logs:logError', (_, message: string, error?: Error) =>
+    logError(message, error)
+  );
 
   ipcMain.handle('dependencies:isNpxAvailable', () => isNpxAvailable());
 
@@ -278,7 +278,18 @@ export function setupIPCHandlers() {
     }
   });
 
-  ipcMain.handle('monitoring:stop', () => {
-    stopMonitoring();
-  });
+  ipcMain.handle('monitoring:stop', () => stopMonitoring());
+
+  ipcMain.handle('app:checkForUpdates', () => checkForUpdates());
+
+  ipcMain.handle('app:downloadUpdate', () => downloadUpdate());
+
+  ipcMain.handle('app:quitAndInstall', () => quitAndInstall());
+
+  ipcMain.handle('app:isUpdateDownloaded', () => isUpdateDownloaded());
+
+  ipcMain.handle(
+    'app:canAutoUpdate',
+    () => process.platform !== 'linux' || Boolean(process.env.APPIMAGE)
+  );
 }
