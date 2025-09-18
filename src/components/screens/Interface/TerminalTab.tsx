@@ -5,12 +5,7 @@ import {
   forwardRef,
   useImperativeHandle,
 } from 'react';
-import {
-  Box,
-  ScrollArea,
-  ActionIcon,
-  useComputedColorScheme,
-} from '@mantine/core';
+import { Box, ScrollArea, ActionIcon } from '@mantine/core';
 import { ChevronDown } from 'lucide-react';
 import {
   SERVER_READY_SIGNALS,
@@ -20,6 +15,7 @@ import {
 import { handleTerminalOutput, processTerminalContent } from '@/utils/terminal';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 import { useFrontendPreference } from '@/hooks/useInterfaceSelection';
+import { useAppColorScheme } from '@/hooks/useAppColorScheme';
 
 interface TerminalTabProps {
   onServerReady: (url: string) => void;
@@ -33,9 +29,7 @@ export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
   ({ onServerReady }, ref) => {
     const { host, port, isImageGenerationMode } = useLaunchConfigStore();
     const { frontendPreference } = useFrontendPreference();
-    const computedColorScheme = useComputedColorScheme('light', {
-      getInitialValueInEffect: true,
-    });
+    const colorScheme = useAppColorScheme();
     const [terminalContent, setTerminalContent] = useState('');
     const [isUserScrolling, setIsUserScrolling] = useState(false);
     const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
@@ -43,8 +37,6 @@ export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
     const scrollAreaRef = useRef<HTMLDivElement>(null);
     const viewportRef = useRef<HTMLDivElement>(null);
     const lastScrollTop = useRef(0);
-
-    const isDark = computedColorScheme === 'dark';
 
     useEffect(() => {
       const timer = setTimeout(() => {
@@ -136,9 +128,10 @@ export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
           height: `calc(100vh - ${TITLEBAR_HEIGHT} - ${STATUSBAR_HEIGHT})`,
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: isDark
-            ? 'var(--mantine-color-dark-filled)'
-            : 'var(--mantine-color-gray-0)',
+          backgroundColor:
+            colorScheme === 'dark'
+              ? 'var(--mantine-color-dark-filled)'
+              : 'var(--mantine-color-gray-0)',
           borderRadius: 'inherit',
           position: 'relative',
         }}
@@ -164,9 +157,10 @@ export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
                   'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
                 fontSize: '0.875em',
                 lineHeight: 1.4,
-                color: isDark
-                  ? 'var(--mantine-color-gray-0)'
-                  : 'var(--mantine-color-dark-filled)',
+                color:
+                  colorScheme === 'dark'
+                    ? 'var(--mantine-color-gray-0)'
+                    : 'var(--mantine-color-dark-filled)',
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-word',
                 opacity: isVisible ? 1 : 0,

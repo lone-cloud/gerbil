@@ -13,7 +13,7 @@
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
-    "package": "electron-vite build && electron-builder",
+    "package": "electron-vite build && electron-builder --publish=never",
     "analyze": "cross-env ANALYZE=true electron-vite build && yarn dlx open-cli dist/stats.html",
     "format": "prettier --write . --ignore-path .gitignore",
     "lint": "eslint .",

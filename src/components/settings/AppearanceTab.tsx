@@ -4,8 +4,6 @@ import {
   Group,
   SegmentedControl,
   rem,
-  useMantineColorScheme,
-  useComputedColorScheme,
   Slider,
   TextInput,
   type MantineColorScheme,
@@ -13,6 +11,7 @@ import {
 import { Sun, Moon, Monitor } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { safeExecute } from '@/utils/logger';
+import { useAppColorScheme } from '@/hooks/useAppColorScheme';
 import {
   zoomLevelToPercentage,
   percentageToZoomLevel,
@@ -21,12 +20,11 @@ import {
 import { ZOOM } from '@/constants';
 
 export const AppearanceTab = () => {
-  const { colorScheme, setColorScheme } = useMantineColorScheme();
-  const computedColorScheme = useComputedColorScheme('light', {
-    getInitialValueInEffect: true,
-  });
-  const isDark = computedColorScheme === 'dark';
+  const appColorScheme = useAppColorScheme();
+  const isDark = appColorScheme === 'dark';
 
+  const [rawColorScheme, setRawColorScheme] =
+    useState<MantineColorScheme>('auto');
   const [zoomLevel, setZoomLevel] = useState<number>(ZOOM.DEFAULT_LEVEL);
   const [zoomPercentage, setZoomPercentage] = useState(
     ZOOM.DEFAULT_PERCENTAGE.toString()
@@ -50,17 +48,17 @@ export const AppearanceTab = () => {
         setZoomPercentage(zoomLevelToPercentage(currentZoom).toString());
       }
 
-      if (savedColorScheme && savedColorScheme !== colorScheme) {
-        setColorScheme(savedColorScheme as MantineColorScheme);
+      if (savedColorScheme) {
+        setRawColorScheme(savedColorScheme as MantineColorScheme);
       }
     };
 
     void loadSettings();
-  }, [colorScheme, setColorScheme]);
+  }, []);
 
   const handleColorSchemeChange = async (value: string) => {
     const newColorScheme = value as MantineColorScheme;
-    setColorScheme(newColorScheme);
+    setRawColorScheme(newColorScheme);
 
     await safeExecute(
       () => window.electronAPI.app.setColorScheme(newColorScheme),
@@ -104,7 +102,7 @@ export const AppearanceTab = () => {
         </Text>
         <SegmentedControl
           fullWidth
-          value={colorScheme}
+          value={rawColorScheme}
           onChange={handleColorSchemeChange}
           styles={(theme) => ({
             root: {
