@@ -7,19 +7,12 @@ import {
   useComputedColorScheme,
   AppShell,
 } from '@mantine/core';
-import {
-  Minus,
-  Square,
-  X,
-  Copy,
-  CircleFadingArrowUp,
-  Settings,
-} from 'lucide-react';
+import { Minus, Square, X, Copy, Settings } from 'lucide-react';
 import { useState } from 'react';
-import { useAppUpdateChecker } from '@/hooks/useAppUpdateChecker';
 import { useInterfaceOptions } from '@/hooks/useInterfaceSelection';
 import { useLogoClickSounds } from '@/hooks/useLogoClickSounds';
 import { SettingsModal } from '@/components/settings/SettingsModal';
+import { UpdateButton } from '@/components/UpdateButton';
 import icon from '/icon.png';
 import { PRODUCT_NAME, TITLEBAR_HEIGHT } from '@/constants';
 import type { InterfaceTab, Screen } from '@/types';
@@ -40,7 +33,6 @@ export const TitleBar = ({
   const computedColorScheme = useComputedColorScheme('light', {
     getInitialValueInEffect: true,
   });
-  const { hasUpdate, releaseUrl } = useAppUpdateChecker();
   const interfaceOptions = useInterfaceOptions();
   const { handleLogoClick, getLogoStyles } = useLogoClickSounds();
   const [isMaximized, setIsMaximized] = useState(false);
@@ -61,7 +53,9 @@ export const TitleBar = ({
   };
 
   return (
-    <AppShell.Header style={{ display: 'flex', flexDirection: 'column' }}>
+    <AppShell.Header
+      style={{ display: 'flex', flexDirection: 'column', border: 'none' }}
+    >
       <Box
         style={{
           height: TITLEBAR_HEIGHT,
@@ -73,7 +67,7 @@ export const TitleBar = ({
             computedColorScheme === 'dark'
               ? 'var(--mantine-color-dark-8)'
               : 'var(--mantine-color-gray-1)',
-          borderBottom: '1px solid var(--mantine-color-default-border)',
+          border: '1px solid var(--mantine-color-default-border)',
           WebkitAppRegion: isSelectOpen ? 'no-drag' : 'drag',
           userSelect: 'none',
           position: 'relative',
@@ -151,25 +145,7 @@ export const TitleBar = ({
         </Box>
 
         <Group gap="0" style={{ WebkitAppRegion: 'no-drag' }}>
-          {hasUpdate && releaseUrl && (
-            <ActionIcon
-              component="a"
-              href={releaseUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              variant="subtle"
-              color="orange"
-              size={TITLEBAR_HEIGHT}
-              aria-label="New release available"
-              tabIndex={-1}
-              style={{
-                borderRadius: 0,
-                margin: 0,
-              }}
-            >
-              <CircleFadingArrowUp size="1.25rem" />
-            </ActionIcon>
-          )}
+          <UpdateButton />
 
           <ActionIcon
             variant="subtle"
@@ -179,7 +155,7 @@ export const TitleBar = ({
             tabIndex={-1}
             style={{
               borderRadius: 0,
-              margin: 0,
+              margin: '2px 1px 1px',
               outline: 'none',
             }}
           >
@@ -225,7 +201,7 @@ export const TitleBar = ({
               tabIndex={-1}
               style={{
                 borderRadius: 0,
-                margin: 0,
+                margin: '2px 1px 1px',
               }}
             >
               {button.icon}

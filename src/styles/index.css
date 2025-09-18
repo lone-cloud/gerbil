@@ -3,6 +3,40 @@
 @import '@fontsource/inter/latin-500.css';
 @import '@fontsource/inter/latin-600.css';
 
+:root {
+  --mantine-color-body: #fafafa;
+  --mantine-color-white: #fafafa;
+
+  --mantine-color-gray-0: #f8f9fa;
+  --mantine-color-gray-1: #f1f3f4;
+  --mantine-color-gray-2: #e9ecef;
+  --mantine-color-gray-3: #dee2e6;
+
+  --mantine-color-default-border: #e5e7eb;
+}
+
+[data-mantine-color-scheme='dark'] {
+  --mantine-color-body: #0f0f0f;
+  --mantine-color-dark-7: #1a1a1a;
+  --mantine-color-dark-6: #2d2d2d;
+  --mantine-color-dark-5: #3d3d3d;
+
+  --mantine-color-default-border: #2a2a2a;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+  border-left: 1px solid rgba(0, 0, 0, 0.15);
+  border-right: 1px solid rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+}
+
+[data-mantine-color-scheme='dark'] #root {
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+  border-right: 1px solid rgba(255, 255, 255, 0.15);
+}
+
 /* Custom scrollbars */
 ::-webkit-scrollbar {
   width: 0.5rem;
@@ -29,18 +63,16 @@
 }
 
 /* Dark mode scrollbar support */
-@media (prefers-color-scheme: dark) {
-  ::-webkit-scrollbar-thumb {
-    background: rgba(173, 181, 189, 0.5);
-  }
+[data-mantine-color-scheme='dark'] ::-webkit-scrollbar-thumb {
+  background: rgba(173, 181, 189, 0.5);
+}
 
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(173, 181, 189, 0.8);
-  }
+[data-mantine-color-scheme='dark'] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(173, 181, 189, 0.8);
+}
 
-  ::-webkit-scrollbar-thumb:active {
-    background: rgba(206, 212, 218, 0.9);
-  }
+[data-mantine-color-scheme='dark'] ::-webkit-scrollbar-thumb:active {
+  background: rgba(206, 212, 218, 0.9);
 }
 
 /* TitleBar gerbil icon animations */

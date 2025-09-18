@@ -48,7 +48,7 @@
     {
       "label": "Check All (Lint + Type)",
       "type": "shell",
-      "command": "yarn check-all",
+      "command": "yarn test",
       "group": "test",
       "presentation": {
         "echo": true,

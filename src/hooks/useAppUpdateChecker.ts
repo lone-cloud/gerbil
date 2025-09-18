@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { logError } from '@/utils/logger';
+import { logError, safeExecute } from '@/utils/logger';
 import { compareVersions } from '@/utils/version';
 import { GITHUB_API } from '@/constants';
 
@@ -12,12 +12,53 @@ interface AppUpdateInfo {
 
 export const useAppUpdateChecker = () => {
   const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(null);
-  const [isChecking, setIsChecking] = useState(false);
-  const [lastChecked, setLastChecked] = useState<Date | null>(null);
+  const [canAutoUpdate, setCanAutoUpdate] = useState(false);
+  const [isUpdateDownloaded, setIsUpdateDownloaded] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  useEffect(() => {
+    const initializeUpdater = async () => {
+      const [canUpdate, isDownloaded] = await Promise.all([
+        safeExecute(
+          () => window.electronAPI.updater.canAutoUpdate(),
+          'Failed to check auto-update capability'
+        ),
+        safeExecute(
+          () => window.electronAPI.updater.isUpdateDownloaded(),
+          'Failed to check update download status'
+        ),
+      ]);
+
+      if (canUpdate !== null) setCanAutoUpdate(canUpdate);
+      if (isDownloaded !== null) setIsUpdateDownloaded(isDownloaded);
+    };
+
+    void initializeUpdater();
+  }, []);
+
+  const downloadUpdate = useCallback(async () => {
+    if (!canAutoUpdate) return;
+
+    setIsDownloading(true);
+    try {
+      const success = await window.electronAPI.updater.downloadUpdate();
+      if (success) {
+        setIsUpdateDownloaded(true);
+      }
+    } catch (err) {
+      logError('Failed to download update:', err as Error);
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [canAutoUpdate]);
+
+  const installUpdate = useCallback(() => {
+    if (isUpdateDownloaded) {
+      window.electronAPI.updater.quitAndInstall();
+    }
+  }, [isUpdateDownloaded]);
 
   const checkForAppUpdates = useCallback(async () => {
-    setIsChecking(true);
-
     try {
       const currentVersion = await window.electronAPI.app.getVersion();
 
@@ -46,27 +87,22 @@ export const useAppUpdateChecker = () => {
       };
 
       setUpdateInfo(updateInfo);
-      setLastChecked(new Date());
-
-      return updateInfo;
     } catch (err) {
       logError('Failed to check for app updates:', err as Error);
-      return null;
-    } finally {
-      setIsChecking(false);
     }
   }, []);
 
   useEffect(() => {
-    checkForAppUpdates();
+    void checkForAppUpdates();
   }, [checkForAppUpdates]);
 
   return {
-    updateInfo,
-    isChecking,
-    lastChecked,
-    checkForAppUpdates,
     releaseUrl: updateInfo?.releaseUrl,
     hasUpdate: updateInfo?.hasUpdate || false,
+    canAutoUpdate,
+    isUpdateDownloaded,
+    isDownloading,
+    downloadUpdate,
+    installUpdate,
   };
 };

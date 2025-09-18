@@ -135,18 +135,6 @@ const config = [
           message:
             'Direct setting of currentKoboldBinary config is forbidden. Use window.electronAPI.kobold.setCurrentVersion() instead.',
         },
-        {
-          selector:
-            'ExpressionStatement[expression.type="AwaitExpression"]:has(CallExpression[callee.name="ensureDir"]) + ExpressionStatement[expression.type="AwaitExpression"]:has(CallExpression[callee.name="ensureDir"])',
-          message:
-            'Sequential ensureDir() calls detected. These can run in parallel using Promise.all().',
-        },
-        {
-          selector:
-            'ExpressionStatement[expression.type="AwaitExpression"]:has(CallExpression[callee.object.name="fs"][callee.property.name=/^(unlink|rmdir|mkdir|writeFile)$/]) + ExpressionStatement[expression.type="AwaitExpression"]:has(CallExpression[callee.object.name="fs"][callee.property.name=/^(unlink|rmdir|mkdir|writeFile)$/])',
-          message:
-            'Sequential file system operations detected. Independent operations can run in parallel using Promise.all().',
-        },
       ],
 
       'import/no-default-export': 'error',
@@ -168,6 +156,7 @@ const config = [
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/return-await': ['error', 'never'],
+      '@typescript-eslint/require-await': 'error',
       '@typescript-eslint/prefer-promise-reject-errors': 'error',
 
       'sonarjs/cognitive-complexity': ['warn', 25],

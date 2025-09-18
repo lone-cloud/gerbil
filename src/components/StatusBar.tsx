@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Group, useComputedColorScheme } from '@mantine/core';
+import { Group, useComputedColorScheme, AppShell } from '@mantine/core';
 import type {
   CpuMetrics,
   MemoryMetrics,
@@ -24,17 +24,17 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
   useEffect(() => {
     let isMounted = true;
 
-    const handleCpuMetrics = async (metrics: CpuMetrics) => {
+    const handleCpuMetrics = (metrics: CpuMetrics) => {
       if (!isMounted) return;
       setCpuMetrics(metrics);
     };
 
-    const handleMemoryMetrics = async (metrics: MemoryMetrics) => {
+    const handleMemoryMetrics = (metrics: MemoryMetrics) => {
       if (!isMounted) return;
       setMemoryMetrics(metrics);
     };
 
-    const handleGpuMetrics = async (metrics: GpuMetrics) => {
+    const handleGpuMetrics = (metrics: GpuMetrics) => {
       if (!isMounted) return;
       setGpuMetrics(metrics);
     };
@@ -54,44 +54,50 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
   }, [maxDataPoints]);
 
   return (
-    <Group
-      px="xs"
-      gap="xs"
-      justify="flex-end"
-      h="100%"
-      bg={colorScheme === 'dark' ? 'dark.8' : 'gray.1'}
+    <AppShell.Footer
+      style={{
+        border: '1px solid var(--mantine-color-default-border)',
+      }}
     >
-      {cpuMetrics && memoryMetrics && (
-        <>
-          <PerformanceBadge
-            label="CPU"
-            value={`${cpuMetrics.usage}%`}
-            tooltipLabel={`${cpuMetrics.usage}%`}
-          />
+      <Group
+        px="xs"
+        gap="xs"
+        justify="flex-end"
+        h="100%"
+        bg={colorScheme === 'dark' ? 'dark.6' : 'gray.1'}
+      >
+        {cpuMetrics && memoryMetrics && (
+          <>
+            <PerformanceBadge
+              label="CPU"
+              value={`${cpuMetrics.usage}%`}
+              tooltipLabel={`${cpuMetrics.usage}%`}
+            />
 
-          <PerformanceBadge
-            label="RAM"
-            value={`${memoryMetrics.usage}%`}
-            tooltipLabel={`${memoryMetrics.used.toFixed(2)} GB / ${memoryMetrics.total.toFixed(2)} GB (${memoryMetrics.usage}%)`}
-          />
-        </>
-      )}
+            <PerformanceBadge
+              label="RAM"
+              value={`${memoryMetrics.usage}%`}
+              tooltipLabel={`${memoryMetrics.used.toFixed(2)} GB / ${memoryMetrics.total.toFixed(2)} GB (${memoryMetrics.usage}%)`}
+            />
+          </>
+        )}
 
-      {gpuMetrics?.gpus.map((gpu, index) => (
-        <Group gap="xs" key={`gpu-${index}`}>
-          <PerformanceBadge
-            label={`GPU${gpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}`}
-            value={`${gpu.usage}%`}
-            tooltipLabel={`${gpu.usage}%`}
-          />
+        {gpuMetrics?.gpus.map((gpu, index) => (
+          <Group gap="xs" key={`gpu-${index}`}>
+            <PerformanceBadge
+              label={`GPU${gpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}`}
+              value={`${gpu.usage}%`}
+              tooltipLabel={`${gpu.usage}%`}
+            />
 
-          <PerformanceBadge
-            label={`VRAM${gpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}`}
-            value={`${gpu.memoryUsage}%`}
-            tooltipLabel={`${gpu.memoryUsed.toFixed(2)} GB / ${gpu.memoryTotal.toFixed(2)} GB (${gpu.memoryUsage}%)`}
-          />
-        </Group>
-      ))}
-    </Group>
+            <PerformanceBadge
+              label={`VRAM${gpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}`}
+              value={`${gpu.memoryUsage}%`}
+              tooltipLabel={`${gpu.memoryUsed.toFixed(2)} GB / ${gpu.memoryTotal.toFixed(2)} GB (${gpu.memoryUsage}%)`}
+            />
+          </Group>
+        ))}
+      </Group>
+    </AppShell.Footer>
   );
 };

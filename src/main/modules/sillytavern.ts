@@ -54,7 +54,7 @@ function getFallbackDataRoot() {
   }
 }
 
-async function getSillyTavernDataRoot() {
+function getSillyTavernDataRoot() {
   if (detectedDataRoot) {
     return detectedDataRoot;
   }
@@ -64,8 +64,8 @@ async function getSillyTavernDataRoot() {
   return fallback;
 }
 
-async function getSillyTavernSettingsPath() {
-  const dataRoot = await getSillyTavernDataRoot();
+function getSillyTavernSettingsPath() {
+  const dataRoot = getSillyTavernDataRoot();
   return join(dataRoot, 'default-user', 'settings.json');
 }
 
@@ -80,7 +80,7 @@ async function createNpxProcess(args: string[]) {
 }
 
 async function ensureSillyTavernSettings() {
-  const settingsPath = await getSillyTavernSettingsPath();
+  const settingsPath = getSillyTavernSettingsPath();
 
   if (await pathExists(settingsPath)) {
     sendKoboldOutput(`SillyTavern settings found at ${settingsPath}`);
@@ -167,7 +167,7 @@ async function setupSillyTavernConfig(
   isImageMode: boolean
 ) {
   try {
-    const configPath = await getSillyTavernSettingsPath();
+    const configPath = getSillyTavernSettingsPath();
     let settings: Record<string, unknown> = {};
 
     if (await pathExists(configPath)) {

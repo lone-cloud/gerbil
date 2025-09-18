@@ -185,9 +185,7 @@ You can use the CLI mode on Windows in exactly the same way as in the Linux/macO
 
 ## Future Considerations
 
-- migrate the project to Tauri from Electron?
 - transition to using llama.cpp binaries directly instead of running them indirectly through koboldcpp?
-- seamless support for more frontends?
 
 ## License
 

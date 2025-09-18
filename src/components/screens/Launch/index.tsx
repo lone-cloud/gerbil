@@ -1,6 +1,6 @@
 import { Card, Container, Stack, Tabs, Group, Button } from '@mantine/core';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { tryExecute, logError, safeExecute } from '@/utils/logger';
+import { logError, safeExecute } from '@/utils/logger';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 import { useLaunchLogic } from '@/hooks/useLaunchLogic';
 import { useWarnings } from '@/hooks/useWarnings';
@@ -92,17 +92,15 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
   }, [backend, handleBackendChange]);
 
   const setInitialDefaults = useCallback(
-    async (currentModel: string, currentSdModel: string) => {
-      await tryExecute(async () => {
-        if (
-          !defaultsSetRef.current &&
-          !currentModel.trim() &&
-          !currentSdModel.trim()
-        ) {
-          handleModelChange(DEFAULT_MODEL_URL);
-          defaultsSetRef.current = true;
-        }
-      }, 'Failed to set initial defaults:');
+    (currentModel: string, currentSdModel: string) => {
+      if (
+        !defaultsSetRef.current &&
+        !currentModel.trim() &&
+        !currentSdModel.trim()
+      ) {
+        handleModelChange(DEFAULT_MODEL_URL);
+        defaultsSetRef.current = true;
+      }
     },
     [handleModelChange]
   );

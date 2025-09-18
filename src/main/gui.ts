@@ -62,7 +62,7 @@ export async function initializeApp() {
     app.exit(0);
   });
 
-  app.on('will-quit', async (event) => {
+  app.on('will-quit', (event) => {
     event.preventDefault();
     app.exit(0);
   });

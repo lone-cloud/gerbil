@@ -166,6 +166,10 @@ export interface AppAPI {
     app?: string;
     error?: string;
   }>;
+  checkForUpdates: () => Promise<boolean>;
+  downloadUpdate: () => Promise<boolean>;
+  quitAndInstall: () => Promise<void>;
+  isUpdateDownloaded: () => Promise<boolean>;
 }
 
 export interface ConfigAPI {
@@ -193,6 +197,14 @@ export interface MonitoringAPI {
   removeGpuMetricsListener: () => void;
 }
 
+export interface UpdaterAPI {
+  checkForUpdates: () => Promise<boolean>;
+  downloadUpdate: () => Promise<boolean>;
+  quitAndInstall: () => void;
+  isUpdateDownloaded: () => Promise<boolean>;
+  canAutoUpdate: () => Promise<boolean>;
+}
+
 declare global {
   interface Window {
     electronAPI: {
@@ -202,6 +214,7 @@ declare global {
       logs: LogsAPI;
       dependencies: DependenciesAPI;
       monitoring: MonitoringAPI;
+      updater: UpdaterAPI;
     };
   }
 }

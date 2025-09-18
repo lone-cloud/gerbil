@@ -6,6 +6,7 @@ import type {
   LogsAPI,
   DependenciesAPI,
   MonitoringAPI,
+  UpdaterAPI,
 } from '@/types/electron';
 
 const koboldAPI: KoboldAPI = {
@@ -90,6 +91,10 @@ const appAPI: AppAPI = {
   openExternal: (url) => ipcRenderer.invoke('app:openExternal', url),
   openPerformanceManager: () =>
     ipcRenderer.invoke('app:openPerformanceManager'),
+  checkForUpdates: () => ipcRenderer.invoke('app:checkForUpdates'),
+  downloadUpdate: () => ipcRenderer.invoke('app:downloadUpdate'),
+  quitAndInstall: () => ipcRenderer.invoke('app:quitAndInstall'),
+  isUpdateDownloaded: () => ipcRenderer.invoke('app:isUpdateDownloaded'),
 };
 
 const configAPI: ConfigAPI = {
@@ -130,6 +135,14 @@ const monitoringAPI: MonitoringAPI = {
   },
 };
 
+const updaterAPI: UpdaterAPI = {
+  checkForUpdates: () => ipcRenderer.invoke('app:checkForUpdates'),
+  downloadUpdate: () => ipcRenderer.invoke('app:downloadUpdate'),
+  quitAndInstall: () => ipcRenderer.invoke('app:quitAndInstall'),
+  isUpdateDownloaded: () => ipcRenderer.invoke('app:isUpdateDownloaded'),
+  canAutoUpdate: () => ipcRenderer.invoke('app:canAutoUpdate'),
+};
+
 contextBridge.exposeInMainWorld('electronAPI', {
   kobold: koboldAPI,
   app: appAPI,
@@ -137,4 +150,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   logs: logsAPI,
   dependencies: dependenciesAPI,
   monitoring: monitoringAPI,
+  updater: updaterAPI,
 });
