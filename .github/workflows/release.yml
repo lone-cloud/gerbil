@@ -176,6 +176,9 @@ jobs:
               gh release upload ${{ steps.tag.outputs.tag }} "$file" --clobber
             fi
           done
+          if [ -f "artifacts/linux-release/latest-linux.yml" ]; then
+            gh release upload ${{ steps.tag.outputs.tag }} "artifacts/linux-release/latest-linux.yml" --clobber
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
