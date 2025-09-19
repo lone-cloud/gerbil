@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { safeExecute, tryExecute } from '@/utils/logger';
+import { tryExecute } from '@/utils/logger';
 import { compareVersions } from '@/utils/version';
 import { GITHUB_API } from '@/constants';
 
@@ -19,18 +19,12 @@ export const useAppUpdateChecker = () => {
   useEffect(() => {
     const initializeUpdater = async () => {
       const [canUpdate, isDownloaded] = await Promise.all([
-        safeExecute(
-          () => window.electronAPI.updater.canAutoUpdate(),
-          'Failed to check auto-update capability'
-        ),
-        safeExecute(
-          () => window.electronAPI.updater.isUpdateDownloaded(),
-          'Failed to check update download status'
-        ),
+        window.electronAPI.updater.canAutoUpdate(),
+        window.electronAPI.updater.isUpdateDownloaded(),
       ]);
 
-      if (canUpdate !== null) setCanAutoUpdate(canUpdate);
-      if (isDownloaded !== null) setIsUpdateDownloaded(isDownloaded);
+      setCanAutoUpdate(canUpdate);
+      setIsUpdateDownloaded(isDownloaded);
     };
 
     void initializeUpdater();

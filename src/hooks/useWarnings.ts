@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { safeExecute } from '@/utils/logger';
 import type { BackendOption, BackendSupport } from '@/types';
 
 export interface Warning {
@@ -105,10 +104,7 @@ const checkVramWarnings = async (backend: string): Promise<Warning[]> => {
   const isGpuBackend = ['cuda', 'rocm', 'vulkan', 'clblast'].includes(backend);
 
   if (isGpuBackend) {
-    const gpuMemoryInfo = await safeExecute(
-      () => window.electronAPI.kobold.detectGPUMemory(),
-      'Failed to detect GPU memory:'
-    );
+    const gpuMemoryInfo = await window.electronAPI.kobold.detectGPUMemory();
 
     if (gpuMemoryInfo) {
       const lowVramThreshold = 8;
@@ -189,47 +185,43 @@ const checkBackendWarnings = async (params?: {
 }): Promise<Warning[]> => {
   const warnings: Warning[] = [];
 
-  const result = await safeExecute(async () => {
-    const [backendSupport, gpuCapabilities, gpuInfo] = await Promise.all([
-      window.electronAPI.kobold.detectBackendSupport(),
-      window.electronAPI.kobold.detectGPUCapabilities(),
-      window.electronAPI.kobold.detectGPU(),
-    ]);
+  const [backendSupport, gpuCapabilities, gpuInfo] = await Promise.all([
+    window.electronAPI.kobold.detectBackendSupport(),
+    window.electronAPI.kobold.detectGPUCapabilities(),
+    window.electronAPI.kobold.detectGPU(),
+  ]);
 
-    if (!backendSupport) {
-      return warnings;
-    }
-
-    const gpuWarnings = await checkGpuWarnings(
-      backendSupport,
-      gpuCapabilities,
-      gpuInfo
-    );
-    warnings.push(...gpuWarnings);
-
-    if (params) {
-      const { backend, cpuCapabilities, noavx2, failsafe, availableBackends } =
-        params;
-
-      const vramWarnings = await checkVramWarnings(backend);
-      warnings.push(...vramWarnings);
-
-      if (cpuCapabilities) {
-        const cpuWarnings = checkCpuWarnings(
-          backend,
-          cpuCapabilities,
-          noavx2,
-          failsafe,
-          availableBackends
-        );
-        warnings.push(...cpuWarnings);
-      }
-    }
-
+  if (!backendSupport) {
     return warnings;
-  }, 'Failed to check backend warnings:');
+  }
 
-  return result || warnings;
+  const gpuWarnings = await checkGpuWarnings(
+    backendSupport,
+    gpuCapabilities,
+    gpuInfo
+  );
+  warnings.push(...gpuWarnings);
+
+  if (params) {
+    const { backend, cpuCapabilities, noavx2, failsafe, availableBackends } =
+      params;
+
+    const vramWarnings = await checkVramWarnings(backend);
+    warnings.push(...vramWarnings);
+
+    if (cpuCapabilities) {
+      const cpuWarnings = checkCpuWarnings(
+        backend,
+        cpuCapabilities,
+        noavx2,
+        failsafe,
+        availableBackends
+      );
+      warnings.push(...cpuWarnings);
+    }
+  }
+
+  return warnings;
 };
 
 export const useWarnings = ({
@@ -253,27 +245,25 @@ export const useWarnings = ({
       return;
     }
 
-    const result = await safeExecute(async () => {
-      const [cpuCapabilitiesResult, availableBackends] = await Promise.all([
-        window.electronAPI.kobold.detectCPU(),
-        window.electronAPI.kobold.getAvailableBackends(),
-      ]);
+    const [cpuCapabilitiesResult, availableBackends] = await Promise.all([
+      window.electronAPI.kobold.detectCPU(),
+      window.electronAPI.kobold.getAvailableBackends(),
+    ]);
 
-      const cpuCapabilities = {
-        avx: cpuCapabilitiesResult.avx,
-        avx2: cpuCapabilitiesResult.avx2,
-      };
+    const cpuCapabilities = {
+      avx: cpuCapabilitiesResult.avx,
+      avx2: cpuCapabilitiesResult.avx2,
+    };
 
-      return checkBackendWarnings({
-        backend,
-        cpuCapabilities,
-        noavx2,
-        failsafe,
-        availableBackends,
-      });
-    }, 'Failed to check backend warnings:');
+    const result = await checkBackendWarnings({
+      backend,
+      cpuCapabilities,
+      noavx2,
+      failsafe,
+      availableBackends,
+    });
 
-    setBackendWarnings(result || []);
+    setBackendWarnings(result);
   }, [backend, noavx2, failsafe]);
 
   useEffect(() => {

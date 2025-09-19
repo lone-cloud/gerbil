@@ -3,7 +3,7 @@ import {
   createTryExecute,
   createTryExecuteImmediate,
   createSafeTryExecute,
-} from '@/utils/shared/logger-core';
+} from '@/utils/logger-core';
 
 export const logError = (message: string, error: Error) => {
   window.electronAPI.logs.logError(message, error);

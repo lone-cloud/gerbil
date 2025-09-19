@@ -11,7 +11,6 @@ import { InfoTooltip } from '@/components/InfoTooltip';
 import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
 import { CommandLineArgumentsModal } from '@/components/CommandLineArgumentsModal';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
-import { safeExecute } from '@/utils/logger';
 
 export const AdvancedTab = () => {
   const {
@@ -56,10 +55,7 @@ export const AdvancedTab = () => {
 
   useEffect(() => {
     const detectBackendSupport = async () => {
-      const support = await safeExecute(
-        () => window.electronAPI.kobold.detectBackendSupport(),
-        'Failed to detect backend support:'
-      );
+      const support = await window.electronAPI.kobold.detectBackendSupport();
 
       if (support) {
         setBackendSupport({

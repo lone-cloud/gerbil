@@ -4,7 +4,6 @@ import { InfoTooltip } from '@/components/InfoTooltip';
 import { BackendSelectItem } from '@/components/screens/Launch/GeneralTab/BackendSelectItem';
 import { GpuDeviceSelector } from '@/components/screens/Launch/GeneralTab/GpuDeviceSelector';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
-import { safeExecute } from '@/utils/logger';
 import type { BackendOption } from '@/types';
 
 export const BackendSelector = () => {
@@ -26,10 +25,8 @@ export const BackendSelector = () => {
   useEffect(() => {
     const loadBackends = async () => {
       setIsLoadingBackends(true);
-      const backends = await safeExecute(
-        () => window.electronAPI.kobold.getAvailableBackends(true),
-        'Failed to detect available backends:'
-      );
+      const backends =
+        await window.electronAPI.kobold.getAvailableBackends(true);
       setAvailableBackends(backends || []);
       setIsLoadingBackends(false);
       hasInitialized.current = true;

@@ -24,10 +24,7 @@ export const AboutTab = () => {
   const { handleLogoClick, getLogoStyles } = useLogoClickSounds();
   useEffect(() => {
     const loadVersionInfo = async () => {
-      const info = await safeExecute(
-        () => window.electronAPI.app.getVersionInfo(),
-        'Failed to load version info'
-      );
+      const info = await window.electronAPI.app.getVersionInfo();
       if (info) {
         setVersionInfo(info);
       }
@@ -48,11 +45,9 @@ export const AboutTab = () => {
     { label: 'Electron', value: versionInfo.electronVersion },
     {
       label: 'Node.js',
-      value:
-        versionInfo.nodeJsSystemVersion &&
-        versionInfo.nodeJsSystemVersion !== versionInfo.nodeVersion
-          ? `${versionInfo.nodeVersion} (System: ${versionInfo.nodeJsSystemVersion})`
-          : versionInfo.nodeVersion,
+      value: versionInfo.nodeJsSystemVersion
+        ? `${versionInfo.nodeVersion} (System: ${versionInfo.nodeJsSystemVersion})`
+        : versionInfo.nodeVersion,
     },
     { label: 'Chromium', value: versionInfo.chromeVersion },
     { label: 'V8', value: versionInfo.v8Version },
@@ -66,21 +61,9 @@ export const AboutTab = () => {
   ];
 
   const copyVersionInfo = async () => {
-    const nodeJsInfo =
-      versionInfo.nodeJsSystemVersion &&
-      versionInfo.nodeJsSystemVersion !== versionInfo.nodeVersion
-        ? `${versionInfo.nodeVersion} (system: ${versionInfo.nodeJsSystemVersion})`
-        : versionInfo.nodeVersion;
-
-    const info = [
-      `${PRODUCT_NAME}: ${versionInfo.appVersion}`,
-      `Electron: ${versionInfo.electronVersion}`,
-      `Node.js: ${nodeJsInfo}`,
-      `Chromium: ${versionInfo.chromeVersion}`,
-      `V8: ${versionInfo.v8Version}`,
-      `OS: ${versionInfo.platform} ${versionInfo.arch} (${versionInfo.osVersion})`,
-      ...(versionInfo.uvVersion ? [`uv: ${versionInfo.uvVersion}`] : []),
-    ].join('\n');
+    const info = versionItems
+      .map((item) => `${item.label}: ${item.value}`)
+      .join('\n');
 
     await safeExecute(
       () => navigator.clipboard.writeText(info),
@@ -128,15 +111,11 @@ export const AboutTab = () => {
                 leftSection={
                   <Github style={{ width: rem(16), height: rem(16) }} />
                 }
-                onClick={async () => {
-                  await safeExecute(
-                    () =>
-                      window.electronAPI.app.openExternal(
-                        'https://github.com/lone-cloud/gerbil'
-                      ),
-                    'Failed to open GitHub link'
-                  );
-                }}
+                onClick={() =>
+                  window.electronAPI.app.openExternal(
+                    'https://github.com/lone-cloud/gerbil'
+                  )
+                }
                 style={{ textDecoration: 'none' }}
               >
                 GitHub
@@ -148,12 +127,7 @@ export const AboutTab = () => {
                 leftSection={
                   <FolderOpen style={{ width: rem(16), height: rem(16) }} />
                 }
-                onClick={async () => {
-                  await safeExecute(
-                    () => window.electronAPI.app.showLogsFolder(),
-                    'Failed to open logs folder'
-                  );
-                }}
+                onClick={() => window.electronAPI.app.showLogsFolder()}
               >
                 Show Logs
               </Button>

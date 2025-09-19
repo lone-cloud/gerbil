@@ -37,7 +37,6 @@ setupAutoUpdater();
 
 export const checkForUpdates = async () => {
   if (isDevelopment) {
-    logError('Auto-updater: Cannot check for updates in development mode');
     return false;
   }
 
@@ -51,7 +50,6 @@ export const checkForUpdates = async () => {
 
 export const downloadUpdate = async () => {
   if (isDevelopment) {
-    logError('Auto-updater: Cannot download updates in development mode');
     return false;
   }
 

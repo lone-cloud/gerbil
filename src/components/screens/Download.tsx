@@ -1,11 +1,10 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Card, Text, Title, Loader, Stack, Container } from '@mantine/core';
 import { DownloadCard } from '@/components/DownloadCard';
 import { getPlatformDisplayName } from '@/utils/platform';
 import { formatDownloadSize } from '@/utils/format';
 import { getAssetDescription } from '@/utils/assets';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
-import { safeExecute } from '@/utils/logger';
 import type { DownloadItem } from '@/types/electron';
 
 interface DownloadScreenProps {
@@ -32,21 +31,19 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
     async (download: DownloadItem) => {
       setDownloadingAsset(download.name);
 
-      await safeExecute(async () => {
-        const success = await sharedHandleDownload({
-          item: download,
-          isUpdate: false,
-          wasCurrentBinary: false,
-        });
+      const success = await sharedHandleDownload({
+        item: download,
+        isUpdate: false,
+        wasCurrentBinary: false,
+      });
 
-        if (success) {
-          onDownloadComplete();
+      if (success) {
+        onDownloadComplete();
 
-          setTimeout(() => {
-            setDownloadingAsset(null);
-          }, 200);
-        }
-      }, `Failed to download ${download.name}:`);
+        setTimeout(() => {
+          setDownloadingAsset(null);
+        }, 200);
+      }
 
       setDownloadingAsset(null);
     },
