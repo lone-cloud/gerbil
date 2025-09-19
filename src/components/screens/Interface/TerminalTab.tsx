@@ -14,8 +14,7 @@ import {
 } from '@/constants';
 import { handleTerminalOutput, processTerminalContent } from '@/utils/terminal';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
-import { useFrontendPreferenceStore } from '@/stores/frontendPreference';
-import { useAppColorScheme } from '@/hooks/useAppColorScheme';
+import { usePreferencesStore } from '@/stores/preferences';
 
 interface TerminalTabProps {
   onServerReady: (url: string) => void;
@@ -28,8 +27,8 @@ export interface TerminalTabRef {
 export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
   ({ onServerReady }, ref) => {
     const { host, port, isImageGenerationMode } = useLaunchConfigStore();
-    const { frontendPreference } = useFrontendPreferenceStore();
-    const colorScheme = useAppColorScheme();
+    const { frontendPreference, resolvedColorScheme: colorScheme } =
+      usePreferencesStore();
     const [terminalContent, setTerminalContent] = useState('');
     const [isUserScrolling, setIsUserScrolling] = useState(false);
     const [shouldAutoScroll, setShouldAutoScroll] = useState(true);

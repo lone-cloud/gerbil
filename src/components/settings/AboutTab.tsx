@@ -111,7 +111,7 @@ export const AboutTab = () => {
             </Text>
             <Group gap="md" mt="md">
               <Button
-                variant="subtle"
+                variant="light"
                 size="compact-sm"
                 leftSection={
                   <Github style={{ width: rem(16), height: rem(16) }} />

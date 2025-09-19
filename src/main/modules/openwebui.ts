@@ -15,7 +15,14 @@ import { getUvEnvironment } from './dependencies';
 
 let openWebUIProcess: ChildProcess | null = null;
 
-const OPENWEBUI_BASE_ARGS = ['--python', '3.11', 'open-webui@latest', 'serve'];
+const OPENWEBUI_BASE_ARGS = [
+  '--python',
+  '3.11',
+  '--with',
+  'itsdangerous',
+  'open-webui@latest',
+  'serve',
+];
 
 on('SIGINT', () => {
   void cleanup();
