@@ -259,11 +259,10 @@ export const useKoboldVersions = () => {
       }
     };
 
-    window.electronAPI.kobold.onDownloadProgress?.(handleProgress);
+    const cleanup =
+      window.electronAPI.kobold.onDownloadProgress(handleProgress);
 
-    return () => {
-      window.electronAPI.kobold.removeAllListeners?.('download-progress');
-    };
+    return cleanup;
   }, [downloading]);
 
   return {
