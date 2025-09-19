@@ -21,12 +21,12 @@ interface CommandLineArgumentsModalProps {
 
 interface ArgumentInfo {
   flag: string;
-  aliases?: string[];
+  aliases?: readonly string[];
   description: string;
   metavar?: string;
   default?: string | number;
   type?: string;
-  choices?: string[];
+  choices?: readonly string[];
   category: string;
 }
 
@@ -61,11 +61,16 @@ const UI_COVERED_ARGS = new Set([
   '--sdlora',
   '--sdflashattention',
   '--sdconvdirect',
-]);
+] as const) as ReadonlySet<string>;
 
-const IGNORED_ARGS = new Set(['--cli', '--version', '--launch', '--config']);
+const IGNORED_ARGS = new Set([
+  '--cli',
+  '--version',
+  '--launch',
+  '--config',
+] as const) as ReadonlySet<string>;
 
-const COMMAND_LINE_ARGUMENTS: ArgumentInfo[] = [
+const COMMAND_LINE_ARGUMENTS = [
   {
     flag: '--threads',
     aliases: ['-t'],
@@ -487,7 +492,7 @@ const COMMAND_LINE_ARGUMENTS: ArgumentInfo[] = [
     type: 'boolean',
     category: 'Embeddings',
   },
-];
+] as const;
 
 const AVAILABLE_ARGUMENTS = COMMAND_LINE_ARGUMENTS.filter(
   (arg) => !UI_COVERED_ARGS.has(arg.flag) && !IGNORED_ARGS.has(arg.flag)

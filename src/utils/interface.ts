@@ -59,7 +59,7 @@ export function getAvailableInterfaceOptions({
     ...chatItems,
     { value: 'terminal', label: 'Terminal' },
     { value: 'eject', label: 'Eject' },
-  ];
+  ] as const;
 }
 
 export function getDefaultInterfaceTab({

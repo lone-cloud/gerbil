@@ -11,20 +11,20 @@ export interface GPUMemoryInfo {
 
 export interface GPUCapabilities {
   cuda: {
-    supported: boolean;
-    devices: string[];
+    readonly supported: boolean;
+    readonly devices: readonly string[];
   };
   rocm: {
-    supported: boolean;
-    devices: string[];
+    readonly supported: boolean;
+    readonly devices: readonly string[];
   };
   vulkan: {
-    supported: boolean;
-    devices: string[];
+    readonly supported: boolean;
+    readonly devices: readonly string[];
   };
   clblast: {
-    supported: boolean;
-    devices: string[];
+    readonly supported: boolean;
+    readonly devices: readonly string[];
   };
 }
 
@@ -35,8 +35,8 @@ export interface BasicGPUInfo {
 }
 
 export interface HardwareDetectionResult {
-  supported: boolean;
-  devices: string[];
+  readonly supported: boolean;
+  readonly devices: readonly string[];
 }
 
 export interface HardwareInfo {
