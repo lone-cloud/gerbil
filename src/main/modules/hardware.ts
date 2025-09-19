@@ -153,10 +153,10 @@ async function detectCUDA() {
       return {
         supported: devices.length > 0,
         devices,
-      };
+      } as const;
     }
 
-    return { supported: false, devices: [] };
+    return { supported: false, devices: [] } as const;
   } catch {
     return { supported: false, devices: [] };
   }

@@ -53,8 +53,8 @@ export interface SelectOption {
 }
 
 export interface BackendOption extends SelectOption {
-  devices?: string[];
-  disabled?: boolean;
+  readonly devices?: readonly string[];
+  readonly disabled?: boolean;
 }
 
 export interface BackendSupport {

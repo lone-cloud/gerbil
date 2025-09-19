@@ -1,15 +1,15 @@
 export interface ImageModelPreset {
-  name: string;
-  description?: string;
-  sdmodel: string;
-  sdt5xxl: string;
-  sdclipl: string;
-  sdclipg: string;
-  sdphotomaker: string;
-  sdvae: string;
+  readonly name: string;
+  readonly description?: string;
+  readonly sdmodel: string;
+  readonly sdt5xxl: string;
+  readonly sdclipl: string;
+  readonly sdclipg: string;
+  readonly sdphotomaker: string;
+  readonly sdvae: string;
 }
 
-export const IMAGE_MODEL_PRESETS: ImageModelPreset[] = [
+export const IMAGE_MODEL_PRESETS = [
   {
     name: 'FLUX.1',
     description: 'FLUX.1 development model with default encoders',
@@ -38,4 +38,4 @@ export const IMAGE_MODEL_PRESETS: ImageModelPreset[] = [
     sdvae:
       'https://huggingface.co/lodestones/Chroma/resolve/main/ae.safetensors?download=true',
   },
-];
+] as const;
