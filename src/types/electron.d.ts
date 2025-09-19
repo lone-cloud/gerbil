@@ -147,6 +147,7 @@ export interface VersionInfo {
   arch: string;
   nodeJsSystemVersion?: string;
   uvVersion?: string;
+  isAUR?: boolean;
 }
 
 export interface AppAPI {
