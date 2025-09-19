@@ -152,4 +152,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   dependencies: dependenciesAPI,
   monitoring: monitoringAPI,
   updater: updaterAPI,
+  on: (channel: string, callback: (...args: unknown[]) => void) => {
+    ipcRenderer.on(channel, (_, ...args) => callback(...args));
+  },
+  removeListener: (channel: string, callback: (...args: unknown[]) => void) => {
+    ipcRenderer.removeListener(channel, callback);
+  },
 });
