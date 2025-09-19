@@ -129,11 +129,10 @@ export interface KoboldAPI {
   parseConfigFile: (filePath: string) => Promise<KoboldConfig | null>;
   selectModelFile: (title?: string) => Promise<string | null>;
   stopKoboldCpp: () => void;
-  onDownloadProgress: (callback: (progress: number) => void) => void;
+  onDownloadProgress: (callback: (progress: number) => void) => () => void;
   onInstallDirChanged: (callback: (newPath: string) => void) => () => void;
   onVersionsUpdated: (callback: () => void) => () => void;
   onKoboldOutput: (callback: (data: string) => void) => () => void;
-  removeAllListeners: (channel: string) => void;
 }
 
 export interface VersionInfo {
@@ -171,6 +170,7 @@ export interface AppAPI {
   downloadUpdate: () => Promise<boolean>;
   quitAndInstall: () => Promise<void>;
   isUpdateDownloaded: () => Promise<boolean>;
+  onWindowStateToggle: (callback: () => void) => () => void;
 }
 
 export interface ConfigAPI {
@@ -188,14 +188,10 @@ export interface DependenciesAPI {
 }
 
 export interface MonitoringAPI {
-  start: () => Promise<void>;
-  stop: () => Promise<void>;
-  onCpuMetrics: (callback: (metrics: CpuMetrics) => void) => void;
-  onMemoryMetrics: (callback: (metrics: MemoryMetrics) => void) => void;
-  onGpuMetrics: (callback: (metrics: GpuMetrics) => void) => void;
-  removeCpuMetricsListener: () => void;
-  removeMemoryMetricsListener: () => void;
-  removeGpuMetricsListener: () => void;
+  start: () => () => void;
+  onCpuMetrics: (callback: (metrics: CpuMetrics) => void) => () => void;
+  onMemoryMetrics: (callback: (metrics: MemoryMetrics) => void) => () => void;
+  onGpuMetrics: (callback: (metrics: GpuMetrics) => void) => () => void;
 }
 
 export interface UpdaterAPI {
@@ -217,11 +213,6 @@ declare global {
       dependencies: DependenciesAPI;
       monitoring: MonitoringAPI;
       updater: UpdaterAPI;
-      on: (channel: string, callback: (...args: unknown[]) => void) => void;
-      removeListener: (
-        channel: string,
-        callback: (...args: unknown[]) => void
-      ) => void;
     };
   }
 }

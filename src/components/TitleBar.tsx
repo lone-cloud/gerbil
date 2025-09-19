@@ -39,18 +39,12 @@ export const TitleBar = ({
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
 
   useEffect(() => {
-    const handleMaximize = () => setIsMaximized(true);
-    const handleUnmaximize = () => setIsMaximized(false);
+    const cleanup = window.electronAPI.app.onWindowStateToggle(() =>
+      setIsMaximized((prev) => !prev)
+    );
 
-    window.electronAPI.on('window-maximized', handleMaximize);
-    window.electronAPI.on('window-unmaximized', handleUnmaximize);
-
-    return () => {
-      window.electronAPI.removeListener('window-maximized', handleMaximize);
-      window.electronAPI.removeListener('window-unmaximized', handleUnmaximize);
-    };
+    return cleanup;
   }, []);
-
   return (
     <AppShell.Header
       style={{ display: 'flex', flexDirection: 'column', border: 'none' }}

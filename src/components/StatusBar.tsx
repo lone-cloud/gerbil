@@ -38,17 +38,20 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
       setGpuMetrics(metrics);
     };
 
-    window.electronAPI.monitoring.onCpuMetrics(handleCpuMetrics);
-    window.electronAPI.monitoring.onMemoryMetrics(handleMemoryMetrics);
-    window.electronAPI.monitoring.onGpuMetrics(handleGpuMetrics);
-    void window.electronAPI.monitoring.start();
+    const cleanupCpu =
+      window.electronAPI.monitoring.onCpuMetrics(handleCpuMetrics);
+    const cleanupMemory =
+      window.electronAPI.monitoring.onMemoryMetrics(handleMemoryMetrics);
+    const cleanupGpu =
+      window.electronAPI.monitoring.onGpuMetrics(handleGpuMetrics);
+    const stopMonitoring = window.electronAPI.monitoring.start();
 
     return () => {
       isMounted = false;
-      window.electronAPI.monitoring.removeCpuMetricsListener();
-      window.electronAPI.monitoring.removeMemoryMetricsListener();
-      window.electronAPI.monitoring.removeGpuMetricsListener();
-      window.electronAPI.monitoring.stop();
+      cleanupCpu();
+      cleanupMemory();
+      cleanupGpu();
+      stopMonitoring();
     };
   }, [maxDataPoints]);
 

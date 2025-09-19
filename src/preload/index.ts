@@ -8,6 +8,11 @@ import type {
   MonitoringAPI,
   UpdaterAPI,
 } from '@/types/electron';
+import type {
+  CpuMetrics,
+  MemoryMetrics,
+  GpuMetrics,
+} from '@/main/modules/monitoring';
 
 const koboldAPI: KoboldAPI = {
   getInstalledVersions: () => ipcRenderer.invoke('kobold:getInstalledVersions'),
@@ -42,10 +47,13 @@ const koboldAPI: KoboldAPI = {
     ipcRenderer.invoke('kobold:selectModelFile', title),
   stopKoboldCpp: () => ipcRenderer.invoke('kobold:stopKoboldCpp'),
   onDownloadProgress: (callback) => {
-    ipcRenderer.on(
-      'download-progress',
-      (_: IpcRendererEvent, progress: number) => callback(progress)
-    );
+    const handler = (_: IpcRendererEvent, progress: number) =>
+      callback(progress);
+    ipcRenderer.on('download-progress', handler);
+
+    return () => {
+      ipcRenderer.removeListener('download-progress', handler);
+    };
   },
   onInstallDirChanged: (callback) => {
     const handler = (_: IpcRendererEvent, newPath: string) => callback(newPath);
@@ -71,9 +79,6 @@ const koboldAPI: KoboldAPI = {
       ipcRenderer.removeListener('kobold-output', handler);
     };
   },
-  removeAllListeners: (channel) => {
-    ipcRenderer.removeAllListeners(channel);
-  },
 };
 
 const appAPI: AppAPI = {
@@ -95,6 +100,17 @@ const appAPI: AppAPI = {
   downloadUpdate: () => ipcRenderer.invoke('app:downloadUpdate'),
   quitAndInstall: () => ipcRenderer.invoke('app:quitAndInstall'),
   isUpdateDownloaded: () => ipcRenderer.invoke('app:isUpdateDownloaded'),
+  onWindowStateToggle: (callback) => {
+    const handler = () => callback();
+
+    ipcRenderer.on('window-maximized', handler);
+    ipcRenderer.on('window-unmaximized', handler);
+
+    return () => {
+      ipcRenderer.removeListener('window-maximized', handler);
+      ipcRenderer.removeListener('window-unmaximized', handler);
+    };
+  },
 };
 
 const configAPI: ConfigAPI = {
@@ -113,25 +129,39 @@ const dependenciesAPI: DependenciesAPI = {
 };
 
 const monitoringAPI: MonitoringAPI = {
-  start: () => ipcRenderer.invoke('monitoring:start'),
-  stop: () => ipcRenderer.invoke('monitoring:stop'),
+  start: () => {
+    ipcRenderer.send('monitoring:start');
+
+    return () => {
+      ipcRenderer.send('monitoring:stop');
+    };
+  },
   onCpuMetrics: (callback) => {
-    ipcRenderer.on('cpu-metrics', (_, metrics) => callback(metrics));
+    const handler = (_: IpcRendererEvent, metrics: CpuMetrics) =>
+      callback(metrics);
+    ipcRenderer.on('cpu-metrics', handler);
+
+    return () => {
+      ipcRenderer.removeListener('cpu-metrics', handler);
+    };
   },
   onMemoryMetrics: (callback) => {
-    ipcRenderer.on('memory-metrics', (_, metrics) => callback(metrics));
+    const handler = (_: IpcRendererEvent, metrics: MemoryMetrics) =>
+      callback(metrics);
+    ipcRenderer.on('memory-metrics', handler);
+
+    return () => {
+      ipcRenderer.removeListener('memory-metrics', handler);
+    };
   },
   onGpuMetrics: (callback) => {
-    ipcRenderer.on('gpu-metrics', (_, metrics) => callback(metrics));
-  },
-  removeCpuMetricsListener: () => {
-    ipcRenderer.removeAllListeners('cpu-metrics');
-  },
-  removeMemoryMetricsListener: () => {
-    ipcRenderer.removeAllListeners('memory-metrics');
-  },
-  removeGpuMetricsListener: () => {
-    ipcRenderer.removeAllListeners('gpu-metrics');
+    const handler = (_: IpcRendererEvent, metrics: GpuMetrics) =>
+      callback(metrics);
+    ipcRenderer.on('gpu-metrics', handler);
+
+    return () => {
+      ipcRenderer.removeListener('gpu-metrics', handler);
+    };
   },
 };
 
@@ -152,10 +182,4 @@ contextBridge.exposeInMainWorld('electronAPI', {
   dependencies: dependenciesAPI,
   monitoring: monitoringAPI,
   updater: updaterAPI,
-  on: (channel: string, callback: (...args: unknown[]) => void) => {
-    ipcRenderer.on(channel, (_, ...args) => callback(...args));
-  },
-  removeListener: (channel: string, callback: (...args: unknown[]) => void) => {
-    ipcRenderer.removeListener(channel, callback);
-  },
 });

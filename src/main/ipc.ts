@@ -273,14 +273,14 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('dependencies:isUvAvailable', () => isUvAvailable());
 
-  ipcMain.handle('monitoring:start', () => {
+  ipcMain.on('monitoring:start', () => {
     const mainWindow = getMainWindow();
     if (mainWindow) {
       startMonitoring(mainWindow);
     }
   });
 
-  ipcMain.handle('monitoring:stop', () => stopMonitoring());
+  ipcMain.on('monitoring:stop', () => stopMonitoring());
 
   ipcMain.handle('app:checkForUpdates', () => checkForUpdates());
 
