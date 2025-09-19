@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useMantineColorScheme } from '@mantine/core';
 
 type ColorScheme = 'light' | 'dark';
 
 export const useAppColorScheme = () => {
   const [colorScheme, setColorScheme] = useState<ColorScheme>('light');
-  const { setColorScheme: setMantineColorScheme } = useMantineColorScheme();
 
   useEffect(() => {
     const loadColorScheme = async () => {
@@ -24,12 +22,11 @@ export const useAppColorScheme = () => {
         }
 
         setColorScheme(resolvedScheme);
-        setMantineColorScheme(resolvedScheme);
       }
     };
 
     void loadColorScheme();
-  }, [setMantineColorScheme]);
+  }, []);
 
   return colorScheme;
 };

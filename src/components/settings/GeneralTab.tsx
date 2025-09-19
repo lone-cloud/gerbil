@@ -12,6 +12,7 @@ import {
 } from '@mantine/core';
 import { Folder, FolderOpen, Monitor } from 'lucide-react';
 import type { FrontendPreference } from '@/types';
+import { useFrontendPreferenceStore } from '@/stores/frontendPreference';
 import { FRONTENDS } from '@/constants';
 
 interface FrontendRequirement {
@@ -36,8 +37,8 @@ export const GeneralTab = ({
   isOnInterfaceScreen = false,
 }: GeneralTabProps) => {
   const [installDir, setInstallDir] = useState('');
-  const [FrontendPreference, setFrontendPreference] =
-    useState<FrontendPreference>('koboldcpp');
+  const { frontendPreference, setFrontendPreference, loadFrontendPreference } =
+    useFrontendPreferenceStore();
   const [frontendRequirements, setFrontendRequirements] = useState<
     Map<string, boolean>
   >(new Map());
@@ -108,13 +109,12 @@ export const GeneralTab = ({
     setFrontendRequirements(requirementResults);
 
     const currentFrontendConfig = frontendConfigs.find(
-      (config) => config.value === FrontendPreference
+      (config) => config.value === frontendPreference
     );
-    if (currentFrontendConfig && !requirementResults.get(FrontendPreference)) {
-      window.electronAPI.config.set('frontendPreference', 'koboldcpp');
+    if (currentFrontendConfig && !requirementResults.get(frontendPreference)) {
       setFrontendPreference('koboldcpp');
     }
-  }, [frontendConfigs, FrontendPreference]);
+  }, [frontendConfigs, frontendPreference, setFrontendPreference]);
 
   useEffect(() => {
     const initialize = async () => {
@@ -132,10 +132,10 @@ export const GeneralTab = ({
 
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [checkAllFrontendRequirements]);
+  }, [checkAllFrontendRequirements, loadFrontendPreference]);
 
   const getSelectedFrontendConfig = () =>
-    frontendConfigs.find((config) => config.value === FrontendPreference);
+    frontendConfigs.find((config) => config.value === frontendPreference);
 
   const getUnmetRequirements = () => {
     const selectedConfig = getSelectedFrontendConfig();
@@ -157,25 +157,15 @@ export const GeneralTab = ({
     frontendRequirements.get(frontendValue) ?? true;
 
   useEffect(() => {
-    if (FrontendPreference) {
+    if (frontendPreference) {
       checkAllFrontendRequirements();
     }
-  }, [FrontendPreference, checkAllFrontendRequirements]);
+  }, [frontendPreference, checkAllFrontendRequirements]);
 
   const loadCurrentInstallDir = async () => {
     const currentDir = await window.electronAPI.kobold.getCurrentInstallDir();
     if (currentDir) {
       setInstallDir(currentDir);
-    }
-  };
-
-  const loadFrontendPreference = async () => {
-    const frontendPreference =
-      await window.electronAPI.config.get('frontendPreference');
-    if (frontendPreference) {
-      setFrontendPreference(
-        (frontendPreference as FrontendPreference) || 'koboldcpp'
-      );
     }
   };
 
@@ -195,8 +185,6 @@ export const GeneralTab = ({
       return;
 
     await checkAllFrontendRequirements();
-
-    window.electronAPI.config.set('frontendPreference', value);
     setFrontendPreference(value as FrontendPreference);
   };
 
@@ -263,7 +251,7 @@ export const GeneralTab = ({
         )}
 
         <Select
-          value={FrontendPreference}
+          value={frontendPreference}
           onChange={handleFrontendPreferenceChange}
           disabled={isOnInterfaceScreen}
           onClick={() => checkAllFrontendRequirements()}

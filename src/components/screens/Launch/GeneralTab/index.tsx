@@ -1,7 +1,7 @@
 import { Stack, Text, Group, TextInput, Slider } from '@mantine/core';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { BackendSelector } from '@/components/screens/Launch/GeneralTab/BackendSelector';
-import { ModelFileField } from '@/components/ModelFileField';
+import { ModelFileField } from '@/components/screens/Launch/ModelFileField';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 
 export const GeneralTab = () => {

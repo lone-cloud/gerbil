@@ -1,23 +1,22 @@
 import { create } from 'zustand';
 import type { FrontendPreference } from '@/types';
 
-interface FrontendPreferenceState {
+interface FrontendPreferenceStore {
   frontendPreference: FrontendPreference;
   setFrontendPreference: (preference: FrontendPreference) => void;
-  loadFromConfig: () => Promise<void>;
+  loadFrontendPreference: () => Promise<void>;
 }
 
-export const useFrontendPreferenceStore = create<FrontendPreferenceState>()(
+export const useFrontendPreferenceStore = create<FrontendPreferenceStore>(
   (set) => ({
     frontendPreference: 'koboldcpp',
 
     setFrontendPreference: (preference: FrontendPreference) => {
       set({ frontendPreference: preference });
-
       window.electronAPI.config.set('frontendPreference', preference);
     },
 
-    loadFromConfig: async () => {
+    loadFrontendPreference: async () => {
       const preference = (await window.electronAPI.config.get(
         'frontendPreference'
       )) as FrontendPreference;

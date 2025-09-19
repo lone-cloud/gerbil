@@ -1,62 +1,32 @@
-import { useEffect } from 'react';
-import { useLaunchConfigStore } from '@/stores/launchConfig';
-import { useFrontendPreferenceStore } from '@/stores/frontendPreference';
-import {
-  getAvailableInterfaceOptions,
-  getDefaultInterfaceTab,
-  getServerInterfaceInfo,
-} from '@/utils/interface';
+import { useEffect, useState, useCallback } from 'react';
+import type { FrontendPreference } from '@/types';
 
 export function useFrontendPreference() {
-  const { frontendPreference, setFrontendPreference, loadFromConfig } =
-    useFrontendPreferenceStore();
+  const [frontendPreference, setFrontendPreferenceState] =
+    useState<FrontendPreference>('koboldcpp');
 
   useEffect(() => {
+    const loadFromConfig = async () => {
+      const preference = (await window.electronAPI.config.get(
+        'frontendPreference'
+      )) as FrontendPreference;
+
+      setFrontendPreferenceState(preference || 'koboldcpp');
+    };
+
     loadFromConfig();
-  }, [loadFromConfig]);
+  }, []);
+
+  const setFrontendPreference = useCallback(
+    (preference: FrontendPreference) => {
+      setFrontendPreferenceState(preference);
+      window.electronAPI.config.set('frontendPreference', preference);
+    },
+    []
+  );
 
   return {
     frontendPreference,
     setFrontendPreference,
   };
-}
-
-export function useInterfaceOptions() {
-  const { isTextMode, isImageGenerationMode } = useLaunchConfigStore();
-  const { frontendPreference } = useFrontendPreference();
-
-  return getAvailableInterfaceOptions({
-    frontendPreference,
-    isTextMode,
-    isImageGenerationMode,
-  });
-}
-
-export function useDefaultInterfaceTab() {
-  const { isTextMode, isImageGenerationMode } = useLaunchConfigStore();
-  const { frontendPreference } = useFrontendPreference();
-
-  return getDefaultInterfaceTab({
-    frontendPreference,
-    isTextMode,
-    isImageGenerationMode,
-  });
-}
-
-export function useServerInterfaceInfo(serverUrl: string, activeTab?: string) {
-  const { isImageGenerationMode } = useLaunchConfigStore();
-  const { frontendPreference } = useFrontendPreference();
-
-  const effectiveImageMode =
-    activeTab === 'chat-image'
-      ? true
-      : activeTab === 'chat-text'
-        ? false
-        : isImageGenerationMode;
-
-  return getServerInterfaceInfo({
-    frontendPreference,
-    isImageGenerationMode: effectiveImageMode,
-    serverUrl,
-  });
 }

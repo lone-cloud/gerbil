@@ -1,10 +1,12 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { ServerTab } from '@/components/screens/Interface/ServerTab';
 import {
   TerminalTab,
   type TerminalTabRef,
 } from '@/components/screens/Interface/TerminalTab';
-import { useDefaultInterfaceTab } from '@/hooks/useInterfaceSelection';
+import { useLaunchConfigStore } from '@/stores/launchConfig';
+import { useFrontendPreferenceStore } from '@/stores/frontendPreference';
+import { getDefaultInterfaceTab } from '@/utils/interface';
 import type { InterfaceTab } from '@/types';
 
 interface InterfaceScreenProps {
@@ -19,7 +21,19 @@ export const InterfaceScreen = ({
   const [serverUrl, setServerUrl] = useState('');
   const [isServerReady, setIsServerReady] = useState(false);
   const terminalTabRef = useRef<TerminalTabRef>(null);
-  const defaultInterfaceTab = useDefaultInterfaceTab();
+
+  const { isTextMode, isImageGenerationMode } = useLaunchConfigStore();
+  const { frontendPreference } = useFrontendPreferenceStore();
+
+  const defaultInterfaceTab = useMemo(
+    () =>
+      getDefaultInterfaceTab({
+        frontendPreference,
+        isTextMode,
+        isImageGenerationMode,
+      }),
+    [frontendPreference, isTextMode, isImageGenerationMode]
+  );
 
   const handleServerReady = useCallback(
     (url: string) => {
