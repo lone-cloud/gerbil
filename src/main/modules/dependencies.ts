@@ -1,51 +1,23 @@
-import { spawn } from 'child_process';
 import { access, readdir } from 'fs/promises';
 import { homedir } from 'os';
 import { join } from 'path';
-
-interface CommandResult {
-  success: boolean;
-  output?: string;
-}
+import { platform, env as processEnv } from 'process';
+import { app } from 'electron';
+import { execa } from 'execa';
 
 async function executeCommand(
   command: string,
   args: string[],
   env: Record<string, string | undefined>,
-  timeout = 5000,
-  useShell = false
+  timeout = 5000
 ) {
   try {
-    const testProcess = spawn(command, args, {
-      stdio: 'pipe',
+    const { stdout } = await execa(command, args, {
       env,
-      shell: useShell,
+      timeout,
+      reject: false,
     });
-
-    return new Promise<CommandResult>((resolve) => {
-      let output = '';
-      const timeoutId = setTimeout(() => {
-        testProcess.kill();
-        resolve({ success: false });
-      }, timeout);
-
-      testProcess.stdout?.on('data', (data) => {
-        output += data.toString();
-      });
-
-      testProcess.on('exit', (code) => {
-        clearTimeout(timeoutId);
-        resolve({
-          success: code === 0,
-          output: code === 0 ? output.trim() : undefined,
-        });
-      });
-
-      testProcess.on('error', () => {
-        clearTimeout(timeoutId);
-        resolve({ success: false });
-      });
-    });
+    return { success: true, output: stdout.trim() };
   } catch {
     return { success: false };
   }
@@ -64,13 +36,7 @@ export async function getUvVersion() {
 
 export async function getSystemNodeVersion() {
   const env = await getNodeEnvironment();
-  const result = await executeCommand(
-    'node',
-    ['--version'],
-    env,
-    5000,
-    process.platform === 'win32'
-  );
+  const result = await executeCommand('node', ['--version'], env);
 
   if (result.success && result.output) {
     return result.output.replace(/^v/, '') || null;
@@ -85,7 +51,7 @@ export async function isUvAvailable() {
 }
 
 export async function getUvEnvironment() {
-  const env = { ...process.env };
+  const env = { ...processEnv };
 
   const uvPaths = [
     join(homedir(), '.cargo', 'bin'),
@@ -103,11 +69,11 @@ export async function getUvEnvironment() {
   }
 
   if (existingPaths.length > 0) {
-    const pathSeparator = process.platform === 'win32' ? ';' : ':';
+    const pathSeparator = platform === 'win32' ? ';' : ':';
     env.PATH = `${existingPaths.join(pathSeparator)}${pathSeparator}${env.PATH}`;
   }
 
-  if (process.platform === 'win32') {
+  if (platform === 'win32') {
     env.PYTHONIOENCODING = 'utf-8';
     env.PYTHONLEGACYWINDOWSSTDIO = '1';
     env.PYTHONUTF8 = '1';
@@ -119,20 +85,14 @@ export async function getUvEnvironment() {
 
 export async function isNpxAvailable() {
   const env = await getNodeEnvironment();
-  const result = await executeCommand(
-    'npx',
-    ['--version'],
-    env,
-    5000,
-    process.platform === 'win32'
-  );
+  const result = await executeCommand('npx', ['--version'], env);
   return result.success;
 }
 
 export async function getNodeEnvironment() {
-  const env = { ...process.env };
+  const env = { ...processEnv };
 
-  if (process.platform === 'win32') {
+  if (platform === 'win32') {
     return env;
   }
 
@@ -144,7 +104,7 @@ export async function getNodeEnvironment() {
   ];
 
   const systemPaths: string[] = [];
-  if (process.platform === 'darwin') {
+  if (platform === 'darwin') {
     systemPaths.push('/opt/homebrew/bin', '/usr/local/bin');
   }
 
@@ -196,11 +156,36 @@ async function tryVersionManagerPath(
   return false;
 }
 
+export async function isAURInstallation(): Promise<boolean> {
+  if (platform !== 'linux') {
+    return false;
+  }
+
+  const appPath = app.getAppPath();
+
+  const aurPaths = ['/usr/lib/', '/opt/', '/usr/share/'];
+  const isInSystemPath = aurPaths.some((path) => appPath.startsWith(path));
+
+  if (!isInSystemPath) {
+    return false;
+  }
+
+  try {
+    const { stdout } = await execa('pacman', ['-Q', 'gerbil'], {
+      timeout: 1000,
+      reject: false,
+    });
+    return stdout.trim().length > 0;
+  } catch {
+    return false;
+  }
+}
+
 function tryAddPathToEnv(
   env: Record<string, string | undefined>,
   path: string
 ) {
-  const pathSeparator = process.platform === 'win32' ? ';' : ':';
+  const pathSeparator = platform === 'win32' ? ';' : ':';
   if (!env.PATH?.includes(path)) {
     env.PATH = `${path}${pathSeparator}${env.PATH}`;
     return true;

@@ -42,6 +42,12 @@ export const useAppUpdateChecker = () => {
     setIsDownloading(true);
 
     await tryExecute(async () => {
+      const checkResult = await window.electronAPI.updater.checkForUpdates();
+      if (!checkResult) {
+        setIsDownloading(false);
+        return;
+      }
+
       const success = await window.electronAPI.updater.downloadUpdate();
       if (success) {
         setIsUpdateDownloaded(true);

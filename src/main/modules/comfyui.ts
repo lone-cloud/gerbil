@@ -1,6 +1,7 @@
 import { spawn } from 'child_process';
 import { join } from 'path';
 import { access } from 'fs/promises';
+import { platform, on } from 'process';
 import type { ChildProcess } from 'child_process';
 import yauzl from 'yauzl';
 
@@ -80,17 +81,17 @@ async function shouldUpdateComfyUI(workspaceDir: string): Promise<boolean> {
 let comfyUIProcess: ChildProcess | null = null;
 
 function getPythonPath(workspaceDir: string): string {
-  const isWindows = process.platform === 'win32';
+  const isWindows = platform === 'win32';
   const pythonExecutable = isWindows ? 'python.exe' : 'python';
   const scriptsDir = isWindows ? 'Scripts' : 'bin';
   return join(workspaceDir, '.venv', scriptsDir, pythonExecutable);
 }
 
-process.on('SIGINT', () => {
+on('SIGINT', () => {
   void cleanup();
 });
 
-process.on('SIGTERM', () => {
+on('SIGTERM', () => {
   void cleanup();
 });
 
@@ -99,7 +100,7 @@ async function shouldForceCPUMode(): Promise<boolean> {
     const gpus = await getGPUData();
     const hasAMD = gpus.some((gpu) => gpu.deviceName.includes('AMD'));
     const hasNVIDIA = gpus.some((gpu) => gpu.deviceName.includes('NVIDIA'));
-    const isWindows = process.platform === 'win32';
+    const isWindows = platform === 'win32';
 
     return (hasAMD && isWindows) || (!hasAMD && !hasNVIDIA);
   } catch {
@@ -122,7 +123,7 @@ async function getPyTorchInstallArgs(pythonPath: string) {
     const gpus = await getGPUData();
     const hasAMD = gpus.some((gpu) => gpu.deviceName.includes('AMD'));
     const hasNVIDIA = gpus.some((gpu) => gpu.deviceName.includes('NVIDIA'));
-    const isWindows = process.platform === 'win32';
+    const isWindows = platform === 'win32';
 
     if (hasAMD && !isWindows) {
       sendKoboldOutput(

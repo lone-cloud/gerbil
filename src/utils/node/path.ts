@@ -1,5 +1,6 @@
 import { join } from 'path';
 import { homedir } from 'os';
+import { platform } from 'process';
 import { PRODUCT_NAME, CONFIG_FILE_NAME } from '@/constants';
 
 export function getConfigDir() {
@@ -7,7 +8,6 @@ export function getConfigDir() {
 }
 
 function getConfigDirPath() {
-  const platform = process.platform;
   const home = homedir();
 
   switch (platform) {

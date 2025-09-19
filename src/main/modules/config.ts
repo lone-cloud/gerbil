@@ -3,6 +3,7 @@ import { safeExecute } from '@/utils/node/logger';
 import { getConfigDir } from '@/utils/node/path';
 import { homedir } from 'os';
 import { join } from 'path';
+import { platform } from 'process';
 import { nativeTheme } from 'electron';
 import { PRODUCT_NAME } from '@/constants';
 import type { FrontendPreference } from '@/types';
@@ -53,7 +54,6 @@ export async function set(key: string, value: ConfigValue) {
 }
 
 function getDefaultInstallDir() {
-  const platform = process.platform;
   const home = homedir();
 
   switch (platform) {

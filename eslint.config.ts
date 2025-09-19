@@ -152,6 +152,15 @@ const config = [
 
       'no-console': 'error',
 
+      'no-restricted-globals': [
+        'error',
+        {
+          name: 'process',
+          message:
+            'Import specific properties from "process" instead of using the global: import { platform, env } from "process"',
+        },
+      ],
+
       '@typescript-eslint/no-inferrable-types': 'warn',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',

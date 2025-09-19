@@ -1,6 +1,7 @@
 import { spawn, ChildProcess } from 'child_process';
 import { createWriteStream } from 'fs';
 import { join } from 'path';
+import { platform } from 'process';
 import {
   rm,
   readdir,
@@ -63,7 +64,7 @@ async function removeDirectoryWithRetry(
         throw error;
       }
 
-      if (isPermissionError && process.platform === 'win32') {
+      if (isPermissionError && platform === 'win32') {
         sendKoboldOutput(
           `Attempt ${attempt}/${maxRetries} failed (file in use), retrying in ${delayMs}ms...`
         );
@@ -131,7 +132,7 @@ async function downloadFile(asset: GitHubAsset, tempPackedFilePath: string) {
 
   await new Promise<void>((resolve, reject) => {
     writer.on('finish', async () => {
-      if (process.platform !== 'win32') {
+      if (platform !== 'win32') {
         try {
           await chmod(tempPackedFilePath, 0o755);
         } catch (error) {
@@ -153,9 +154,7 @@ async function setupLauncher(
 
   if (!launcherPath || !(await pathExists(launcherPath))) {
     const expectedLauncherName =
-      process.platform === 'win32'
-        ? 'koboldcpp-launcher.exe'
-        : 'koboldcpp-launcher';
+      platform === 'win32' ? 'koboldcpp-launcher.exe' : 'koboldcpp-launcher';
     const newLauncherPath = join(unpackedDirPath, expectedLauncherName);
 
     if (await pathExists(tempPackedFilePath)) {
@@ -297,7 +296,7 @@ async function patchKcppSduiEmbd(unpackedDir: string) {
 }
 
 async function getLauncherPath(unpackedDir: string) {
-  const extensions = process.platform === 'win32' ? ['.exe', ''] : ['', '.exe'];
+  const extensions = platform === 'win32' ? ['.exe', ''] : ['', '.exe'];
 
   for (const ext of extensions) {
     const launcherPath = join(unpackedDir, `koboldcpp-launcher${ext}`);

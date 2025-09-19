@@ -1,4 +1,5 @@
 import { join, dirname } from 'path';
+import { platform } from 'process';
 import { pathExists } from '@/utils/node/fs';
 import { getCurrentBinaryInfo } from './koboldcpp';
 import { detectGPUCapabilities, detectCPU } from './hardware';
@@ -26,7 +27,6 @@ async function detectBackendSupportFromPath(koboldBinaryPath: string) {
     const binaryDir = dirname(koboldBinaryPath);
     const internalDir = join(binaryDir, '_internal');
 
-    const platform = process.platform;
     const libExtension = platform === 'win32' ? '.dll' : '.so';
 
     const hasKoboldCppLib = async (name: string): Promise<boolean> => {

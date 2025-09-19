@@ -1,16 +1,14 @@
 /* eslint-disable no-comments/disallowComments */
 import si from 'systeminformation';
 import { safeExecute } from '@/utils/node/logger';
-import { terminateProcess } from '@/utils/node/process';
 import { getGPUData } from '@/utils/node/gpu';
 import type {
   CPUCapabilities,
   GPUCapabilities,
   BasicGPUInfo,
   GPUMemoryInfo,
-  HardwareDetectionResult,
 } from '@/types/hardware';
-import { spawn } from 'child_process';
+import { execa } from 'execa';
 import { formatDeviceName } from '@/utils/format';
 
 let cpuCapabilitiesCache: CPUCapabilities | null = null;
@@ -132,48 +130,33 @@ export async function detectGPUCapabilities() {
 
 async function detectCUDA() {
   try {
-    const nvidia = spawn(
+    const { stdout } = await execa(
       'nvidia-smi',
       ['--query-gpu=name,memory.total,memory.free', '--format=csv,noheader'],
-      { timeout: 5000 }
+      {
+        timeout: 5000,
+        reject: false,
+      }
     );
 
-    let output = '';
-    nvidia.stdout.on('data', (data) => {
-      output += data.toString();
-    });
+    if (stdout.trim()) {
+      const devices = stdout
+        .trim()
+        .split('\n')
+        .map((line) => {
+          const parts = line.split(',');
+          const rawName = parts[0]?.trim() || 'Unknown NVIDIA GPU';
+          return formatDeviceName(rawName);
+        })
+        .filter(Boolean);
 
-    return new Promise<HardwareDetectionResult>((resolve) => {
-      nvidia.on('close', (code) => {
-        if (code === 0 && output.trim()) {
-          const devices = output
-            .trim()
-            .split('\n')
-            .map((line) => {
-              const parts = line.split(',');
-              const rawName = parts[0]?.trim() || 'Unknown NVIDIA GPU';
-              return formatDeviceName(rawName);
-            })
-            .filter(Boolean);
+      return {
+        supported: devices.length > 0,
+        devices,
+      };
+    }
 
-          resolve({
-            supported: devices.length > 0,
-            devices,
-          });
-        } else {
-          resolve({ supported: false, devices: [] });
-        }
-      });
-
-      nvidia.on('error', () => {
-        resolve({ supported: false, devices: [] });
-      });
-
-      setTimeout(async () => {
-        await terminateProcess(nvidia);
-        resolve({ supported: false, devices: [] });
-      }, 5000);
-    });
+    return { supported: false, devices: [] };
   } catch {
     return { supported: false, devices: [] };
   }
@@ -189,6 +172,7 @@ async function findRocminfoCommand() {
   }
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export async function detectROCm() {
   try {
     const rocminfoCommand = await findRocminfoCommand();
@@ -197,91 +181,74 @@ export async function detectROCm() {
     }
 
     const isWindows = rocminfoCommand.includes('hipInfo');
-    const rocminfo = spawn(rocminfoCommand, [], { timeout: 5000 });
-
-    let output = '';
-    rocminfo.stdout.on('data', (data) => {
-      output += data.toString();
+    const { stdout } = await execa(rocminfoCommand, [], {
+      timeout: 5000,
+      reject: false,
     });
 
-    return new Promise<HardwareDetectionResult>((resolve) => {
-      // eslint-disable-next-line sonarjs/cognitive-complexity
-      rocminfo.on('close', (code) => {
-        if (code === 0 && output.trim()) {
-          const devices: string[] = [];
+    if (stdout.trim()) {
+      const devices: string[] = [];
 
-          if (isWindows) {
-            const lines = output.split('\n');
+      if (isWindows) {
+        const lines = stdout.split('\n');
 
-            for (const line of lines) {
-              const trimmedLine = line.trim();
-              if (trimmedLine.startsWith('Name:')) {
-                const name = trimmedLine.split('Name:')[1]?.trim();
-                if (
-                  name &&
-                  !name.toLowerCase().includes('cpu') &&
-                  !devices.includes(formatDeviceName(name))
-                ) {
-                  devices.push(formatDeviceName(name));
+        for (const line of lines) {
+          const trimmedLine = line.trim();
+          if (trimmedLine.startsWith('Name:')) {
+            const name = trimmedLine.split('Name:')[1]?.trim();
+            if (
+              name &&
+              !name.toLowerCase().includes('cpu') &&
+              !devices.includes(formatDeviceName(name))
+            ) {
+              devices.push(formatDeviceName(name));
+            }
+          }
+        }
+      } else {
+        const lines = stdout.split('\n');
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+
+          if (line.includes('Marketing Name:')) {
+            const name = line.split('Marketing Name:')[1]?.trim();
+            if (name) {
+              let deviceType = '';
+
+              const searchRangeLines = 20;
+              const searchStartIndex = Math.max(0, i - searchRangeLines);
+              const searchEndIndex = Math.min(
+                lines.length,
+                i + searchRangeLines
+              );
+
+              for (
+                let searchIndex = searchStartIndex;
+                searchIndex < searchEndIndex;
+                searchIndex++
+              ) {
+                if (lines[searchIndex].includes('Device Type:')) {
+                  deviceType =
+                    lines[searchIndex].split('Device Type:')[1]?.trim() || '';
+                  break;
                 }
               }
-            }
-          } else {
-            const lines = output.split('\n');
-            for (let i = 0; i < lines.length; i++) {
-              const line = lines[i];
 
-              if (line.includes('Marketing Name:')) {
-                const name = line.split('Marketing Name:')[1]?.trim();
-                if (name) {
-                  let deviceType = '';
-
-                  const searchRangeLines = 20;
-                  const searchStartIndex = Math.max(0, i - searchRangeLines);
-                  const searchEndIndex = Math.min(
-                    lines.length,
-                    i + searchRangeLines
-                  );
-
-                  for (
-                    let searchIndex = searchStartIndex;
-                    searchIndex < searchEndIndex;
-                    searchIndex++
-                  ) {
-                    if (lines[searchIndex].includes('Device Type:')) {
-                      deviceType =
-                        lines[searchIndex].split('Device Type:')[1]?.trim() ||
-                        '';
-                      break;
-                    }
-                  }
-
-                  if (deviceType !== 'CPU') {
-                    devices.push(formatDeviceName(name));
-                  }
-                }
+              if (deviceType !== 'CPU') {
+                devices.push(formatDeviceName(name));
               }
             }
           }
-
-          resolve({
-            supported: devices.length > 0,
-            devices,
-          });
-        } else {
-          resolve({ supported: false, devices: [] });
         }
-      });
+      }
 
-      rocminfo.on('error', () => {
-        resolve({ supported: false, devices: [] });
-      });
+      return {
+        supported: devices.length > 0,
+        devices,
+      };
+    }
 
-      setTimeout(async () => {
-        await terminateProcess(rocminfo);
-        resolve({ supported: false, devices: [] });
-      }, 5000);
-    });
+    return { supported: false, devices: [] };
   } catch {
     return { supported: false, devices: [] };
   }
@@ -289,49 +256,34 @@ export async function detectROCm() {
 
 async function detectVulkan() {
   try {
-    const vulkaninfo = spawn('vulkaninfo', ['--summary'], { timeout: 5000 });
-
-    let output = '';
-    vulkaninfo.stdout.on('data', (data) => {
-      output += data.toString();
+    const { stdout } = await execa('vulkaninfo', ['--summary'], {
+      timeout: 5000,
+      reject: false,
     });
 
-    return new Promise<HardwareDetectionResult>((resolve) => {
-      vulkaninfo.on('close', (code) => {
-        if (code === 0 && output.trim()) {
-          const devices: string[] = [];
-          const lines = output.split('\n');
+    if (stdout.trim()) {
+      const devices: string[] = [];
+      const lines = stdout.split('\n');
 
-          for (const line of lines) {
-            if (line.includes('deviceName') && line.includes('=')) {
-              const parts = line.split('=');
-              if (parts.length >= 2) {
-                const name = parts[1]?.trim();
-                if (name) {
-                  devices.push(formatDeviceName(name));
-                }
-              }
+      for (const line of lines) {
+        if (line.includes('deviceName') && line.includes('=')) {
+          const parts = line.split('=');
+          if (parts.length >= 2) {
+            const name = parts[1]?.trim();
+            if (name) {
+              devices.push(formatDeviceName(name));
             }
           }
-
-          resolve({
-            supported: devices.length > 0,
-            devices,
-          });
-        } else {
-          resolve({ supported: false, devices: [] });
         }
-      });
+      }
 
-      vulkaninfo.on('error', () => {
-        resolve({ supported: false, devices: [] });
-      });
+      return {
+        supported: devices.length > 0,
+        devices,
+      };
+    }
 
-      setTimeout(async () => {
-        await terminateProcess(vulkaninfo);
-        resolve({ supported: false, devices: [] });
-      }, 5000);
-    });
+    return { supported: false, devices: [] };
   } catch {
     return { supported: false, devices: [] };
   }
@@ -391,35 +343,20 @@ function findDeviceNameInClInfo(lines: string[], startIndex: number) {
 
 async function detectCLBlast() {
   try {
-    const clinfo = spawn('clinfo', [], { timeout: 3000 });
-
-    let output = '';
-    clinfo.stdout.on('data', (data) => {
-      output += data.toString();
+    const { stdout } = await execa('clinfo', [], {
+      timeout: 3000,
+      reject: false,
     });
 
-    return new Promise<HardwareDetectionResult>((resolve) => {
-      clinfo.on('close', (code) => {
-        if (code === 0 && output.trim()) {
-          const devices = parseClInfoOutput(output);
-          resolve({
-            supported: devices.length > 0,
-            devices,
-          });
-        } else {
-          resolve({ supported: false, devices: [] });
-        }
-      });
+    if (stdout.trim()) {
+      const devices = parseClInfoOutput(stdout);
+      return {
+        supported: devices.length > 0,
+        devices,
+      };
+    }
 
-      clinfo.on('error', () => {
-        resolve({ supported: false, devices: [] });
-      });
-
-      setTimeout(async () => {
-        await terminateProcess(clinfo);
-        resolve({ supported: false, devices: [] });
-      }, 3000);
-    });
+    return { supported: false, devices: [] };
   } catch {
     return { supported: false, devices: [] };
   }

@@ -1,4 +1,5 @@
 import { spawn } from 'child_process';
+import { platform } from 'process';
 import type { ChildProcess } from 'child_process';
 
 export interface ProcessTerminationOptions {
@@ -43,7 +44,7 @@ export async function terminateProcess(
   }
 
   try {
-    if (process.platform === 'win32') {
+    if (platform === 'win32') {
       await killWindowsProcessTree(childProcess.pid, logError);
 
       await new Promise<void>((resolve) => {

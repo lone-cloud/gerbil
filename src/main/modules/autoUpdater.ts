@@ -2,6 +2,7 @@ import { autoUpdater } from 'electron-updater';
 import { app } from 'electron';
 import { logError } from '@/main/modules/logging';
 import { safeExecute } from '@/utils/node/logger';
+import { isDevelopment } from '@/utils/node/environment';
 
 export interface UpdateInfo {
   version: string;
@@ -34,17 +35,33 @@ function setupAutoUpdater() {
 
 setupAutoUpdater();
 
-export const checkForUpdates = async () =>
-  (await safeExecute(
-    () => autoUpdater.checkForUpdates(),
-    'Failed to check for updates'
-  )) !== null;
+export const checkForUpdates = async () => {
+  if (isDevelopment) {
+    logError('Auto-updater: Cannot check for updates in development mode');
+    return false;
+  }
 
-export const downloadUpdate = async () =>
-  (await safeExecute(
-    () => autoUpdater.downloadUpdate(),
-    'Failed to download update'
-  )) !== null;
+  return (
+    (await safeExecute(
+      () => autoUpdater.checkForUpdates(),
+      'Failed to check for updates'
+    )) !== null
+  );
+};
+
+export const downloadUpdate = async () => {
+  if (isDevelopment) {
+    logError('Auto-updater: Cannot download updates in development mode');
+    return false;
+  }
+
+  return (
+    (await safeExecute(
+      () => autoUpdater.downloadUpdate(),
+      'Failed to download update'
+    )) !== null
+  );
+};
 
 export function quitAndInstall() {
   if (updateDownloaded) {

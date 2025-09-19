@@ -17,8 +17,7 @@ export const initializeLogger = () => {
     format: format.combine(
       format.timestamp(),
       format.printf(({ timestamp, level, message, error }) => {
-        const processInfo = `[${process.type || 'unknown'}:${process.pid}]`;
-        let logEntry = `${timestamp} ${processInfo} [${level.toUpperCase()}] ${message}`;
+        let logEntry = `${timestamp} [MAIN] [${level.toUpperCase()}] ${message}`;
 
         if (error && error instanceof Error) {
           logEntry += `\n  Error: ${error.message}`;
@@ -42,7 +41,6 @@ export const initializeLogger = () => {
     ],
   });
 
-  setupGlobalErrorHandlers();
   isInitialized = true;
 };
 
@@ -70,18 +68,6 @@ export const flushLogs = () => {
   ) {
     (fileTransport as { flush: () => void }).flush();
   }
-};
-
-const setupGlobalErrorHandlers = () => {
-  process.on('uncaughtException', (error) => {
-    logError('Uncaught Exception:', error);
-  });
-
-  process.on('unhandledRejection', (reason, _promise) => {
-    const message = `Unhandled Promise Rejection`;
-    const error = reason instanceof Error ? reason : new Error(String(reason));
-    logError(message, error);
-  });
 };
 
 export const getLogFilePath = () =>

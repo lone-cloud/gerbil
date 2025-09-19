@@ -2,6 +2,7 @@ import { spawn } from 'child_process';
 import { createServer, request, type Server } from 'http';
 import { homedir } from 'os';
 import { join } from 'path';
+import { platform, on } from 'process';
 import type { ChildProcess } from 'child_process';
 
 import { logError } from './logging';
@@ -26,16 +27,15 @@ const SILLYTAVERN_BASE_ARGS = [
   '--disableCsrf',
 ];
 
-process.on('SIGINT', () => {
+on('SIGINT', () => {
   void cleanup();
 });
 
-process.on('SIGTERM', () => {
+on('SIGTERM', () => {
   void cleanup();
 });
 
 function getFallbackDataRoot() {
-  const platform = process.platform;
   const home = homedir();
 
   switch (platform) {
@@ -76,7 +76,7 @@ async function createNpxProcess(args: string[]) {
     stdio: ['pipe', 'pipe', 'pipe'],
     detached: false,
     env,
-    shell: process.platform === 'win32',
+    shell: platform === 'win32',
   });
 }
 
