@@ -167,11 +167,13 @@ export function setupIPCHandlers() {
   ipcMain.handle('app:getVersion', () => getAppVersion());
 
   ipcMain.handle('app:getVersionInfo', async () => {
-    const [appVersion, nodeJsSystemVersion, uvVersion] = await Promise.all([
-      getAppVersion(),
-      getSystemNodeVersion(),
-      getUvVersion(),
-    ]);
+    const [appVersion, nodeJsSystemVersion, uvVersion, isAUR] =
+      await Promise.all([
+        getAppVersion(),
+        getSystemNodeVersion(),
+        getUvVersion(),
+        isAURInstallation(),
+      ]);
 
     return {
       appVersion,
@@ -184,6 +186,7 @@ export function setupIPCHandlers() {
       arch,
       nodeJsSystemVersion,
       uvVersion,
+      isAUR,
     };
   });
 

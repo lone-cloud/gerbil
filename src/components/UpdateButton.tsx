@@ -20,7 +20,7 @@ export const UpdateButton = () => {
   if (!hasUpdate) return null;
 
   let color: 'green' | 'blue' | 'orange' = 'orange';
-  let label = 'New release available - Click to view changelog';
+  let label = 'Update available';
   let onClick: (() => void) | undefined;
   let icon = <CircleFadingArrowUp size="1.25rem" />;
 
@@ -43,8 +43,8 @@ export const UpdateButton = () => {
   } else {
     color = 'orange';
     label = canAutoUpdate
-      ? 'New release available - Click to view changelog, right-click to download'
-      : 'New release available - Click to view changelog';
+      ? 'Update available - Click to view, right-click to download'
+      : 'Update available - Click to view';
     onClick = () => {
       if (releaseUrl) {
         window.electronAPI.app.openExternal(releaseUrl);

@@ -2,7 +2,6 @@ import { access, readdir } from 'fs/promises';
 import { homedir } from 'os';
 import { join } from 'path';
 import { platform, env as processEnv } from 'process';
-import { app } from 'electron';
 import { execa } from 'execa';
 
 async function executeCommand(
@@ -156,18 +155,15 @@ async function tryVersionManagerPath(
   return false;
 }
 
-export async function isAURInstallation(): Promise<boolean> {
+let aurInstallationCache: boolean | null = null;
+
+export async function isAURInstallation() {
   if (platform !== 'linux') {
     return false;
   }
 
-  const appPath = app.getAppPath();
-
-  const aurPaths = ['/usr/lib/', '/opt/', '/usr/share/'];
-  const isInSystemPath = aurPaths.some((path) => appPath.startsWith(path));
-
-  if (!isInSystemPath) {
-    return false;
+  if (aurInstallationCache !== null) {
+    return aurInstallationCache;
   }
 
   try {
@@ -175,8 +171,10 @@ export async function isAURInstallation(): Promise<boolean> {
       timeout: 1000,
       reject: false,
     });
-    return stdout.trim().length > 0;
+    aurInstallationCache = stdout.trim().length > 0;
+    return aurInstallationCache;
   } catch {
+    aurInstallationCache = false;
     return false;
   }
 }
