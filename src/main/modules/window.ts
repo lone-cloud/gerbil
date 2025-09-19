@@ -53,6 +53,14 @@ export function createMainWindow() {
     mainWindow = null;
   });
 
+  mainWindow.on('maximize', () => {
+    sendToRenderer('window-maximized');
+  });
+
+  mainWindow.on('unmaximize', () => {
+    sendToRenderer('window-unmaximized');
+  });
+
   if (!isDevelopment) {
     Menu.setApplicationMenu(null);
   }

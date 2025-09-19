@@ -8,7 +8,7 @@ import {
   Tooltip,
 } from '@mantine/core';
 import { Minus, Square, X, Copy, Settings } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useInterfaceOptions } from '@/hooks/useInterfaceSelection';
 import { useLogoClickSounds } from '@/hooks/useLogoClickSounds';
 import { SettingsModal } from '@/components/settings/SettingsModal';
@@ -37,6 +37,19 @@ export const TitleBar = ({
   const [isMaximized, setIsMaximized] = useState(false);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+
+  useEffect(() => {
+    const handleMaximize = () => setIsMaximized(true);
+    const handleUnmaximize = () => setIsMaximized(false);
+
+    window.electronAPI.on('window-maximized', handleMaximize);
+    window.electronAPI.on('window-unmaximized', handleUnmaximize);
+
+    return () => {
+      window.electronAPI.removeListener('window-maximized', handleMaximize);
+      window.electronAPI.removeListener('window-unmaximized', handleUnmaximize);
+    };
+  }, []);
 
   return (
     <AppShell.Header
@@ -166,10 +179,7 @@ export const TitleBar = ({
             },
             {
               icon: isMaximized ? <Copy size="1rem" /> : <Square size="1rem" />,
-              onClick: () => {
-                window.electronAPI.app.maximizeWindow();
-                setIsMaximized(!isMaximized);
-              },
+              onClick: () => window.electronAPI.app.maximizeWindow(),
               color: undefined,
               label: isMaximized ? 'Restore window' : 'Maximize window',
             },

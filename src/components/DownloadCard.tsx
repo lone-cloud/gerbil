@@ -77,7 +77,7 @@ export const DownloadCard = ({
       buttons.push(
         <Button
           key="makeCurrent"
-          variant="light"
+          variant="filled"
           size="xs"
           onClick={onMakeCurrent}
         >
