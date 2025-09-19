@@ -5,7 +5,7 @@ import {
   type TerminalTabRef,
 } from '@/components/screens/Interface/TerminalTab';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
-import { useFrontendPreferenceStore } from '@/stores/frontendPreference';
+import { usePreferencesStore } from '@/stores/preferences';
 import { getDefaultInterfaceTab } from '@/utils/interface';
 import type { InterfaceTab } from '@/types';
 
@@ -23,7 +23,7 @@ export const InterfaceScreen = ({
   const terminalTabRef = useRef<TerminalTabRef>(null);
 
   const { isTextMode, isImageGenerationMode } = useLaunchConfigStore();
-  const { frontendPreference } = useFrontendPreferenceStore();
+  const { frontendPreference } = usePreferencesStore();
 
   const defaultInterfaceTab = useMemo(
     () =>

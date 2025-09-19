@@ -207,7 +207,7 @@ export const AdvancedTab = () => {
       </div>
 
       <div>
-        <Group mb="md" justify="space-between">
+        <Group mb="xs" justify="space-between">
           <Group>
             <Text size="sm" fw={500}>
               Additional arguments

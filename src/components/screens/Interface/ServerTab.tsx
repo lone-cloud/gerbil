@@ -1,7 +1,7 @@
 import { Box, Text, Stack } from '@mantine/core';
 import { useMemo } from 'react';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
-import { useFrontendPreferenceStore } from '@/stores/frontendPreference';
+import { usePreferencesStore } from '@/stores/preferences';
 import { getServerInterfaceInfo } from '@/utils/interface';
 import { TITLEBAR_HEIGHT, STATUSBAR_HEIGHT } from '@/constants';
 
@@ -17,7 +17,7 @@ export const ServerTab = ({
   activeTab,
 }: ServerTabProps) => {
   const { isImageGenerationMode } = useLaunchConfigStore();
-  const { frontendPreference } = useFrontendPreferenceStore();
+  const { frontendPreference } = usePreferencesStore();
 
   const effectiveImageMode =
     activeTab === 'chat-image'

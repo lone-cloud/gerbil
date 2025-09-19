@@ -12,7 +12,7 @@ import {
 } from '@mantine/core';
 import { Folder, FolderOpen, Monitor } from 'lucide-react';
 import type { FrontendPreference } from '@/types';
-import { useFrontendPreferenceStore } from '@/stores/frontendPreference';
+import { usePreferencesStore } from '@/stores/preferences';
 import { FRONTENDS } from '@/constants';
 
 interface FrontendRequirement {
@@ -37,8 +37,7 @@ export const GeneralTab = ({
   isOnInterfaceScreen = false,
 }: GeneralTabProps) => {
   const [installDir, setInstallDir] = useState('');
-  const { frontendPreference, setFrontendPreference, loadFrontendPreference } =
-    useFrontendPreferenceStore();
+  const { frontendPreference, setFrontendPreference } = usePreferencesStore();
   const [frontendRequirements, setFrontendRequirements] = useState<
     Map<string, boolean>
   >(new Map());
@@ -120,7 +119,6 @@ export const GeneralTab = ({
     const initialize = async () => {
       await Promise.all([
         loadCurrentInstallDir(),
-        loadFrontendPreference(),
         checkAllFrontendRequirements(),
       ]);
     };
@@ -132,7 +130,7 @@ export const GeneralTab = ({
 
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [checkAllFrontendRequirements, loadFrontendPreference]);
+  }, [checkAllFrontendRequirements]);
 
   const getSelectedFrontendConfig = () =>
     frontendConfigs.find((config) => config.value === frontendPreference);

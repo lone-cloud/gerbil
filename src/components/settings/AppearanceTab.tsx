@@ -10,7 +10,7 @@ import {
 } from '@mantine/core';
 import { Sun, Moon, Monitor } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useAppColorScheme } from '@/hooks/useAppColorScheme';
+import { usePreferencesStore } from '@/stores/preferences';
 import {
   zoomLevelToPercentage,
   percentageToZoomLevel,
@@ -19,11 +19,13 @@ import {
 import { ZOOM } from '@/constants';
 
 export const AppearanceTab = () => {
-  const appColorScheme = useAppColorScheme();
-  const isDark = appColorScheme === 'dark';
+  const {
+    rawColorScheme,
+    resolvedColorScheme,
+    setColorScheme: setStoreColorScheme,
+  } = usePreferencesStore();
+  const isDark = resolvedColorScheme === 'dark';
 
-  const [rawColorScheme, setRawColorScheme] =
-    useState<MantineColorScheme>('auto');
   const [zoomLevel, setZoomLevel] = useState<number>(ZOOM.DEFAULT_LEVEL);
   const [zoomPercentage, setZoomPercentage] = useState(
     ZOOM.DEFAULT_PERCENTAGE.toString()
@@ -31,18 +33,11 @@ export const AppearanceTab = () => {
 
   useEffect(() => {
     const loadSettings = async () => {
-      const [currentZoom, savedColorScheme] = await Promise.all([
-        window.electronAPI.app.getZoomLevel(),
-        window.electronAPI.app.getColorScheme(),
-      ]);
+      const currentZoom = await window.electronAPI.app.getZoomLevel();
 
       if (typeof currentZoom === 'number') {
         setZoomLevel(currentZoom);
         setZoomPercentage(zoomLevelToPercentage(currentZoom).toString());
-      }
-
-      if (savedColorScheme) {
-        setRawColorScheme(savedColorScheme as MantineColorScheme);
       }
     };
 
@@ -51,9 +46,7 @@ export const AppearanceTab = () => {
 
   const handleColorSchemeChange = (value: string) => {
     const newColorScheme = value as MantineColorScheme;
-    setRawColorScheme(newColorScheme);
-
-    void window.electronAPI.app.setColorScheme(newColorScheme);
+    void setStoreColorScheme(newColorScheme);
   };
 
   const handleZoomChange = (newZoomLevel: number) => {

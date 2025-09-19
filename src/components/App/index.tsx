@@ -15,7 +15,7 @@ import { ErrorBoundary } from '@/components/App/ErrorBoundary';
 import { AppRouter } from '@/components/App/Router';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
-import { useAppColorScheme } from '@/hooks/useAppColorScheme';
+import { usePreferencesStore } from '@/stores/preferences';
 import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
 import type { DownloadItem } from '@/types/electron';
 import type { InterfaceTab, Screen } from '@/types';
@@ -28,7 +28,7 @@ export const App = () => {
   const [ejectConfirmModalOpen, setEjectConfirmModalOpen] = useState(false);
   const isInterfaceScreen = currentScreen === 'interface';
 
-  const appColorScheme = useAppColorScheme();
+  const { resolvedColorScheme: appColorScheme } = usePreferencesStore();
   const { setColorScheme } = useMantineColorScheme();
 
   useEffect(() => {

@@ -10,12 +10,11 @@ import {
 import { Minus, Square, X, Copy, Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
-import { useFrontendPreferenceStore } from '@/stores/frontendPreference';
+import { usePreferencesStore } from '@/stores/preferences';
 import { getAvailableInterfaceOptions } from '@/utils/interface';
 import { useLogoClickSounds } from '@/hooks/useLogoClickSounds';
 import { SettingsModal } from '@/components/settings/SettingsModal';
 import { UpdateButton } from '@/components/App/UpdateButton';
-import { useAppColorScheme } from '@/hooks/useAppColorScheme';
 import icon from '/icon.png';
 import { PRODUCT_NAME, TITLEBAR_HEIGHT } from '@/constants';
 import type { InterfaceTab, Screen } from '@/types';
@@ -33,14 +32,14 @@ export const TitleBar = ({
   onEject,
   onTabChange,
 }: TitleBarProps) => {
-  const colorScheme = useAppColorScheme();
+  const { resolvedColorScheme: colorScheme, frontendPreference } =
+    usePreferencesStore();
   const { handleLogoClick, getLogoStyles } = useLogoClickSounds();
   const [isMaximized, setIsMaximized] = useState(false);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
 
   const { isTextMode, isImageGenerationMode } = useLaunchConfigStore();
-  const { frontendPreference } = useFrontendPreferenceStore();
   const interfaceOptions = getAvailableInterfaceOptions({
     frontendPreference,
     isTextMode,
@@ -79,6 +78,7 @@ export const TitleBar = ({
 
     return cleanup;
   }, []);
+
   return (
     <AppShell.Header
       style={{ display: 'flex', flexDirection: 'column', border: 'none' }}
@@ -171,7 +171,10 @@ export const TitleBar = ({
             style={{
               width: '0.0625rem',
               height: '1.25rem',
-              backgroundColor: 'var(--mantine-color-default-border)',
+              backgroundColor:
+                colorScheme === 'dark'
+                  ? 'var(--mantine-color-dark-3)'
+                  : 'var(--mantine-color-default-border)',
               margin: '0 0.25rem',
             }}
           />

@@ -12,7 +12,7 @@ import {
 import { Download } from 'lucide-react';
 import { MouseEvent } from 'react';
 import { pretifyBinName, isWindowsROCmBuild } from '@/utils/assets';
-import { useAppColorScheme } from '@/hooks/useAppColorScheme';
+import { usePreferencesStore } from '@/stores/preferences';
 
 interface DownloadCardProps {
   name: string;
@@ -47,7 +47,7 @@ export const DownloadCard = ({
   onMakeCurrent,
   onUpdate,
 }: DownloadCardProps) => {
-  const colorScheme = useAppColorScheme();
+  const { resolvedColorScheme: colorScheme } = usePreferencesStore();
   const renderActionButtons = () => {
     const buttons = [];
 
