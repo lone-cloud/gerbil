@@ -203,6 +203,7 @@ export interface UpdaterAPI {
   quitAndInstall: () => void;
   isUpdateDownloaded: () => Promise<boolean>;
   canAutoUpdate: () => Promise<boolean>;
+  isAURInstallation: () => Promise<boolean>;
 }
 
 declare global {

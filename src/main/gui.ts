@@ -1,4 +1,5 @@
 import { app } from 'electron';
+import { platform } from 'process';
 
 import {
   createMainWindow,
@@ -28,7 +29,7 @@ export async function initializeApp() {
   createMainWindow();
 
   app.on('window-all-closed', () => {
-    if (process.platform === 'darwin') {
+    if (platform === 'darwin') {
       return;
     }
 

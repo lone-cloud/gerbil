@@ -1,4 +1,12 @@
-import { Group, ActionIcon, Box, Image, Select, AppShell } from '@mantine/core';
+import {
+  Group,
+  ActionIcon,
+  Box,
+  Image,
+  Select,
+  AppShell,
+  Tooltip,
+} from '@mantine/core';
 import { Minus, Square, X, Copy, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { useInterfaceOptions } from '@/hooks/useInterfaceSelection';
@@ -138,20 +146,22 @@ export const TitleBar = ({
         <Group gap="0" style={{ WebkitAppRegion: 'no-drag' }}>
           <UpdateButton />
 
-          <ActionIcon
-            variant="subtle"
-            size={TITLEBAR_HEIGHT}
-            onClick={() => setSettingsModalOpen(true)}
-            aria-label="Open settings"
-            tabIndex={-1}
-            style={{
-              borderRadius: 0,
-              margin: '2px 1px 1px',
-              outline: 'none',
-            }}
-          >
-            <Settings size="1.25rem" />
-          </ActionIcon>
+          <Tooltip label="Settings" position="bottom">
+            <ActionIcon
+              variant="subtle"
+              size={TITLEBAR_HEIGHT}
+              onClick={() => setSettingsModalOpen(true)}
+              aria-label="Open settings"
+              tabIndex={-1}
+              style={{
+                borderRadius: 0,
+                margin: '2px 1px 1px',
+                outline: 'none',
+              }}
+            >
+              <Settings size="1.25rem" />
+            </ActionIcon>
+          </Tooltip>
 
           <Box
             style={{

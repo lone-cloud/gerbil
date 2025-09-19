@@ -11,11 +11,6 @@ export default defineConfig({
         '@': resolve(__dirname, './src'),
       },
     },
-    define: {
-      'process.env.VITE_DEV_SERVER_URL': JSON.stringify(
-        process.env.VITE_DEV_SERVER_URL
-      ),
-    },
   },
   preload: {
     plugins: [externalizeDepsPlugin()],

@@ -1,6 +1,7 @@
 import { spawn } from 'child_process';
 import type { ChildProcess } from 'child_process';
 import { join } from 'path';
+import { on } from 'process';
 
 import { logError } from './logging';
 import { safeTryExecute, tryExecute } from '@/utils/node/logger';
@@ -16,11 +17,11 @@ let openWebUIProcess: ChildProcess | null = null;
 
 const OPENWEBUI_BASE_ARGS = ['--python', '3.11', 'open-webui@latest', 'serve'];
 
-process.on('SIGINT', () => {
+on('SIGINT', () => {
   void cleanup();
 });
 
-process.on('SIGTERM', () => {
+on('SIGTERM', () => {
   void cleanup();
 });
 

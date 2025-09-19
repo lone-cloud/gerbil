@@ -141,6 +141,7 @@ const updaterAPI: UpdaterAPI = {
   quitAndInstall: () => ipcRenderer.invoke('app:quitAndInstall'),
   isUpdateDownloaded: () => ipcRenderer.invoke('app:isUpdateDownloaded'),
   canAutoUpdate: () => ipcRenderer.invoke('app:canAutoUpdate'),
+  isAURInstallation: () => ipcRenderer.invoke('app:isAURInstallation'),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', {

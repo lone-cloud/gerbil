@@ -1,6 +1,7 @@
 import { ipcMain, shell, app } from 'electron';
 import { join } from 'path';
 import * as os from 'os';
+import { platform, versions, arch } from 'process';
 import type { MantineColorScheme } from '@mantine/core';
 import {
   launchKoboldCpp,
@@ -40,6 +41,7 @@ import {
   isNpxAvailable,
   getUvVersion,
   getSystemNodeVersion,
+  isAURInstallation,
 } from '@/main/modules/dependencies';
 import { parseKoboldConfig } from '@/utils/node/kobold';
 import { getMainWindow } from '@/main/modules/window';
@@ -137,7 +139,7 @@ export function setupIPCHandlers() {
     getAvailableBackends(includeDisabled)
   );
 
-  ipcMain.handle('kobold:getPlatform', () => process.platform);
+  ipcMain.handle('kobold:getPlatform', () => platform);
 
   ipcMain.handle('kobold:launchKoboldCpp', (_, args) =>
     launchKoboldCppWithCustomFrontends(args)
@@ -173,13 +175,13 @@ export function setupIPCHandlers() {
 
     return {
       appVersion,
-      electronVersion: process.versions.electron,
-      nodeVersion: process.versions.node,
-      chromeVersion: process.versions.chrome,
-      v8Version: process.versions.v8,
+      electronVersion: versions.electron,
+      nodeVersion: versions.node,
+      chromeVersion: versions.chrome,
+      v8Version: versions.v8,
       osVersion: os.release(),
-      platform: process.platform,
-      arch: process.arch,
+      platform,
+      arch,
       nodeJsSystemVersion,
       uvVersion,
     };
@@ -285,8 +287,17 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('app:isUpdateDownloaded', () => isUpdateDownloaded());
 
-  ipcMain.handle(
-    'app:canAutoUpdate',
-    () => process.platform !== 'linux' || Boolean(process.env.APPIMAGE)
-  );
+  ipcMain.handle('app:canAutoUpdate', async () => {
+    if (!app.isPackaged) return false;
+
+    if (platform === 'linux' && (await isAURInstallation())) {
+      return false;
+    }
+
+    return (
+      platform === 'win32' || platform === 'darwin' || platform === 'linux'
+    );
+  });
+
+  ipcMain.handle('app:isAURInstallation', () => isAURInstallation());
 }
