@@ -3,7 +3,7 @@ import {
   createSafeExecute,
   createTryExecute,
   createSafeTryExecute,
-} from '@/utils/shared/logger-core';
+} from '@/utils/logger-core';
 
 export const safeExecute = createSafeExecute(logError);
 export const tryExecute = createTryExecute(logError);

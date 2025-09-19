@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { tryExecute, safeExecute } from '@/utils/logger';
+import { tryExecute } from '@/utils/logger';
 import {
   getDisplayNameFromPath,
   compareVersions,
@@ -27,13 +27,9 @@ export const useUpdateChecker = () => {
 
   useEffect(() => {
     const loadDismissedUpdates = async () => {
-      const dismissed = await safeExecute(
-        async () =>
-          (await window.electronAPI.config.get('dismissedUpdates')) as
-            | string[]
-            | undefined,
-        'Failed to load dismissed updates'
-      );
+      const dismissed = (await window.electronAPI.config.get(
+        'dismissedUpdates'
+      )) as string[] | undefined;
 
       if (dismissed) {
         setDismissedUpdates(new Set(dismissed));

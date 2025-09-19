@@ -1,21 +1,29 @@
 import { app } from 'electron';
 import { join } from 'path';
-import { createLogger, format, type Logger } from 'winston';
+import { mkdir } from 'fs/promises';
+import { createLogger, format } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import { isDevelopment } from '@/utils/node/environment';
 
-let logger: Logger | null = null;
-let isInitialized = false;
+const ensureLogsDirectory = async (logsDir: string) => {
+  try {
+    await mkdir(logsDir, { recursive: true });
+  } catch {
+    return;
+  }
+};
 
-export const initializeLogger = () => {
-  if (isInitialized) return;
-
+const createAppLogger = () => {
   const logsDir = join(app.getPath('userData'), 'logs');
 
-  logger = createLogger({
+  void ensureLogsDirectory(logsDir);
+
+  return createLogger({
     level: isDevelopment ? 'debug' : 'info',
     format: format.combine(
-      format.timestamp(),
+      format.timestamp({
+        format: 'YYYY-MM-DD HH:mm:ss.SSS',
+      }),
       format.printf(({ timestamp, level, message, error }) => {
         let logEntry = `${timestamp} [MAIN] [${level.toUpperCase()}] ${message}`;
 
@@ -40,25 +48,17 @@ export const initializeLogger = () => {
       }),
     ],
   });
-
-  isInitialized = true;
 };
 
-const ensureInitialized = () => {
-  if (!isInitialized) {
-    initializeLogger();
-  }
-};
+const logger = createAppLogger();
 
 export const logError = (message: string, error?: Error) => {
-  ensureInitialized();
-  logger!.error(message, { error });
+  logger.error(message, { error });
   flushLogs();
 };
 
 export const flushLogs = () => {
-  ensureInitialized();
-  const fileTransport = logger!.transports.find(
+  const fileTransport = logger.transports.find(
     (t) => t.constructor.name === 'DailyRotateFile'
   );
   if (

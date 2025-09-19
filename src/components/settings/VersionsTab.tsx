@@ -16,7 +16,6 @@ import {
   stripAssetExtensions,
   compareVersions,
 } from '@/utils/version';
-import { safeExecute } from '@/utils/logger';
 import { formatDownloadSize } from '@/utils/format';
 
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
@@ -60,24 +59,19 @@ export const VersionsTab = () => {
   const loadInstalledVersions = useCallback(async () => {
     setLoadingInstalled(true);
 
-    await safeExecute(async () => {
-      const [versions, currentVersion] = await Promise.all([
-        window.electronAPI.kobold.getInstalledVersions(),
-        window.electronAPI.kobold.getCurrentVersion(),
-      ]);
+    const [versions, currentVersion] = await Promise.all([
+      window.electronAPI.kobold.getInstalledVersions(),
+      window.electronAPI.kobold.getCurrentVersion(),
+    ]);
 
-      setInstalledVersions(versions);
-      setCurrentVersion(currentVersion);
-    }, 'Failed to load installed versions:');
+    setInstalledVersions(versions);
+    setCurrentVersion(currentVersion);
 
     setLoadingInstalled(false);
   }, []);
 
   const loadLatestRelease = useCallback(async () => {
-    const release = await safeExecute(
-      () => getLatestReleaseWithDownloadStatus(),
-      'Failed to load latest release:'
-    );
+    const release = await getLatestReleaseWithDownloadStatus();
     if (release) {
       setLatestRelease(release);
     }
@@ -174,55 +168,45 @@ export const VersionsTab = () => {
   }, [downloading]);
 
   const handleDownload = async (version: VersionInfo) => {
-    await safeExecute(async () => {
-      const download = availableDownloads.find((d) => d.name === version.name);
-      if (!download) {
-        throw new Error('Download not found');
-      }
+    const download = availableDownloads.find((d) => d.name === version.name);
+    if (!download) return;
 
-      const success = await sharedHandleDownload({
-        item: download,
-        isUpdate: false,
-        wasCurrentBinary: false,
-      });
+    const success = await sharedHandleDownload({
+      item: download,
+      isUpdate: false,
+      wasCurrentBinary: false,
+    });
 
-      if (success) {
-        await loadInstalledVersions();
-      }
-    }, 'Failed to download:');
+    if (success) {
+      await loadInstalledVersions();
+    }
   };
 
   const handleUpdate = async (version: VersionInfo) => {
-    await safeExecute(async () => {
-      const download = availableDownloads.find((d) => d.name === version.name);
-      if (!download) {
-        throw new Error('Download not found');
-      }
+    const download = availableDownloads.find((d) => d.name === version.name);
+    if (!download) return;
 
-      const success = await sharedHandleDownload({
-        item: download,
-        isUpdate: true,
-        wasCurrentBinary: version.isCurrent,
-      });
+    const success = await sharedHandleDownload({
+      item: download,
+      isUpdate: true,
+      wasCurrentBinary: version.isCurrent,
+    });
 
-      if (success) {
-        await loadInstalledVersions();
-      }
-    }, 'Failed to update:');
+    if (success) {
+      await loadInstalledVersions();
+    }
   };
 
   const makeCurrent = async (version: VersionInfo) => {
     if (!version.installedPath) return;
 
-    await safeExecute(async () => {
-      const success = await window.electronAPI.kobold.setCurrentVersion(
-        version.installedPath!
-      );
+    const success = await window.electronAPI.kobold.setCurrentVersion(
+      version.installedPath
+    );
 
-      if (success) {
-        await loadInstalledVersions();
-      }
-    }, 'Failed to set current version:');
+    if (success) {
+      await loadInstalledVersions();
+    }
   };
 
   if (loadingInstalled || loadingPlatform || loadingRemote) {

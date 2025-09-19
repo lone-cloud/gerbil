@@ -2,7 +2,6 @@ import { ReactNode } from 'react';
 import { Center, Stack, Text, Button, Alert, rem } from '@mantine/core';
 import { AlertTriangle, FolderOpen } from 'lucide-react';
 import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary';
-import { safeExecute } from '@/utils/logger';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -39,12 +38,7 @@ const ErrorFallback = ({
           leftSection={
             <FolderOpen style={{ width: rem(16), height: rem(16) }} />
           }
-          onClick={async () => {
-            await safeExecute(
-              () => window.electronAPI.app.showLogsFolder(),
-              'Failed to open logs folder'
-            );
-          }}
+          onClick={() => window.electronAPI.app.showLogsFolder()}
         >
           Show Logs Folder
         </Button>

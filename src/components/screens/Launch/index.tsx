@@ -1,6 +1,6 @@
 import { Card, Container, Stack, Tabs, Group, Button } from '@mantine/core';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { logError, safeExecute } from '@/utils/logger';
+import { logError } from '@/utils/logger';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 import { useLaunchLogic } from '@/hooks/useLaunchLogic';
 import { useWarnings } from '@/hooks/useWarnings';
@@ -81,10 +81,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
   });
 
   const setHappyDefaults = useCallback(async () => {
-    const backends = await safeExecute(
-      () => window.electronAPI.kobold.getAvailableBackends(),
-      'Failed to set defaults:'
-    );
+    const backends = await window.electronAPI.kobold.getAvailableBackends();
 
     if (!backend && backends && backends.length > 0) {
       handleBackendChange(backends[0].value);
@@ -183,24 +180,22 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
   });
 
   const handleCreateNewConfig = async (configName: string) => {
-    await safeExecute(async () => {
-      const fullConfigName = `${configName}.json`;
-      const saveSuccess = await window.electronAPI.kobold.saveConfigFile(
-        fullConfigName,
-        buildConfigData()
-      );
+    const fullConfigName = `${configName}.json`;
+    const saveSuccess = await window.electronAPI.kobold.saveConfigFile(
+      fullConfigName,
+      buildConfigData()
+    );
 
-      if (saveSuccess) {
-        await loadConfigFiles();
-        setSelectedFile(fullConfigName);
-        await window.electronAPI.kobold.setSelectedConfig(fullConfigName);
-      } else {
-        logError(
-          'Failed to create new configuration',
-          new Error('Save operation failed')
-        );
-      }
-    }, 'Failed to create new configuration:');
+    if (saveSuccess) {
+      await loadConfigFiles();
+      setSelectedFile(fullConfigName);
+      await window.electronAPI.kobold.setSelectedConfig(fullConfigName);
+    } else {
+      logError(
+        'Failed to create new configuration',
+        new Error('Save operation failed')
+      );
+    }
   };
 
   const handleSaveConfig = async () => {
@@ -212,24 +207,20 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
       return false;
     }
 
-    const success = await safeExecute(async () => {
-      const saveSuccess = await window.electronAPI.kobold.saveConfigFile(
-        selectedFile,
-        buildConfigData()
+    const saveSuccess = await window.electronAPI.kobold.saveConfigFile(
+      selectedFile,
+      buildConfigData()
+    );
+
+    if (!saveSuccess) {
+      logError(
+        'Failed to save configuration',
+        new Error('Save operation failed')
       );
+      return false;
+    }
 
-      if (!saveSuccess) {
-        logError(
-          'Failed to save configuration',
-          new Error('Save operation failed')
-        );
-        return false;
-      }
-
-      return true;
-    }, 'Failed to save configuration:');
-
-    return success ?? false;
+    return true;
   };
 
   useEffect(() => {

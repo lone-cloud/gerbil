@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { tryExecute, safeExecute } from '@/utils/logger';
+import { tryExecute } from '@/utils/logger';
 import {
   Stack,
   Text,
@@ -99,11 +99,8 @@ export const GeneralTab = ({
 
     for (const config of frontendConfigs) {
       if (config.requirementCheck) {
-        const isAvailable = await safeExecute(
-          config.requirementCheck,
-          `Failed to check requirements for ${config.label}:`
-        );
-        requirementResults.set(config.value, isAvailable ?? false);
+        const isAvailable = await config.requirementCheck();
+        requirementResults.set(config.value, isAvailable);
       } else {
         requirementResults.set(config.value, true);
       }
@@ -163,20 +160,15 @@ export const GeneralTab = ({
   }, [FrontendPreference, checkAllFrontendRequirements]);
 
   const loadCurrentInstallDir = async () => {
-    const currentDir = await safeExecute(
-      () => window.electronAPI.kobold.getCurrentInstallDir(),
-      'Failed to load install directory:'
-    );
+    const currentDir = await window.electronAPI.kobold.getCurrentInstallDir();
     if (currentDir) {
       setInstallDir(currentDir);
     }
   };
 
   const loadFrontendPreference = async () => {
-    const frontendPreference = await safeExecute(
-      () => window.electronAPI.config.get('frontendPreference'),
-      'Failed to load frontend preference:'
-    );
+    const frontendPreference =
+      await window.electronAPI.config.get('frontendPreference');
     if (frontendPreference) {
       setFrontendPreference(
         (frontendPreference as FrontendPreference) || 'koboldcpp'
@@ -185,10 +177,8 @@ export const GeneralTab = ({
   };
 
   const handleSelectInstallDir = async () => {
-    const selectedDir = await safeExecute(
-      () => window.electronAPI.kobold.selectInstallDirectory(),
-      'Failed to select install directory:'
-    );
+    const selectedDir =
+      await window.electronAPI.kobold.selectInstallDirectory();
     if (selectedDir) {
       setInstallDir(selectedDir);
     }

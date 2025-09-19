@@ -1,4 +1,4 @@
-import { execa } from 'execa';
+import { spawn } from 'child_process';
 import { platform } from 'process';
 import { safeExecute } from '@/utils/node/logger';
 
@@ -12,16 +12,37 @@ const LINUX_PERFORMANCE_APPS = [
 ];
 
 async function tryLaunchCommand(command: string, args: string[] = []) {
-  try {
-    await execa(command, args, {
+  return new Promise((resolve) => {
+    const child = spawn(command, args, {
       detached: true,
       stdio: 'ignore',
-      timeout: 2000,
     });
-    return true;
-  } catch {
-    return false;
-  }
+
+    let hasResolved = false;
+
+    child.on('error', () => {
+      if (!hasResolved) {
+        hasResolved = true;
+        resolve(false);
+      }
+    });
+
+    child.on('spawn', () => {
+      if (!hasResolved) {
+        hasResolved = true;
+        child.unref();
+        resolve(true);
+      }
+    });
+
+    setTimeout(() => {
+      if (!hasResolved) {
+        hasResolved = true;
+        child.kill();
+        resolve(false);
+      }
+    }, 2000);
+  });
 }
 
 export const openPerformanceManager = async () =>

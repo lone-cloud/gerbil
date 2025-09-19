@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useMantineColorScheme } from '@mantine/core';
-import { safeExecute } from '@/utils/logger';
 
 type ColorScheme = 'light' | 'dark';
 
@@ -10,10 +9,7 @@ export const useAppColorScheme = () => {
 
   useEffect(() => {
     const loadColorScheme = async () => {
-      const rawScheme = await safeExecute(
-        () => window.electronAPI.app.getColorScheme(),
-        'Failed to get app color scheme'
-      );
+      const rawScheme = await window.electronAPI.app.getColorScheme();
 
       if (rawScheme) {
         let resolvedScheme: ColorScheme;

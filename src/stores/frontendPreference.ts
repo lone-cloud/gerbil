@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { safeExecute } from '@/utils/logger';
 import type { FrontendPreference } from '@/types';
 
 interface FrontendPreferenceState {
@@ -15,19 +14,15 @@ export const useFrontendPreferenceStore = create<FrontendPreferenceState>()(
     setFrontendPreference: (preference: FrontendPreference) => {
       set({ frontendPreference: preference });
 
-      safeExecute(async () => {
-        await window.electronAPI.config.set('frontendPreference', preference);
-      }, 'Error saving frontend preference:');
+      window.electronAPI.config.set('frontendPreference', preference);
     },
 
     loadFromConfig: async () => {
-      await safeExecute(async () => {
-        const preference = (await window.electronAPI.config.get(
-          'frontendPreference'
-        )) as FrontendPreference;
+      const preference = (await window.electronAPI.config.get(
+        'frontendPreference'
+      )) as FrontendPreference;
 
-        set({ frontendPreference: preference || 'koboldcpp' });
-      }, 'Error loading frontend preference:');
+      set({ frontendPreference: preference || 'koboldcpp' });
     },
   })
 );

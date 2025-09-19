@@ -10,7 +10,6 @@ import {
 } from '@mantine/core';
 import { Sun, Moon, Monitor } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { safeExecute } from '@/utils/logger';
 import { useAppColorScheme } from '@/hooks/useAppColorScheme';
 import {
   zoomLevelToPercentage,
@@ -33,14 +32,8 @@ export const AppearanceTab = () => {
   useEffect(() => {
     const loadSettings = async () => {
       const [currentZoom, savedColorScheme] = await Promise.all([
-        safeExecute(
-          () => window.electronAPI.app.getZoomLevel(),
-          'Failed to load zoom level:'
-        ),
-        safeExecute(
-          () => window.electronAPI.app.getColorScheme(),
-          'Failed to load color scheme:'
-        ),
+        window.electronAPI.app.getZoomLevel(),
+        window.electronAPI.app.getColorScheme(),
       ]);
 
       if (typeof currentZoom === 'number') {
@@ -56,38 +49,29 @@ export const AppearanceTab = () => {
     void loadSettings();
   }, []);
 
-  const handleColorSchemeChange = async (value: string) => {
+  const handleColorSchemeChange = (value: string) => {
     const newColorScheme = value as MantineColorScheme;
     setRawColorScheme(newColorScheme);
 
-    await safeExecute(
-      () => window.electronAPI.app.setColorScheme(newColorScheme),
-      'Failed to save color scheme:'
-    );
+    void window.electronAPI.app.setColorScheme(newColorScheme);
   };
 
-  const handleZoomChange = async (newZoomLevel: number) => {
+  const handleZoomChange = (newZoomLevel: number) => {
     setZoomLevel(newZoomLevel);
     const percentage = zoomLevelToPercentage(newZoomLevel);
     setZoomPercentage(percentage.toString());
 
-    await safeExecute(
-      () => window.electronAPI.app.setZoomLevel(newZoomLevel),
-      'Failed to set zoom level:'
-    );
+    void window.electronAPI.app.setZoomLevel(newZoomLevel);
   };
 
-  const handleZoomPercentageChange = async (value: string) => {
+  const handleZoomPercentageChange = (value: string) => {
     setZoomPercentage(value);
     const numValue = Number(value);
     if (!isNaN(numValue) && isValidZoomPercentage(numValue)) {
       const newZoomLevel = percentageToZoomLevel(numValue);
       setZoomLevel(newZoomLevel);
 
-      await safeExecute(
-        () => window.electronAPI.app.setZoomLevel(newZoomLevel),
-        'Failed to set zoom level:'
-      );
+      void window.electronAPI.app.setZoomLevel(newZoomLevel);
     }
   };
 

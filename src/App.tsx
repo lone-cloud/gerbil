@@ -12,7 +12,6 @@ import { StatusBar } from '@/components/StatusBar';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
-import { safeExecute } from '@/utils/logger';
 import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
 import type { DownloadItem } from '@/types/electron';
 import type { InterfaceTab, Screen } from '@/types';
@@ -40,26 +39,24 @@ export const App = () => {
 
   useEffect(() => {
     const checkInstallation = async () => {
-      await safeExecute(async () => {
-        const [currentVersion, hasSeenWelcome] = await Promise.all([
-          window.electronAPI.kobold.getCurrentVersion(),
-          window.electronAPI.config.get('hasSeenWelcome') as Promise<boolean>,
-        ]);
+      const [currentVersion, hasSeenWelcome] = await Promise.all([
+        window.electronAPI.kobold.getCurrentVersion(),
+        window.electronAPI.config.get('hasSeenWelcome') as Promise<boolean>,
+      ]);
 
-        if (!hasSeenWelcome) {
-          setCurrentScreen('welcome');
-        } else if (currentVersion) {
-          setCurrentScreen('launch');
-        } else {
-          setCurrentScreen('download');
-        }
+      if (!hasSeenWelcome) {
+        setCurrentScreen('welcome');
+      } else if (currentVersion) {
+        setCurrentScreen('launch');
+      } else {
+        setCurrentScreen('download');
+      }
 
-        if (currentVersion) {
-          setTimeout(() => {
-            checkForUpdates();
-          }, 2000);
-        }
-      }, 'Error checking installation:');
+      if (currentVersion) {
+        setTimeout(() => {
+          checkForUpdates();
+        }, 2000);
+      }
 
       setHasInitialized(true);
     };
@@ -69,23 +66,19 @@ export const App = () => {
   }, []);
 
   const handleBinaryUpdate = async (download: DownloadItem) => {
-    await safeExecute(async () => {
-      const success = await sharedHandleDownload({
-        item: download,
-        isUpdate: true,
-        wasCurrentBinary: true,
-      });
+    const success = await sharedHandleDownload({
+      item: download,
+      isUpdate: true,
+      wasCurrentBinary: true,
+    });
 
-      if (success) {
-        dismissUpdate();
-      }
-    }, 'Failed to update binary:');
+    if (success) {
+      dismissUpdate();
+    }
   };
 
   const handleDownloadComplete = async () => {
-    await safeExecute(async () => {
-      await window.electronAPI.kobold.getCurrentVersion();
-    }, 'Error refreshing versions after download:');
+    await window.electronAPI.kobold.getCurrentVersion();
 
     setTimeout(() => {
       setCurrentScreen('launch');
