@@ -1,6 +1,6 @@
 import { Stack } from '@mantine/core';
 import { useState } from 'react';
-import { ModelFileField } from '@/components/ModelFileField';
+import { ModelFileField } from '@/components/screens/Launch/ModelFileField';
 import { SelectWithTooltip } from '@/components/SelectWithTooltip';
 import { IMAGE_MODEL_PRESETS } from '@/constants/imageModelPresets';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';

@@ -1,6 +1,9 @@
 import { Box, Text, Stack } from '@mantine/core';
+import { useMemo } from 'react';
+import { useLaunchConfigStore } from '@/stores/launchConfig';
+import { useFrontendPreferenceStore } from '@/stores/frontendPreference';
+import { getServerInterfaceInfo } from '@/utils/interface';
 import { TITLEBAR_HEIGHT, STATUSBAR_HEIGHT } from '@/constants';
-import { useServerInterfaceInfo } from '@/hooks/useInterfaceSelection';
 
 interface ServerTabProps {
   serverUrl?: string;
@@ -13,9 +16,24 @@ export const ServerTab = ({
   isServerReady,
   activeTab,
 }: ServerTabProps) => {
-  const { url: iframeUrl, title } = useServerInterfaceInfo(
-    serverUrl || '',
-    activeTab
+  const { isImageGenerationMode } = useLaunchConfigStore();
+  const { frontendPreference } = useFrontendPreferenceStore();
+
+  const effectiveImageMode =
+    activeTab === 'chat-image'
+      ? true
+      : activeTab === 'chat-text'
+        ? false
+        : isImageGenerationMode;
+
+  const { url: iframeUrl, title } = useMemo(
+    () =>
+      getServerInterfaceInfo({
+        frontendPreference,
+        isImageGenerationMode: effectiveImageMode,
+        serverUrl: serverUrl || '',
+      }),
+    [frontendPreference, effectiveImageMode, serverUrl]
   );
 
   if (!isServerReady || !serverUrl) {

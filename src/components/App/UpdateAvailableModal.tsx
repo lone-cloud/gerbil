@@ -11,7 +11,9 @@ import {
 } from '@mantine/core';
 import { Download, X, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
-import type { InstalledVersion, DownloadItem } from '@/types/electron';
+import type { DownloadItem } from '@/types/electron';
+import type { BinaryUpdateInfo } from '@/hooks/useUpdateChecker';
+import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import { getDisplayNameFromPath } from '@/utils/version';
 import { GITHUB_API, MODAL_STYLES_WITH_TITLEBAR } from '@/constants';
 import { safeExecute } from '@/utils/logger';
@@ -19,23 +21,26 @@ import { safeExecute } from '@/utils/logger';
 interface UpdateAvailableModalProps {
   opened: boolean;
   onClose: () => void;
-  currentVersion?: InstalledVersion;
-  availableUpdate?: DownloadItem;
+  updateInfo?: BinaryUpdateInfo;
   onUpdate: (download: DownloadItem) => Promise<void>;
-  isDownloading?: boolean;
-  downloadProgress?: number;
 }
 
 export const UpdateAvailableModal = ({
   opened,
   onClose,
-  currentVersion,
-  availableUpdate,
+  updateInfo,
   onUpdate,
-  isDownloading = false,
-  downloadProgress = 0,
 }: UpdateAvailableModalProps) => {
+  const { downloading, downloadProgress } = useKoboldVersions();
+  const currentVersion = updateInfo?.currentVersion;
+  const availableUpdate = updateInfo?.availableUpdate;
   const [isUpdating, setIsUpdating] = useState(false);
+
+  const isDownloading =
+    !!availableUpdate && downloading === availableUpdate.name;
+  const currentProgress = availableUpdate
+    ? downloadProgress[availableUpdate.name] || 0
+    : 0;
 
   const handleUpdate = async () => {
     if (availableUpdate) {
@@ -113,7 +118,7 @@ export const UpdateAvailableModal = ({
 
         <Stack gap="xs" style={{ minHeight: '2.75rem' }}>
           <Progress
-            value={isDownloading ? Math.min(downloadProgress, 100) : 0}
+            value={isDownloading ? Math.min(currentProgress, 100) : 0}
             color="orange"
             radius="xl"
             style={{
@@ -131,7 +136,7 @@ export const UpdateAvailableModal = ({
             }}
           >
             {isDownloading
-              ? `${Math.min(downloadProgress, 100).toFixed(1)}% complete`
+              ? `${Math.min(currentProgress, 100).toFixed(1)}% complete`
               : 'Preparing update...'}
           </Text>
         </Stack>

@@ -8,13 +8,13 @@ import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import { getROCmDownload } from '@/utils/rocm';
 import type { InstalledVersion, DownloadItem } from '@/types/electron';
 
-interface UpdateInfo {
+export interface BinaryUpdateInfo {
   currentVersion: InstalledVersion;
   availableUpdate: DownloadItem;
 }
 
 export const useUpdateChecker = () => {
-  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+  const [updateInfo, setUpdateInfo] = useState<BinaryUpdateInfo | null>(null);
   const [isChecking, setIsChecking] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [dismissedUpdates, setDismissedUpdates] = useState<Set<string>>(

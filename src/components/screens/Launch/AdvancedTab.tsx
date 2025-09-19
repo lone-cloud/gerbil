@@ -9,7 +9,7 @@ import {
 import { useState, useEffect } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
-import { CommandLineArgumentsModal } from '@/components/CommandLineArgumentsModal';
+import { CommandLineArgumentsModal } from '@/components/screens/Launch/CommandLineArgumentsModal';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 
 export const AdvancedTab = () => {

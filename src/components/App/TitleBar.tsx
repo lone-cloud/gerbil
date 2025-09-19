@@ -9,10 +9,12 @@ import {
 } from '@mantine/core';
 import { Minus, Square, X, Copy, Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useInterfaceOptions } from '@/hooks/useInterfaceSelection';
+import { useLaunchConfigStore } from '@/stores/launchConfig';
+import { useFrontendPreferenceStore } from '@/stores/frontendPreference';
+import { getAvailableInterfaceOptions } from '@/utils/interface';
 import { useLogoClickSounds } from '@/hooks/useLogoClickSounds';
 import { SettingsModal } from '@/components/settings/SettingsModal';
-import { UpdateButton } from '@/components/UpdateButton';
+import { UpdateButton } from '@/components/App/UpdateButton';
 import { useAppColorScheme } from '@/hooks/useAppColorScheme';
 import icon from '/icon.png';
 import { PRODUCT_NAME, TITLEBAR_HEIGHT } from '@/constants';
@@ -32,11 +34,43 @@ export const TitleBar = ({
   onTabChange,
 }: TitleBarProps) => {
   const colorScheme = useAppColorScheme();
-  const interfaceOptions = useInterfaceOptions();
   const { handleLogoClick, getLogoStyles } = useLogoClickSounds();
   const [isMaximized, setIsMaximized] = useState(false);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+
+  const { isTextMode, isImageGenerationMode } = useLaunchConfigStore();
+  const { frontendPreference } = useFrontendPreferenceStore();
+  const interfaceOptions = getAvailableInterfaceOptions({
+    frontendPreference,
+    isTextMode,
+    isImageGenerationMode,
+  });
+
+  const handleTabChange = (value: string | null) => {
+    if (value === 'eject') {
+      onEject();
+    } else if (value) {
+      onTabChange(value as InterfaceTab);
+    }
+  };
+
+  const renderOption = ({
+    option,
+  }: {
+    option: { value: string; label: string };
+  }) => (
+    <Box
+      style={{
+        textAlign: 'center',
+        color:
+          option.value === 'eject' ? 'var(--mantine-color-red-6)' : undefined,
+        fontWeight: option.value === 'eject' ? 600 : undefined,
+      }}
+    >
+      {option.label}
+    </Box>
+  );
 
   useEffect(() => {
     const cleanup = window.electronAPI.app.onWindowStateToggle(() =>
@@ -93,37 +127,15 @@ export const TitleBar = ({
             <Select
               placeholder="Interface"
               value={currentTab}
-              onChange={(value) => {
-                if (value === 'eject') {
-                  onEject();
-                } else {
-                  onTabChange(value as InterfaceTab);
-                }
-              }}
+              onChange={handleTabChange}
               onDropdownOpen={() => setIsSelectOpen(true)}
               onDropdownClose={() => setIsSelectOpen(false)}
               data={interfaceOptions}
-              renderOption={({ option }) => (
-                <Box
-                  style={{
-                    textAlign: 'center',
-                    color:
-                      option.value === 'eject'
-                        ? 'var(--mantine-color-red-6)'
-                        : undefined,
-                    fontWeight: option.value === 'eject' ? 600 : undefined,
-                  }}
-                >
-                  {option.label}
-                </Box>
-              )}
+              renderOption={renderOption}
               allowDeselect={false}
               variant="unstyled"
               size="sm"
-              style={{
-                textAlign: 'center',
-                minWidth: '7.5rem',
-              }}
+              style={{ textAlign: 'center', minWidth: '7.5rem' }}
               styles={{
                 input: {
                   textAlign: 'center',

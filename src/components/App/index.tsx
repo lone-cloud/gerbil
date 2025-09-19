@@ -1,17 +1,21 @@
 import { useState, useEffect } from 'react';
-import { AppShell, Loader, Center, Stack, Text } from '@mantine/core';
-import { DownloadScreen } from '@/components/screens/Download';
-import { LaunchScreen } from '@/components/screens/Launch';
-import { InterfaceScreen } from '@/components/screens/Interface';
-import { WelcomeScreen } from '@/components/screens/Welcome';
-import { UpdateAvailableModal } from '@/components/UpdateAvailableModal';
-import { EjectConfirmModal } from '@/components/EjectConfirmModal';
-import { ScreenTransition } from '@/components/ScreenTransition';
-import { TitleBar } from '@/components/TitleBar';
-import { StatusBar } from '@/components/StatusBar';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
+import {
+  AppShell,
+  Loader,
+  Center,
+  Stack,
+  Text,
+  useMantineColorScheme,
+} from '@mantine/core';
+import { UpdateAvailableModal } from '@/components/App/UpdateAvailableModal';
+import { EjectConfirmModal } from '@/components/App/EjectConfirmModal';
+import { TitleBar } from '@/components/App/TitleBar';
+import { StatusBar } from '@/components/App/StatusBar';
+import { ErrorBoundary } from '@/components/App/ErrorBoundary';
+import { AppRouter } from '@/components/App/Router';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
+import { useAppColorScheme } from '@/hooks/useAppColorScheme';
 import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
 import type { DownloadItem } from '@/types/electron';
 import type { InterfaceTab, Screen } from '@/types';
@@ -24,6 +28,13 @@ export const App = () => {
   const [ejectConfirmModalOpen, setEjectConfirmModalOpen] = useState(false);
   const isInterfaceScreen = currentScreen === 'interface';
 
+  const appColorScheme = useAppColorScheme();
+  const { setColorScheme } = useMantineColorScheme();
+
+  useEffect(() => {
+    setColorScheme(appColorScheme);
+  }, [appColorScheme, setColorScheme]);
+
   const {
     updateInfo: binaryUpdateInfo,
     showUpdateModal,
@@ -31,11 +42,7 @@ export const App = () => {
     dismissUpdate,
   } = useUpdateChecker();
 
-  const {
-    handleDownload: sharedHandleDownload,
-    downloading,
-    downloadProgress,
-  } = useKoboldVersions();
+  const { handleDownload: sharedHandleDownload } = useKoboldVersions();
 
   useEffect(() => {
     const checkInstallation = async () => {
@@ -77,23 +84,6 @@ export const App = () => {
     }
   };
 
-  const handleDownloadComplete = async () => {
-    await window.electronAPI.kobold.getCurrentVersion();
-
-    setTimeout(() => {
-      setCurrentScreen('launch');
-    }, 100);
-  };
-
-  const handleLaunch = () => {
-    setActiveInterfaceTab('terminal');
-    setCurrentScreen('interface');
-  };
-
-  const handleBackToLaunch = () => {
-    setCurrentScreen('launch');
-  };
-
   const handleEject = async () => {
     const skipEjectConfirmation = await window.electronAPI.config.get(
       'skipEjectConfirmation'
@@ -108,7 +98,7 @@ export const App = () => {
 
   const performEject = () => {
     window.electronAPI.kobold.stopKoboldCpp();
-    handleBackToLaunch();
+    setCurrentScreen('launch');
   };
 
   const handleEjectConfirm = (skipConfirmation: boolean) => {
@@ -118,15 +108,17 @@ export const App = () => {
     performEject();
   };
 
-  const handleWelcomeComplete = async () => {
-    window.electronAPI.config.set('hasSeenWelcome', true);
+  const handleWelcomeComplete = () => {
+    setCurrentScreen('download');
+  };
 
-    const versions = await window.electronAPI.kobold.getInstalledVersions();
-    if (versions.length > 0) {
-      setCurrentScreen('launch');
-    } else {
-      setCurrentScreen('download');
-    }
+  const handleDownloadComplete = () => {
+    setTimeout(() => setCurrentScreen('launch'), 500);
+  };
+
+  const handleLaunch = () => {
+    setActiveInterfaceTab('terminal');
+    setCurrentScreen('interface');
   };
 
   return (
@@ -165,53 +157,23 @@ export const App = () => {
               </Stack>
             </Center>
           ) : (
-            <>
-              <ScreenTransition
-                isActive={currentScreen === 'welcome'}
-                shouldAnimate={hasInitialized}
-              >
-                <WelcomeScreen onGetStarted={handleWelcomeComplete} />
-              </ScreenTransition>
-
-              <ScreenTransition
-                isActive={currentScreen === 'download'}
-                shouldAnimate={hasInitialized}
-              >
-                <DownloadScreen onDownloadComplete={handleDownloadComplete} />
-              </ScreenTransition>
-
-              <ScreenTransition
-                isActive={currentScreen === 'launch'}
-                shouldAnimate={hasInitialized}
-              >
-                <LaunchScreen onLaunch={handleLaunch} />
-              </ScreenTransition>
-
-              <ScreenTransition
-                isActive={isInterfaceScreen}
-                shouldAnimate={hasInitialized}
-              >
-                <InterfaceScreen
-                  activeTab={activeInterfaceTab}
-                  onTabChange={setActiveInterfaceTab}
-                />
-              </ScreenTransition>
-            </>
+            <AppRouter
+              currentScreen={currentScreen}
+              hasInitialized={hasInitialized}
+              activeInterfaceTab={activeInterfaceTab}
+              onWelcomeComplete={handleWelcomeComplete}
+              onDownloadComplete={handleDownloadComplete}
+              onLaunch={handleLaunch}
+              onTabChange={setActiveInterfaceTab}
+            />
           )}
         </ErrorBoundary>
 
         <UpdateAvailableModal
           opened={showUpdateModal && !!binaryUpdateInfo}
           onClose={dismissUpdate}
-          currentVersion={binaryUpdateInfo?.currentVersion}
-          availableUpdate={binaryUpdateInfo?.availableUpdate}
+          updateInfo={binaryUpdateInfo || undefined}
           onUpdate={handleBinaryUpdate}
-          isDownloading={downloading === binaryUpdateInfo?.availableUpdate.name}
-          downloadProgress={
-            binaryUpdateInfo
-              ? downloadProgress[binaryUpdateInfo.availableUpdate.name] || 0
-              : 0
-          }
         />
       </AppShell.Main>
 
