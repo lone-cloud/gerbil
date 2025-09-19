@@ -1,36 +1,30 @@
-import { safeTryExecute } from '@/utils/logger';
-
 export const handleTerminalOutput = (prevContent: string, newData: string) => {
-  const result = safeTryExecute(() => {
-    if (newData.includes('\r')) {
-      const hasStandaloneCarriageReturns = /\r(?!\n)/g.test(newData);
+  if (newData.includes('\r')) {
+    const hasStandaloneCarriageReturns = /\r(?!\n)/g.test(newData);
 
-      if (hasStandaloneCarriageReturns) {
-        const combined = prevContent + newData;
+    if (hasStandaloneCarriageReturns) {
+      const combined = prevContent + newData;
 
-        const lines = combined.split(/(\r?\n)/);
-        const processedLines: string[] = [];
+      const lines = combined.split(/(\r?\n)/);
+      const processedLines: string[] = [];
 
-        for (let i = 0; i < lines.length; i += 2) {
-          const line = lines[i] || '';
-          const lineBreak = lines[i + 1] || '';
+      for (let i = 0; i < lines.length; i += 2) {
+        const line = lines[i] || '';
+        const lineBreak = lines[i + 1] || '';
 
-          if (line.includes('\r')) {
-            const parts = line.split('\r');
-            processedLines.push(parts[parts.length - 1] + lineBreak);
-          } else {
-            processedLines.push(line + lineBreak);
-          }
+        if (line.includes('\r')) {
+          const parts = line.split('\r');
+          processedLines.push(parts[parts.length - 1] + lineBreak);
+        } else {
+          processedLines.push(line + lineBreak);
         }
-
-        return processedLines.join('').replace(/\r?\n$/, '');
       }
+
+      return processedLines.join('').replace(/\r?\n$/, '');
     }
+  }
 
-    return prevContent + newData;
-  }, 'Terminal Basic Error');
-
-  return result ?? prevContent + newData;
+  return prevContent + newData;
 };
 
 const URL_REGEX = /(https?:\/\/[^\s<>"{}|\\^`[\]]+)/gi;

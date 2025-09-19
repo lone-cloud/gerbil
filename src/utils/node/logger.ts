@@ -1,10 +1,26 @@
 import { logError } from '@/main/modules/logging';
-import {
-  createSafeExecute,
-  createTryExecute,
-  createSafeTryExecute,
-} from '@/utils/logger-core';
 
-export const safeExecute = createSafeExecute(logError);
-export const tryExecute = createTryExecute(logError);
-export const safeTryExecute = createSafeTryExecute(logError);
+export const safeExecute = async <T>(
+  operation: () => Promise<T>,
+  errorMessage: string
+) => {
+  try {
+    return operation();
+  } catch (error) {
+    logError(errorMessage, error as Error);
+    return null;
+  }
+};
+
+export const tryExecute = async (
+  operation: () => Promise<void>,
+  errorMessage: string
+) => {
+  try {
+    await operation();
+    return true;
+  } catch (error) {
+    logError(errorMessage, error as Error);
+    return false;
+  }
+};

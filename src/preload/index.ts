@@ -99,12 +99,12 @@ const appAPI: AppAPI = {
 
 const configAPI: ConfigAPI = {
   get: (key) => ipcRenderer.invoke('config:get', key),
-  set: (key, value) => ipcRenderer.invoke('config:set', key, value),
+  set: (key, value) => ipcRenderer.send('config:set', key, value),
 };
 
 const logsAPI: LogsAPI = {
   logError: (message, error) =>
-    ipcRenderer.invoke('logs:logError', message, error),
+    ipcRenderer.send('logs:logError', message, error),
 };
 
 const dependenciesAPI: DependenciesAPI = {

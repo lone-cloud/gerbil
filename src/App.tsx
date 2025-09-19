@@ -111,15 +111,15 @@ export const App = () => {
     handleBackToLaunch();
   };
 
-  const handleEjectConfirm = async (skipConfirmation: boolean) => {
+  const handleEjectConfirm = (skipConfirmation: boolean) => {
     if (skipConfirmation) {
-      await window.electronAPI.config.set('skipEjectConfirmation', true);
+      window.electronAPI.config.set('skipEjectConfirmation', true);
     }
     performEject();
   };
 
   const handleWelcomeComplete = async () => {
-    await window.electronAPI.config.set('hasSeenWelcome', true);
+    window.electronAPI.config.set('hasSeenWelcome', true);
 
     const versions = await window.electronAPI.kobold.getInstalledVersions();
     if (versions.length > 0) {
