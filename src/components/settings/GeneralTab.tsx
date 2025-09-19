@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { tryExecute } from '@/utils/logger';
 import {
   Stack,
   Text,
@@ -112,10 +111,7 @@ export const GeneralTab = ({
       (config) => config.value === FrontendPreference
     );
     if (currentFrontendConfig && !requirementResults.get(FrontendPreference)) {
-      await tryExecute(
-        () => window.electronAPI.config.set('frontendPreference', 'koboldcpp'),
-        'Failed to reset frontend preference:'
-      );
+      window.electronAPI.config.set('frontendPreference', 'koboldcpp');
       setFrontendPreference('koboldcpp');
     }
   }, [frontendConfigs, FrontendPreference]);
@@ -129,6 +125,13 @@ export const GeneralTab = ({
       ]);
     };
     initialize();
+
+    const handleFocus = () => {
+      checkAllFrontendRequirements();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [checkAllFrontendRequirements]);
 
   const getSelectedFrontendConfig = () =>
@@ -191,13 +194,10 @@ export const GeneralTab = ({
     )
       return;
 
-    const success = await tryExecute(
-      () => window.electronAPI.config.set('frontendPreference', value),
-      'Failed to save frontend preference:'
-    );
-    if (success) {
-      setFrontendPreference(value as FrontendPreference);
-    }
+    await checkAllFrontendRequirements();
+
+    window.electronAPI.config.set('frontendPreference', value);
+    setFrontendPreference(value as FrontendPreference);
   };
 
   return (
@@ -266,6 +266,7 @@ export const GeneralTab = ({
           value={FrontendPreference}
           onChange={handleFrontendPreferenceChange}
           disabled={isOnInterfaceScreen}
+          onClick={() => checkAllFrontendRequirements()}
           data={frontendConfigs.map((config) => ({
             value: config.value,
             label: config.label,

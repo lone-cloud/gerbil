@@ -44,7 +44,7 @@ export const AboutTab = () => {
     {
       label: PRODUCT_NAME,
       value: versionInfo.isAUR
-        ? `${versionInfo.appVersion} (AUR Package)`
+        ? `${versionInfo.appVersion} (AUR)`
         : versionInfo.appVersion,
     },
     { label: 'Electron', value: versionInfo.electronVersion },

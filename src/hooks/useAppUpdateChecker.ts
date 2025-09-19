@@ -1,5 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
-import { tryExecute } from '@/utils/logger';
+import { useState, useEffect, useCallback } from 'react';
 import { compareVersions } from '@/utils/version';
 import { GITHUB_API } from '@/constants';
 
@@ -35,18 +34,16 @@ export const useAppUpdateChecker = () => {
 
     setIsDownloading(true);
 
-    await tryExecute(async () => {
-      const checkResult = await window.electronAPI.updater.checkForUpdates();
-      if (!checkResult) {
-        setIsDownloading(false);
-        return;
-      }
+    const checkResult = await window.electronAPI.updater.checkForUpdates();
+    if (!checkResult) {
+      setIsDownloading(false);
+      return;
+    }
 
-      const success = await window.electronAPI.updater.downloadUpdate();
-      if (success) {
-        setIsUpdateDownloaded(true);
-      }
-    }, 'Failed to download update');
+    const success = await window.electronAPI.updater.downloadUpdate();
+    if (success) {
+      setIsUpdateDownloaded(true);
+    }
 
     setIsDownloading(false);
   }, [canAutoUpdate]);
@@ -58,7 +55,7 @@ export const useAppUpdateChecker = () => {
   }, [isUpdateDownloaded]);
 
   const checkForAppUpdates = useCallback(async () => {
-    await tryExecute(async () => {
+    try {
       const currentVersion = await window.electronAPI.app.getVersion();
 
       const response = await fetch(
@@ -86,7 +83,12 @@ export const useAppUpdateChecker = () => {
       };
 
       setUpdateInfo(updateInfo);
-    }, 'Failed to check for app updates');
+    } catch (error) {
+      window.electronAPI.logs.logError(
+        'Failed to check for app updates',
+        error instanceof Error ? error : undefined
+      );
+    }
   }, []);
 
   useEffect(() => {

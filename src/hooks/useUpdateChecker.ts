@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from 'react';
-import { tryExecute } from '@/utils/logger';
 import {
   getDisplayNameFromPath,
   compareVersions,
@@ -40,13 +39,8 @@ export const useUpdateChecker = () => {
     loadDismissedUpdates();
   }, []);
 
-  const saveDismissedUpdates = useCallback(async (updates: Set<string>) => {
-    await tryExecute(async () => {
-      await window.electronAPI.config.set(
-        'dismissedUpdates',
-        Array.from(updates)
-      );
-    }, 'Failed to save dismissed updates');
+  const saveDismissedUpdates = useCallback((updates: Set<string>) => {
+    window.electronAPI.config.set('dismissedUpdates', Array.from(updates));
   }, []);
 
   const checkForUpdates = useCallback(async () => {
@@ -56,50 +50,46 @@ export const useUpdateChecker = () => {
 
     setIsChecking(true);
 
-    await tryExecute(async () => {
-      const [currentVersion, rocmDownload] = await Promise.all([
-        window.electronAPI.kobold.getCurrentVersion(),
-        getROCmDownload(),
-      ]);
+    const [currentVersion, rocmDownload] = await Promise.all([
+      window.electronAPI.kobold.getCurrentVersion(),
+      getROCmDownload(),
+    ]);
 
-      if (!currentVersion) {
-        return;
+    if (!currentVersion) {
+      setIsChecking(false);
+      return;
+    }
+
+    const availableDownloads: DownloadItem[] = [...releases];
+    if (rocmDownload) {
+      availableDownloads.push(rocmDownload);
+    }
+
+    const currentDisplayName = getDisplayNameFromPath(currentVersion);
+
+    const matchingDownload = availableDownloads.find(
+      (download: DownloadItem) => {
+        const downloadBaseName = stripAssetExtensions(download.name);
+        return downloadBaseName === currentDisplayName;
       }
-      if (!currentVersion) {
-        return;
-      }
+    );
 
-      const availableDownloads: DownloadItem[] = [...releases];
-      if (rocmDownload) {
-        availableDownloads.push(rocmDownload);
-      }
+    if (matchingDownload && matchingDownload.version) {
+      const hasUpdate =
+        compareVersions(matchingDownload.version, currentVersion.version) > 0;
 
-      const currentDisplayName = getDisplayNameFromPath(currentVersion);
+      if (hasUpdate) {
+        const updateKey = `${currentVersion.path}-${matchingDownload.version}`;
 
-      const matchingDownload = availableDownloads.find(
-        (download: DownloadItem) => {
-          const downloadBaseName = stripAssetExtensions(download.name);
-          return downloadBaseName === currentDisplayName;
-        }
-      );
-
-      if (matchingDownload && matchingDownload.version) {
-        const hasUpdate =
-          compareVersions(matchingDownload.version, currentVersion.version) > 0;
-
-        if (hasUpdate) {
-          const updateKey = `${currentVersion.path}-${matchingDownload.version}`;
-
-          if (!dismissedUpdates.has(updateKey)) {
-            setUpdateInfo({
-              currentVersion,
-              availableUpdate: matchingDownload,
-            });
-            setShowUpdateModal(true);
-          }
+        if (!dismissedUpdates.has(updateKey)) {
+          setUpdateInfo({
+            currentVersion,
+            availableUpdate: matchingDownload,
+          });
+          setShowUpdateModal(true);
         }
       }
-    }, 'Failed to check for updates');
+    }
 
     setIsChecking(false);
   }, [dismissedUpdates, dismissedUpdatesLoaded, releases]);

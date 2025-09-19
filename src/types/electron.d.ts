@@ -175,11 +175,11 @@ export interface AppAPI {
 
 export interface ConfigAPI {
   get: (key: string) => Promise<unknown>;
-  set: (key: string, value: unknown) => Promise<void>;
+  set: (key: string, value: unknown) => void;
 }
 
 export interface LogsAPI {
-  logError: (message: string, error?: Error) => Promise<void>;
+  logError: (message: string, error?: Error) => void;
 }
 
 export interface DependenciesAPI {

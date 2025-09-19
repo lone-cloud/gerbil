@@ -1,5 +1,4 @@
-import { useState, useCallback } from 'react';
-import { tryExecute } from '@/utils/logger';
+import { useCallback, useState } from 'react';
 import type { SdConvDirectMode } from '@/types';
 
 interface UseLaunchLogicProps {
@@ -258,32 +257,30 @@ export const useLaunchLogic = ({
 
       onLaunch();
 
-      await tryExecute(async () => {
-        const args: string[] = [
-          ...buildModelArgs(model, sdmodel, launchArgs),
-          ...buildConfigArgs(hasImageModel, launchArgs),
-          ...buildBackendArgs(launchArgs),
-        ];
+      const args: string[] = [
+        ...buildModelArgs(model, sdmodel, launchArgs),
+        ...buildConfigArgs(hasImageModel, launchArgs),
+        ...buildBackendArgs(launchArgs),
+      ];
 
-        if (launchArgs.additionalArguments.trim()) {
-          const additionalArgs = launchArgs.additionalArguments
-            .trim()
-            .split(/\s+/);
-          args.push(...additionalArgs);
-        }
+      if (launchArgs.additionalArguments.trim()) {
+        const additionalArgs = launchArgs.additionalArguments
+          .trim()
+          .split(/\s+/);
+        args.push(...additionalArgs);
+      }
 
-        const result = await window.electronAPI.kobold.launchKoboldCpp(args);
+      const result = await window.electronAPI.kobold.launchKoboldCpp(args);
 
-        if (result.success) {
-          onLaunch();
-        } else {
-          const errorMessage = result.error || 'Unknown launch error';
-          window.electronAPI.logs.logError(
-            'Launch failed:',
-            new Error(errorMessage)
-          );
-        }
-      }, 'Error launching');
+      if (result.success) {
+        onLaunch();
+      } else {
+        const errorMessage = result.error || 'Unknown launch error';
+        window.electronAPI.logs.logError(
+          'Launch failed:',
+          new Error(errorMessage)
+        );
+      }
 
       setIsLaunching(false);
     },

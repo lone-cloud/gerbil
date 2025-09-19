@@ -38,19 +38,6 @@ export const TitleBar = ({
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
 
-  const handleMinimize = () => {
-    window.electronAPI.app.minimizeWindow();
-  };
-
-  const handleMaximize = async () => {
-    await window.electronAPI.app.maximizeWindow();
-    setIsMaximized(!isMaximized);
-  };
-
-  const handleClose = () => {
-    window.electronAPI.app.closeWindow();
-  };
-
   return (
     <AppShell.Header
       style={{ display: 'flex', flexDirection: 'column', border: 'none' }}
@@ -64,7 +51,7 @@ export const TitleBar = ({
           justifyContent: 'space-between',
           backgroundColor:
             colorScheme === 'dark'
-              ? 'var(--mantine-color-dark-8)'
+              ? 'var(--mantine-color-dark-6)'
               : 'var(--mantine-color-gray-1)',
           border: '1px solid var(--mantine-color-default-border)',
           WebkitAppRegion: isSelectOpen ? 'no-drag' : 'drag',
@@ -154,8 +141,6 @@ export const TitleBar = ({
               aria-label="Open settings"
               tabIndex={-1}
               style={{
-                borderRadius: 0,
-                margin: '2px 1px 1px',
                 outline: 'none',
               }}
             >
@@ -175,19 +160,22 @@ export const TitleBar = ({
           {[
             {
               icon: <Minus size="1rem" />,
-              onClick: handleMinimize,
+              onClick: () => window.electronAPI.app.minimizeWindow(),
               color: undefined,
               label: 'Minimize window',
             },
             {
               icon: isMaximized ? <Copy size="1rem" /> : <Square size="1rem" />,
-              onClick: handleMaximize,
+              onClick: () => {
+                window.electronAPI.app.maximizeWindow();
+                setIsMaximized(!isMaximized);
+              },
               color: undefined,
               label: isMaximized ? 'Restore window' : 'Maximize window',
             },
             {
               icon: <X size="1.25rem" />,
-              onClick: handleClose,
+              onClick: () => window.electronAPI.app.closeWindow(),
               color: 'red' as const,
               label: 'Close window',
             },
@@ -200,10 +188,6 @@ export const TitleBar = ({
               color={button.color}
               aria-label={button.label}
               tabIndex={-1}
-              style={{
-                borderRadius: 0,
-                margin: '2px 1px 1px',
-              }}
             >
               {button.icon}
             </ActionIcon>

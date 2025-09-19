@@ -4,7 +4,7 @@ import { join } from 'path';
 import { on } from 'process';
 
 import { logError } from './logging';
-import { safeTryExecute, tryExecute } from '@/utils/node/logger';
+import { tryExecute } from '@/utils/node/logger';
 import { sendKoboldOutput } from './window';
 import { getInstallDir } from './config';
 import { OPENWEBUI, SERVER_READY_SIGNALS } from '@/constants';
@@ -115,19 +115,15 @@ export async function startFrontend(args: string[]) {
 
     if (openWebUIProcess.stdout) {
       openWebUIProcess.stdout.on('data', (data: Buffer) => {
-        safeTryExecute(() => {
-          const output = data.toString('utf8');
-          sendKoboldOutput(output, true);
-        }, 'Error processing stdout data');
+        const output = data.toString('utf8');
+        sendKoboldOutput(output, true);
       });
     }
 
     if (openWebUIProcess.stderr) {
       openWebUIProcess.stderr.on('data', (data: Buffer) => {
-        safeTryExecute(() => {
-          const output = data.toString('utf8');
-          sendKoboldOutput(output, true);
-        }, 'Error processing stderr data');
+        const output = data.toString('utf8');
+        sendKoboldOutput(output, true);
       });
     }
 

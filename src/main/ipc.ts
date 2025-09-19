@@ -162,7 +162,7 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('config:get', (_, key) => getConfig(key));
 
-  ipcMain.handle('config:set', (_, key, value) => setConfig(key, value));
+  ipcMain.on('config:set', (_, key, value) => setConfig(key, value));
 
   ipcMain.handle('app:getVersion', () => getAppVersion());
 
@@ -265,7 +265,7 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('app:openPerformanceManager', () => openPerformanceManager());
 
-  ipcMain.handle('logs:logError', (_, message: string, error?: Error) =>
+  ipcMain.on('logs:logError', (_, message: string, error?: Error) =>
     logError(message, error)
   );
 
