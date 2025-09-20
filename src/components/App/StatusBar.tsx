@@ -73,7 +73,7 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
             <PerformanceBadge
               label="CPU"
               value={`${cpuMetrics.usage}%`}
-              tooltipLabel={`${cpuMetrics.usage}%`}
+              tooltipLabel={`${cpuMetrics.usage}%${cpuMetrics.temperature ? ` • ${cpuMetrics.temperature}°C` : ''}`}
             />
 
             <PerformanceBadge
@@ -89,7 +89,7 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
             <PerformanceBadge
               label={`GPU${gpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}`}
               value={`${gpu.usage}%`}
-              tooltipLabel={`${gpu.usage}%`}
+              tooltipLabel={`${gpu.usage}%${gpu.temperature ? ` • ${gpu.temperature}°C` : ''}`}
             />
 
             <PerformanceBadge

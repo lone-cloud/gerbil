@@ -1,5 +1,4 @@
-import { Badge, Tooltip } from '@mantine/core';
-import { useState } from 'react';
+import { Button, Tooltip } from '@mantine/core';
 
 interface PerformanceBadgeProps {
   label: string;
@@ -12,8 +11,6 @@ export const PerformanceBadge = ({
   value,
   tooltipLabel,
 }: PerformanceBadgeProps) => {
-  const [isHovered, setIsHovered] = useState(false);
-
   const handlePerformanceClick = async () => {
     const result = await window.electronAPI.app.openPerformanceManager();
 
@@ -26,22 +23,23 @@ export const PerformanceBadge = ({
 
   return (
     <Tooltip label={tooltipLabel} position="top">
-      <Badge
-        size="sm"
+      <Button
+        size="xs"
         variant="light"
         style={{
           minWidth: '5rem',
           textAlign: 'center',
-          cursor: 'pointer',
-          transition: 'background-color 0.2s ease',
-          backgroundColor: isHovered ? 'rgba(34, 139, 230, 0.2)' : undefined,
+          height: 'auto',
+          padding: '0.25rem 0.5rem',
+          margin: '0.125rem 0',
+          borderRadius: '0.75rem',
+          fontSize: '0.7em',
+          fontWeight: 500,
         }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         onClick={handlePerformanceClick}
       >
         {label}: {value}
-      </Badge>
+      </Button>
     </Tooltip>
   );
 };

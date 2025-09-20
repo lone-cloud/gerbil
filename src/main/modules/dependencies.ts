@@ -62,9 +62,7 @@ export async function getUvEnvironment() {
     try {
       await access(path);
       existingPaths.push(path);
-    } catch {
-      void 0;
-    }
+    } catch {}
   }
 
   if (existingPaths.length > 0) {

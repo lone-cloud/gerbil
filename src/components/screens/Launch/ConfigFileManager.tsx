@@ -1,8 +1,9 @@
-import { Stack, Text, Group, Button, Select } from '@mantine/core';
+import { Stack, Text, Group, Button, Select, Tooltip } from '@mantine/core';
 import { useState, useCallback } from 'react';
-import { Save, File, Plus, Check } from 'lucide-react';
+import { Save, File, Plus, Check, Trash2 } from 'lucide-react';
 import type { ConfigFile } from '@/types';
 import { CreateConfigModal } from './CreateConfigModal';
+import { DeleteConfigModal } from './DeleteConfigModal';
 
 interface ConfigFileManagerProps {
   configFiles: ConfigFile[];
@@ -10,6 +11,7 @@ interface ConfigFileManagerProps {
   onFileSelection: (fileName: string) => Promise<void>;
   onCreateNewConfig: (configName: string) => Promise<void>;
   onSaveConfig: () => Promise<boolean>;
+  onDeleteConfig: (fileName: string) => Promise<boolean>;
   onLoadConfigFiles: () => Promise<void>;
 }
 
@@ -19,9 +21,12 @@ export const ConfigFileManager = ({
   onFileSelection,
   onCreateNewConfig,
   onSaveConfig,
+  onDeleteConfig,
 }: ConfigFileManagerProps) => {
   const [configModalOpened, setConfigModalOpened] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [deleteModalOpened, setDeleteModalOpened] = useState(false);
+  const [configToDelete, setConfigToDelete] = useState<string | null>(null);
 
   const existingConfigNames = configFiles.map((file) => {
     const extension = file.name.split('.').pop() || '';
@@ -35,6 +40,28 @@ export const ConfigFileManager = ({
   const handleCloseConfigModal = useCallback(() => {
     setConfigModalOpened(false);
   }, []);
+
+  const handleDeleteClick = () => {
+    if (selectedFile) {
+      setConfigToDelete(selectedFile);
+      setDeleteModalOpened(true);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (configToDelete) {
+      const success = await onDeleteConfig(configToDelete);
+      if (success) {
+        setConfigToDelete(null);
+        setDeleteModalOpened(false);
+      }
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setConfigToDelete(null);
+    setDeleteModalOpened(false);
+  };
 
   const handleSaveClick = async () => {
     if (selectedFile) {
@@ -103,6 +130,19 @@ export const ConfigFileManager = ({
           >
             {saveSuccess ? 'Saved!' : 'Save'}
           </Button>
+
+          <Tooltip label="Delete Configuration">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDeleteClick}
+              disabled={!selectedFile}
+              color="red"
+              style={{ width: '2.5rem', padding: '0 0.5rem' }}
+            >
+              <Trash2 size={16} />
+            </Button>
+          </Tooltip>
         </Group>
       </Stack>
 
@@ -111,6 +151,13 @@ export const ConfigFileManager = ({
         onClose={handleCloseConfigModal}
         onCreateConfig={onCreateNewConfig}
         existingConfigNames={existingConfigNames}
+      />
+
+      <DeleteConfigModal
+        opened={deleteModalOpened}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        configName={configToDelete}
       />
     </>
   );

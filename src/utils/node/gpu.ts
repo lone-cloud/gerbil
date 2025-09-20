@@ -6,6 +6,7 @@ interface CachedGPUInfo {
   deviceName: string;
   devicePath: string;
   memoryTotal: number;
+  hwmonPath?: string;
 }
 
 interface GPUData {
@@ -13,6 +14,7 @@ interface GPUData {
   usage: number;
   memoryUsed: number;
   memoryTotal: number;
+  temperature?: number;
 }
 
 let linuxGpuCache: CachedGPUInfo[] | null = null;
@@ -36,6 +38,7 @@ async function initializeLinuxGPUCache() {
     return linuxCachePromise;
   }
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   linuxCachePromise = (async () => {
     try {
       const drmPath = '/sys/class/drm';
@@ -80,14 +83,9 @@ async function initializeLinuxGPUCache() {
               } else {
                 deviceName = `GPU (${vendorId}:${deviceId})`;
               }
-            } catch {
-              void 0;
-            }
+            } catch {}
           }
-        } catch {
-          void 0;
-        }
-
+        } catch {}
         try {
           const memTotalData = await readFile(
             `${devicePath}/mem_info_vram_total`,
@@ -99,10 +97,22 @@ async function initializeLinuxGPUCache() {
           );
 
           if (memoryTotal > 0) {
+            let hwmonPath: string | undefined;
+            try {
+              const hwmonEntries = await readdir(`${devicePath}/hwmon`);
+              const hwmonEntry = hwmonEntries.find((e) =>
+                e.startsWith('hwmon')
+              );
+              if (hwmonEntry) {
+                hwmonPath = `${devicePath}/hwmon/${hwmonEntry}`;
+              }
+            } catch {}
+
             gpus.push({
               deviceName,
               devicePath,
               memoryTotal,
+              hwmonPath,
             });
           }
         } catch {
@@ -145,11 +155,23 @@ async function getLinuxGPUData() {
             (parseInt(memUsedData.trim(), 10) || 0) / (1024 * 1024 * 1024)
           );
 
+          let temperature: number | undefined;
+          if (cachedGPU.hwmonPath) {
+            try {
+              const tempData = await readFile(
+                `${cachedGPU.hwmonPath}/temp1_input`,
+                'utf8'
+              );
+              temperature = Math.round(parseInt(tempData.trim(), 10) / 1000);
+            } catch {}
+          }
+
           gpus.push({
             deviceName: cachedGPU.deviceName,
             usage,
             memoryUsed: parseFloat(memoryUsed.toFixed(2)),
             memoryTotal: parseFloat(cachedGPU.memoryTotal.toFixed(2)),
+            temperature,
           });
         } catch {
           continue;

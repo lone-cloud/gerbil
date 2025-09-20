@@ -1,5 +1,5 @@
-import { MODAL_STYLES_WITH_TITLEBAR } from '@/constants';
-import { Modal, TextInput, Group, Button, Stack } from '@mantine/core';
+import { TextInput, Group, Button, Stack } from '@mantine/core';
+import { Modal } from '@/components/Modal';
 import { useState, useEffect } from 'react';
 
 interface CreateConfigModalProps {
@@ -46,7 +46,6 @@ export const CreateConfigModal = ({
       onClose={handleClose}
       title="Create New Configuration"
       size="sm"
-      styles={MODAL_STYLES_WITH_TITLEBAR}
     >
       <Stack gap="md">
         <TextInput

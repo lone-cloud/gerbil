@@ -29,9 +29,7 @@ export const useLogoClickSounds = () => {
           setIsMouseSqueaking(false);
         }, 300);
       }
-    } catch {
-      void 0;
-    }
+    } catch {}
   };
 
   const getLogoStyles = () => ({

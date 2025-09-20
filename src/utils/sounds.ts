@@ -36,18 +36,14 @@ export const initializeAudio = async () => {
         audio.pause();
         audio.currentTime = 0;
         audio.volume = 0.5;
-      } catch {
-        void 0;
-      }
+      } catch {}
 
       audioCache.set(soundUrl, audio);
     });
 
     await Promise.allSettled(initPromises);
     audioInitialized = true;
-  } catch {
-    void 0;
-  }
+  } catch {}
 };
 
 export const playSound = async (soundUrl: string, volume = 0.5) => {
@@ -65,7 +61,5 @@ export const playSound = async (soundUrl: string, volume = 0.5) => {
     audio.volume = volume;
     audio.currentTime = 0;
     await audio.play();
-  } catch {
-    void 0;
-  }
+  } catch {}
 };

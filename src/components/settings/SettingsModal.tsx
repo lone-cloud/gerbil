@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, Tabs, Text, Group, rem, Button, Box } from '@mantine/core';
+import { Tabs, Text, Group, rem } from '@mantine/core';
 import {
   Settings,
   Palette,
@@ -12,7 +12,7 @@ import { VersionsTab } from '@/components/settings/VersionsTab';
 import { AppearanceTab } from '@/components/settings/AppearanceTab';
 import { AboutTab } from '@/components/settings/AboutTab';
 import type { Screen } from '@/types';
-import { MODAL_STYLES_WITH_TITLEBAR } from '@/constants';
+import { Modal } from '@/components/Modal';
 
 interface SettingsModalProps {
   opened: boolean;
@@ -67,111 +67,95 @@ export const SettingsModal = ({
         </Group>
       }
       size="xl"
-      centered
-      lockScroll={false}
-      styles={{
-        ...MODAL_STYLES_WITH_TITLEBAR,
-        content: {
-          paddingBottom: 0,
-        },
-        body: {
+      showCloseButton
+    >
+      <div
+        style={{
           height: '70vh',
           padding: 0,
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',
-        },
-      }}
-    >
-      <Tabs
-        value={activeTab}
-        onChange={(value) => value && setActiveTab(value)}
-        orientation="vertical"
-        variant="pills"
-        styles={{
-          root: {
-            flex: 1,
-            minHeight: 0,
-          },
-          panel: {
-            height: '100%',
-            overflow: 'auto',
-            paddingLeft: '1.5rem',
-            paddingRight: '1.5rem',
-          },
-          tabLabel: {
-            textAlign: 'left',
-            justifyContent: 'flex-start',
-          },
         }}
       >
-        <Tabs.List>
-          <Tabs.Tab
-            value="general"
-            leftSection={
-              <SlidersHorizontal style={{ width: rem(16), height: rem(16) }} />
-            }
-          >
-            General
-          </Tabs.Tab>
-          {showVersionsTab && (
+        <Tabs
+          value={activeTab}
+          onChange={(value) => value && setActiveTab(value)}
+          orientation="vertical"
+          variant="pills"
+          styles={{
+            root: {
+              flex: 1,
+              minHeight: 0,
+            },
+            panel: {
+              height: '100%',
+              overflow: 'auto',
+              paddingLeft: '1.5rem',
+              paddingRight: '1.5rem',
+            },
+            tabLabel: {
+              textAlign: 'left',
+              justifyContent: 'flex-start',
+            },
+          }}
+        >
+          <Tabs.List>
             <Tabs.Tab
-              value="versions"
+              value="general"
               leftSection={
-                <GitBranch style={{ width: rem(16), height: rem(16) }} />
+                <SlidersHorizontal
+                  style={{ width: rem(16), height: rem(16) }}
+                />
               }
             >
-              Versions
+              General
             </Tabs.Tab>
-          )}
-          <Tabs.Tab
-            value="appearance"
-            leftSection={
-              <Palette style={{ width: rem(16), height: rem(16) }} />
-            }
-          >
-            Appearance
-          </Tabs.Tab>
-          <Tabs.Tab
-            value="about"
-            leftSection={<Info style={{ width: rem(16), height: rem(16) }} />}
-          >
-            About
-          </Tabs.Tab>
-        </Tabs.List>
+            {showVersionsTab && (
+              <Tabs.Tab
+                value="versions"
+                leftSection={
+                  <GitBranch style={{ width: rem(16), height: rem(16) }} />
+                }
+              >
+                Versions
+              </Tabs.Tab>
+            )}
+            <Tabs.Tab
+              value="appearance"
+              leftSection={
+                <Palette style={{ width: rem(16), height: rem(16) }} />
+              }
+            >
+              Appearance
+            </Tabs.Tab>
+            <Tabs.Tab
+              value="about"
+              leftSection={<Info style={{ width: rem(16), height: rem(16) }} />}
+            >
+              About
+            </Tabs.Tab>
+          </Tabs.List>
 
-        <Tabs.Panel value="general">
-          <GeneralTab isOnInterfaceScreen={isOnInterfaceScreen} />
-        </Tabs.Panel>
-
-        {showVersionsTab && (
-          <Tabs.Panel value="versions">
-            <VersionsTab />
+          <Tabs.Panel value="general">
+            <GeneralTab isOnInterfaceScreen={isOnInterfaceScreen} />
           </Tabs.Panel>
-        )}
 
-        <Tabs.Panel value="appearance">
-          <AppearanceTab />
-        </Tabs.Panel>
+          {showVersionsTab && (
+            <Tabs.Panel value="versions">
+              <VersionsTab />
+            </Tabs.Panel>
+          )}
 
-        <Tabs.Panel value="about">
-          <AboutTab />
-        </Tabs.Panel>
-      </Tabs>
+          <Tabs.Panel value="appearance">
+            <AppearanceTab />
+          </Tabs.Panel>
 
-      <Box
-        style={{
-          backgroundColor: 'var(--mantine-color-body)',
-          padding: '0.5rem 1.5rem 1.5rem',
-          display: 'flex',
-          justifyContent: 'flex-end',
-          flexShrink: 0,
-        }}
-      >
-        <Button onClick={onClose} variant="filled">
-          Close
-        </Button>
-      </Box>
+          <Tabs.Panel value="about">
+            <AboutTab />
+          </Tabs.Panel>
+        </Tabs>
+      </div>
     </Modal>
   );
 };

@@ -3,7 +3,9 @@
 @import '@fontsource/inter/latin-500.css';
 @import '@fontsource/inter/latin-600.css';
 
-:root {
+:root,
+.mantine-Modal-root,
+.mantine-Portal {
   --mantine-color-body: #fafafa;
   --mantine-color-white: #fafafa;
 
@@ -15,7 +17,9 @@
   --mantine-color-default-border: #e5e7eb;
 }
 
-[data-mantine-color-scheme='dark'] {
+[data-mantine-color-scheme='dark'],
+[data-mantine-color-scheme='dark'] .mantine-Modal-root,
+[data-mantine-color-scheme='dark'] .mantine-Portal {
   --mantine-color-body: #0f0f0f;
   --mantine-color-dark-7: #1a1a1a;
   --mantine-color-dark-6: #2d2d2d;
@@ -129,4 +133,12 @@
 
 .mantine-Tooltip-arrow {
   background-color: var(--mantine-color-dark-6) !important;
+}
+
+[data-mantine-color-scheme='dark'] .mantine-Modal-content {
+  background-color: var(--mantine-color-dark-7) !important;
+}
+
+[data-mantine-color-scheme='dark'] .mantine-Modal-header {
+  background-color: var(--mantine-color-dark-7) !important;
 }

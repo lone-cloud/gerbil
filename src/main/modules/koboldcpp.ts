@@ -428,6 +428,18 @@ export async function saveConfigFile(
   }
 }
 
+export async function deleteConfigFile(configFileName: string) {
+  try {
+    const installDir = getInstallDir();
+    const configPath = join(installDir, configFileName);
+    await unlink(configPath);
+    return true;
+  } catch (error) {
+    logError('Error deleting config file:', error as Error);
+    return false;
+  }
+}
+
 export async function selectModelFile(title = 'Select Model File') {
   try {
     const mainWindow = getMainWindow();
