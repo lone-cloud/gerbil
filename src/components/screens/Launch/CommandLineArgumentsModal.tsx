@@ -9,6 +9,7 @@ import {
   Button,
 } from '@mantine/core';
 import { useState } from 'react';
+import { Code as CodeIcon } from 'lucide-react';
 import { Modal } from '@/components/Modal';
 
 interface CommandLineArgumentsModalProps {
@@ -551,7 +552,12 @@ export const CommandLineArgumentsModal = ({
     <Modal
       opened={opened}
       onClose={onClose}
-      title="Available Command Line Arguments"
+      title={
+        <Group gap="xs">
+          <CodeIcon size={20} />
+          <Text fw={500}>Available Command Line Arguments</Text>
+        </Group>
+      }
       size="xl"
       showCloseButton
     >

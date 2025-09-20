@@ -49,7 +49,7 @@ export const Modal = ({
     {showCloseButton && (
       <Box
         style={{
-          padding: '0.5rem 1.5rem 1.5rem',
+          padding: '1rem 0',
           display: 'flex',
           justifyContent: 'flex-end',
           flexShrink: 0,
