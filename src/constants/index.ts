@@ -6,15 +6,6 @@ export const TITLEBAR_HEIGHT = '2.5rem';
 
 export const STATUSBAR_HEIGHT = '1.5rem';
 
-export const MODAL_STYLES_WITH_TITLEBAR = {
-  overlay: {
-    top: TITLEBAR_HEIGHT,
-  },
-  content: {
-    marginTop: TITLEBAR_HEIGHT,
-  },
-} as const;
-
 export const SERVER_READY_SIGNALS = {
   KOBOLDCPP: 'Please connect to custom endpoint at',
   SILLYTAVERN: 'SillyTavern is listening on',

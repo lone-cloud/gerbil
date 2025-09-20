@@ -47,9 +47,7 @@ const saveToCache = (releases: DownloadItem[]) => {
       timestamp: Date.now(),
     };
     localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-  } catch {
-    void 0;
-  }
+  } catch {}
 };
 
 const transformReleaseToDownloadItems = (

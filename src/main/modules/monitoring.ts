@@ -6,6 +6,7 @@ import { tryExecute } from '@/utils/node/logger';
 
 export interface CpuMetrics {
   usage: number;
+  temperature?: number;
 }
 
 export interface MemoryMetrics {
@@ -21,6 +22,7 @@ export interface GpuMetrics {
     memoryUsed: number;
     memoryTotal: number;
     memoryUsage: number;
+    temperature?: number;
   }[];
 }
 
@@ -96,6 +98,16 @@ async function collectAndSendCpuMetrics() {
       usage: Math.round(cpuData.currentLoad),
     };
 
+    if (platform === 'linux') {
+      try {
+        const tempData = await si.cpuTemperature();
+        metrics.temperature =
+          tempData.main && tempData.main > 0
+            ? Math.round(tempData.main)
+            : undefined;
+      } catch {}
+    }
+
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('cpu-metrics', metrics);
     }
@@ -132,6 +144,7 @@ async function collectAndSendGpuMetrics() {
           gpuInfo.memoryTotal > 0
             ? Math.round((gpuInfo.memoryUsed / gpuInfo.memoryTotal) * 100)
             : 0,
+        temperature: gpuInfo.temperature,
       })),
     };
 

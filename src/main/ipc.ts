@@ -10,6 +10,7 @@ import {
   getCurrentVersion,
   getConfigFiles,
   saveConfigFile,
+  deleteConfigFile,
   setCurrentVersion,
   selectInstallDirectory,
   stopKoboldCpp,
@@ -105,6 +106,10 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('kobold:saveConfigFile', async (_, configName, configData) =>
     saveConfigFile(configName, configData)
+  );
+
+  ipcMain.handle('kobold:deleteConfigFile', async (_, configName) =>
+    deleteConfigFile(configName)
   );
 
   ipcMain.handle('kobold:getSelectedConfig', () => getSelectedConfig());

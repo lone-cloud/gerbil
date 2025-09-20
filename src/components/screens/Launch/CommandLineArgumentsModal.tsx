@@ -1,6 +1,4 @@
-import { MODAL_STYLES_WITH_TITLEBAR } from '@/constants';
 import {
-  Modal,
   Text,
   Stack,
   Group,
@@ -9,9 +7,9 @@ import {
   Code,
   TextInput,
   Button,
-  Box,
 } from '@mantine/core';
 import { useState } from 'react';
+import { Modal } from '@/components/Modal';
 
 interface CommandLineArgumentsModalProps {
   opened: boolean;
@@ -555,8 +553,7 @@ export const CommandLineArgumentsModal = ({
       onClose={onClose}
       title="Available Command Line Arguments"
       size="xl"
-      centered
-      styles={MODAL_STYLES_WITH_TITLEBAR}
+      showCloseButton
     >
       <Stack gap="md">
         <Text size="sm" c="dimmed">
@@ -659,20 +656,6 @@ export const CommandLineArgumentsModal = ({
             </Accordion.Item>
           ))}
         </Accordion>
-
-        <Box
-          style={{
-            backgroundColor: 'var(--mantine-color-body)',
-            padding: '0.5rem 1.5rem 0',
-            display: 'flex',
-            justifyContent: 'flex-end',
-            flexShrink: 0,
-          }}
-        >
-          <Button onClick={onClose} variant="filled">
-            Close
-          </Button>
-        </Box>
       </Stack>
     </Modal>
   );

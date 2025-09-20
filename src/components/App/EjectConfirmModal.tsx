@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Modal, Text, Group, Button, Checkbox, Stack } from '@mantine/core';
-import { MODAL_STYLES_WITH_TITLEBAR } from '@/constants';
+import { Text, Group, Button, Checkbox, Stack } from '@mantine/core';
+import { Modal } from '@/components/Modal';
 
 interface EjectConfirmModalProps {
   opened: boolean;
@@ -30,10 +30,6 @@ export const EjectConfirmModal = ({
       opened={opened}
       onClose={handleClose}
       title="Are you sure you want to eject?"
-      centered
-      closeOnClickOutside={false}
-      closeOnEscape={false}
-      styles={MODAL_STYLES_WITH_TITLEBAR}
     >
       <Stack gap="md">
         <Text size="sm" c="dimmed">

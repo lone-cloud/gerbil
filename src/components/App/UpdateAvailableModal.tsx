@@ -1,5 +1,4 @@
 import {
-  Modal,
   Stack,
   Text,
   Group,
@@ -15,8 +14,9 @@ import type { DownloadItem } from '@/types/electron';
 import type { BinaryUpdateInfo } from '@/hooks/useUpdateChecker';
 import { useKoboldVersions } from '@/hooks/useKoboldVersions';
 import { getDisplayNameFromPath } from '@/utils/version';
-import { GITHUB_API, MODAL_STYLES_WITH_TITLEBAR } from '@/constants';
+import { GITHUB_API } from '@/constants';
 import { safeExecute } from '@/utils/logger';
+import { Modal } from '@/components/Modal';
 
 interface UpdateAvailableModalProps {
   opened: boolean;
@@ -59,10 +59,7 @@ export const UpdateAvailableModal = ({
       onClose={onClose}
       size="sm"
       title="A newer version is available"
-      centered
-      closeOnClickOutside={false}
       closeOnEscape={!isDownloading && !isUpdating}
-      styles={MODAL_STYLES_WITH_TITLEBAR}
     >
       <Stack gap="md">
         <Card withBorder radius="md" p="md" bd="2px solid orange">

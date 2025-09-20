@@ -170,6 +170,8 @@ const config = [
 
       'sonarjs/cognitive-complexity': ['warn', 25],
 
+      'no-empty': ['error', { allowEmptyCatch: true }],
+
       'promise/prefer-await-to-then': 'error',
       'promise/prefer-await-to-callbacks': 'off',
       'promise/no-nesting': 'error',

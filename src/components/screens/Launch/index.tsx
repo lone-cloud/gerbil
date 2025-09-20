@@ -223,6 +223,32 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     return true;
   };
 
+  const handleDeleteConfig = async (fileName: string) => {
+    const deleteSuccess =
+      await window.electronAPI.kobold.deleteConfigFile(fileName);
+
+    if (deleteSuccess) {
+      await loadConfigFiles();
+
+      const updatedFiles = await window.electronAPI.kobold.getConfigFiles();
+      if (updatedFiles.length > 0) {
+        const firstConfig = updatedFiles[0].name;
+        setSelectedFile(firstConfig);
+        await window.electronAPI.kobold.setSelectedConfig(firstConfig);
+
+        const selectedConfig = updatedFiles.find((f) => f.name === firstConfig);
+        if (selectedConfig) {
+          await parseAndApplyConfigFile(selectedConfig.path);
+        }
+      } else {
+        setSelectedFile(null);
+        await window.electronAPI.kobold.setSelectedConfig('');
+      }
+    }
+
+    return deleteSuccess;
+  };
+
   useEffect(() => {
     void loadConfigFiles();
 
@@ -290,6 +316,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
               onFileSelection={handleFileSelection}
               onCreateNewConfig={handleCreateNewConfig}
               onSaveConfig={handleSaveConfig}
+              onDeleteConfig={handleDeleteConfig}
               onLoadConfigFiles={loadConfigFiles}
             />
 

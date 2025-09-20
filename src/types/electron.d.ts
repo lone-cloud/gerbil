@@ -124,6 +124,7 @@ export interface KoboldAPI {
     configName: string,
     configData: KoboldConfig
   ) => Promise<boolean>;
+  deleteConfigFile: (configName: string) => Promise<boolean>;
   getSelectedConfig: () => Promise<string | null>;
   setSelectedConfig: (configName: string) => Promise<boolean>;
   parseConfigFile: (filePath: string) => Promise<KoboldConfig | null>;

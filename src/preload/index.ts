@@ -38,6 +38,8 @@ const koboldAPI: KoboldAPI = {
   getConfigFiles: () => ipcRenderer.invoke('kobold:getConfigFiles'),
   saveConfigFile: (configName, configData) =>
     ipcRenderer.invoke('kobold:saveConfigFile', configName, configData),
+  deleteConfigFile: (configName) =>
+    ipcRenderer.invoke('kobold:deleteConfigFile', configName),
   getSelectedConfig: () => ipcRenderer.invoke('kobold:getSelectedConfig'),
   setSelectedConfig: (configName) =>
     ipcRenderer.invoke('kobold:setSelectedConfig', configName),
