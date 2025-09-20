@@ -51,13 +51,7 @@ export const App = () => {
         window.electronAPI.config.get('hasSeenWelcome') as Promise<boolean>,
       ]);
 
-      if (!hasSeenWelcome) {
-        setCurrentScreen('welcome');
-      } else if (currentVersion) {
-        setCurrentScreen('launch');
-      } else {
-        setCurrentScreen('download');
-      }
+      determineScreen(currentVersion, hasSeenWelcome);
 
       if (currentVersion) {
         setTimeout(() => {
@@ -71,6 +65,19 @@ export const App = () => {
     checkInstallation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const determineScreen = (
+    currentVersion: unknown,
+    hasSeenWelcome: boolean
+  ) => {
+    if (!hasSeenWelcome) {
+      setCurrentScreen('welcome');
+    } else if (currentVersion) {
+      setCurrentScreen('launch');
+    } else {
+      setCurrentScreen('download');
+    }
+  };
 
   const handleBinaryUpdate = async (download: DownloadItem) => {
     const success = await sharedHandleDownload({
@@ -108,8 +115,11 @@ export const App = () => {
     performEject();
   };
 
-  const handleWelcomeComplete = () => {
-    setCurrentScreen('download');
+  const handleWelcomeComplete = async () => {
+    window.electronAPI.config.set('hasSeenWelcome', true);
+
+    const currentVersion = await window.electronAPI.kobold.getCurrentVersion();
+    determineScreen(currentVersion, true);
   };
 
   const handleDownloadComplete = () => {

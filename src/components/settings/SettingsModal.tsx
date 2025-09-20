@@ -71,7 +71,7 @@ export const SettingsModal = ({
     >
       <div
         style={{
-          height: '70vh',
+          height: '67vh',
           padding: 0,
           display: 'flex',
           flexDirection: 'column',
