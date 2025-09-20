@@ -325,14 +325,14 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
               onChange={setActiveTab}
               styles={{
                 root: {
-                  maxHeight: '54vh',
+                  maxHeight: '51vh',
                   display: 'flex',
                   flexDirection: 'column',
                 },
                 panel: {
                   flex: 1,
                   overflow: 'auto',
-                  paddingTop: '0.75rem',
+                  paddingTop: '1rem',
                   paddingRight: '0.5rem',
                 },
               }}

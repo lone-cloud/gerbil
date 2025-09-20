@@ -10,7 +10,7 @@ let mainWindow: BrowserWindow | null = null;
 
 export function createMainWindow() {
   const { size } = screen.getPrimaryDisplay();
-  const windowHeight = Math.floor(size.height * 0.9);
+  const windowHeight = Math.min(Math.floor(size.height * 0.75), 1000);
   const windowWidth = 800;
 
   const icon = isDevelopment
