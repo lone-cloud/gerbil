@@ -14,11 +14,15 @@ export function createMainWindow() {
   const savedBounds = getWindowBounds();
 
   const defaultWidth = 800;
-  const defaultHeight = Math.min(Math.floor(size.height * 0.75), 1000);
+  const minHeight = 600;
+  const defaultHeight = Math.max(
+    minHeight,
+    Math.min(Math.floor(size.height * 0.75), 1000)
+  );
 
   const windowOptions = {
     minWidth: 600,
-    minHeight: 600,
+    minHeight,
     width: savedBounds?.width || defaultWidth,
     height: savedBounds?.height || defaultHeight,
     frame: false,

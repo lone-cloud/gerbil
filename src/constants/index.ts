@@ -53,22 +53,25 @@ export const GITHUB_API = {
   GERBIL_REPO: 'lone-cloud/gerbil',
   COMFYUI_REPO: 'comfyanonymous/ComfyUI',
   get LATEST_RELEASE_URL() {
-    return `${this.BASE_URL}/repos/${this.KOBOLDCPP_REPO}/releases/latest`;
+    return `${this.BASE_URL}/repos/${this.KOBOLDCPP_REPO}/releases/latest` as const;
   },
   get ALL_RELEASES_URL() {
-    return `${this.BASE_URL}/repos/${this.KOBOLDCPP_REPO}/releases`;
+    return `${this.BASE_URL}/repos/${this.KOBOLDCPP_REPO}/releases` as const;
   },
   get ROCM_LATEST_RELEASE_URL() {
-    return `${this.BASE_URL}/repos/${this.KOBOLDCPP_ROCM_REPO}/releases/latest`;
+    return `${this.BASE_URL}/repos/${this.KOBOLDCPP_ROCM_REPO}/releases/latest` as const;
   },
   get COMFYUI_DOWNLOAD_URL() {
-    return `${this.GITHUB_BASE_URL}/${this.COMFYUI_REPO}/archive/refs/heads/master.zip`;
+    return `${this.GITHUB_BASE_URL}/${this.COMFYUI_REPO}/archive/refs/heads/master.zip` as const;
   },
   get COMFYUI_LATEST_COMMIT_URL() {
-    return `${this.BASE_URL}/repos/${this.COMFYUI_REPO}/commits/master`;
+    return `${this.BASE_URL}/repos/${this.COMFYUI_REPO}/commits/master` as const;
   },
   get GERBIL_GITHUB_URL() {
-    return `${this.GITHUB_BASE_URL}/${this.GERBIL_REPO}`;
+    return `${this.GITHUB_BASE_URL}/${this.GERBIL_REPO}` as const;
+  },
+  get GERBIL_LATEST_RELEASE_URL() {
+    return `${this.BASE_URL}/repos/${this.GERBIL_REPO}/releases/latest` as const;
   },
 } as const;
 

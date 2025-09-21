@@ -3,6 +3,7 @@ import { homedir } from 'os';
 import { join } from 'path';
 import { platform, env as processEnv } from 'process';
 import { execa } from 'execa';
+import { app } from 'electron';
 
 async function executeCommand(
   command: string,
@@ -187,4 +188,37 @@ function tryAddPathToEnv(
     return true;
   }
   return false;
+}
+
+let windowsPortableInstallationCache: boolean | null = null;
+
+export function isWindowsPortableInstallation() {
+  if (platform !== 'win32') {
+    return false;
+  }
+
+  if (windowsPortableInstallationCache !== null) {
+    return windowsPortableInstallationCache;
+  }
+
+  try {
+    const execPath = app.getPath('exe');
+
+    const isInTemp =
+      execPath.toLowerCase().includes('\\temp\\') ||
+      execPath.toLowerCase().includes('\\tmp\\');
+
+    const isInProgramFiles = execPath.toLowerCase().includes('program files');
+    const isInAppDataPrograms = execPath
+      .toLowerCase()
+      .includes('appdata\\local\\programs');
+
+    windowsPortableInstallationCache =
+      isInTemp && !isInProgramFiles && !isInAppDataPrograms;
+
+    return windowsPortableInstallationCache;
+  } catch {
+    windowsPortableInstallationCache = false;
+    return false;
+  }
 }
