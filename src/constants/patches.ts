@@ -21,9 +21,6 @@ export const KLITE_CSS_OVERRIDE = `
   padding: 0 10px;
 }
 
-#actionmenuitems {
-  margin-left: 10px;
-}
 
 #navbarNavDropdown {
   padding: 0;
@@ -46,21 +43,6 @@ export const KLITE_CSS_OVERRIDE = `
 }
 #inputrow.show_mode > :nth-child(3) button:hover {
   background-color: #058105;
-}
-
-#actionmenuitems + div {
-  margin-right: 10px;
-}
-
-#actionmenuitems + div input[type=checkbox] {
-  margin: 0;
-}
-
-#actionmenuitems button, #actionmenuitems2 button {
-  background-color: #337ab7 !important;
-}
-#actionmenuitems button:hover, #actionmenuitems2 button:hover {
-  background-color: #286090 !important;
 }
 </style>`;
 

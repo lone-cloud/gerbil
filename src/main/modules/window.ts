@@ -86,7 +86,7 @@ export function createMainWindow() {
     : null;
 
   const saveBounds = () => {
-    if (mainWindow) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
       const isMaximized = mainWindow.isMaximized();
       const currentBounds = mainWindow.getBounds();
 
