@@ -4,7 +4,7 @@ import {
   compareVersions,
   stripAssetExtensions,
 } from '@/utils/version';
-import { useKoboldVersions } from '@/hooks/useKoboldVersions';
+import { useKoboldVersionsStore } from '@/stores/koboldVersions';
 import { getROCmDownload } from '@/utils/rocm';
 import type { InstalledVersion, DownloadItem } from '@/types/electron';
 
@@ -20,10 +20,9 @@ export const useUpdateChecker = () => {
   const [dismissedUpdates, setDismissedUpdates] = useState<Set<string>>(
     new Set()
   );
-  const [dismissedUpdatesLoaded, setDismissedUpdatesLoaded] = useState(false);
 
-  const { availableDownloads: releases } = useKoboldVersions();
-
+  const { availableDownloads: releases, loadingRemote } =
+    useKoboldVersionsStore();
   useEffect(() => {
     const loadDismissedUpdates = async () => {
       const dismissed = (await window.electronAPI.config.get(
@@ -33,23 +32,17 @@ export const useUpdateChecker = () => {
       if (dismissed) {
         setDismissedUpdates(new Set(dismissed));
       }
-      setDismissedUpdatesLoaded(true);
     };
 
     loadDismissedUpdates();
   }, []);
 
-  const saveDismissedUpdates = useCallback((updates: Set<string>) => {
-    window.electronAPI.config.set('dismissedUpdates', Array.from(updates));
-  }, []);
-
   const checkForUpdates = useCallback(async () => {
-    if (!dismissedUpdatesLoaded || releases.length === 0) {
+    if (loadingRemote || releases.length === 0) {
       return;
     }
 
     setIsChecking(true);
-
     const [currentVersion, rocmDownload] = await Promise.all([
       window.electronAPI.kobold.getCurrentVersion(),
       getROCmDownload(),
@@ -92,24 +85,33 @@ export const useUpdateChecker = () => {
     }
 
     setIsChecking(false);
-  }, [dismissedUpdates, dismissedUpdatesLoaded, releases]);
+  }, [dismissedUpdates, releases, loadingRemote]);
 
-  const dismissUpdate = useCallback(async () => {
+  const skipUpdate = useCallback(() => {
     if (updateInfo) {
       const updateKey = `${updateInfo.currentVersion.path}-${updateInfo.availableUpdate.version}`;
       const newDismissedUpdates = new Set([...dismissedUpdates, updateKey]);
       setDismissedUpdates(newDismissedUpdates);
-      await saveDismissedUpdates(newDismissedUpdates);
+      window.electronAPI.config.set(
+        'dismissedUpdates',
+        Array.from(newDismissedUpdates)
+      );
     }
     setShowUpdateModal(false);
     setUpdateInfo(null);
-  }, [updateInfo, dismissedUpdates, saveDismissedUpdates]);
+  }, [updateInfo, dismissedUpdates]);
+
+  const closeModal = useCallback(() => {
+    setShowUpdateModal(false);
+    setUpdateInfo(null);
+  }, []);
 
   return {
     updateInfo,
     showUpdateModal,
     isChecking,
     checkForUpdates,
-    dismissUpdate,
+    skipUpdate,
+    closeModal,
   };
 };

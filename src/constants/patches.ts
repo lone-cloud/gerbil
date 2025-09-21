@@ -25,10 +25,6 @@ export const KLITE_CSS_OVERRIDE = `
   margin-left: 10px;
 }
 
-.topmenu {
-  padding: 10px;
-}
-
 #navbarNavDropdown {
   padding: 0;
 }

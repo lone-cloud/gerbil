@@ -12,7 +12,7 @@ import { Download, X, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 import type { DownloadItem } from '@/types/electron';
 import type { BinaryUpdateInfo } from '@/hooks/useUpdateChecker';
-import { useKoboldVersions } from '@/hooks/useKoboldVersions';
+import { useKoboldVersionsStore } from '@/stores/koboldVersions';
 import { getDisplayNameFromPath } from '@/utils/version';
 import { GITHUB_API } from '@/constants';
 import { safeExecute } from '@/utils/logger';
@@ -21,6 +21,7 @@ import { Modal } from '@/components/Modal';
 interface UpdateAvailableModalProps {
   opened: boolean;
   onClose: () => void;
+  onSkip: () => void;
   updateInfo?: BinaryUpdateInfo;
   onUpdate: (download: DownloadItem) => Promise<void>;
 }
@@ -28,10 +29,11 @@ interface UpdateAvailableModalProps {
 export const UpdateAvailableModal = ({
   opened,
   onClose,
+  onSkip,
   updateInfo,
   onUpdate,
 }: UpdateAvailableModalProps) => {
-  const { downloading, downloadProgress } = useKoboldVersions();
+  const { downloading, downloadProgress } = useKoboldVersionsStore();
   const currentVersion = updateInfo?.currentVersion;
   const availableUpdate = updateInfo?.availableUpdate;
   const [isUpdating, setIsUpdating] = useState(false);
@@ -141,7 +143,7 @@ export const UpdateAvailableModal = ({
         <Group justify="flex-end" gap="sm">
           <Button
             variant="outline"
-            onClick={onClose}
+            onClick={onSkip}
             disabled={isDownloading || isUpdating}
             leftSection={<X size={16} />}
           >

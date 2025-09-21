@@ -78,9 +78,10 @@ async function removeDirectoryWithRetry(
 
 async function handleExistingDirectory(
   unpackedDirPath: string,
-  isUpdate: boolean
+  isUpdate: boolean,
+  wasCurrentBinary = false
 ) {
-  if (!isUpdate || !(await pathExists(unpackedDirPath))) {
+  if (!isUpdate) {
     return;
   }
 
@@ -91,7 +92,26 @@ async function handleExistingDirectory(
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
 
-    await removeDirectoryWithRetry(unpackedDirPath);
+    if (await pathExists(unpackedDirPath)) {
+      await removeDirectoryWithRetry(unpackedDirPath);
+    }
+
+    if (wasCurrentBinary) {
+      const currentBinaryPath = getCurrentKoboldBinary();
+      if (currentBinaryPath && (await pathExists(currentBinaryPath))) {
+        const oldVersionDir = currentBinaryPath
+          .split(/[/\\]/)
+          .slice(0, -1)
+          .join('/');
+        if (
+          oldVersionDir !== unpackedDirPath &&
+          (await pathExists(oldVersionDir))
+        ) {
+          await removeDirectoryWithRetry(oldVersionDir);
+          sendKoboldOutput(`Removed old version: ${oldVersionDir}`);
+        }
+      }
+    }
   } catch (error) {
     logError('Failed to remove existing directory for update:', error as Error);
     throw new Error(
@@ -104,21 +124,20 @@ async function handleExistingDirectory(
 
 async function downloadFile(asset: GitHubAsset, tempPackedFilePath: string) {
   const writer = createWriteStream(tempPackedFilePath);
-  let downloadedBytes = 0;
-
-  const response = await fetch(asset.browser_download_url);
-
-  if (!response.ok) {
-    throw new Error(`Download failed: ${response.statusText}`);
-  }
-
-  if (!response.body) {
-    throw new Error('Response body is null');
-  }
-
-  const totalBytes = asset.size;
   const mainWindow = getMainWindow();
 
+  let downloadedBytes = 0;
+  let lastProgressUpdate = 0;
+
+  const response = await fetch(asset.browser_download_url);
+  if (!response.ok || !response.body) {
+    throw new Error(`Failed to download: ${response.statusText}`);
+  }
+
+  const totalBytes = parseInt(
+    response.headers.get('content-length') || '0',
+    10
+  );
   const reader = response.body.getReader();
 
   const pump = async () => {
@@ -126,13 +145,18 @@ async function downloadFile(asset: GitHubAsset, tempPackedFilePath: string) {
 
     if (done) {
       writer.end();
+      mainWindow.webContents.send('download-progress', 100);
       return;
     }
 
     downloadedBytes += value.length;
     if (totalBytes > 0) {
       const progress = (downloadedBytes / totalBytes) * 100;
-      mainWindow.webContents.send('download-progress', progress);
+      const now = Date.now();
+      if (now - lastProgressUpdate > 100) {
+        mainWindow.webContents.send('download-progress', progress);
+        lastProgressUpdate = now;
+      }
     }
 
     writer.write(Buffer.from(value));
@@ -199,8 +223,13 @@ export async function downloadRelease(asset: GitHubAsset) {
   const unpackedDirPath = join(getInstallDir(), folderName);
 
   try {
-    await handleExistingDirectory(unpackedDirPath, Boolean(asset.isUpdate));
+    await handleExistingDirectory(
+      unpackedDirPath,
+      Boolean(asset.isUpdate),
+      Boolean(asset.wasCurrentBinary)
+    );
     await downloadFile(asset, tempPackedFilePath);
+
     await mkdir(unpackedDirPath, { recursive: true });
     await unpackKoboldCpp(tempPackedFilePath, unpackedDirPath);
     const launcherPath = await setupLauncher(

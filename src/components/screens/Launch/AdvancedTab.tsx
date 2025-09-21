@@ -5,6 +5,7 @@ import {
   TextInput,
   NumberInput,
   Button,
+  SimpleGrid,
 } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
@@ -75,91 +76,83 @@ export const AdvancedTab = () => {
   return (
     <Stack gap="md">
       <div>
-        <Stack gap="md">
-          <Group gap="lg" align="flex-start" wrap="nowrap">
-            <CheckboxWithTooltip
-              checked={!noshift}
-              onChange={(checked) => handleNoshiftChange(!checked)}
-              label="Context Shift"
-              tooltip="Use Context Shifting to reduce reprocessing."
-            />
+        <SimpleGrid cols={3} spacing="lg" verticalSpacing="md">
+          <CheckboxWithTooltip
+            checked={!noshift}
+            onChange={(checked) => handleNoshiftChange(!checked)}
+            label="Context Shift"
+            tooltip="Use Context Shifting to reduce reprocessing."
+          />
 
-            <CheckboxWithTooltip
-              checked={noshift}
-              onChange={handleNoshiftChange}
-              label="No Shift"
-              tooltip="Don't use GPU layer shifting for incomplete offloads, which may reduce model performance."
-            />
-          </Group>
+          <CheckboxWithTooltip
+            checked={noshift}
+            onChange={handleNoshiftChange}
+            label="No Shift"
+            tooltip="Don't use GPU layer shifting for incomplete offloads, which may reduce model performance."
+          />
 
-          <Group gap="lg" align="flex-start" wrap="nowrap">
-            <CheckboxWithTooltip
-              checked={flashattention}
-              onChange={handleFlashattentionChange}
-              label="Flash Attention"
-              tooltip="Enable flash attention to reduce memory usage. May produce incorrect answers for some prompts, but improves performance."
-            />
+          <CheckboxWithTooltip
+            checked={noavx2}
+            onChange={handleNoavx2Change}
+            label="Disable AVX2"
+            tooltip={
+              !backendSupport?.noavx2 && !isLoading
+                ? 'This binary does not support the no-AVX2 mode.'
+                : 'Do not use AVX2 instructions, a slower compatibility mode for older devices.'
+            }
+            disabled={isLoading || !backendSupport?.noavx2}
+          />
 
-            <CheckboxWithTooltip
-              checked={usemmap}
-              onChange={handleUsemmapChange}
-              label="MMAP"
-              tooltip="Use MMAP to load models when enabled."
-            />
-          </Group>
+          <CheckboxWithTooltip
+            checked={usemmap}
+            onChange={handleUsemmapChange}
+            label="MMAP"
+            tooltip="Use MMAP to load models when enabled."
+          />
 
-          <Group gap="lg" align="flex-start" wrap="nowrap">
-            <CheckboxWithTooltip
-              checked={quantmatmul && isGpuBackend}
-              onChange={handleQuantmatmulChange}
-              label="QuantMatMul"
-              tooltip={
-                !isGpuBackend
-                  ? 'QuantMatMul is only available for CUDA and ROCm backends.'
-                  : 'Enable MMQ mode to use finetuned kernels instead of default CuBLAS/HipBLAS for prompt processing.'
-              }
-              disabled={!isGpuBackend}
-            />
+          <CheckboxWithTooltip
+            checked={quantmatmul && isGpuBackend}
+            onChange={handleQuantmatmulChange}
+            label="QuantMatMul"
+            tooltip={
+              !isGpuBackend
+                ? 'QuantMatMul is only available for CUDA and ROCm backends.'
+                : 'Enable MMQ mode to use finetuned kernels instead of default CuBLAS/HipBLAS for prompt processing.'
+            }
+            disabled={!isGpuBackend}
+          />
 
-            <CheckboxWithTooltip
-              checked={lowvram && isGpuBackend}
-              onChange={handleLowvramChange}
-              label="Low VRAM"
-              tooltip={
-                !isGpuBackend
-                  ? 'Low VRAM mode is only available for CUDA and ROCm backends.'
-                  : 'Avoid offloading KV Cache or scratch buffers to VRAM. Allows more layers to fit, but may result in a speed loss.'
-              }
-              disabled={!isGpuBackend}
-            />
-          </Group>
+          <CheckboxWithTooltip
+            checked={failsafe}
+            onChange={handleFailsafeChange}
+            label="Failsafe"
+            tooltip={
+              !backendSupport?.failsafe && !isLoading
+                ? 'This binary does not support failsafe mode.'
+                : 'Use failsafe mode, extremely slow CPU only compatibility mode that should work on all devices. Can be combined with useclblast if your device supports OpenCL.'
+            }
+            disabled={isLoading || !backendSupport?.failsafe}
+          />
 
-          <Group gap="lg" align="flex-start" wrap="nowrap">
-            <CheckboxWithTooltip
-              checked={noavx2}
-              onChange={handleNoavx2Change}
-              label="Disable AVX2"
-              tooltip={
-                !backendSupport?.noavx2 && !isLoading
-                  ? 'This binary does not support the no-AVX2 mode.'
-                  : 'Do not use AVX2 instructions, a slower compatibility mode for older devices.'
-              }
-              disabled={isLoading || !backendSupport?.noavx2}
-            />
+          <CheckboxWithTooltip
+            checked={flashattention}
+            onChange={handleFlashattentionChange}
+            label="Flash Attention"
+            tooltip="Enable flash attention to reduce memory usage. May produce incorrect answers for some prompts, but improves performance."
+          />
 
-            <CheckboxWithTooltip
-              checked={failsafe}
-              onChange={handleFailsafeChange}
-              label="Failsafe"
-              tooltip={
-                !backendSupport?.failsafe && !isLoading
-                  ? 'This binary does not support failsafe mode.'
-                  : 'Use failsafe mode, extremely slow CPU only compatibility mode that should work on all devices. Can be combined with useclblast if your device supports OpenCL.'
-              }
-              disabled={isLoading || !backendSupport?.failsafe}
-            />
-          </Group>
-        </Stack>
+          <CheckboxWithTooltip
+            checked={lowvram && isGpuBackend}
+            onChange={handleLowvramChange}
+            label="Low VRAM"
+            tooltip={
+              !isGpuBackend
+                ? 'Low VRAM mode is only available for CUDA and ROCm backends.'
+                : 'Avoid offloading KV Cache or scratch buffers to VRAM. Allows more layers to fit, but may result in a speed loss.'
+            }
+            disabled={!isGpuBackend}
+          />
+        </SimpleGrid>
       </div>
 
       <div>

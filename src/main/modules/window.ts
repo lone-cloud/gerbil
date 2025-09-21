@@ -322,7 +322,11 @@ export function getMainWindow() {
 export const sendToRenderer = <T extends IPCChannel>(
   channel: T,
   ...args: IPCChannelPayloads[T]
-) => getMainWindow().webContents.send(channel, ...args);
+) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send(channel, ...args);
+  }
+};
 
 export function sendKoboldOutput(message: string, raw?: boolean) {
   const cleanMessage = stripVTControlCharacters(message);
