@@ -345,7 +345,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
               </Tabs.List>
 
               <Tabs.Panel value="general">
-                <GeneralTab />
+                <GeneralTab configLoaded={configLoaded} />
               </Tabs.Panel>
 
               <Tabs.Panel value="advanced">
