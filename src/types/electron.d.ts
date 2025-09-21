@@ -152,6 +152,8 @@ export interface VersionInfo {
 
 export interface AppAPI {
   showLogsFolder: () => Promise<void>;
+  viewConfigFile: () => Promise<void>;
+  openPath: (path: string) => Promise<void>;
   getVersion: () => Promise<string>;
   getVersionInfo: () => Promise<VersionInfo>;
   minimizeWindow: () => void;
@@ -165,7 +167,6 @@ export interface AppAPI {
   openExternal: (url: string) => Promise<void>;
   openPerformanceManager: () => Promise<{
     success: boolean;
-    app?: string;
     error?: string;
   }>;
   checkForUpdates: () => Promise<boolean>;

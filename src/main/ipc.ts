@@ -26,6 +26,7 @@ import {
   getColorScheme,
   setColorScheme,
 } from '@/main/modules/config';
+import { getConfigDir } from '@/utils/node/path';
 import { logError } from '@/main/modules/logging';
 import { safeExecute } from '@/utils/node/logger';
 import {
@@ -200,18 +201,26 @@ export function setupIPCHandlers() {
     };
   });
 
-  ipcMain.handle(
-    'app:showLogsFolder',
-    async () =>
-      (await safeExecute(async () => {
-        const logsDir = join(app.getPath('userData'), 'logs');
-        await shell.openPath(logsDir);
-        return { success: true };
-      }, 'Failed to open logs folder')) || {
-        success: false,
-        error: 'Failed to open logs folder',
-      }
-  );
+  const openPathHandler = async (path: string) =>
+    (await safeExecute(async () => {
+      await shell.openPath(path);
+      return { success: true };
+    }, 'Failed to open path')) || {
+      success: false,
+      error: 'Failed to open path',
+    };
+
+  ipcMain.handle('app:openPath', (_, path: string) => openPathHandler(path));
+
+  ipcMain.handle('app:showLogsFolder', () => {
+    const logsDir = join(app.getPath('userData'), 'logs');
+    return openPathHandler(logsDir);
+  });
+
+  ipcMain.handle('app:viewConfigFile', () => {
+    const configDir = getConfigDir();
+    return openPathHandler(configDir);
+  });
 
   ipcMain.handle('app:minimizeWindow', () => mainWindow.minimize());
 

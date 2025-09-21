@@ -67,23 +67,83 @@ export function createMainWindow() {
     mainWindow.maximize();
   }
 
+  let restoreBounds: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null = savedBounds
+    ? {
+        x: savedBounds.x || 0,
+        y: savedBounds.y || 0,
+        width: savedBounds.width,
+        height: savedBounds.height,
+      }
+    : null;
+
   const saveBounds = () => {
     if (mainWindow) {
-      const bounds = mainWindow.getBounds();
       const isMaximized = mainWindow.isMaximized();
+      const currentBounds = mainWindow.getBounds();
 
-      setWindowBounds({
-        x: bounds.x,
-        y: bounds.y,
-        width: bounds.width,
-        height: bounds.height,
-        isMaximized,
-      });
+      if (isMaximized) {
+        if (restoreBounds) {
+          setWindowBounds({
+            x: restoreBounds.x,
+            y: restoreBounds.y,
+            width: restoreBounds.width,
+            height: restoreBounds.height,
+            isMaximized: true,
+          });
+        }
+      } else {
+        restoreBounds = currentBounds;
+        setWindowBounds({
+          x: currentBounds.x,
+          y: currentBounds.y,
+          width: currentBounds.width,
+          height: currentBounds.height,
+          isMaximized: false,
+        });
+      }
     }
   };
 
-  mainWindow.on('moved', saveBounds);
-  mainWindow.on('resized', saveBounds);
+  let lastSavedBounds: string | null = null;
+  let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  const debouncedSave = () => {
+    if (saveTimeout) {
+      clearTimeout(saveTimeout);
+    }
+
+    saveTimeout = setTimeout(() => {
+      saveBounds();
+      saveTimeout = null;
+    }, 1000);
+  };
+
+  const checkBounds = () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      const currentBounds = mainWindow.getBounds();
+      const isMaximized = mainWindow.isMaximized();
+      const boundsString = JSON.stringify({ ...currentBounds, isMaximized });
+
+      if (boundsString !== lastSavedBounds) {
+        lastSavedBounds = boundsString;
+        debouncedSave();
+      }
+    }
+  };
+
+  const boundsInterval = setInterval(checkBounds, 500);
+
+  mainWindow.on('moved', () => {
+    debouncedSave();
+  });
+  mainWindow.on('resized', () => {
+    debouncedSave();
+  });
   mainWindow.on('maximize', () => {
     saveBounds();
     sendToRenderer('window-maximized');
@@ -91,6 +151,14 @@ export function createMainWindow() {
   mainWindow.on('unmaximize', () => {
     saveBounds();
     sendToRenderer('window-unmaximized');
+  });
+
+  mainWindow.on('closed', () => {
+    if (saveTimeout) {
+      clearTimeout(saveTimeout);
+    }
+    clearInterval(boundsInterval);
+    mainWindow = null;
   });
 
   mainWindow.once('ready-to-show', () => {

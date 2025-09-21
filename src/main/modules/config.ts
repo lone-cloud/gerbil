@@ -127,11 +127,7 @@ export function getBackgroundColor() {
 export const getWindowBounds = () => config.windowBounds;
 
 export function setWindowBounds(bounds: WindowBounds) {
-  if (bounds.isMaximized) {
-    config.windowBounds = { isMaximized: true } as WindowBounds;
-  } else {
-    config.windowBounds = bounds;
-  }
+  config.windowBounds = bounds;
   saveConfigAsync();
 }
 

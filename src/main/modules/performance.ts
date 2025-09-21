@@ -9,7 +9,7 @@ const LINUX_PERFORMANCE_APPS = [
   'ksysguard',
   'htop',
   'top',
-];
+] as const;
 
 async function tryLaunchCommand(command: string, args: string[] = []) {
   return new Promise((resolve) => {
