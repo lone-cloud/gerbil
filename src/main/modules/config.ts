@@ -9,7 +9,13 @@ import { PRODUCT_NAME } from '@/constants';
 import type { FrontendPreference } from '@/types';
 import type { MantineColorScheme } from '@mantine/core';
 
-type ConfigValue = string | number | boolean | unknown[] | undefined;
+interface WindowBounds {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  isMaximized: boolean;
+}
 
 interface AppConfig {
   installDir?: string;
@@ -17,7 +23,11 @@ interface AppConfig {
   selectedConfig?: string;
   frontendPreference?: FrontendPreference;
   colorScheme?: MantineColorScheme;
-  [key: string]: ConfigValue;
+  windowBounds?: WindowBounds;
+  hasSeenWelcome?: boolean;
+  skipEjectConfirmation?: boolean;
+  dismissedUpdates?: string[];
+  zoomLevel?: number;
 }
 
 let config: AppConfig = {};
@@ -39,16 +49,21 @@ async function saveConfig() {
   return success !== null;
 }
 
+function saveConfigAsync() {
+  saveConfig();
+}
+
 export async function initialize() {
-  configPath = join(getConfigDir());
+  configPath = getConfigDir();
   config = await loadConfig();
 }
 
-export function get(key: string) {
-  return config[key];
-}
+export const get = <K extends keyof AppConfig>(key: K) => config[key];
 
-export async function set(key: string, value: ConfigValue) {
+export async function set<K extends keyof AppConfig>(
+  key: K,
+  value: AppConfig[K]
+) {
   config[key] = value;
   await saveConfig();
 }
@@ -66,13 +81,11 @@ function getDefaultInstallDir() {
   }
 }
 
-export function getInstallDir() {
-  return config.installDir || getDefaultInstallDir();
-}
+export const getInstallDir = () => config.installDir || getDefaultInstallDir();
 
-export async function setInstallDir(dir: string) {
+export function setInstallDir(dir: string) {
   config.installDir = dir;
-  await saveConfig();
+  saveConfigAsync();
 }
 
 export function getCurrentKoboldBinary() {
@@ -80,27 +93,23 @@ export function getCurrentKoboldBinary() {
   return path ? path.trim() : path;
 }
 
-export async function setCurrentKoboldBinary(binaryPath: string) {
+export function setCurrentKoboldBinary(binaryPath: string) {
   config.currentKoboldBinary = binaryPath;
-  await saveConfig();
+  saveConfigAsync();
 }
 
-export function getSelectedConfig() {
-  return config.selectedConfig;
-}
+export const getSelectedConfig = () => config.selectedConfig;
 
-export async function setSelectedConfig(configName: string) {
+export function setSelectedConfig(configName: string) {
   config.selectedConfig = configName;
-  await saveConfig();
+  saveConfigAsync();
 }
 
-export function getColorScheme() {
-  return config.colorScheme || 'auto';
-}
+export const getColorScheme = () => config.colorScheme || 'auto';
 
-export async function setColorScheme(colorScheme: MantineColorScheme) {
+export function setColorScheme(colorScheme: MantineColorScheme) {
   config.colorScheme = colorScheme;
-  await saveConfig();
+  saveConfigAsync();
 }
 
 export function getBackgroundColor() {
@@ -113,4 +122,50 @@ export function getBackgroundColor() {
   } else {
     return nativeTheme.shouldUseDarkColors ? '#1a1b1e' : '#ffffff';
   }
+}
+
+export const getWindowBounds = () => config.windowBounds;
+
+export function setWindowBounds(bounds: WindowBounds) {
+  if (bounds.isMaximized) {
+    config.windowBounds = { isMaximized: true } as WindowBounds;
+  } else {
+    config.windowBounds = bounds;
+  }
+  saveConfigAsync();
+}
+
+export const getFrontendPreference = () => config.frontendPreference;
+
+export function setFrontendPreference(preference: FrontendPreference) {
+  config.frontendPreference = preference;
+  saveConfigAsync();
+}
+
+export const getHasSeenWelcome = () => config.hasSeenWelcome;
+
+export function setHasSeenWelcome(hasSeenWelcome: boolean) {
+  config.hasSeenWelcome = hasSeenWelcome;
+  saveConfigAsync();
+}
+
+export const getSkipEjectConfirmation = () => config.skipEjectConfirmation;
+
+export function setSkipEjectConfirmation(skipEjectConfirmation: boolean) {
+  config.skipEjectConfirmation = skipEjectConfirmation;
+  saveConfigAsync();
+}
+
+export const getDismissedUpdates = () => config.dismissedUpdates;
+
+export function setDismissedUpdates(dismissedUpdates: string[]) {
+  config.dismissedUpdates = dismissedUpdates;
+  saveConfigAsync();
+}
+
+export const getZoomLevel = () => config.zoomLevel;
+
+export function setZoomLevel(zoomLevel: number) {
+  config.zoomLevel = zoomLevel;
+  saveConfigAsync();
 }

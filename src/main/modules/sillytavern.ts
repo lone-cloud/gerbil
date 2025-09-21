@@ -28,11 +28,11 @@ const SILLYTAVERN_BASE_ARGS = [
 ];
 
 on('SIGINT', () => {
-  void cleanup();
+  void stopFrontend();
 });
 
 on('SIGTERM', () => {
-  void cleanup();
+  void stopFrontend();
 });
 
 function getFallbackDataRoot() {
@@ -141,9 +141,7 @@ async function ensureSillyTavernSettings() {
             if (!initProcess.killed && !hasResolved) {
               hasResolved = true;
 
-              await terminateProcess(initProcess, {
-                logError: (message, error) => logError(message, error),
-              });
+              await terminateProcess(initProcess);
 
               sendKoboldOutput('SillyTavern settings should now be generated');
 
@@ -372,14 +370,7 @@ export async function stopFrontend() {
   const promises: Promise<void>[] = [];
 
   if (sillyTavernProcess) {
-    promises.push(
-      (async () => {
-        await terminateProcess(sillyTavernProcess, {
-          logError: (message, error) => logError(message, error),
-        });
-        sillyTavernProcess = null;
-      })()
-    );
+    promises.push(terminateProcess(sillyTavernProcess));
   }
 
   if (proxyServer) {
@@ -394,20 +385,4 @@ export async function stopFrontend() {
   }
 
   await Promise.all(promises);
-}
-
-export async function cleanup() {
-  if (sillyTavernProcess) {
-    await tryExecute(async () => {
-      await stopFrontend();
-    }, 'Error during SillyTavernManager cleanup');
-  }
-}
-
-export function getSillyTavernManager() {
-  return {
-    startFrontend,
-    stopFrontend,
-    cleanup,
-  };
 }

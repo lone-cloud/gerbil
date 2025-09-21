@@ -1,34 +1,33 @@
 import { BrowserWindow, app, shell, screen, Menu, clipboard } from 'electron';
+import type { BrowserWindowConstructorOptions } from 'electron';
 import { join } from 'path';
 import { stripVTControlCharacters } from 'util';
 import { PRODUCT_NAME } from '../../constants';
 import type { IPCChannel, IPCChannelPayloads } from '@/types/ipc';
 import { isDevelopment } from '@/utils/node/environment';
-import { getBackgroundColor } from './config';
+import { getBackgroundColor, getWindowBounds, setWindowBounds } from './config';
 
 let mainWindow: BrowserWindow | null = null;
 
 export function createMainWindow() {
   const { size } = screen.getPrimaryDisplay();
-  const windowHeight = Math.min(Math.floor(size.height * 0.75), 1000);
-  const windowWidth = 800;
+  const savedBounds = getWindowBounds();
 
-  const icon = isDevelopment
-    ? join(__dirname, '../../src/assets/icon.png')
-    : join(__dirname, '../../assets/icon.png');
+  const defaultWidth = 800;
+  const defaultHeight = Math.min(Math.floor(size.height * 0.75), 1000);
 
-  mainWindow = new BrowserWindow({
+  const windowOptions = {
     minWidth: 600,
     minHeight: 600,
-    width: windowWidth,
-    height: windowHeight,
-    x: Math.floor((size.width - windowWidth) / 2),
-    y: Math.floor((size.height - windowHeight) / 2),
+    width: savedBounds?.width || defaultWidth,
+    height: savedBounds?.height || defaultHeight,
     frame: false,
     title: PRODUCT_NAME,
     show: false,
     backgroundColor: getBackgroundColor(),
-    icon,
+    icon: isDevelopment
+      ? join(__dirname, '../../src/assets/icon.png')
+      : join(__dirname, '../../assets/icon.png'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -37,6 +36,61 @@ export function createMainWindow() {
       offscreen: false,
       spellcheck: false,
     },
+  } as BrowserWindowConstructorOptions;
+
+  if (savedBounds) {
+    const minVisibleSize = 100;
+    if (
+      savedBounds.x >= -minVisibleSize &&
+      savedBounds.y >= -minVisibleSize &&
+      savedBounds.x < size.width - minVisibleSize &&
+      savedBounds.y < size.height - minVisibleSize
+    ) {
+      windowOptions.x = savedBounds.x;
+      windowOptions.y = savedBounds.y;
+    } else {
+      windowOptions.x = Math.floor(
+        (size.width - (savedBounds.width || defaultWidth)) / 2
+      );
+      windowOptions.y = Math.floor(
+        (size.height - (savedBounds.height || defaultHeight)) / 2
+      );
+    }
+  } else {
+    windowOptions.x = Math.floor((size.width - defaultWidth) / 2);
+    windowOptions.y = Math.floor((size.height - defaultHeight) / 2);
+  }
+
+  mainWindow = new BrowserWindow(windowOptions);
+
+  if (savedBounds?.isMaximized) {
+    mainWindow.maximize();
+  }
+
+  const saveBounds = () => {
+    if (mainWindow) {
+      const bounds = mainWindow.getBounds();
+      const isMaximized = mainWindow.isMaximized();
+
+      setWindowBounds({
+        x: bounds.x,
+        y: bounds.y,
+        width: bounds.width,
+        height: bounds.height,
+        isMaximized,
+      });
+    }
+  };
+
+  mainWindow.on('moved', saveBounds);
+  mainWindow.on('resized', saveBounds);
+  mainWindow.on('maximize', () => {
+    saveBounds();
+    sendToRenderer('window-maximized');
+  });
+  mainWindow.on('unmaximize', () => {
+    saveBounds();
+    sendToRenderer('window-unmaximized');
   });
 
   mainWindow.once('ready-to-show', () => {
@@ -51,14 +105,6 @@ export function createMainWindow() {
 
   mainWindow.on('closed', () => {
     mainWindow = null;
-  });
-
-  mainWindow.on('maximize', () => {
-    sendToRenderer('window-maximized');
-  });
-
-  mainWindow.on('unmaximize', () => {
-    sendToRenderer('window-unmaximized');
   });
 
   if (!isDevelopment) {
@@ -79,7 +125,9 @@ export function createMainWindow() {
   mainWindow.webContents.setWindowOpenHandler(() => ({
     action: 'allow',
     overrideBrowserWindowOptions: {
-      icon,
+      icon: isDevelopment
+        ? join(__dirname, '../../src/assets/icon.png')
+        : join(__dirname, '../../assets/icon.png'),
       title: PRODUCT_NAME,
       backgroundColor: getBackgroundColor(),
     },
@@ -89,14 +137,12 @@ export function createMainWindow() {
     app.quit();
   });
 
-  setupContextMenu();
+  setupContextMenu(mainWindow);
 
   return mainWindow;
 }
 
-function setupContextMenu() {
-  if (!mainWindow) return;
-
+function setupContextMenu(mainWindow: BrowserWindow) {
   // eslint-disable-next-line sonarjs/cognitive-complexity
   mainWindow.webContents.on('context-menu', (_, params) => {
     const hasLinkURL = !!params.linkURL;
@@ -119,7 +165,7 @@ function setupContextMenu() {
       menuItems.push({
         label: 'Inspect Element',
         click: () => {
-          mainWindow?.webContents.inspectElement(params.x, params.y);
+          mainWindow.webContents.inspectElement(params.x, params.y);
         },
       });
     }
@@ -194,25 +240,21 @@ function setupContextMenu() {
 }
 
 export function getMainWindow() {
+  if (!mainWindow) {
+    throw new Error('Main window not initialized');
+  }
+
   return mainWindow;
 }
 
-export function sendToRenderer<T extends IPCChannel>(
+export const sendToRenderer = <T extends IPCChannel>(
   channel: T,
   ...args: IPCChannelPayloads[T]
-) {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send(channel, ...args);
-  }
-}
+) => getMainWindow().webContents.send(channel, ...args);
 
 export function sendKoboldOutput(message: string, raw?: boolean) {
   const cleanMessage = stripVTControlCharacters(message);
   sendToRenderer('kobold-output', raw ? cleanMessage : `${cleanMessage}\n`);
 }
 
-export function cleanup() {
-  if (mainWindow) {
-    mainWindow.removeAllListeners();
-  }
-}
+export const cleanup = () => getMainWindow().removeAllListeners();

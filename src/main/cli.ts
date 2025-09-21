@@ -82,12 +82,7 @@ export async function handleCliMode(args: string[]) {
     const handleSignal = async () => {
       console.log('\nReceived termination signal, terminating...');
       if (!child.killed) {
-        await terminateProcess(child, {
-          timeoutMs: 5000,
-          logError: (message, error) => {
-            console.error(`${message} ${error.message}`);
-          },
-        });
+        await terminateProcess(child);
       }
     };
 

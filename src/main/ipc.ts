@@ -28,7 +28,10 @@ import {
 } from '@/main/modules/config';
 import { logError } from '@/main/modules/logging';
 import { safeExecute } from '@/utils/node/logger';
-import { getSillyTavernManager } from '@/main/modules/sillytavern';
+import {
+  startFrontend as startSillyTavernFrontend,
+  stopFrontend as stopSillyTavernFrontend,
+} from '@/main/modules/sillytavern';
 import {
   startFrontend as startOpenWebUIFrontend,
   stopFrontend as stopOpenWebUIFrontend,
@@ -79,7 +82,7 @@ const launchKoboldCppWithCustomFrontends = async (args: string[] = []) =>
     const { isImageMode } = parseKoboldConfig(args);
 
     if (frontendPreference === 'sillytavern') {
-      getSillyTavernManager().startFrontend(args);
+      startSillyTavernFrontend(args);
     } else if (frontendPreference === 'openwebui') {
       startOpenWebUIFrontend(args);
     } else if (frontendPreference === 'comfyui' && isImageMode) {
@@ -93,6 +96,8 @@ const launchKoboldCppWithCustomFrontends = async (args: string[] = []) =>
   };
 
 export function setupIPCHandlers() {
+  const mainWindow = getMainWindow();
+
   ipcMain.handle('kobold:downloadRelease', async (_, asset) => ({
     success: true,
     path: await downloadRelease(asset),
@@ -152,7 +157,7 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('kobold:stopKoboldCpp', () => {
     stopKoboldCpp();
-    getSillyTavernManager().stopFrontend();
+    stopSillyTavernFrontend();
     stopOpenWebUIFrontend();
     stopComfyUIFrontend();
   });
@@ -208,42 +213,33 @@ export function setupIPCHandlers() {
       }
   );
 
-  ipcMain.handle('app:minimizeWindow', () => getMainWindow()?.minimize());
+  ipcMain.handle('app:minimizeWindow', () => mainWindow.minimize());
 
   ipcMain.handle('app:maximizeWindow', () => {
-    const mainWindow = getMainWindow();
-    if (mainWindow?.isMaximized()) {
+    if (mainWindow.isMaximized()) {
       mainWindow.restore();
     } else {
-      mainWindow?.maximize();
+      mainWindow.maximize();
     }
   });
 
-  ipcMain.handle('app:closeWindow', () => getMainWindow()?.close());
+  ipcMain.handle('app:closeWindow', () => mainWindow.close());
 
-  ipcMain.handle('app:getZoomLevel', () => {
-    const mainWindow = getMainWindow();
-    if (mainWindow) {
-      return mainWindow.webContents.getZoomLevel();
-    }
-    return 0;
-  });
+  ipcMain.handle('app:isMaximized', () => mainWindow.isMaximized());
 
-  ipcMain.handle('app:setZoomLevel', async (_, level: number) => {
-    const mainWindow = getMainWindow();
-    if (mainWindow) {
-      mainWindow.webContents.setZoomLevel(level);
-      await setConfig('zoomLevel', level);
-    }
+  ipcMain.handle('app:getZoomLevel', () =>
+    mainWindow.webContents.getZoomLevel()
+  );
+
+  ipcMain.handle('app:setZoomLevel', (_, level: number) => {
+    mainWindow.webContents.setZoomLevel(level);
+    setConfig('zoomLevel', level);
   });
 
   ipcMain.handle('app:getColorScheme', () => getColorScheme());
 
-  ipcMain.handle(
-    'app:setColorScheme',
-    async (_, colorScheme: MantineColorScheme) => {
-      await setColorScheme(colorScheme);
-    }
+  ipcMain.handle('app:setColorScheme', (_, colorScheme: MantineColorScheme) =>
+    setColorScheme(colorScheme)
   );
 
   ipcMain.handle(
@@ -258,15 +254,12 @@ export function setupIPCHandlers() {
       }
   );
 
-  const mainWindow = getMainWindow();
-  if (mainWindow) {
-    mainWindow.webContents.once('did-finish-load', async () => {
-      const savedZoomLevel = await getConfig('zoomLevel');
-      if (typeof savedZoomLevel === 'number') {
-        mainWindow.webContents.setZoomLevel(savedZoomLevel);
-      }
-    });
-  }
+  mainWindow.webContents.once('did-finish-load', async () => {
+    const savedZoomLevel = await getConfig('zoomLevel');
+    if (typeof savedZoomLevel === 'number') {
+      mainWindow.webContents.setZoomLevel(savedZoomLevel);
+    }
+  });
 
   ipcMain.handle('app:openPerformanceManager', () => openPerformanceManager());
 
@@ -278,12 +271,7 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('dependencies:isUvAvailable', () => isUvAvailable());
 
-  ipcMain.on('monitoring:start', () => {
-    const mainWindow = getMainWindow();
-    if (mainWindow) {
-      startMonitoring(mainWindow);
-    }
-  });
+  ipcMain.on('monitoring:start', () => startMonitoring(mainWindow));
 
   ipcMain.on('monitoring:stop', () => stopMonitoring());
 

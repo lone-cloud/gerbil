@@ -1,9 +1,19 @@
 import { spawn } from 'child_process';
-import { join } from 'path';
-import { access } from 'fs/promises';
+import { dirname, join } from 'path';
+import {
+  access,
+  stat,
+  mkdir,
+  unlink,
+  copyFile,
+  readFile,
+  writeFile,
+  rm,
+} from 'fs/promises';
 import { platform, on } from 'process';
 import type { ChildProcess } from 'child_process';
 import yauzl from 'yauzl';
+import { createWriteStream } from 'fs';
 
 import { logError } from './logging';
 import { safeExecute } from '@/utils/node/logger';
@@ -21,7 +31,7 @@ interface ComfyUIVersionInfo {
   date: string;
 }
 
-async function getLatestComfyUIVersion(): Promise<ComfyUIVersionInfo | null> {
+async function getLatestComfyUIVersion() {
   return safeExecute(async () => {
     const response = await fetch(GITHUB_API.COMFYUI_LATEST_COMMIT_URL);
     if (!response.ok) {
@@ -38,13 +48,10 @@ async function getLatestComfyUIVersion(): Promise<ComfyUIVersionInfo | null> {
   }, 'Failed to fetch latest ComfyUI version');
 }
 
-async function getCurrentComfyUIVersion(
-  workspaceDir: string
-): Promise<ComfyUIVersionInfo | null> {
+async function getCurrentComfyUIVersion(workspaceDir: string) {
   try {
-    const fs = await import('fs/promises');
     const versionFile = join(workspaceDir, '.version.json');
-    const content = await fs.readFile(versionFile, 'utf-8');
+    const content = await readFile(versionFile, 'utf-8');
     return JSON.parse(content);
   } catch {
     return null;
@@ -54,11 +61,10 @@ async function getCurrentComfyUIVersion(
 async function saveComfyUIVersion(
   workspaceDir: string,
   version: ComfyUIVersionInfo
-): Promise<void> {
+) {
   try {
-    const fs = await import('fs/promises');
     const versionFile = join(workspaceDir, '.version.json');
-    await fs.writeFile(versionFile, JSON.stringify(version, null, 2));
+    await writeFile(versionFile, JSON.stringify(version, null, 2));
   } catch (error) {
     logError(
       'Failed to save ComfyUI version info',
@@ -67,7 +73,7 @@ async function saveComfyUIVersion(
   }
 }
 
-async function shouldUpdateComfyUI(workspaceDir: string): Promise<boolean> {
+async function shouldUpdateComfyUI(workspaceDir: string) {
   const current = await getCurrentComfyUIVersion(workspaceDir);
   const latest = await getLatestComfyUIVersion();
 
@@ -80,7 +86,7 @@ async function shouldUpdateComfyUI(workspaceDir: string): Promise<boolean> {
 
 let comfyUIProcess: ChildProcess | null = null;
 
-function getPythonPath(workspaceDir: string): string {
+function getPythonPath(workspaceDir: string) {
   const isWindows = platform === 'win32';
   const pythonExecutable = isWindows ? 'python.exe' : 'python';
   const scriptsDir = isWindows ? 'Scripts' : 'bin';
@@ -88,14 +94,14 @@ function getPythonPath(workspaceDir: string): string {
 }
 
 on('SIGINT', () => {
-  void cleanup();
+  void stopFrontend();
 });
 
 on('SIGTERM', () => {
-  void cleanup();
+  void stopFrontend();
 });
 
-async function shouldForceCPUMode(): Promise<boolean> {
+async function shouldForceCPUMode() {
   try {
     const gpus = await getGPUData();
     const hasAMD = gpus.some((gpu) => gpu.deviceName.includes('AMD'));
@@ -154,7 +160,7 @@ async function getPyTorchInstallArgs(pythonPath: string) {
   return args;
 }
 
-async function downloadAndExtractComfyUI(workspaceDir: string): Promise<void> {
+async function downloadAndExtractComfyUI(workspaceDir: string) {
   sendKoboldOutput('Downloading ComfyUI...');
 
   const response = await fetch(GITHUB_API.COMFYUI_DOWNLOAD_URL);
@@ -162,11 +168,7 @@ async function downloadAndExtractComfyUI(workspaceDir: string): Promise<void> {
     throw new Error(`Failed to download ComfyUI: ${response.statusText}`);
   }
 
-  const fs = await import('fs/promises');
-  const path = await import('path');
-  const { createWriteStream } = await import('fs');
-
-  const zipPath = path.join(workspaceDir, 'comfyui.zip');
+  const zipPath = join(workspaceDir, 'comfyui.zip');
   const stream = createWriteStream(zipPath);
 
   if (response.body) {
@@ -188,7 +190,7 @@ async function downloadAndExtractComfyUI(workspaceDir: string): Promise<void> {
     });
   }
 
-  const zipStats = await fs.stat(zipPath);
+  const zipStats = await stat(zipPath);
   sendKoboldOutput(
     `ComfyUI downloaded (${Math.round(zipStats.size / 1024 / 1024)}MB), extracting...`
   );
@@ -203,13 +205,10 @@ async function downloadAndExtractComfyUI(workspaceDir: string): Promise<void> {
       zipfile!.readEntry();
       zipfile!.on('entry', (entry) => {
         const entryPath = entry.fileName;
-        const destPath = path.join(
-          workspaceDir,
-          entryPath.replace(/^[^/]+\//, '')
-        );
+        const destPath = join(workspaceDir, entryPath.replace(/^[^/]+\//, ''));
 
         if (/\/$/.test(entryPath)) {
-          fs.mkdir(destPath, { recursive: true })
+          mkdir(destPath, { recursive: true })
             .then(() => zipfile!.readEntry())
             .catch(reject);
         } else {
@@ -219,7 +218,7 @@ async function downloadAndExtractComfyUI(workspaceDir: string): Promise<void> {
               return;
             }
 
-            fs.mkdir(path.dirname(destPath), { recursive: true })
+            mkdir(dirname(destPath), { recursive: true })
               .then(() => {
                 const writeStream = createWriteStream(destPath);
                 readStream!.pipe(writeStream);
@@ -232,7 +231,7 @@ async function downloadAndExtractComfyUI(workspaceDir: string): Promise<void> {
       });
 
       zipfile!.on('end', () => {
-        fs.unlink(zipPath)
+        unlink(zipPath)
           .then(() => resolve())
           .catch(reject);
       });
@@ -250,14 +249,11 @@ async function downloadAndExtractComfyUI(workspaceDir: string): Promise<void> {
 async function installDependencies(
   workspaceDir: string,
   env: Record<string, string | undefined>
-): Promise<void> {
-  const fs = await import('fs/promises');
-
+) {
   sendKoboldOutput('Installing ComfyUI dependencies...');
 
   const requirementsPath = join(workspaceDir, 'requirements.txt');
-  const requirementsExists = await fs
-    .access(requirementsPath)
+  const requirementsExists = await access(requirementsPath)
     .then(() => true)
     .catch(() => false);
 
@@ -388,7 +384,7 @@ async function installDependencies(
   });
 }
 
-async function installComfyUI(workspaceDir: string): Promise<void> {
+async function installComfyUI(workspaceDir: string) {
   const env = await getUvEnvironment();
 
   sendKoboldOutput('Creating virtual environment...');
@@ -437,9 +433,7 @@ async function installComfyUI(workspaceDir: string): Promise<void> {
   });
 }
 
-async function updateComfyUI(workspaceDir: string): Promise<void> {
-  const fs = await import('fs/promises');
-
+async function updateComfyUI(workspaceDir: string) {
   const backupDir = join(workspaceDir, 'backup');
   await ensureDir(backupDir);
 
@@ -448,7 +442,7 @@ async function updateComfyUI(workspaceDir: string): Promise<void> {
     const srcPath = join(workspaceDir, file);
     const destPath = join(backupDir, file);
     try {
-      await fs.copyFile(srcPath, destPath);
+      await copyFile(srcPath, destPath);
     } catch (error) {
       void error;
     }
@@ -460,7 +454,7 @@ async function updateComfyUI(workspaceDir: string): Promise<void> {
     await downloadAndExtractComfyUI(workspaceDir);
     sendKoboldOutput('ComfyUI updated successfully');
 
-    await fs.rm(backupDir, { recursive: true, force: true });
+    await rm(backupDir, { recursive: true, force: true });
   } catch (error) {
     sendKoboldOutput('Update failed, restoring backup...');
 
@@ -468,14 +462,15 @@ async function updateComfyUI(workspaceDir: string): Promise<void> {
       const srcPath = join(backupDir, file);
       const destPath = join(workspaceDir, file);
       try {
-        await fs.copyFile(srcPath, destPath);
+        await copyFile(srcPath, destPath);
       } catch (error) {
         void error;
       }
     });
 
     await Promise.all(restorePromises);
-    await fs.rm(backupDir, { recursive: true, force: true });
+    await rm(backupDir, { recursive: true, force: true });
+
     throw error;
   }
 }
@@ -616,20 +611,12 @@ export async function stopFrontend() {
     sendKoboldOutput('Stopping ComfyUI...');
     try {
       await terminateProcess(comfyUIProcess);
-      comfyUIProcess = null;
       sendKoboldOutput('ComfyUI stopped');
     } catch (error) {
       logError(
         'Error stopping ComfyUI',
         error instanceof Error ? error : undefined
       );
-      comfyUIProcess = null;
     }
-  }
-}
-
-export async function cleanup() {
-  if (comfyUIProcess) {
-    await stopFrontend();
   }
 }

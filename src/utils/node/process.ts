@@ -1,60 +1,26 @@
-import { spawn } from 'child_process';
+import { execa } from 'execa';
 import { platform } from 'process';
 import type { ChildProcess } from 'child_process';
 
-export interface ProcessTerminationOptions {
-  timeoutMs?: number;
-  logError?: (message: string, error: Error) => void;
-}
-
-async function killWindowsProcessTree(
-  pid: number,
-  logError?: (message: string, error: Error) => void
-) {
-  return new Promise<void>((resolve) => {
-    const taskkill = spawn('taskkill', ['/pid', pid.toString(), '/t', '/f'], {
+async function killWindowsProcessTree(pid: number) {
+  try {
+    await execa('taskkill', ['/pid', pid.toString(), '/t', '/f'], {
       stdio: 'pipe',
     });
-
-    taskkill.on('exit', (code) => {
-      if (code !== 0 && code !== 128) {
-        logError?.(
-          `taskkill exited with code ${code} for PID ${pid}`,
-          new Error(`taskkill failed with exit code ${code}`)
-        );
-      }
-      resolve();
-    });
-
-    taskkill.on('error', (error) => {
-      logError?.(`Failed to execute taskkill for PID ${pid}:`, error);
-      resolve();
-    });
-  });
+  } catch {}
 }
 
-export async function terminateProcess(
-  childProcess: ChildProcess,
-  options: ProcessTerminationOptions = {}
-) {
-  const { timeoutMs = 3000, logError } = options;
-
+export async function terminateProcess(childProcess: ChildProcess) {
   if (!childProcess?.pid) {
     return;
   }
 
   try {
     if (platform === 'win32') {
-      await killWindowsProcessTree(childProcess.pid, logError);
+      await killWindowsProcessTree(childProcess.pid);
 
       await new Promise<void>((resolve) => {
-        const timeout = setTimeout(
-          () => {
-            resolve();
-          },
-          Math.min(timeoutMs, 2000)
-        );
-
+        const timeout = setTimeout(() => resolve(), 2000);
         childProcess.once('exit', () => {
           clearTimeout(timeout);
           resolve();
@@ -68,12 +34,10 @@ export async function terminateProcess(
           if (childProcess && !childProcess.killed) {
             try {
               childProcess.kill('SIGKILL');
-            } catch (error) {
-              logError?.('Error force-killing process:', error as Error);
-            }
+            } catch {}
           }
           resolve();
-        }, timeoutMs);
+        }, 5000);
 
         childProcess.once('exit', () => {
           clearTimeout(timeout);
@@ -81,7 +45,5 @@ export async function terminateProcess(
         });
       });
     }
-  } catch (error) {
-    logError?.('Error terminating process:', error as Error);
-  }
+  } catch {}
 }

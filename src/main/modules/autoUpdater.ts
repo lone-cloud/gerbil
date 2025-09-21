@@ -69,9 +69,7 @@ export function quitAndInstall() {
   }
 }
 
-export function isUpdateDownloaded() {
-  return updateDownloaded;
-}
+export const isUpdateDownloaded = () => updateDownloaded;
 
 app.on('ready', () => {
   setTimeout(() => {
