@@ -47,6 +47,7 @@ import {
   getUvVersion,
   getSystemNodeVersion,
   isAURInstallation,
+  isWindowsPortableInstallation,
 } from '@/main/modules/dependencies';
 import { parseKoboldConfig } from '@/utils/node/kobold';
 import { getMainWindow } from '@/main/modules/window';
@@ -296,6 +297,10 @@ export function setupIPCHandlers() {
     if (!app.isPackaged) return false;
 
     if (platform === 'linux' && (await isAURInstallation())) {
+      return false;
+    }
+
+    if (isWindowsPortableInstallation()) {
       return false;
     }
 
