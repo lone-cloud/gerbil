@@ -10,7 +10,7 @@ import {
   Box,
   Anchor,
 } from '@mantine/core';
-import { Folder, FolderOpen, Monitor } from 'lucide-react';
+import { Folder, FolderOpen, Monitor, ExternalLink } from 'lucide-react';
 import type { FrontendPreference } from '@/types';
 import { usePreferencesStore } from '@/stores/preferences';
 import { FRONTENDS } from '@/constants';
@@ -175,6 +175,12 @@ export const GeneralTab = ({
     }
   };
 
+  const handleOpenInstallDir = async () => {
+    if (installDir) {
+      await window.electronAPI.app.openPath(installDir);
+    }
+  };
+
   const handleFrontendPreferenceChange = async (value: string | null) => {
     if (
       !value ||
@@ -211,6 +217,16 @@ export const GeneralTab = ({
             }
           >
             Browse
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleOpenInstallDir}
+            disabled={!installDir}
+            leftSection={
+              <ExternalLink style={{ width: rem(16), height: rem(16) }} />
+            }
+          >
+            Open
           </Button>
         </Group>
       </div>

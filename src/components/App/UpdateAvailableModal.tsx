@@ -100,7 +100,7 @@ export const UpdateAvailableModal = ({
               </Text>
               <Anchor
                 size="xs"
-                href={`https://github.com/${GITHUB_API.KOBOLDCPP_REPO}/releases/tag/v${availableUpdate?.version}`}
+                href={`${GITHUB_API.GITHUB_BASE_URL}/${GITHUB_API.KOBOLDCPP_REPO}/releases/tag/v${availableUpdate?.version}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >

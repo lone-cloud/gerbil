@@ -85,6 +85,8 @@ const koboldAPI: KoboldAPI = {
 
 const appAPI: AppAPI = {
   showLogsFolder: () => ipcRenderer.invoke('app:showLogsFolder'),
+  viewConfigFile: () => ipcRenderer.invoke('app:viewConfigFile'),
+  openPath: (path) => ipcRenderer.invoke('app:openPath', path),
   getVersion: () => ipcRenderer.invoke('app:getVersion'),
   getVersionInfo: () => ipcRenderer.invoke('app:getVersionInfo'),
   minimizeWindow: () => ipcRenderer.invoke('app:minimizeWindow'),

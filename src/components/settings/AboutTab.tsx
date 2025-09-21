@@ -12,11 +12,11 @@ import {
   ActionIcon,
   Tooltip,
 } from '@mantine/core';
-import { Github, FolderOpen, Copy } from 'lucide-react';
+import { Github, FolderOpen, Copy, FileText } from 'lucide-react';
 import { safeExecute } from '@/utils/logger';
 import { useLogoClickSounds } from '@/hooks/useLogoClickSounds';
 import type { VersionInfo } from '@/types/electron';
-import { PRODUCT_NAME } from '@/constants';
+import { PRODUCT_NAME, GITHUB_API } from '@/constants';
 import icon from '/icon.png';
 
 export const AboutTab = () => {
@@ -76,6 +76,25 @@ export const AboutTab = () => {
     );
   };
 
+  const actionButtons = [
+    {
+      icon: Github,
+      label: 'GitHub',
+      onClick: () =>
+        window.electronAPI.app.openExternal(GITHUB_API.GERBIL_GITHUB_URL),
+    },
+    {
+      icon: FolderOpen,
+      label: 'Show Logs',
+      onClick: () => window.electronAPI.app.showLogsFolder(),
+    },
+    {
+      icon: FileText,
+      label: 'View Config',
+      onClick: () => window.electronAPI.app.viewConfigFile(),
+    },
+  ];
+
   return (
     <Stack gap="md">
       <Card withBorder radius="md" p="xs">
@@ -110,32 +129,24 @@ export const AboutTab = () => {
               Run Large Language Models locally
             </Text>
             <Group gap="md" mt="md">
-              <Button
-                variant="light"
-                size="compact-sm"
-                leftSection={
-                  <Github style={{ width: rem(16), height: rem(16) }} />
-                }
-                onClick={() =>
-                  window.electronAPI.app.openExternal(
-                    'https://github.com/lone-cloud/gerbil'
-                  )
-                }
-                style={{ textDecoration: 'none' }}
-              >
-                GitHub
-              </Button>
-
-              <Button
-                variant="light"
-                size="compact-sm"
-                leftSection={
-                  <FolderOpen style={{ width: rem(16), height: rem(16) }} />
-                }
-                onClick={() => window.electronAPI.app.showLogsFolder()}
-              >
-                Show Logs
-              </Button>
+              {actionButtons.map((button) => (
+                <Button
+                  key={button.label}
+                  variant="light"
+                  size="compact-sm"
+                  leftSection={
+                    <button.icon style={{ width: rem(16), height: rem(16) }} />
+                  }
+                  onClick={button.onClick}
+                  style={
+                    button.label === 'GitHub'
+                      ? { textDecoration: 'none' }
+                      : undefined
+                  }
+                >
+                  {button.label}
+                </Button>
+              ))}
             </Group>
           </div>
         </Group>

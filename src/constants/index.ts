@@ -47,6 +47,7 @@ export const COMFYUI = {
 
 export const GITHUB_API = {
   BASE_URL: 'https://api.github.com',
+  GITHUB_BASE_URL: 'https://github.com',
   KOBOLDCPP_REPO: 'LostRuins/koboldcpp',
   KOBOLDCPP_ROCM_REPO: 'YellowRoseCx/koboldcpp-rocm',
   GERBIL_REPO: 'lone-cloud/gerbil',
@@ -61,10 +62,13 @@ export const GITHUB_API = {
     return `${this.BASE_URL}/repos/${this.KOBOLDCPP_ROCM_REPO}/releases/latest`;
   },
   get COMFYUI_DOWNLOAD_URL() {
-    return `https://github.com/${this.COMFYUI_REPO}/archive/refs/heads/master.zip`;
+    return `${this.GITHUB_BASE_URL}/${this.COMFYUI_REPO}/archive/refs/heads/master.zip`;
   },
   get COMFYUI_LATEST_COMMIT_URL() {
     return `${this.BASE_URL}/repos/${this.COMFYUI_REPO}/commits/master`;
+  },
+  get GERBIL_GITHUB_URL() {
+    return `${this.GITHUB_BASE_URL}/${this.GERBIL_REPO}`;
   },
 } as const;
 
