@@ -90,6 +90,7 @@ const appAPI: AppAPI = {
   minimizeWindow: () => ipcRenderer.invoke('app:minimizeWindow'),
   maximizeWindow: () => ipcRenderer.invoke('app:maximizeWindow'),
   closeWindow: () => ipcRenderer.invoke('app:closeWindow'),
+  isMaximized: () => ipcRenderer.invoke('app:isMaximized'),
   getZoomLevel: () => ipcRenderer.invoke('app:getZoomLevel'),
   setZoomLevel: (level) => ipcRenderer.invoke('app:setZoomLevel', level),
   getColorScheme: () => ipcRenderer.invoke('app:getColorScheme'),

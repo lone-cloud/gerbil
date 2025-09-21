@@ -157,6 +157,7 @@ export interface AppAPI {
   minimizeWindow: () => void;
   maximizeWindow: () => void;
   closeWindow: () => void;
+  isMaximized: () => Promise<boolean>;
   getZoomLevel: () => Promise<number>;
   setZoomLevel: (level: number) => Promise<void>;
   getColorScheme: () => Promise<MantineColorScheme>;

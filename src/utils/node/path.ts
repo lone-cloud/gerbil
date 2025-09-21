@@ -1,11 +1,10 @@
 import { join } from 'path';
 import { homedir } from 'os';
-import { platform } from 'process';
+import { platform, resourcesPath } from 'process';
 import { PRODUCT_NAME, CONFIG_FILE_NAME } from '@/constants';
+import { isDevelopment } from './environment';
 
-export function getConfigDir() {
-  return join(getConfigDirPath(), CONFIG_FILE_NAME);
-}
+export const getConfigDir = () => join(getConfigDirPath(), CONFIG_FILE_NAME);
 
 function getConfigDirPath() {
   const home = homedir();
@@ -19,3 +18,8 @@ function getConfigDirPath() {
       return join(home, '.config', PRODUCT_NAME);
   }
 }
+
+export const getAssetPath = (assetName: string) =>
+  isDevelopment
+    ? join(__dirname, '../../assets', assetName)
+    : join(resourcesPath, '..', 'assets', assetName);

@@ -15,7 +15,6 @@ import {
   copyFile,
 } from 'fs/promises';
 import { dialog } from 'electron';
-import axios from 'axios';
 
 import { execa } from 'execa';
 import { terminateProcess } from '@/utils/node/process';
@@ -36,7 +35,7 @@ import {
 import { pathExists, readJsonFile, writeJsonFile } from '@/utils/node/fs';
 import { stripAssetExtensions } from '@/utils/version';
 import { parseKoboldConfig } from '@/utils/node/kobold';
-import { getAssetPath } from '@/utils/node/assets';
+import { getAssetPath } from '@/utils/node/path';
 import type {
   GitHubAsset,
   InstalledVersion,
@@ -88,7 +87,7 @@ async function handleExistingDirectory(
   try {
     if (koboldProcess && !koboldProcess.killed) {
       sendKoboldOutput('Stopping process before update...');
-      await cleanup();
+      await stopKoboldCpp();
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
 
@@ -107,28 +106,40 @@ async function downloadFile(asset: GitHubAsset, tempPackedFilePath: string) {
   const writer = createWriteStream(tempPackedFilePath);
   let downloadedBytes = 0;
 
-  const response = await axios({
-    method: 'GET',
-    url: asset.browser_download_url,
-    responseType: 'stream',
-    timeout: 30000,
-    maxRedirects: 5,
-  });
+  const response = await fetch(asset.browser_download_url);
+
+  if (!response.ok) {
+    throw new Error(`Download failed: ${response.statusText}`);
+  }
+
+  if (!response.body) {
+    throw new Error('Response body is null');
+  }
 
   const totalBytes = asset.size;
+  const mainWindow = getMainWindow();
 
-  response.data.on('data', (chunk: Buffer) => {
-    downloadedBytes += chunk.length;
+  const reader = response.body.getReader();
+
+  const pump = async () => {
+    const { done, value } = await reader.read();
+
+    if (done) {
+      writer.end();
+      return;
+    }
+
+    downloadedBytes += value.length;
     if (totalBytes > 0) {
       const progress = (downloadedBytes / totalBytes) * 100;
-      const mainWindow = getMainWindow();
-      if (mainWindow) {
-        mainWindow.webContents.send('download-progress', progress);
-      }
+      mainWindow.webContents.send('download-progress', progress);
     }
-  });
 
-  response.data.pipe(writer);
+    writer.write(Buffer.from(value));
+    return pump();
+  };
+
+  await pump();
 
   await new Promise<void>((resolve, reject) => {
     writer.on('finish', async () => {
@@ -142,7 +153,6 @@ async function downloadFile(asset: GitHubAsset, tempPackedFilePath: string) {
       resolve();
     });
     writer.on('error', reject);
-    response.data.on('error', reject);
   });
 }
 
@@ -715,19 +725,6 @@ export async function launchKoboldCpp(
 
 export async function stopKoboldCpp() {
   if (koboldProcess) {
-    await terminateProcess(koboldProcess, {
-      timeoutMs: 5000,
-      logError: (message, error) => logError(message, error),
-    });
-    koboldProcess = null;
-  }
-}
-
-export async function cleanup() {
-  if (koboldProcess) {
-    await terminateProcess(koboldProcess, {
-      logError: (message, error) => logError(message, error),
-    });
-    koboldProcess = null;
+    await terminateProcess(koboldProcess);
   }
 }

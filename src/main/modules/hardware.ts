@@ -10,6 +10,7 @@ import type {
 } from '@/types/hardware';
 import { execa } from 'execa';
 import { formatDeviceName } from '@/utils/format';
+import { platform } from 'process';
 
 let cpuCapabilitiesCache: CPUCapabilities | null = null;
 let basicGPUInfoCache: BasicGPUInfo | null = null;
@@ -162,25 +163,10 @@ async function detectCUDA() {
   }
 }
 
-async function findRocminfoCommand() {
-  const platform = await import('process').then((p) => p.platform);
-
-  if (platform === 'win32') {
-    return 'hipInfo';
-  } else {
-    return 'rocminfo';
-  }
-}
-
 // eslint-disable-next-line sonarjs/cognitive-complexity
 export async function detectROCm() {
   try {
-    const rocminfoCommand = await findRocminfoCommand();
-    if (!rocminfoCommand) {
-      return { supported: false, devices: [] };
-    }
-
-    const isWindows = rocminfoCommand.includes('hipInfo');
+    const rocminfoCommand = platform === 'win32' ? 'hipInfo' : 'rocminfo';
     const { stdout } = await execa(rocminfoCommand, [], {
       timeout: 5000,
       reject: false,
@@ -189,7 +175,7 @@ export async function detectROCm() {
     if (stdout.trim()) {
       const devices: string[] = [];
 
-      if (isWindows) {
+      if (platform === 'win32') {
         const lines = stdout.split('\n');
 
         for (const line of lines) {

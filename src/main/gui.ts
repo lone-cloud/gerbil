@@ -10,10 +10,10 @@ import {
   getInstallDir,
 } from '@/main/modules/config';
 import { safeExecute } from '@/utils/node/logger';
-import { cleanup } from '@/main/modules/koboldcpp';
-import { getSillyTavernManager } from '@/main/modules/sillytavern';
-import { cleanup as cleanupOpenWebUI } from '@/main/modules/openwebui';
-import { cleanup as cleanupComfyUI } from '@/main/modules/comfyui';
+import { stopKoboldCpp } from '@/main/modules/koboldcpp';
+import { stopFrontend as stopSillyTavern } from '@/main/modules/sillytavern';
+import { stopFrontend as stopOpenWebUI } from '@/main/modules/openwebui';
+import { stopFrontend as stopComfyUI } from '@/main/modules/comfyui';
 import { setupIPCHandlers } from '@/main/ipc';
 import { ensureDir } from '@/utils/node/fs';
 
@@ -24,9 +24,9 @@ export async function initializeApp() {
   await initializeConfig();
   await ensureDir(installDir);
 
-  setupIPCHandlers();
-
   createMainWindow();
+
+  setupIPCHandlers();
 
   app.on('window-all-closed', () => {
     if (platform === 'darwin') {
@@ -41,10 +41,11 @@ export async function initializeApp() {
 
     await safeExecute(async () => {
       const cleanupPromises = [
-        cleanup(),
-        getSillyTavernManager().cleanup(),
-        cleanupOpenWebUI(),
-        cleanupComfyUI(),
+        cleanupWindow(),
+        stopKoboldCpp(),
+        stopSillyTavern(),
+        stopOpenWebUI(),
+        stopComfyUI(),
       ];
 
       const timeoutPromise = new Promise<void>((resolve) => {

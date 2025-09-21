@@ -25,11 +25,11 @@ const OPENWEBUI_BASE_ARGS = [
 ];
 
 on('SIGINT', () => {
-  void cleanup();
+  void stopFrontend();
 });
 
 on('SIGTERM', () => {
-  void cleanup();
+  void stopFrontend();
 });
 
 async function createUvProcess(args: string[], env?: Record<string, string>) {
@@ -172,16 +172,8 @@ export async function stopFrontend() {
     sendKoboldOutput('Stopping Open WebUI...');
 
     await tryExecute(async () => {
-      await terminateProcess(openWebUIProcess!, {
-        logError: (message, error) => logError(message, error),
-      });
+      await terminateProcess(openWebUIProcess!);
       sendKoboldOutput('Open WebUI stopped');
     }, 'Error stopping Open WebUI');
-
-    openWebUIProcess = null;
   }
-}
-
-export async function cleanup() {
-  await stopFrontend();
 }

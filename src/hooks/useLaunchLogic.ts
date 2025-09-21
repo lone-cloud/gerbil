@@ -45,7 +45,7 @@ const buildModelArgs = (
   model: string,
   sdmodel: string,
   launchArgs: LaunchArgs
-): string[] => {
+) => {
   const args: string[] = [];
 
   if (model.trim() !== '') {
@@ -82,10 +82,7 @@ const buildModelArgs = (
   return args;
 };
 
-const buildConfigArgs = (
-  isImageMode: boolean,
-  launchArgs: LaunchArgs
-): string[] => {
+const buildConfigArgs = (isImageMode: boolean, launchArgs: LaunchArgs) => {
   const args: string[] = [];
 
   if (launchArgs.autoGpuLayers) {
@@ -223,10 +220,7 @@ const buildBackendArgs = (launchArgs: LaunchArgs) => {
   return args;
 };
 
-function parseCLBlastDevice(deviceString: string): {
-  deviceIndex: number;
-  platformIndex: number;
-} | null {
+function parseCLBlastDevice(deviceString: string) {
   const match = deviceString.match(/\[(\d+),(\d+)\]$/);
   if (match) {
     return {

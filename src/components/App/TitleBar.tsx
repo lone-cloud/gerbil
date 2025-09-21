@@ -72,6 +72,13 @@ export const TitleBar = ({
   );
 
   useEffect(() => {
+    const initializeState = async () => {
+      const currentMaximizedState = await window.electronAPI.app.isMaximized();
+      setIsMaximized(currentMaximizedState);
+    };
+
+    initializeState();
+
     const cleanup = window.electronAPI.app.onWindowStateToggle(() =>
       setIsMaximized((prev) => !prev)
     );
