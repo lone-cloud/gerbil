@@ -179,9 +179,7 @@ You can use the CLI mode on Windows in exactly the same way as in the Linux/macO
 
 ## Known Issues
 
-- automatic GPU layer detection does not currently work consistently accross all backends and platforms. It's advised to set this configuration manually if you are told in the launch terminal that your VRAM could not be detected. It should work correctly on all platforms after 1.99.0 of KoboldCpp gets released except for the Windows ROCm binary which was not written well.
 - Windows ROCm support is... problematic and currently requires for the user to manually add the installed ROCm bin directory to the system PATH. In particular "hipInfo.exe" must be present, which is not always the case for older verions of ROCm.
-- not specific to Gerbil, but the open sourced AMD GPU drivers for Linux likely won't work well for image gen. They are not throttled, unlike the proprietary AMD drivers, and are likely to result in system instability under heavy load, especially when running with the larger models. You will probably need to manually tweak your system, but dual-booting to Window is likely the easiest approach if you're experiencing crashes. User beware.
 
 ## Future Considerations
 

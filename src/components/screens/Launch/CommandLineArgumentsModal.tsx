@@ -60,6 +60,7 @@ const UI_COVERED_ARGS = new Set([
   '--sdlora',
   '--sdflashattention',
   '--sdconvdirect',
+  '--tensor_split',
 ] as const) as ReadonlySet<string>;
 
 const IGNORED_ARGS = new Set([
@@ -67,6 +68,13 @@ const IGNORED_ARGS = new Set([
   '--version',
   '--launch',
   '--config',
+  '--showgui',
+  '--skiplauncher',
+  '--unpack',
+  '--exportconfig',
+  '--exporttemplate',
+  '--nomodel',
+  '--singleinstance',
 ] as const) as ReadonlySet<string>;
 
 const COMMAND_LINE_ARGUMENTS = [
@@ -241,7 +249,7 @@ const COMMAND_LINE_ARGUMENTS = [
   {
     flag: '--cli',
     description:
-      'Does not launch the HTTP server. Instead, enables input from the command line, accepting interactive console input and displaying responses to the terminal.',
+      'Does not launch KoboldCpp HTTP server. Instead, enables KoboldCpp from the command line, accepting interactive console input and displaying responses to the terminal.',
     type: 'boolean',
     category: 'Advanced',
   },
@@ -347,7 +355,7 @@ const COMMAND_LINE_ARGUMENTS = [
     description: 'How many tokens to draft per chunk before verifying results',
     metavar: '[tokens]',
     type: 'int',
-    default: 16,
+    default: 8,
     category: 'Speculative Decoding',
   },
   {
@@ -358,6 +366,14 @@ const COMMAND_LINE_ARGUMENTS = [
     metavar: '[layers]',
     type: 'int',
     default: 999,
+    category: 'Speculative Decoding',
+  },
+  {
+    flag: '--draftgpusplit',
+    description:
+      'GPU layer distribution ratio for draft model (default=same as main). Only works if multi-GPUs selected for MAIN model and tensor_split is set!',
+    metavar: '[Ratios]',
+    type: 'float[]',
     category: 'Speculative Decoding',
   },
   {
@@ -391,6 +407,114 @@ const COMMAND_LINE_ARGUMENTS = [
       'Enables the use of Classifier-Free-Guidance, which allows the use of negative prompts. Has performance and memory impact.',
     type: 'boolean',
     category: 'Performance',
+  },
+  {
+    flag: '--ratelimit',
+    description:
+      'If enabled, rate limit generative request by IP address. Each IP can only send a new request once per X seconds.',
+    metavar: '[seconds]',
+    type: 'int',
+    default: 0,
+    category: 'Advanced',
+  },
+  {
+    flag: '--ignoremissing',
+    description:
+      'Ignores all missing non-essential files, just skipping them instead.',
+    type: 'boolean',
+    category: 'Advanced',
+  },
+  {
+    flag: '--chatcompletionsadapter',
+    description:
+      'Select an optional ChatCompletions Adapter JSON file to force custom instruct tags.',
+    metavar: '[filename]',
+    default: 'AutoGuess',
+    category: 'Advanced',
+  },
+  {
+    flag: '--forceversion',
+    description:
+      'If the model file format detection fails (e.g. rogue modified model) you can set this to override the detected format (enter desired version, e.g. 401 for GPTNeoX-Type2).',
+    metavar: '[version]',
+    type: 'int',
+    default: 0,
+    category: 'Advanced',
+  },
+  {
+    flag: '--smartcontext',
+    description:
+      'Reserving a portion of context to try processing less frequently. Outdated. Not recommended.',
+    type: 'boolean',
+    category: 'Advanced',
+  },
+  {
+    flag: '--unpack',
+    description:
+      'Extracts the file contents of the KoboldCpp binary into a target directory.',
+    metavar: 'destination',
+    type: 'string',
+    default: '',
+    category: 'Advanced',
+  },
+  {
+    flag: '--exportconfig',
+    description:
+      'Exports the current selected arguments as a .kcpps settings file',
+    metavar: '[filename]',
+    type: 'string',
+    default: '',
+    category: 'Advanced',
+  },
+  {
+    flag: '--exporttemplate',
+    description:
+      'Exports the current selected arguments as a .kcppt template file',
+    metavar: '[filename]',
+    type: 'string',
+    default: '',
+    category: 'Advanced',
+  },
+  {
+    flag: '--nomodel',
+    description:
+      'Allows you to launch the GUI alone, without selecting any model.',
+    type: 'boolean',
+    category: 'Advanced',
+  },
+  {
+    flag: '--singleinstance',
+    description:
+      'Allows this KoboldCpp instance to be shut down by any new instance requesting the same port, preventing duplicate servers from clashing on a port.',
+    type: 'boolean',
+    category: 'Advanced',
+  },
+  {
+    flag: '--maxrequestsize',
+    description:
+      'Specify a max request payload size. Any requests to the server larger than this size will be dropped. Do not change if unsure.',
+    metavar: '[size in MB]',
+    type: 'int',
+    default: 32,
+    category: 'Advanced',
+  },
+  {
+    flag: '--overridekv',
+    aliases: ['--override-kv'],
+    description:
+      'Advanced option to override a metadata by key, same as in llama.cpp. Mainly for debugging, not intended for general use. Types: int, float, bool, str',
+    metavar: '[name=type:value]',
+    default: '',
+    category: 'Advanced',
+  },
+  {
+    flag: '--overridetensors',
+    aliases: ['--override-tensor', '-ot'],
+    description:
+      'Advanced option to override tensor backend selection, same as in llama.cpp.',
+    metavar: '[tensor name pattern=buffer type]',
+    default: '',
+    category: 'Advanced',
   },
   {
     flag: '--admin',
@@ -437,6 +561,24 @@ const COMMAND_LINE_ARGUMENTS = [
     category: 'Horde Worker',
   },
   {
+    flag: '--hordemaxctx',
+    description:
+      'Sets the maximum context length your worker will accept from an AI Horde job. If 0, matches main context limit.',
+    metavar: '[amount]',
+    type: 'int',
+    default: 0,
+    category: 'Horde Worker',
+  },
+  {
+    flag: '--hordegenlen',
+    description:
+      'Sets the maximum number of tokens your worker will generate from an AI horde job.',
+    metavar: '[amount]',
+    type: 'int',
+    default: 0,
+    category: 'Horde Worker',
+  },
+  {
     flag: '--sdthreads',
     description:
       'Use a different number of threads for image generation if specified. Otherwise, has the same value as --threads.',
@@ -453,6 +595,48 @@ const COMMAND_LINE_ARGUMENTS = [
     type: 'int',
     choices: ['0', '1', '2'],
     default: 0,
+    category: 'Image Generation',
+  },
+  {
+    flag: '--sdclamped',
+    description:
+      'If specified, limit generation steps and image size for shared use. Accepts an extra optional parameter that indicates maximum resolution (eg. 768 clamps to 768x768, min 512px, disabled if 0).',
+    metavar: '[maxres]',
+    type: 'int',
+    default: 0,
+    category: 'Image Generation',
+  },
+  {
+    flag: '--sdclampedsoft',
+    description:
+      'If specified, limit max image size to curb memory usage. Similar to --sdclamped, but less strict, allows trade-offs between width and height (e.g. 640 would allow 640x640, 512x768 and 768x512 images). Total resolution cannot exceed 1MP.',
+    metavar: '[maxres]',
+    type: 'int',
+    default: 0,
+    category: 'Image Generation',
+  },
+  {
+    flag: '--sdvaeauto',
+    description:
+      'Uses a built-in VAE via TAE SD, which is very fast, and fixed bad VAEs.',
+    type: 'boolean',
+    category: 'Image Generation',
+  },
+  {
+    flag: '--sdloramult',
+    description: 'Multiplier for the image LORA model to be applied.',
+    metavar: '[amount]',
+    type: 'float',
+    default: 1.0,
+    category: 'Image Generation',
+  },
+  {
+    flag: '--sdtiledvae',
+    description:
+      'Adjust the automatic VAE tiling trigger for images above this size. 0 disables vae tiling.',
+    metavar: '[maxres]',
+    type: 'int',
+    default: 768,
     category: 'Image Generation',
   },
   {
@@ -477,6 +661,29 @@ const COMMAND_LINE_ARGUMENTS = [
     category: 'Audio',
   },
   {
+    flag: '--ttswavtokenizer',
+    description: 'Specify the WavTokenizer GGUF model.',
+    metavar: '[filename]',
+    default: '',
+    category: 'Audio',
+  },
+  {
+    flag: '--ttsmaxlen',
+    description: 'Limit number of audio tokens generated with TTS.',
+    type: 'int',
+    default: 4096,
+    category: 'Audio',
+  },
+  {
+    flag: '--ttsthreads',
+    description:
+      'Use a different number of threads for TTS if specified. Otherwise, has the same value as --threads.',
+    metavar: '[threads]',
+    type: 'int',
+    default: 0,
+    category: 'Audio',
+  },
+  {
     flag: '--embeddingsmodel',
     description:
       'Specify an embeddings model to be loaded for generating embedding vectors.',
@@ -489,6 +696,15 @@ const COMMAND_LINE_ARGUMENTS = [
     description:
       'Attempts to offload layers of the embeddings model to GPU. Usually not needed.',
     type: 'boolean',
+    category: 'Embeddings',
+  },
+  {
+    flag: '--embeddingsmaxctx',
+    description:
+      'Overrides the default maximum supported context of an embeddings model (defaults to trained context).',
+    metavar: '[amount]',
+    type: 'int',
+    default: 0,
     category: 'Embeddings',
   },
 ] as const;

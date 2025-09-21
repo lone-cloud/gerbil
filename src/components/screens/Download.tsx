@@ -4,7 +4,7 @@ import { DownloadCard } from '@/components/DownloadCard';
 import { getPlatformDisplayName } from '@/utils/platform';
 import { formatDownloadSize } from '@/utils/format';
 import { getAssetDescription } from '@/utils/assets';
-import { useKoboldVersions } from '@/hooks/useKoboldVersions';
+import { useKoboldVersionsStore } from '@/stores/koboldVersions';
 import type { DownloadItem } from '@/types/electron';
 
 interface DownloadScreenProps {
@@ -19,8 +19,8 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
     loadingRemote,
     downloading,
     downloadProgress,
-    handleDownload: sharedHandleDownload,
-  } = useKoboldVersions();
+    handleDownload: handleDownloadFromStore,
+  } = useKoboldVersionsStore();
 
   const [downloadingAsset, setDownloadingAsset] = useState<string | null>(null);
   const downloadingItemRef = useRef<HTMLDivElement>(null);
@@ -31,7 +31,7 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
     async (download: DownloadItem) => {
       setDownloadingAsset(download.name);
 
-      const success = await sharedHandleDownload({
+      const success = await handleDownloadFromStore({
         item: download,
         isUpdate: false,
         wasCurrentBinary: false,
@@ -47,7 +47,7 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
 
       setDownloadingAsset(null);
     },
-    [sharedHandleDownload, onDownloadComplete]
+    [handleDownloadFromStore, onDownloadComplete]
   );
 
   useEffect(() => {

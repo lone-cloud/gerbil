@@ -18,7 +18,7 @@ import {
 } from '@/utils/version';
 import { formatDownloadSize } from '@/utils/format';
 
-import { useKoboldVersions } from '@/hooks/useKoboldVersions';
+import { useKoboldVersionsStore } from '@/stores/koboldVersions';
 import type { InstalledVersion, ReleaseWithStatus } from '@/types/electron';
 
 interface VersionInfo {
@@ -40,9 +40,9 @@ export const VersionsTab = () => {
     loadingRemote,
     downloading,
     downloadProgress,
-    handleDownload: sharedHandleDownload,
+    handleDownload: handleDownloadFromStore,
     getLatestReleaseWithDownloadStatus,
-  } = useKoboldVersions();
+  } = useKoboldVersionsStore();
 
   const [installedVersions, setInstalledVersions] = useState<
     InstalledVersion[]
@@ -171,7 +171,7 @@ export const VersionsTab = () => {
     const download = availableDownloads.find((d) => d.name === version.name);
     if (!download) return;
 
-    const success = await sharedHandleDownload({
+    const success = await handleDownloadFromStore({
       item: download,
       isUpdate: false,
       wasCurrentBinary: false,
@@ -186,7 +186,7 @@ export const VersionsTab = () => {
     const download = availableDownloads.find((d) => d.name === version.name);
     if (!download) return;
 
-    const success = await sharedHandleDownload({
+    const success = await handleDownloadFromStore({
       item: download,
       isUpdate: true,
       wasCurrentBinary: version.isCurrent,

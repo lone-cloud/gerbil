@@ -181,14 +181,7 @@ export const GeneralTab = ({
     }
   };
 
-  const handleFrontendPreferenceChange = async (value: string | null) => {
-    if (
-      !value ||
-      !['koboldcpp', 'sillytavern', 'openwebui', 'comfyui'].includes(value)
-    )
-      return;
-
-    await checkAllFrontendRequirements();
+  const handleFrontendPreferenceChange = (value: string | null) => {
     setFrontendPreference(value as FrontendPreference);
   };
 
@@ -268,7 +261,6 @@ export const GeneralTab = ({
           value={frontendPreference}
           onChange={handleFrontendPreferenceChange}
           disabled={isOnInterfaceScreen}
-          onClick={() => checkAllFrontendRequirements()}
           data={frontendConfigs.map((config) => ({
             value: config.value,
             label: config.label,

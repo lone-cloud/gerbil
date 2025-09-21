@@ -14,7 +14,7 @@ import { StatusBar } from '@/components/App/StatusBar';
 import { ErrorBoundary } from '@/components/App/ErrorBoundary';
 import { AppRouter } from '@/components/App/Router';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
-import { useKoboldVersions } from '@/hooks/useKoboldVersions';
+import { useKoboldVersionsStore } from '@/stores/koboldVersions';
 import { usePreferencesStore } from '@/stores/preferences';
 import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
 import type { DownloadItem } from '@/types/electron';
@@ -39,10 +39,11 @@ export const App = () => {
     updateInfo: binaryUpdateInfo,
     showUpdateModal,
     checkForUpdates,
-    dismissUpdate,
+    skipUpdate,
+    closeModal,
   } = useUpdateChecker();
 
-  const { handleDownload: sharedHandleDownload } = useKoboldVersions();
+  const { handleDownload, loadingRemote } = useKoboldVersionsStore();
 
   useEffect(() => {
     const checkInstallation = async () => {
@@ -52,19 +53,27 @@ export const App = () => {
       ]);
 
       determineScreen(currentVersion, hasSeenWelcome);
-
-      if (currentVersion) {
-        setTimeout(() => {
-          checkForUpdates();
-        }, 2000);
-      }
-
       setHasInitialized(true);
     };
 
     checkInstallation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const runUpdateCheck = async () => {
+      if (loadingRemote || !hasInitialized) return;
+
+      const currentVersion =
+        await window.electronAPI.kobold.getCurrentVersion();
+      if (currentVersion) {
+        setTimeout(() => {
+          checkForUpdates();
+        }, 1000);
+      }
+    };
+
+    runUpdateCheck();
+  }, [loadingRemote, hasInitialized, checkForUpdates]);
 
   const determineScreen = (
     currentVersion: unknown,
@@ -80,14 +89,14 @@ export const App = () => {
   };
 
   const handleBinaryUpdate = async (download: DownloadItem) => {
-    const success = await sharedHandleDownload({
+    const success = await handleDownload({
       item: download,
       isUpdate: true,
       wasCurrentBinary: true,
     });
 
     if (success) {
-      dismissUpdate();
+      closeModal();
     }
   };
 
@@ -181,7 +190,8 @@ export const App = () => {
 
         <UpdateAvailableModal
           opened={showUpdateModal && !!binaryUpdateInfo}
-          onClose={dismissUpdate}
+          onClose={closeModal}
+          onSkip={skipUpdate}
           updateInfo={binaryUpdateInfo || undefined}
           onUpdate={handleBinaryUpdate}
         />
