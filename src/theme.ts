@@ -65,7 +65,7 @@ export const cssVariablesResolver: CSSVariablesResolver = () => ({
   light: {
     '--mantine-color-body': '#fafafa',
     '--mantine-color-white': '#fafafa',
-    '--mantine-color-default-border': '#e5e7eb',
+    '--mantine-color-default-border': '#dee2e6',
   },
   dark: {
     '--mantine-color-body': '#0f0f0f',
