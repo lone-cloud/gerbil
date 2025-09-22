@@ -17,7 +17,7 @@ import { SettingsModal } from '@/components/settings/SettingsModal';
 import { UpdateButton } from '@/components/App/UpdateButton';
 import icon from '/icon.png';
 import { PRODUCT_NAME, TITLEBAR_HEIGHT } from '@/constants';
-import type { InterfaceTab, Screen } from '@/types';
+import type { InterfaceTab, Screen, SelectOption } from '@/types';
 
 interface TitleBarProps {
   currentScreen: Screen;
@@ -54,11 +54,7 @@ export const TitleBar = ({
     }
   };
 
-  const renderOption = ({
-    option,
-  }: {
-    option: { value: string; label: string };
-  }) => (
+  const renderOption = ({ option }: { option: SelectOption }) => (
     <Box
       style={{
         textAlign: 'center',

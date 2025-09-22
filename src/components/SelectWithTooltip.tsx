@@ -2,13 +2,14 @@ import type { CSSProperties } from 'react';
 import { Select } from '@mantine/core';
 import type { ComboboxItem } from '@mantine/core';
 import { LabelWithTooltip } from '@/components/LabelWithTooltip';
+import type { SelectOption } from '@/types';
 
 interface SelectWithTooltipProps {
   label: string;
   tooltip: string;
   value: string;
   onChange: (value: string | null, option: ComboboxItem) => void;
-  data: { value: string; label: string }[];
+  data: SelectOption[];
   placeholder?: string;
   disabled?: boolean;
   clearable?: boolean;
