@@ -68,6 +68,7 @@ export const GpuDeviceSelector = ({
               }
             }}
             data={deviceOptions}
+            allowDeselect={false}
           />
         </div>
 

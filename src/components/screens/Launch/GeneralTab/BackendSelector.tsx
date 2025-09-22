@@ -70,6 +70,7 @@ export const BackendSelector = () => {
               disabled: b.disabled,
             }))}
             disabled={isLoadingBackends || availableBackends.length === 0}
+            allowDeselect={false}
             renderOption={({ option }) => {
               const backendData = availableBackends.find(
                 (b) => b.value === option.value
