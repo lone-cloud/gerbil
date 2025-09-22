@@ -36,6 +36,7 @@ export const SelectWithTooltip = ({
       data={data}
       disabled={disabled}
       clearable={clearable}
+      allowDeselect={false}
     />
   </div>
 );

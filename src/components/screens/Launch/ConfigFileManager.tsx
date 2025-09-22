@@ -109,6 +109,7 @@ export const ConfigFileManager = ({
               leftSection={<File size={16} />}
               searchable
               clearable={false}
+              allowDeselect={false}
             />
           </div>
           <Button

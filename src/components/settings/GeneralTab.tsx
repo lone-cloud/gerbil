@@ -267,6 +267,7 @@ export const GeneralTab = ({
             disabled: !isFrontendAvailable(config.value),
           }))}
           leftSection={<Monitor style={{ width: rem(16), height: rem(16) }} />}
+          allowDeselect={false}
         />
 
         <Box mt="sm">
