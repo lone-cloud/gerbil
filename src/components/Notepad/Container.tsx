@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { Box, Paper, ActionIcon } from '@mantine/core';
-import { X, Plus } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useNotepadStore } from '@/stores/notepad';
 import { usePreferencesStore } from '@/stores/preferences';
 import { NOTEPAD_MIN_WIDTH, NOTEPAD_MIN_HEIGHT } from '@/constants/notepad';
 import { NotepadTabs } from './Tabs.tsx';
 import { NotepadEditor } from './Editor.tsx';
+import { CloseConfirmModal } from './CloseConfirmModal.tsx';
 
 export const NotepadContainer = () => {
   const {
@@ -14,6 +15,7 @@ export const NotepadContainer = () => {
     tabs,
     activeTabId,
     addTab,
+    removeTab,
     isLoaded,
     isVisible,
     setVisible,
@@ -22,12 +24,47 @@ export const NotepadContainer = () => {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [resizeDirection, setResizeDirection] = useState<string | null>(null);
+  const [confirmCloseModal, setConfirmCloseModal] = useState<{
+    isOpen: boolean;
+    tabId: string | null;
+    tabTitle: string;
+  }>({
+    isOpen: false,
+    tabId: null,
+    tabTitle: '',
+  });
 
   const activeTab = tabs.find((tab) => tab.id === activeTabId);
 
   const handleCreateNewTab = async () => {
     const newTab = await window.electronAPI.notepad.createNewTab();
     addTab(newTab);
+  };
+
+  const handleTabCloseRequest = (tabId: string) => {
+    const tab = tabs.find((t) => t.id === tabId);
+    if (!tab) return;
+
+    if (tab.content.trim().length > 0) {
+      setConfirmCloseModal({
+        isOpen: true,
+        tabId,
+        tabTitle: tab.title,
+      });
+    } else {
+      removeTab(tabId);
+    }
+  };
+
+  const handleConfirmClose = () => {
+    if (confirmCloseModal.tabId) {
+      removeTab(confirmCloseModal.tabId);
+    }
+    setConfirmCloseModal({ isOpen: false, tabId: null, tabTitle: '' });
+  };
+
+  const handleCancelClose = () => {
+    setConfirmCloseModal({ isOpen: false, tabId: null, tabTitle: '' });
   };
 
   const handleResizeStart =
@@ -87,11 +124,11 @@ export const NotepadContainer = () => {
       withBorder
       style={{
         position: 'fixed',
-        left: 5,
-        bottom: 5,
+        left: 0,
+        bottom: 24,
         width: position.width,
         height: position.height,
-        zIndex: 1000,
+        zIndex: 100,
         backgroundColor:
           resolvedColorScheme === 'dark'
             ? 'var(--mantine-color-dark-6)'
@@ -132,11 +169,6 @@ export const NotepadContainer = () => {
           width: 12,
           height: 12,
           cursor: 'ne-resize',
-          backgroundColor:
-            resolvedColorScheme === 'dark'
-              ? 'var(--mantine-color-dark-5)'
-              : 'var(--mantine-color-gray-4)',
-          borderRadius: '2px',
         }}
         onMouseDown={handleResizeStart('top-right')}
       />
@@ -155,7 +187,10 @@ export const NotepadContainer = () => {
             minHeight: 28,
           }}
         >
-          <NotepadTabs />
+          <NotepadTabs
+            onCreateNewTab={handleCreateNewTab}
+            onCloseTab={handleTabCloseRequest}
+          />
 
           <Box
             style={{
@@ -166,10 +201,6 @@ export const NotepadContainer = () => {
               flexShrink: 0,
             }}
           >
-            <ActionIcon variant="subtle" size="xs" onClick={handleCreateNewTab}>
-              <Plus size={12} />
-            </ActionIcon>
-
             <ActionIcon
               variant="subtle"
               size="xs"
@@ -185,6 +216,13 @@ export const NotepadContainer = () => {
           {activeTab && <NotepadEditor tab={activeTab} />}
         </Box>
       </Box>
+
+      <CloseConfirmModal
+        isOpen={confirmCloseModal.isOpen}
+        tabTitle={confirmCloseModal.tabTitle}
+        onConfirm={handleConfirmClose}
+        onCancel={handleCancelClose}
+      />
     </Paper>
   );
 };

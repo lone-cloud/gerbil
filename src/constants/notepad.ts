@@ -1,6 +1,4 @@
 export const DEFAULT_NOTEPAD_POSITION = {
-  x: 0,
-  y: 0,
   width: 400,
   height: 400,
 };

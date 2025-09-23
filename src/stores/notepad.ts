@@ -13,6 +13,7 @@ interface NotepadStore extends NotepadState {
   reorderTabs: (fromIndex: number, toIndex: number) => void;
   setPosition: (position: NotepadState['position']) => void;
   setVisible: (visible: boolean) => void;
+  setShowLineNumbers: (showLineNumbers: boolean) => void;
   loadState: () => Promise<void>;
   saveState: () => Promise<void>;
   saveTabContent: (tabId: string, content: string) => Promise<void>;
@@ -24,6 +25,7 @@ export const useNotepadStore = create<NotepadStore>()(
     activeTabId: null,
     position: DEFAULT_NOTEPAD_POSITION,
     isVisible: false,
+    showLineNumbers: true,
     isLoaded: false,
 
     setTabs: (tabs) => set({ tabs }),
@@ -85,6 +87,10 @@ export const useNotepadStore = create<NotepadStore>()(
       set({ isVisible: visible });
     },
 
+    setShowLineNumbers: (showLineNumbers) => {
+      set({ showLineNumbers });
+    },
+
     loadState: async () => {
       try {
         const savedState = await window.electronAPI.notepad.loadState();
@@ -106,6 +112,7 @@ export const useNotepadStore = create<NotepadStore>()(
           activeTabId: savedState.activeTabId || tabsWithContent[0]?.id || null,
           position: savedState.position,
           isVisible: savedState.isVisible,
+          showLineNumbers: savedState.showLineNumbers ?? true,
           isLoaded: true,
         });
       } catch {
@@ -132,6 +139,7 @@ export const useNotepadStore = create<NotepadStore>()(
         activeTabId: state.activeTabId,
         position: state.position,
         isVisible: state.isVisible,
+        showLineNumbers: state.showLineNumbers,
       });
     },
 
@@ -148,6 +156,7 @@ useNotepadStore.subscribe(
     activeTabId: state.activeTabId,
     position: state.position,
     isVisible: state.isVisible,
+    showLineNumbers: state.showLineNumbers,
   }),
   () => {
     if (useNotepadStore.getState().isLoaded) {
@@ -159,7 +168,8 @@ useNotepadStore.subscribe(
       a.tabs === b.tabs &&
       a.activeTabId === b.activeTabId &&
       a.position === b.position &&
-      a.isVisible === b.isVisible,
+      a.isVisible === b.isVisible &&
+      a.showLineNumbers === b.showLineNumbers,
   }
 );
 

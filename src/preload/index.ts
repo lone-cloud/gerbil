@@ -117,6 +117,16 @@ const appAPI: AppAPI = {
       ipcRenderer.removeListener('window-unmaximized', handler);
     };
   },
+  onLineNumbersChanged: (callback) => {
+    const handler = (_: IpcRendererEvent, showLineNumbers: boolean) =>
+      callback(showLineNumbers);
+
+    ipcRenderer.on('line-numbers-changed', handler);
+
+    return () => {
+      ipcRenderer.removeListener('line-numbers-changed', handler);
+    };
+  },
 };
 
 const configAPI: ConfigAPI = {

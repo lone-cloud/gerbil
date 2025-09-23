@@ -72,7 +72,7 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
         bg={colorScheme === 'dark' ? 'dark.6' : 'gray.1'}
       >
         <Group gap="xs">
-          <Tooltip label="Notepad">
+          <Tooltip label="Notepad" disabled={isVisible}>
             <ActionIcon
               variant={isVisible ? 'filled' : 'subtle'}
               size="sm"

@@ -1,9 +1,16 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useState,
+  useRef,
+  type MouseEvent,
+} from 'react';
 import { Box } from '@mantine/core';
 import CodeMirror, { type ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { search } from '@codemirror/search';
-import { EditorView } from '@codemirror/view';
+import { EditorView, highlightActiveLine, keymap } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
+import { history, historyKeymap } from '@codemirror/commands';
 import { useNotepadStore } from '@/stores/notepad';
 import { usePreferencesStore } from '@/stores/preferences';
 import type { NotepadTab } from '@/types/electron';
@@ -13,7 +20,8 @@ interface NotepadEditorProps {
 }
 
 export const NotepadEditor = ({ tab }: NotepadEditorProps) => {
-  const { saveTabContent } = useNotepadStore();
+  const { saveTabContent, showLineNumbers, setShowLineNumbers } =
+    useNotepadStore();
   const { resolvedColorScheme } = usePreferencesStore();
   const [content, setContent] = useState(tab.content);
   const [saveTimeout, setSaveTimeout] = useState<ReturnType<
@@ -38,6 +46,14 @@ export const NotepadEditor = ({ tab }: NotepadEditorProps) => {
     [tab.id, saveTabContent, saveTimeout]
   );
 
+  const handleEditorContextMenu = (e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+
+    if (target.closest('.cm-gutters') || target.closest('.cm-lineNumbers')) {
+      e.preventDefault();
+      setShowLineNumbers(false);
+    }
+  };
   const handleBoxClick = useCallback(() => {
     if (editorRef.current?.view) {
       editorRef.current.view.focus();
@@ -59,6 +75,9 @@ export const NotepadEditor = ({ tab }: NotepadEditorProps) => {
 
   const extensions = [
     search(),
+    history(),
+    keymap.of(historyKeymap),
+    highlightActiveLine(),
     EditorView.lineWrapping,
     EditorView.theme({
       '&': {
@@ -72,12 +91,13 @@ export const NotepadEditor = ({ tab }: NotepadEditorProps) => {
   return (
     <Box
       h="100%"
+      onClick={handleBoxClick}
+      onContextMenu={handleEditorContextMenu}
       style={{
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
       }}
-      onClick={handleBoxClick}
     >
       <CodeMirror
         ref={editorRef}
@@ -86,7 +106,7 @@ export const NotepadEditor = ({ tab }: NotepadEditorProps) => {
         theme={theme}
         extensions={extensions}
         basicSetup={{
-          lineNumbers: true,
+          lineNumbers: showLineNumbers,
           foldGutter: false,
           dropCursor: false,
           allowMultipleSelections: false,

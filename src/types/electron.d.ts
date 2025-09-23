@@ -174,6 +174,9 @@ export interface AppAPI {
   quitAndInstall: () => Promise<void>;
   isUpdateDownloaded: () => Promise<boolean>;
   onWindowStateToggle: (callback: () => void) => () => void;
+  onLineNumbersChanged: (
+    callback: (showLineNumbers: boolean) => void
+  ) => () => void;
 }
 
 export interface ConfigAPI {
@@ -221,24 +224,22 @@ export interface NotepadState {
   tabs: NotepadTab[];
   activeTabId: string | null;
   position: {
-    x: number;
-    y: number;
     width: number;
     height: number;
   };
   isVisible: boolean;
+  showLineNumbers: boolean;
 }
 
 export interface SavedNotepadState {
   tabs: SavedNotepadTab[];
   activeTabId: string | null;
   position: {
-    x: number;
-    y: number;
     width: number;
     height: number;
   };
   isVisible: boolean;
+  showLineNumbers?: boolean;
 }
 
 export interface NotepadAPI {

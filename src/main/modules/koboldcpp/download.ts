@@ -89,6 +89,7 @@ async function downloadFile(asset: GitHubAsset, tempPackedFilePath: string) {
     if (totalBytes > 0) {
       const progress = (downloadedBytes / totalBytes) * 100;
       const now = Date.now();
+
       if (now - lastProgressUpdate > 100) {
         mainWindow.webContents.send('download-progress', progress);
         lastProgressUpdate = now;

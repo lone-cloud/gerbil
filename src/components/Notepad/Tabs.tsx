@@ -1,8 +1,20 @@
-import { type MouseEvent, type DragEvent, useState } from 'react';
-import { Box, ActionIcon, Text } from '@mantine/core';
-import { X } from 'lucide-react';
+import {
+  type MouseEvent,
+  type DragEvent,
+  type KeyboardEvent,
+  useState,
+  useRef,
+  useEffect,
+} from 'react';
+import { Box, ActionIcon, Text, TextInput } from '@mantine/core';
+import { X, Plus } from 'lucide-react';
 import { useNotepadStore } from '@/stores/notepad';
 import { usePreferencesStore } from '@/stores/preferences';
+
+interface NotepadTabsProps {
+  onCreateNewTab: () => Promise<void>;
+  onCloseTab: (tabId: string) => void;
+}
 
 interface TabProps {
   id: string;
@@ -14,7 +26,10 @@ interface TabProps {
   onDragStart: (e: DragEvent, index: number) => void;
   onDragOver: (e: DragEvent) => void;
   onDrop: (e: DragEvent, index: number) => void;
+  onRename: (newTitle: string) => void;
   isDragOver: boolean;
+  showLineNumbers: boolean;
+  setShowLineNumbers: (show: boolean) => void;
 }
 
 const Tab = ({
@@ -26,14 +41,77 @@ const Tab = ({
   onDragStart,
   onDragOver,
   onDrop,
+  onRename,
   isDragOver,
+  showLineNumbers,
+  setShowLineNumbers,
 }: TabProps) => {
   const { resolvedColorScheme } = usePreferencesStore();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(title);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  const handleTitleClick = (e: MouseEvent) => {
+    e.stopPropagation();
+    if (!isActive) {
+      onSelect();
+    }
+  };
+
+  const handleTitleDoubleClick = (e: MouseEvent) => {
+    e.stopPropagation();
+    if (isActive) {
+      setIsEditing(true);
+      setEditingTitle(title);
+    }
+  };
+
+  const handleInputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSaveTitle();
+    } else if (e.key === 'Escape') {
+      setIsEditing(false);
+      setEditingTitle(title);
+    }
+  };
+
+  const handleInputBlur = () => {
+    handleSaveTitle();
+  };
+
+  const handleSaveTitle = () => {
+    const trimmedTitle = editingTitle.trim();
+    if (trimmedTitle && trimmedTitle !== title) {
+      onRename(trimmedTitle);
+    }
+    setIsEditing(false);
+  };
+
+  const handleTabClick = () => {
+    if (!isEditing) {
+      onSelect();
+    }
+  };
+
+  const handleMouseDown = (e: MouseEvent) => {
+    if (e.button === 1) {
+      e.preventDefault();
+      onClose(e);
+    }
+  };
 
   return (
     <Box
-      draggable
-      onClick={onSelect}
+      draggable={!isEditing}
+      onClick={handleTabClick}
+      onMouseDown={handleMouseDown}
       onDragStart={(e) => onDragStart(e, index)}
       onDragOver={onDragOver}
       onDrop={(e) => onDrop(e, index)}
@@ -53,7 +131,7 @@ const Tab = ({
             ? 'var(--mantine-color-dark-4)'
             : 'var(--mantine-color-gray-3)'
         }`,
-        cursor: 'pointer',
+        cursor: isEditing ? 'default' : 'pointer',
         display: 'flex',
         alignItems: 'center',
         gap: '4px',
@@ -62,17 +140,49 @@ const Tab = ({
         opacity: isDragOver ? 0.5 : 1,
       }}
     >
-      <Text
-        size="xs"
-        style={{
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          flex: 1,
-        }}
-      >
-        {title}
-      </Text>
+      {isEditing ? (
+        <TextInput
+          ref={inputRef}
+          value={editingTitle}
+          onChange={(e) => setEditingTitle(e.target.value)}
+          onKeyDown={handleInputKeyDown}
+          onBlur={handleInputBlur}
+          size="xs"
+          variant="unstyled"
+          style={{
+            flex: 1,
+            minWidth: 0,
+          }}
+          styles={{
+            input: {
+              fontSize: 'var(--mantine-font-size-xs)',
+              padding: 0,
+              minHeight: 'auto',
+              height: 'auto',
+              lineHeight: 1,
+            },
+          }}
+        />
+      ) : (
+        <Text
+          size="xs"
+          onClick={handleTitleClick}
+          onDoubleClick={handleTitleDoubleClick}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowLineNumbers(!showLineNumbers);
+          }}
+          style={{
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            flex: 1,
+          }}
+        >
+          {title}
+        </Text>
+      )}
 
       <ActionIcon variant="subtle" size="xs" onClick={onClose}>
         <X size={10} />
@@ -81,9 +191,19 @@ const Tab = ({
   );
 };
 
-export const NotepadTabs = () => {
-  const { tabs, activeTabId, setActiveTab, removeTab, reorderTabs } =
-    useNotepadStore();
+export const NotepadTabs = ({
+  onCreateNewTab,
+  onCloseTab,
+}: NotepadTabsProps) => {
+  const {
+    tabs,
+    activeTabId,
+    setActiveTab,
+    reorderTabs,
+    updateTab,
+    showLineNumbers,
+    setShowLineNumbers,
+  } = useNotepadStore();
   const { resolvedColorScheme } = usePreferencesStore();
   const [draggedTabIndex, setDraggedTabIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -94,7 +214,19 @@ export const NotepadTabs = () => {
 
   const handleTabClose = (e: MouseEvent, tabId: string) => {
     e.stopPropagation();
-    removeTab(tabId);
+    onCloseTab(tabId);
+  };
+
+  const handleTabRename = (tabId: string, newTitle: string) => {
+    updateTab(tabId, { title: newTitle });
+  };
+
+  const handleTabBarContextMenu = (e: MouseEvent) => {
+    e.preventDefault();
+
+    if (!showLineNumbers) {
+      setShowLineNumbers(true);
+    }
   };
 
   const handleDragStart = (e: DragEvent, index: number) => {
@@ -130,6 +262,7 @@ export const NotepadTabs = () => {
 
   return (
     <Box
+      onContextMenu={handleTabBarContextMenu}
       style={{
         borderBottom: `1px solid ${
           resolvedColorScheme === 'dark'
@@ -154,13 +287,28 @@ export const NotepadTabs = () => {
             title={tab.title}
             onSelect={() => handleTabSelect(tab.id)}
             onClose={(e) => handleTabClose(e, tab.id)}
+            onRename={(newTitle) => handleTabRename(tab.id, newTitle)}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
             isDragOver={dragOverIndex === index}
+            showLineNumbers={showLineNumbers}
+            setShowLineNumbers={setShowLineNumbers}
           />
         </Box>
       ))}
+
+      <ActionIcon
+        variant="subtle"
+        size="xs"
+        onClick={onCreateNewTab}
+        style={{
+          margin: '4px',
+          alignSelf: 'center',
+        }}
+      >
+        <Plus size={12} />
+      </ActionIcon>
     </Box>
   );
 };
