@@ -13,6 +13,7 @@ import { TitleBar } from '@/components/App/TitleBar';
 import { StatusBar } from '@/components/App/StatusBar';
 import { ErrorBoundary } from '@/components/App/ErrorBoundary';
 import { AppRouter } from '@/components/App/Router';
+import { NotepadContainer } from '@/components/Notepad/Container';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { useKoboldVersionsStore } from '@/stores/koboldVersions';
 import { usePreferencesStore } from '@/stores/preferences';
@@ -204,6 +205,8 @@ export const App = () => {
         onClose={() => setEjectConfirmModalOpen(false)}
         onConfirm={handleEjectConfirm}
       />
+
+      <NotepadContainer />
     </AppShell>
   );
 };

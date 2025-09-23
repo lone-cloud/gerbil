@@ -1,6 +1,6 @@
 import { ipcMain, shell, app } from 'electron';
 import { join } from 'path';
-import * as os from 'os';
+import { release } from 'os';
 import { platform, versions, arch } from 'process';
 import type { MantineColorScheme } from '@mantine/core';
 import {
@@ -44,6 +44,14 @@ import {
 } from '@/main/modules/dependencies';
 import { getMainWindow } from '@/main/modules/window';
 import {
+  saveTabContent,
+  loadTabContent,
+  saveNotepadState,
+  loadNotepadState,
+  deleteTabFile,
+  createNewTab,
+} from '@/main/modules/notepad';
+import {
   detectGPU,
   detectCPU,
   detectGPUCapabilities,
@@ -67,6 +75,7 @@ import {
   canAutoUpdate,
 } from '@/main/modules/autoUpdater';
 import { getAppVersion } from '@/utils/node/fs';
+import type { NotepadState } from '@/types/electron';
 
 export function setupIPCHandlers() {
   const mainWindow = getMainWindow();
@@ -164,7 +173,7 @@ export function setupIPCHandlers() {
       nodeVersion: versions.node,
       chromeVersion: versions.chrome,
       v8Version: versions.v8,
-      osVersion: os.release(),
+      osVersion: release(),
       platform,
       arch,
       nodeJsSystemVersion,
@@ -267,4 +276,27 @@ export function setupIPCHandlers() {
   ipcMain.handle('app:canAutoUpdate', () => canAutoUpdate());
 
   ipcMain.handle('app:isAURInstallation', () => isAURInstallation());
+
+  ipcMain.handle(
+    'notepad:saveTabContent',
+    (_, tabId: string, content: string) => saveTabContent(tabId, content)
+  );
+
+  ipcMain.handle('notepad:loadTabContent', (_, tabId: string) =>
+    loadTabContent(tabId)
+  );
+
+  ipcMain.handle('notepad:saveState', (_, state: NotepadState) =>
+    saveNotepadState(state)
+  );
+
+  ipcMain.handle('notepad:loadState', () => loadNotepadState());
+
+  ipcMain.handle('notepad:deleteTab', (_, tabId: string) =>
+    deleteTabFile(tabId)
+  );
+
+  ipcMain.handle('notepad:createNewTab', (_, title?: string) =>
+    createNewTab(title)
+  );
 }
