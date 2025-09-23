@@ -10,7 +10,7 @@ async function killWindowsProcessTree(pid: number) {
   } catch {}
 }
 
-export async function terminateProcess(childProcess: ChildProcess) {
+export async function terminateProcess(childProcess: ChildProcess | null) {
   if (!childProcess?.pid) {
     return;
   }

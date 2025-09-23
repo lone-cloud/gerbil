@@ -1,9 +1,9 @@
 import { join, dirname } from 'path';
 import { platform } from 'process';
 import { pathExists } from '@/utils/node/fs';
-import { getCurrentBinaryInfo } from './koboldcpp';
-import { detectGPUCapabilities, detectCPU } from './hardware';
-import { tryExecute, safeExecute } from '@/utils/node/logger';
+import { getCurrentBinaryInfo } from './version';
+import { detectGPUCapabilities, detectCPU } from '../hardware';
+import { tryExecute, safeExecute } from '@/utils/node/logging';
 import type { BackendOption, BackendSupport } from '@/types';
 
 const backendSupportCache = new Map<string, BackendSupport>();

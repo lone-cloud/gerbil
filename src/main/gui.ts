@@ -9,8 +9,8 @@ import {
   initialize as initializeConfig,
   getInstallDir,
 } from '@/main/modules/config';
-import { safeExecute } from '@/utils/node/logger';
-import { stopKoboldCpp } from '@/main/modules/koboldcpp';
+import { safeExecute } from '@/utils/node/logging';
+import { stopKoboldCpp } from '@/main/modules/koboldcpp/launcher';
 import { stopFrontend as stopSillyTavern } from '@/main/modules/sillytavern';
 import { stopFrontend as stopOpenWebUI } from '@/main/modules/openwebui';
 import { stopFrontend as stopComfyUI } from '@/main/modules/comfyui';

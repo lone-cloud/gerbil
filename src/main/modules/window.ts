@@ -43,22 +43,34 @@ export function createMainWindow() {
   } as BrowserWindowConstructorOptions;
 
   if (savedBounds) {
-    const minVisibleSize = 100;
-    if (
-      savedBounds.x >= -minVisibleSize &&
-      savedBounds.y >= -minVisibleSize &&
-      savedBounds.x < size.width - minVisibleSize &&
-      savedBounds.y < size.height - minVisibleSize
-    ) {
-      windowOptions.x = savedBounds.x;
-      windowOptions.y = savedBounds.y;
+    const isPseudoMaximized =
+      (savedBounds.width >= size.width * 0.95 ||
+        savedBounds.height >= size.height * 0.95) &&
+      !savedBounds.isMaximized;
+
+    if (isPseudoMaximized) {
+      windowOptions.width = defaultWidth;
+      windowOptions.height = defaultHeight;
+      windowOptions.x = Math.floor((size.width - defaultWidth) / 2);
+      windowOptions.y = Math.floor((size.height - defaultHeight) / 2);
     } else {
-      windowOptions.x = Math.floor(
-        (size.width - (savedBounds.width || defaultWidth)) / 2
-      );
-      windowOptions.y = Math.floor(
-        (size.height - (savedBounds.height || defaultHeight)) / 2
-      );
+      const minVisibleSize = 100;
+      if (
+        savedBounds.x >= -minVisibleSize &&
+        savedBounds.y >= -minVisibleSize &&
+        savedBounds.x < size.width - minVisibleSize &&
+        savedBounds.y < size.height - minVisibleSize
+      ) {
+        windowOptions.x = savedBounds.x;
+        windowOptions.y = savedBounds.y;
+      } else {
+        windowOptions.x = Math.floor(
+          (size.width - (savedBounds.width || defaultWidth)) / 2
+        );
+        windowOptions.y = Math.floor(
+          (size.height - (savedBounds.height || defaultHeight)) / 2
+        );
+      }
     }
   } else {
     windowOptions.x = Math.floor((size.width - defaultWidth) / 2);

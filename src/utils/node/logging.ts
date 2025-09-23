@@ -74,3 +74,28 @@ export const getLogFilePath = () =>
   join(app.getPath('userData'), 'logs', 'gerbil.log');
 
 export const getLogsDirectory = () => join(app.getPath('userData'), 'logs');
+
+export const safeExecute = async <T>(
+  operation: () => Promise<T>,
+  errorMessage: string
+) => {
+  try {
+    return operation();
+  } catch (error) {
+    logError(errorMessage, error as Error);
+    return null;
+  }
+};
+
+export const tryExecute = async (
+  operation: () => Promise<void>,
+  errorMessage: string
+) => {
+  try {
+    await operation();
+    return true;
+  } catch (error) {
+    logError(errorMessage, error as Error);
+    return false;
+  }
+};

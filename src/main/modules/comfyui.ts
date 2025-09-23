@@ -15,8 +15,7 @@ import type { ChildProcess } from 'child_process';
 import yauzl from 'yauzl';
 import { createWriteStream } from 'fs';
 
-import { logError } from './logging';
-import { safeExecute } from '@/utils/node/logger';
+import { logError, safeExecute } from '@/utils/node/logging';
 import { sendKoboldOutput } from './window';
 import { getInstallDir } from './config';
 import { COMFYUI, SERVER_READY_SIGNALS, GITHUB_API } from '@/constants';
@@ -606,17 +605,4 @@ export async function startFrontend(args: string[]) {
   }
 }
 
-export async function stopFrontend() {
-  if (comfyUIProcess) {
-    sendKoboldOutput('Stopping ComfyUI...');
-    try {
-      await terminateProcess(comfyUIProcess);
-      sendKoboldOutput('ComfyUI stopped');
-    } catch (error) {
-      logError(
-        'Error stopping ComfyUI',
-        error instanceof Error ? error : undefined
-      );
-    }
-  }
-}
+export const stopFrontend = () => terminateProcess(comfyUIProcess);
