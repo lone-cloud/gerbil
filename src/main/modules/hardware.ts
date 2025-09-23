@@ -1,6 +1,6 @@
 /* eslint-disable no-comments/disallowComments */
 import si from 'systeminformation';
-import { safeExecute } from '@/utils/node/logger';
+import { safeExecute } from '@/utils/node/logging';
 import { getGPUData } from '@/utils/node/gpu';
 import type {
   CPUCapabilities,

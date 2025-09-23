@@ -1,8 +1,12 @@
 import { autoUpdater } from 'electron-updater';
 import { app } from 'electron';
-import { logError } from '@/main/modules/logging';
-import { safeExecute } from '@/utils/node/logger';
+import { platform } from 'process';
+import { logError, safeExecute } from '@/utils/node/logging';
 import { isDevelopment } from '@/utils/node/environment';
+import {
+  isAURInstallation,
+  isWindowsPortableInstallation,
+} from './dependencies';
 
 export interface UpdateInfo {
   version: string;
@@ -70,6 +74,20 @@ export function quitAndInstall() {
 }
 
 export const isUpdateDownloaded = () => updateDownloaded;
+
+export const canAutoUpdate = async () => {
+  if (!app.isPackaged) return false;
+
+  if (platform === 'linux' && (await isAURInstallation())) {
+    return false;
+  }
+
+  if (isWindowsPortableInstallation()) {
+    return false;
+  }
+
+  return platform === 'win32' || platform === 'darwin' || platform === 'linux';
+};
 
 app.on('ready', () => {
   setTimeout(() => {

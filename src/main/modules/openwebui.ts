@@ -3,8 +3,7 @@ import type { ChildProcess } from 'child_process';
 import { join } from 'path';
 import { on } from 'process';
 
-import { logError } from './logging';
-import { tryExecute } from '@/utils/node/logger';
+import { logError } from '@/utils/node/logging';
 import { sendKoboldOutput } from './window';
 import { getInstallDir } from './config';
 import { OPENWEBUI, SERVER_READY_SIGNALS } from '@/constants';
@@ -167,13 +166,4 @@ export async function startFrontend(args: string[]) {
   }
 }
 
-export async function stopFrontend() {
-  if (openWebUIProcess) {
-    sendKoboldOutput('Stopping Open WebUI...');
-
-    await tryExecute(async () => {
-      await terminateProcess(openWebUIProcess!);
-      sendKoboldOutput('Open WebUI stopped');
-    }, 'Error stopping Open WebUI');
-  }
-}
+export const stopFrontend = () => terminateProcess(openWebUIProcess);

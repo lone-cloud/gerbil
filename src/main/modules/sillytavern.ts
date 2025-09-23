@@ -5,8 +5,7 @@ import { join } from 'path';
 import { platform, on } from 'process';
 import type { ChildProcess } from 'child_process';
 
-import { logError } from './logging';
-import { tryExecute } from '@/utils/node/logger';
+import { logError, tryExecute } from '@/utils/node/logging';
 import { sendKoboldOutput } from './window';
 import { SILLYTAVERN, SERVER_READY_SIGNALS } from '@/constants';
 import { terminateProcess } from '@/utils/node/process';

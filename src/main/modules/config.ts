@@ -1,5 +1,5 @@
 import { readJsonFile, writeJsonFile } from '@/utils/node/fs';
-import { safeExecute } from '@/utils/node/logger';
+import { safeExecute } from '@/utils/node/logging';
 import { getConfigDir } from '@/utils/node/path';
 import { homedir } from 'os';
 import { join } from 'path';

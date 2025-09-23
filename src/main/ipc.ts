@@ -4,19 +4,23 @@ import * as os from 'os';
 import { platform, versions, arch } from 'process';
 import type { MantineColorScheme } from '@mantine/core';
 import {
-  launchKoboldCpp,
-  downloadRelease,
+  stopKoboldCpp,
+  launchKoboldCppWithCustomFrontends,
+} from '@/main/modules/koboldcpp/launcher';
+import { downloadRelease } from '@/main/modules/koboldcpp/download';
+import {
   getInstalledVersions,
   getCurrentVersion,
+  setCurrentVersion,
+} from '@/main/modules/koboldcpp/version';
+import {
   getConfigFiles,
   saveConfigFile,
   deleteConfigFile,
-  setCurrentVersion,
-  selectInstallDirectory,
-  stopKoboldCpp,
   parseConfigFile,
   selectModelFile,
-} from '@/main/modules/koboldcpp';
+  selectInstallDirectory,
+} from '@/main/modules/koboldcpp/config';
 import {
   get as getConfig,
   set as setConfig,
@@ -27,29 +31,17 @@ import {
   setColorScheme,
 } from '@/main/modules/config';
 import { getConfigDir } from '@/utils/node/path';
-import { logError } from '@/main/modules/logging';
-import { safeExecute } from '@/utils/node/logger';
-import {
-  startFrontend as startSillyTavernFrontend,
-  stopFrontend as stopSillyTavernFrontend,
-} from '@/main/modules/sillytavern';
-import {
-  startFrontend as startOpenWebUIFrontend,
-  stopFrontend as stopOpenWebUIFrontend,
-} from '@/main/modules/openwebui';
-import {
-  startFrontend as startComfyUIFrontend,
-  stopFrontend as stopComfyUIFrontend,
-} from '@/main/modules/comfyui';
+import { logError, safeExecute } from '@/utils/node/logging';
+import { stopFrontend as stopSillyTavernFrontend } from '@/main/modules/sillytavern';
+import { stopFrontend as stopOpenWebUIFrontend } from '@/main/modules/openwebui';
+import { stopFrontend as stopComfyUIFrontend } from '@/main/modules/comfyui';
 import {
   isUvAvailable,
   isNpxAvailable,
   getUvVersion,
   getSystemNodeVersion,
   isAURInstallation,
-  isWindowsPortableInstallation,
 } from '@/main/modules/dependencies';
-import { parseKoboldConfig } from '@/utils/node/kobold';
 import { getMainWindow } from '@/main/modules/window';
 import {
   detectGPU,
@@ -61,41 +53,20 @@ import {
 import {
   detectBackendSupport,
   getAvailableBackends,
-} from '@/main/modules/binary';
-import { openPerformanceManager } from '@/main/modules/performance';
-import { startMonitoring, stopMonitoring } from '@/main/modules/monitoring';
+} from '@/main/modules/koboldcpp/backend';
+import {
+  openPerformanceManager,
+  startMonitoring,
+  stopMonitoring,
+} from '@/main/modules/monitoring';
 import {
   checkForUpdates,
   downloadUpdate,
   quitAndInstall,
   isUpdateDownloaded,
+  canAutoUpdate,
 } from '@/main/modules/autoUpdater';
-import type { FrontendPreference } from '@/types';
 import { getAppVersion } from '@/utils/node/fs';
-
-const launchKoboldCppWithCustomFrontends = async (args: string[] = []) =>
-  (await safeExecute(async () => {
-    const frontendPreference = (await getConfig(
-      'frontendPreference'
-    )) as FrontendPreference;
-
-    const result = await launchKoboldCpp(args, frontendPreference);
-
-    const { isImageMode } = parseKoboldConfig(args);
-
-    if (frontendPreference === 'sillytavern') {
-      startSillyTavernFrontend(args);
-    } else if (frontendPreference === 'openwebui') {
-      startOpenWebUIFrontend(args);
-    } else if (frontendPreference === 'comfyui' && isImageMode) {
-      startComfyUIFrontend(args);
-    }
-
-    return result;
-  }, 'Error in enhanced launch')) || {
-    success: false,
-    error: 'Launch failed',
-  };
 
 export function setupIPCHandlers() {
   const mainWindow = getMainWindow();
@@ -293,21 +264,7 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('app:isUpdateDownloaded', () => isUpdateDownloaded());
 
-  ipcMain.handle('app:canAutoUpdate', async () => {
-    if (!app.isPackaged) return false;
-
-    if (platform === 'linux' && (await isAURInstallation())) {
-      return false;
-    }
-
-    if (isWindowsPortableInstallation()) {
-      return false;
-    }
-
-    return (
-      platform === 'win32' || platform === 'darwin' || platform === 'linux'
-    );
-  });
+  ipcMain.handle('app:canAutoUpdate', () => canAutoUpdate());
 
   ipcMain.handle('app:isAURInstallation', () => isAURInstallation());
 }
