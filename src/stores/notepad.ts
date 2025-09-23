@@ -1,7 +1,10 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import type { NotepadTab, NotepadState } from '@/types/electron';
-import { DEFAULT_NOTEPAD_POSITION } from '@/constants/notepad';
+import {
+  DEFAULT_NOTEPAD_POSITION,
+  DEFAULT_TAB_CONTENT,
+} from '@/constants/notepad';
 
 interface NotepadStore extends NotepadState {
   isLoaded: boolean;
@@ -51,6 +54,16 @@ export const useNotepadStore = create<NotepadStore>()(
       const state = get();
 
       if (state.tabs.length <= 1) {
+        const tab = state.tabs.find((t) => t.id === tabId);
+        if (tab) {
+          set((state) => ({
+            tabs: state.tabs.map((t) =>
+              t.id === tabId ? { ...t, content: DEFAULT_TAB_CONTENT } : t
+            ),
+          }));
+          window.electronAPI.notepad.saveTabContent(tabId, DEFAULT_TAB_CONTENT);
+        }
+
         return;
       }
 

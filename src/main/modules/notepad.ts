@@ -3,7 +3,10 @@ import { join } from 'path';
 import { safeExecute, tryExecute } from '@/utils/node/logging';
 import { getInstallDir } from './config';
 import type { SavedNotepadState, SavedNotepadTab } from '@/types/electron';
-import { DEFAULT_NOTEPAD_POSITION } from '@/constants/notepad';
+import {
+  DEFAULT_NOTEPAD_POSITION,
+  DEFAULT_TAB_CONTENT,
+} from '@/constants/notepad';
 
 const NOTEPAD_DIR = join(getInstallDir(), 'notepad');
 const NOTEPAD_STATE_FILE = join(NOTEPAD_DIR, 'state.json');
@@ -104,10 +107,10 @@ export async function createNewTab(title?: string) {
   const newTab = {
     id: `tab-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
     title: title || `Note ${tabCounter++}`,
-    content: '',
+    content: DEFAULT_TAB_CONTENT,
   };
 
-  await saveTabContent(newTab.id, '');
+  await saveTabContent(newTab.id, newTab.content);
 
   return newTab;
 }
