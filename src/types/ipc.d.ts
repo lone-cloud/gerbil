@@ -4,7 +4,8 @@ export type IPCChannel =
   | 'versions-updated'
   | 'kobold-output'
   | 'window-maximized'
-  | 'window-unmaximized';
+  | 'window-unmaximized'
+  | 'line-numbers-changed';
 
 export interface IPCChannelPayloads {
   'download-progress': [progress: number];
@@ -13,4 +14,5 @@ export interface IPCChannelPayloads {
   'kobold-output': [message: string];
   'window-maximized': [];
   'window-unmaximized': [];
+  'line-numbers-changed': [showLineNumbers: boolean];
 }
