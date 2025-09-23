@@ -206,6 +206,50 @@ export interface UpdaterAPI {
   isAURInstallation: () => Promise<boolean>;
 }
 
+export interface NotepadTab {
+  id: string;
+  title: string;
+  content: string;
+}
+
+export interface SavedNotepadTab {
+  id: string;
+  title: string;
+}
+
+export interface NotepadState {
+  tabs: NotepadTab[];
+  activeTabId: string | null;
+  position: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  isVisible: boolean;
+}
+
+export interface SavedNotepadState {
+  tabs: SavedNotepadTab[];
+  activeTabId: string | null;
+  position: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  isVisible: boolean;
+}
+
+export interface NotepadAPI {
+  saveTabContent: (tabId: string, content: string) => Promise<boolean>;
+  loadTabContent: (tabId: string) => Promise<string>;
+  saveState: (state: SavedNotepadState) => Promise<boolean>;
+  loadState: () => Promise<SavedNotepadState>;
+  deleteTab: (tabId: string) => Promise<boolean>;
+  createNewTab: (title?: string) => Promise<NotepadTab>;
+}
+
 declare global {
   interface Window {
     electronAPI: {
@@ -216,6 +260,7 @@ declare global {
       dependencies: DependenciesAPI;
       monitoring: MonitoringAPI;
       updater: UpdaterAPI;
+      notepad: NotepadAPI;
     };
   }
 }

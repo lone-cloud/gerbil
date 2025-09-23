@@ -7,6 +7,7 @@ import type {
   DependenciesAPI,
   MonitoringAPI,
   UpdaterAPI,
+  NotepadAPI,
 } from '@/types/electron';
 import type {
   CpuMetrics,
@@ -179,6 +180,17 @@ const updaterAPI: UpdaterAPI = {
   isAURInstallation: () => ipcRenderer.invoke('app:isAURInstallation'),
 };
 
+const notepadAPI: NotepadAPI = {
+  saveTabContent: (tabId, content) =>
+    ipcRenderer.invoke('notepad:saveTabContent', tabId, content),
+  loadTabContent: (tabId) =>
+    ipcRenderer.invoke('notepad:loadTabContent', tabId),
+  saveState: (state) => ipcRenderer.invoke('notepad:saveState', state),
+  loadState: () => ipcRenderer.invoke('notepad:loadState'),
+  deleteTab: (tabId) => ipcRenderer.invoke('notepad:deleteTab', tabId),
+  createNewTab: (title) => ipcRenderer.invoke('notepad:createNewTab', title),
+};
+
 contextBridge.exposeInMainWorld('electronAPI', {
   kobold: koboldAPI,
   app: appAPI,
@@ -187,4 +199,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   dependencies: dependenciesAPI,
   monitoring: monitoringAPI,
   updater: updaterAPI,
+  notepad: notepadAPI,
 });
