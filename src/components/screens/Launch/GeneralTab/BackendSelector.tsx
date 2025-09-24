@@ -44,6 +44,21 @@ export const BackendSelector = () => {
     return cleanup;
   }, []);
 
+  useEffect(() => {
+    if (availableBackends.length > 0 && backend) {
+      const isBackendAvailable = availableBackends.some(
+        (b) => b.value === backend && !b.disabled
+      );
+
+      if (!isBackendAvailable) {
+        const fallbackBackend = availableBackends.find((b) => !b.disabled);
+        if (fallbackBackend) {
+          handleBackendChange(fallbackBackend.value);
+        }
+      }
+    }
+  }, [availableBackends, backend, handleBackendChange]);
+
   return (
     <div>
       <Group justify="space-between" align="flex-start" mb="xs">
@@ -58,7 +73,11 @@ export const BackendSelector = () => {
             placeholder={
               isLoadingBackends ? 'Loading backends...' : 'Select backend'
             }
-            value={backend}
+            value={
+              availableBackends.some((b) => b.value === backend && !b.disabled)
+                ? backend
+                : null
+            }
             onChange={(value) => {
               if (value) {
                 handleBackendChange(value);
