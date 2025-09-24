@@ -5,5 +5,5 @@ Exec=gerbil %U
 Terminal=false
 Type=Application
 Icon=gerbil
-Categories=Utility;
+Categories=Network;Chat;Utility;
 StartupWMClass=Gerbil
