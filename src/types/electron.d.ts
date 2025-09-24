@@ -113,9 +113,7 @@ export interface KoboldAPI {
   getAvailableBackends: (includeDisabled?: boolean) => Promise<BackendOption[]>;
   getCurrentInstallDir: () => Promise<string>;
   selectInstallDirectory: () => Promise<string | null>;
-  downloadRelease: (
-    asset: GitHubAsset
-  ) => Promise<{ success: boolean; path?: string; error?: string }>;
+  downloadRelease: (asset: GitHubAsset) => Promise<void>;
   launchKoboldCpp: (
     args?: string[]
   ) => Promise<{ success: boolean; pid?: number; error?: string }>;

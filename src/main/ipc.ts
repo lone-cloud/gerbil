@@ -1,4 +1,4 @@
-import { ipcMain, shell, app } from 'electron';
+import { ipcMain, app } from 'electron';
 import { join } from 'path';
 import { release } from 'os';
 import { platform, versions, arch } from 'process';
@@ -30,8 +30,8 @@ import {
   getColorScheme,
   setColorScheme,
 } from '@/main/modules/config';
-import { getConfigDir } from '@/utils/node/path';
-import { logError, safeExecute } from '@/utils/node/logging';
+import { getConfigDir, openPathHandler, openUrl } from '@/utils/node/path';
+import { logError } from '@/utils/node/logging';
 import { stopFrontend as stopSillyTavernFrontend } from '@/main/modules/sillytavern';
 import { stopFrontend as stopOpenWebUIFrontend } from '@/main/modules/openwebui';
 import { stopFrontend as stopComfyUIFrontend } from '@/main/modules/comfyui';
@@ -81,10 +81,9 @@ import type { NotepadState } from '@/types/electron';
 export function setupIPCHandlers() {
   const mainWindow = getMainWindow();
 
-  ipcMain.handle('kobold:downloadRelease', async (_, asset) => ({
-    success: true,
-    path: await downloadRelease(asset),
-  }));
+  ipcMain.handle('kobold:downloadRelease', async (_, asset) =>
+    downloadRelease(asset)
+  );
 
   ipcMain.handle('kobold:getInstalledVersions', () => getInstalledVersions());
 
@@ -183,26 +182,13 @@ export function setupIPCHandlers() {
     };
   });
 
-  const openPathHandler = async (path: string) =>
-    (await safeExecute(async () => {
-      await shell.openPath(path);
-      return { success: true };
-    }, 'Failed to open path')) || {
-      success: false,
-      error: 'Failed to open path',
-    };
-
   ipcMain.handle('app:openPath', (_, path: string) => openPathHandler(path));
 
-  ipcMain.handle('app:showLogsFolder', () => {
-    const logsDir = join(app.getPath('userData'), 'logs');
-    return openPathHandler(logsDir);
-  });
+  ipcMain.handle('app:showLogsFolder', () =>
+    openPathHandler(join(app.getPath('userData'), 'logs'))
+  );
 
-  ipcMain.handle('app:viewConfigFile', () => {
-    const configDir = getConfigDir();
-    return openPathHandler(configDir);
-  });
+  ipcMain.handle('app:viewConfigFile', () => openPathHandler(getConfigDir()));
 
   ipcMain.handle('app:minimizeWindow', () => mainWindow.minimize());
 
@@ -233,17 +219,7 @@ export function setupIPCHandlers() {
     setColorScheme(colorScheme)
   );
 
-  ipcMain.handle(
-    'app:openExternal',
-    async (_, url: string) =>
-      (await safeExecute(async () => {
-        await shell.openExternal(url);
-        return { success: true };
-      }, 'Failed to open external URL')) || {
-        success: false,
-        error: 'Failed to open external URL',
-      }
-  );
+  ipcMain.handle('app:openExternal', async (_, url: string) => openUrl(url));
 
   mainWindow.webContents.once('did-finish-load', async () => {
     const savedZoomLevel = await getConfig('zoomLevel');

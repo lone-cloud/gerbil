@@ -2,8 +2,8 @@ import { createWriteStream } from 'fs';
 import { join } from 'path';
 import { platform } from 'process';
 import { rm, unlink, rename, mkdir, chmod } from 'fs/promises';
-
 import { execa } from 'execa';
+
 import {
   getInstallDir,
   getCurrentKoboldBinary,
@@ -32,27 +32,6 @@ async function removeDirectoryWithRetry(
       logError(
         `Failed to remove directory after ${maxRetries} retries:`,
         error as Error
-      );
-    }
-  }
-}
-
-async function handleExistingDirectory(
-  unpackedDirPath: string,
-  isUpdate: boolean,
-  wasCurrentBinary: boolean
-) {
-  if (await pathExists(unpackedDirPath)) {
-    if (isUpdate || wasCurrentBinary) {
-      try {
-        await removeDirectoryWithRetry(unpackedDirPath);
-      } catch (error) {
-        logError('Failed to remove existing directory:', error as Error);
-        throw new Error('Failed to remove existing installation');
-      }
-    } else {
-      throw new Error(
-        'Installation directory already exists. Please uninstall the existing version first.'
       );
     }
   }
@@ -177,12 +156,16 @@ export async function downloadRelease(asset: GitHubAsset) {
     : baseFilename;
   const unpackedDirPath = join(getInstallDir(), folderName);
 
+  let currentBinaryPath: string | null = null;
+  if (asset.isUpdate && asset.wasCurrentBinary) {
+    currentBinaryPath = getCurrentKoboldBinary() || null;
+  }
+
   try {
-    await handleExistingDirectory(
-      unpackedDirPath,
-      Boolean(asset.isUpdate),
-      Boolean(asset.wasCurrentBinary)
-    );
+    if (await pathExists(unpackedDirPath)) {
+      await removeDirectoryWithRetry(unpackedDirPath);
+    }
+
     await downloadFile(asset, tempPackedFilePath);
 
     await mkdir(unpackedDirPath, { recursive: true });
@@ -197,8 +180,15 @@ export async function downloadRelease(asset: GitHubAsset) {
       await setCurrentKoboldBinary(launcherPath);
     }
 
+    if (currentBinaryPath && asset.isUpdate && asset.wasCurrentBinary) {
+      const oldInstallDir = join(currentBinaryPath, '..');
+
+      if (oldInstallDir !== unpackedDirPath) {
+        await removeDirectoryWithRetry(oldInstallDir);
+      }
+    }
+
     sendToRenderer('versions-updated');
-    return launcherPath;
   } catch (error) {
     logError('Failed to download or unpack binary:', error as Error);
     throw new Error('Failed to download or unpack binary');

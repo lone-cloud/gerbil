@@ -90,15 +90,13 @@ export const App = () => {
   };
 
   const handleBinaryUpdate = async (download: DownloadItem) => {
-    const success = await handleDownload({
+    await handleDownload({
       item: download,
       isUpdate: true,
       wasCurrentBinary: true,
     });
 
-    if (success) {
-      closeModal();
-    }
+    closeModal();
   };
 
   const handleEject = async () => {

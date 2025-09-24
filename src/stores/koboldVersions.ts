@@ -56,7 +56,7 @@ interface KoboldVersionsState {
   downloadProgress: Record<string, number>;
 
   initialize: () => Promise<void>;
-  handleDownload: (params: HandleDownloadParams) => Promise<boolean>;
+  handleDownload: (params: HandleDownloadParams) => Promise<void>;
   getLatestReleaseWithDownloadStatus: () => Promise<ReleaseWithStatus | null>;
 }
 
@@ -100,7 +100,7 @@ export const useKoboldVersionsStore = create<KoboldVersionsState>(
       const { downloading } = get();
 
       if (downloading) {
-        return false;
+        return;
       }
 
       set({ downloading: item.name, downloadProgress: { [item.name]: 0 } });
@@ -111,25 +111,19 @@ export const useKoboldVersionsStore = create<KoboldVersionsState>(
         }
       );
 
-      try {
-        const asset: GitHubAsset = {
-          name: item.name,
-          browser_download_url: item.url,
-          size: item.size,
-          version: item.version,
-          isUpdate,
-          wasCurrentBinary,
-        };
+      const asset: GitHubAsset = {
+        name: item.name,
+        browser_download_url: item.url,
+        size: item.size,
+        version: item.version,
+        isUpdate,
+        wasCurrentBinary,
+      };
 
-        const result = await window.electronAPI.kobold.downloadRelease(asset);
-        return result.success;
-      } catch (err) {
-        logError('Download failed:', err as Error);
-        return false;
-      } finally {
-        progressCleanup();
-        set({ downloading: null, downloadProgress: {} });
-      }
+      await window.electronAPI.kobold.downloadRelease(asset);
+
+      progressCleanup();
+      set({ downloading: null, downloadProgress: {} });
     },
     getLatestReleaseWithDownloadStatus: async () =>
       safeExecute(async () => {

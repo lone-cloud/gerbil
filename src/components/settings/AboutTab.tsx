@@ -158,7 +158,7 @@ export const AboutTab = () => {
       </Card>
 
       <Card withBorder radius="md" p="xs" style={{ position: 'relative' }}>
-        <Tooltip label="Copy Version Info">
+        <Tooltip label="Copy Info">
           <ActionIcon
             variant="subtle"
             size="sm"

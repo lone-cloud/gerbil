@@ -13,7 +13,8 @@ import { useState } from 'react';
 import type { DownloadItem } from '@/types/electron';
 import type { BinaryUpdateInfo } from '@/hooks/useUpdateChecker';
 import { useKoboldVersionsStore } from '@/stores/koboldVersions';
-import { getDisplayNameFromPath } from '@/utils/version';
+import { pretifyBinName } from '@/utils/assets';
+import { formatDownloadSize } from '@/utils/format';
 import { GITHUB_API } from '@/constants';
 import { safeExecute } from '@/utils/logger';
 import { Modal } from '@/components/Modal';
@@ -60,7 +61,7 @@ export const UpdateAvailableModal = ({
       opened={opened}
       onClose={onClose}
       size="sm"
-      title="An update is available"
+      title="An Update is Available"
       closeOnEscape={!isDownloading && !isUpdating}
     >
       <Stack gap="md">
@@ -92,26 +93,28 @@ export const UpdateAvailableModal = ({
 
             {currentVersion && (
               <Text size="xs" c="dimmed">
-                Binary: {getDisplayNameFromPath(currentVersion)}
+                Binary Type: {pretifyBinName(currentVersion.filename)}
               </Text>
             )}
 
-            <Group gap="xs" align="center" mt="xs">
+            {availableUpdate?.size && (
               <Text size="xs" c="dimmed">
-                View release notes:
+                Update Size:{' '}
+                {formatDownloadSize(availableUpdate.size, availableUpdate.url)}
               </Text>
-              <Anchor
-                size="xs"
-                href={`${GITHUB_API.GITHUB_BASE_URL}/${GITHUB_API.KOBOLDCPP_REPO}/releases/tag/v${availableUpdate?.version}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Group gap={4} align="center">
-                  <span>v{availableUpdate?.version}</span>
-                  <ExternalLink size={12} />
-                </Group>
-              </Anchor>
-            </Group>
+            )}
+
+            <Anchor
+              size="xs"
+              href={`${GITHUB_API.GITHUB_BASE_URL}/${GITHUB_API.KOBOLDCPP_REPO}/releases/tag/v${availableUpdate?.version}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Group gap={4} align="center">
+                <span>View Release Notes</span>
+                <ExternalLink size={12} />
+              </Group>
+            </Anchor>
           </Stack>
         </Card>
 

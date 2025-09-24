@@ -171,30 +171,26 @@ export const VersionsTab = () => {
     const download = availableDownloads.find((d) => d.name === version.name);
     if (!download) return;
 
-    const success = await handleDownloadFromStore({
+    await handleDownloadFromStore({
       item: download,
       isUpdate: false,
       wasCurrentBinary: false,
     });
 
-    if (success) {
-      await loadInstalledVersions();
-    }
+    await loadInstalledVersions();
   };
 
   const handleUpdate = async (version: VersionInfo) => {
     const download = availableDownloads.find((d) => d.name === version.name);
     if (!download) return;
 
-    const success = await handleDownloadFromStore({
+    await handleDownloadFromStore({
       item: download,
       isUpdate: true,
       wasCurrentBinary: version.isCurrent,
     });
 
-    if (success) {
-      await loadInstalledVersions();
-    }
+    await loadInstalledVersions();
   };
 
   const makeCurrent = async (version: VersionInfo) => {
