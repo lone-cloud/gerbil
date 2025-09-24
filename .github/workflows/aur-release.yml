@@ -124,7 +124,7 @@ jobs:
           # Download desktop file with retry
           for attempt in $(seq 1 $max_attempts); do
             echo "Attempt $attempt: Downloading desktop file..."
-            if curl -L -o "gerbil.desktop" "https://raw.githubusercontent.com/lone-cloud/gerbil/${{ inputs.tag }}/assets/gerbil.desktop"; then
+            if curl -L -o "gerbil.desktop" "https://github.com/lone-cloud/gerbil/releases/download/${{ inputs.tag }}/gerbil.desktop"; then
               echo "✅ Desktop file downloaded successfully"
               break
             else
@@ -140,7 +140,7 @@ jobs:
           # Download license file with retry
           for attempt in $(seq 1 $max_attempts); do
             echo "Attempt $attempt: Downloading license file..."
-            if curl -L -o "LICENSE" "https://raw.githubusercontent.com/lone-cloud/gerbil/${{ inputs.tag }}/LICENSE"; then
+            if curl -L -o "LICENSE" "https://github.com/lone-cloud/gerbil/releases/download/${{ inputs.tag }}/LICENSE"; then
               echo "✅ License file downloaded successfully"
               break
             else
@@ -190,8 +190,8 @@ jobs:
           provides=('gerbil')
           conflicts=('gerbil-git')
           source=("gerbil-${pkgver}.AppImage::${{ steps.release_info.outputs.appimage_url }}"
-                  "gerbil.desktop::https://raw.githubusercontent.com/lone-cloud/gerbil/${{ steps.release_info.outputs.tag }}/assets/gerbil.desktop"
-                  "LICENSE::https://raw.githubusercontent.com/lone-cloud/gerbil/${{ steps.release_info.outputs.tag }}/LICENSE")
+                  "gerbil.desktop::https://github.com/lone-cloud/gerbil/releases/download/${{ steps.release_info.outputs.tag }}/gerbil.desktop"
+                  "LICENSE::https://github.com/lone-cloud/gerbil/releases/download/${{ steps.release_info.outputs.tag }}/LICENSE")
           sha256sums=('${{ steps.sha_calc.outputs.sha256_appimage }}'
                       '${{ steps.sha_calc.outputs.sha256_desktop }}'
                       '${{ steps.sha_calc.outputs.sha256_license }}')
@@ -320,8 +320,8 @@ jobs:
           	provides = gerbil
           	conflicts = gerbil-git
           	source = gerbil-${{ steps.release_info.outputs.version }}.AppImage::${{ steps.release_info.outputs.appimage_url }}
-          	source = gerbil.desktop::https://raw.githubusercontent.com/lone-cloud/gerbil/${{ steps.release_info.outputs.tag }}/assets/gerbil.desktop
-          	source = LICENSE::https://raw.githubusercontent.com/lone-cloud/gerbil/${{ steps.release_info.outputs.tag }}/LICENSE
+          	source = gerbil.desktop::https://github.com/lone-cloud/gerbil/releases/download/${{ steps.release_info.outputs.tag }}/gerbil.desktop
+          	source = LICENSE::https://github.com/lone-cloud/gerbil/releases/download/${{ steps.release_info.outputs.tag }}/LICENSE
           	sha256sums = ${{ steps.sha_calc.outputs.sha256_appimage }}
           	sha256sums = ${{ steps.sha_calc.outputs.sha256_desktop }}
           	sha256sums = ${{ steps.sha_calc.outputs.sha256_license }}

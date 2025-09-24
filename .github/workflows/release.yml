@@ -182,6 +182,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Upload additional assets for AUR
+        run: |
+          # Upload desktop file and LICENSE as release assets for AUR consistency
+          gh release upload ${{ steps.tag.outputs.tag }} "assets/gerbil.desktop" --clobber
+          gh release upload ${{ steps.tag.outputs.tag }} "LICENSE" --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   aur-release:
     needs: release
     if: needs.release.outputs.is_prerelease != 'true'
