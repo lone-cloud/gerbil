@@ -26,45 +26,40 @@ export const NotepadContainer = () => {
   const [resizeDirection, setResizeDirection] = useState<string | null>(null);
   const [confirmCloseModal, setConfirmCloseModal] = useState<{
     isOpen: boolean;
-    tabId: string | null;
-    tabTitle: string;
+    title: string;
   }>({
     isOpen: false,
-    tabId: null,
-    tabTitle: '',
+    title: '',
   });
 
-  const activeTab = tabs.find((tab) => tab.id === activeTabId);
+  const activeTab = tabs.find((tab) => tab.title === activeTabId);
 
   const handleCreateNewTab = async () => {
     const newTab = await window.electronAPI.notepad.createNewTab();
     addTab(newTab);
   };
 
-  const handleTabCloseRequest = (tabId: string) => {
-    const tab = tabs.find((t) => t.id === tabId);
+  const handleTabCloseRequest = (title: string) => {
+    const tab = tabs.find((t) => t.title === title);
     if (!tab) return;
 
     if (tab.content.trim().length > 0) {
       setConfirmCloseModal({
         isOpen: true,
-        tabId,
-        tabTitle: tab.title,
+        title,
       });
     } else {
-      removeTab(tabId);
+      removeTab(title);
     }
   };
 
   const handleConfirmClose = () => {
-    if (confirmCloseModal.tabId) {
-      removeTab(confirmCloseModal.tabId);
-    }
-    setConfirmCloseModal({ isOpen: false, tabId: null, tabTitle: '' });
+    removeTab(confirmCloseModal.title);
+    setConfirmCloseModal({ isOpen: false, title: '' });
   };
 
   const handleCancelClose = () => {
-    setConfirmCloseModal({ isOpen: false, tabId: null, tabTitle: '' });
+    setConfirmCloseModal({ isOpen: false, title: '' });
   };
 
   const handleResizeStart =
@@ -207,7 +202,7 @@ export const NotepadContainer = () => {
               onClick={() => setVisible(false)}
               color="red"
             >
-              <X size={12} />
+              <X size={16} />
             </ActionIcon>
           </Box>
         </Box>
@@ -219,7 +214,7 @@ export const NotepadContainer = () => {
 
       <CloseConfirmModal
         isOpen={confirmCloseModal.isOpen}
-        tabTitle={confirmCloseModal.tabTitle}
+        tabTitle={confirmCloseModal.title}
         onConfirm={handleConfirmClose}
         onCancel={handleCancelClose}
       />

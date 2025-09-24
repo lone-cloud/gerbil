@@ -38,12 +38,12 @@ export const NotepadEditor = ({ tab }: NotepadEditorProps) => {
       }
 
       const timeout = setTimeout(() => {
-        saveTabContent(tab.id, newContent);
+        saveTabContent(tab.title, newContent);
       }, 500);
 
       setSaveTimeout(timeout);
     },
-    [tab.id, saveTabContent, saveTimeout]
+    [tab.title, saveTabContent, saveTimeout]
   );
 
   const handleEditorContextMenu = (e: MouseEvent) => {
@@ -62,7 +62,7 @@ export const NotepadEditor = ({ tab }: NotepadEditorProps) => {
 
   useEffect(() => {
     setContent(tab.content);
-  }, [tab.content, tab.id]);
+  }, [tab.content, tab.title]);
 
   useEffect(
     () => () => {

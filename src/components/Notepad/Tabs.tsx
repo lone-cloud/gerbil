@@ -13,14 +13,13 @@ import { usePreferencesStore } from '@/stores/preferences';
 
 interface NotepadTabsProps {
   onCreateNewTab: () => Promise<void>;
-  onCloseTab: (tabId: string) => void;
+  onCloseTab: (title: string) => void;
 }
 
 interface TabProps {
-  id: string;
+  title: string;
   index: number;
   isActive: boolean;
-  title: string;
   onSelect: () => void;
   onClose: (e: MouseEvent) => void;
   onDragStart: (e: DragEvent, index: number) => void;
@@ -166,6 +165,7 @@ const Tab = ({
       ) : (
         <Text
           size="xs"
+          title={title}
           onClick={handleTitleClick}
           onDoubleClick={handleTitleDoubleClick}
           onContextMenu={(e) => {
@@ -208,17 +208,18 @@ export const NotepadTabs = ({
   const [draggedTabIndex, setDraggedTabIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  const handleTabSelect = (tabId: string) => {
-    setActiveTab(tabId);
+  const handleTabSelect = (title: string) => {
+    setActiveTab(title);
   };
 
-  const handleTabClose = (e: MouseEvent, tabId: string) => {
+  const handleTabClose = (e: MouseEvent, title: string) => {
     e.stopPropagation();
-    onCloseTab(tabId);
+    onCloseTab(title);
   };
 
-  const handleTabRename = (tabId: string, newTitle: string) => {
-    updateTab(tabId, { title: newTitle });
+  const handleTabRename = (title: string, newTitle: string) => {
+    updateTab(title, { title: newTitle });
+    window.electronAPI.notepad.renameTab(title, newTitle);
   };
 
   const handleTabBarContextMenu = (e: MouseEvent) => {
@@ -258,8 +259,6 @@ export const NotepadTabs = ({
     setDragOverIndex(null);
   };
 
-  if (tabs.length === 0) return null;
-
   return (
     <Box
       onContextMenu={handleTabBarContextMenu}
@@ -276,18 +275,17 @@ export const NotepadTabs = ({
     >
       {tabs.map((tab, index) => (
         <Box
-          key={tab.id}
+          key={tab.title}
           onDragEnter={() => handleDragEnter(index)}
           onDragLeave={handleDragLeave}
         >
           <Tab
-            id={tab.id}
-            index={index}
-            isActive={tab.id === activeTabId}
             title={tab.title}
-            onSelect={() => handleTabSelect(tab.id)}
-            onClose={(e) => handleTabClose(e, tab.id)}
-            onRename={(newTitle) => handleTabRename(tab.id, newTitle)}
+            index={index}
+            isActive={tab.title === activeTabId}
+            onSelect={() => handleTabSelect(tab.title)}
+            onClose={(e) => handleTabClose(e, tab.title)}
+            onRename={(newTitle) => handleTabRename(tab.title, newTitle)}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
@@ -303,7 +301,7 @@ export const NotepadTabs = ({
         size="xs"
         onClick={onCreateNewTab}
         style={{
-          margin: '4px',
+          margin: '0.25rem',
           alignSelf: 'center',
         }}
       >

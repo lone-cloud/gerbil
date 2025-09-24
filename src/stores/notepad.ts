@@ -9,17 +9,17 @@ import {
 interface NotepadStore extends NotepadState {
   isLoaded: boolean;
   setTabs: (tabs: NotepadTab[]) => void;
-  setActiveTab: (tabId: string | null) => void;
+  setActiveTab: (title: string | null) => void;
   addTab: (tab: NotepadTab) => void;
-  updateTab: (tabId: string, updates: Partial<NotepadTab>) => void;
-  removeTab: (tabId: string) => void;
+  updateTab: (title: string, updates: Partial<NotepadTab>) => void;
+  removeTab: (title: string) => void;
   reorderTabs: (fromIndex: number, toIndex: number) => void;
   setPosition: (position: NotepadState['position']) => void;
   setVisible: (visible: boolean) => void;
   setShowLineNumbers: (showLineNumbers: boolean) => void;
   loadState: () => Promise<void>;
   saveState: () => Promise<void>;
-  saveTabContent: (tabId: string, content: string) => Promise<void>;
+  saveTabContent: (title: string, content: string) => Promise<void>;
 }
 
 export const useNotepadStore = create<NotepadStore>()(
@@ -33,45 +33,55 @@ export const useNotepadStore = create<NotepadStore>()(
 
     setTabs: (tabs) => set({ tabs }),
 
-    setActiveTab: (tabId) => set({ activeTabId: tabId }),
+    setActiveTab: (title) => set({ activeTabId: title }),
 
     addTab: (tab) => {
       set((state) => ({
         tabs: [...state.tabs, tab],
-        activeTabId: tab.id,
+        activeTabId: tab.title,
       }));
     },
 
-    updateTab: (tabId, updates) => {
-      set((state) => ({
-        tabs: state.tabs.map((tab) =>
-          tab.id === tabId ? { ...tab, ...updates } : tab
-        ),
-      }));
+    updateTab: (title, updates) => {
+      set((state) => {
+        const updatedTabs = state.tabs.map((tab) =>
+          tab.title === title ? { ...tab, ...updates } : tab
+        );
+
+        let newActiveTabId = state.activeTabId;
+        if (updates.title && state.activeTabId === title) {
+          newActiveTabId = updates.title;
+        }
+
+        return {
+          tabs: updatedTabs,
+          activeTabId: newActiveTabId,
+        };
+      });
     },
 
-    removeTab: (tabId) => {
+    removeTab: (title) => {
       const state = get();
 
       if (state.tabs.length <= 1) {
-        const tab = state.tabs.find((t) => t.id === tabId);
+        const tab = state.tabs.find((t) => t.title === title);
         if (tab) {
           set((state) => ({
             tabs: state.tabs.map((t) =>
-              t.id === tabId ? { ...t, content: DEFAULT_TAB_CONTENT } : t
+              t.title === title ? { ...t, content: DEFAULT_TAB_CONTENT } : t
             ),
           }));
-          window.electronAPI.notepad.saveTabContent(tabId, DEFAULT_TAB_CONTENT);
+          window.electronAPI.notepad.saveTabContent(title, DEFAULT_TAB_CONTENT);
         }
 
         return;
       }
 
-      const newTabs = state.tabs.filter((tab) => tab.id !== tabId);
+      const newTabs = state.tabs.filter((tab) => tab.title !== title);
       const newActiveTabId =
-        state.activeTabId === tabId
+        state.activeTabId === title
           ? newTabs.length > 0
-            ? newTabs[Math.max(0, newTabs.length - 1)].id
+            ? newTabs[Math.max(0, newTabs.length - 1)].title
             : null
           : state.activeTabId;
 
@@ -80,7 +90,7 @@ export const useNotepadStore = create<NotepadStore>()(
         activeTabId: newActiveTabId,
       });
 
-      window.electronAPI.notepad.deleteTab(tabId);
+      window.electronAPI.notepad.deleteTab(title);
     },
 
     reorderTabs: (fromIndex, toIndex) => {
@@ -109,10 +119,14 @@ export const useNotepadStore = create<NotepadStore>()(
         const savedState = await window.electronAPI.notepad.loadState();
 
         const tabsWithContent = await Promise.all(
-          savedState.tabs.map(async (tab) => ({
-            ...tab,
-            content: await window.electronAPI.notepad.loadTabContent(tab.id),
-          }))
+          savedState.tabs.map((tab) =>
+            window.electronAPI.notepad
+              .loadTabContent(tab.title)
+              .then((content) => ({
+                ...tab,
+                content,
+              }))
+          )
         );
 
         if (tabsWithContent.length === 0) {
@@ -122,7 +136,8 @@ export const useNotepadStore = create<NotepadStore>()(
 
         set({
           tabs: tabsWithContent,
-          activeTabId: savedState.activeTabId || tabsWithContent[0]?.id || null,
+          activeTabId:
+            savedState.activeTabId || tabsWithContent[0]?.title || null,
           position: savedState.position,
           isVisible: savedState.isVisible,
           showLineNumbers: savedState.showLineNumbers ?? true,
@@ -132,7 +147,7 @@ export const useNotepadStore = create<NotepadStore>()(
         const defaultTab = await window.electronAPI.notepad.createNewTab();
         set({
           tabs: [defaultTab],
-          activeTabId: defaultTab.id,
+          activeTabId: defaultTab.title,
           position: DEFAULT_NOTEPAD_POSITION,
           isVisible: false,
           isLoaded: true,
@@ -145,10 +160,6 @@ export const useNotepadStore = create<NotepadStore>()(
       if (!state.isLoaded) return;
 
       await window.electronAPI.notepad.saveState({
-        tabs: state.tabs.map((tab) => ({
-          id: tab.id,
-          title: tab.title,
-        })),
         activeTabId: state.activeTabId,
         position: state.position,
         isVisible: state.isVisible,
@@ -156,9 +167,9 @@ export const useNotepadStore = create<NotepadStore>()(
       });
     },
 
-    saveTabContent: async (tabId, content) => {
-      await window.electronAPI.notepad.saveTabContent(tabId, content);
-      get().updateTab(tabId, { content });
+    saveTabContent: async (title, content) => {
+      await window.electronAPI.notepad.saveTabContent(title, content);
+      get().updateTab(title, { content });
     },
   }))
 );

@@ -1,116 +1,119 @@
-import { promises as fs } from 'fs';
-import { join } from 'path';
-import { safeExecute, tryExecute } from '@/utils/node/logging';
-import { getInstallDir } from './config';
-import type { SavedNotepadState, SavedNotepadTab } from '@/types/electron';
+import { get, set, getInstallDir } from './config';
+import type { SavedNotepadState } from '@/types/electron';
 import {
   DEFAULT_NOTEPAD_POSITION,
   DEFAULT_TAB_CONTENT,
 } from '@/constants/notepad';
-
-const NOTEPAD_DIR = join(getInstallDir(), 'notepad');
-const NOTEPAD_STATE_FILE = join(NOTEPAD_DIR, 'state.json');
+import { pathExists } from '@/utils/node/fs';
+import { join } from 'path';
+import { readFile, readdir, writeFile, unlink, rename } from 'fs/promises';
 
 const DEFAULT_NOTEPAD_STATE: SavedNotepadState = {
-  tabs: [],
   activeTabId: null,
   position: DEFAULT_NOTEPAD_POSITION,
   isVisible: false,
 };
 
-async function ensureNotepadDir() {
-  return tryExecute(async () => {
-    await fs.mkdir(NOTEPAD_DIR, { recursive: true });
-  }, 'Failed to create notepad directory');
-}
+const getNotepadDir = () => join(getInstallDir(), 'notepad');
 
-export async function saveTabContent(tabId: string, content: string) {
-  return tryExecute(async () => {
-    await ensureNotepadDir();
-    const filePath = join(NOTEPAD_DIR, `${tabId}.txt`);
-    await fs.writeFile(filePath, content, 'utf8');
-  }, 'Failed to save tab content');
-}
+const getTabsFromStorage = async () => {
+  const tabs = [];
 
-export async function loadTabContent(tabId: string) {
-  const filePath = join(NOTEPAD_DIR, `${tabId}.txt`);
   try {
-    return fs.readFile(filePath, 'utf8');
-  } catch (error) {
-    if ((error as { code?: string }).code === 'ENOENT') {
-      return '';
-    }
-    throw error;
-  }
-}
+    const notepadDir = getNotepadDir();
+    if (await pathExists(notepadDir)) {
+      const files = await readdir(notepadDir);
+      const tabFiles = files.filter((f) => f.endsWith('.txt'));
 
-export async function saveNotepadState(state: SavedNotepadState) {
-  return tryExecute(async () => {
-    await ensureNotepadDir();
-    await fs.writeFile(
-      NOTEPAD_STATE_FILE,
-      JSON.stringify(state, null, 2),
-      'utf8'
-    );
-  }, 'Failed to save notepad state');
-}
-
-export async function loadNotepadState() {
-  const result = await safeExecute(async () => {
-    try {
-      const data = await fs.readFile(NOTEPAD_STATE_FILE, 'utf8');
-      return JSON.parse(data) as SavedNotepadState;
-    } catch {
-      return DEFAULT_NOTEPAD_STATE;
-    }
-  }, 'Failed to load notepad state');
-
-  return result || DEFAULT_NOTEPAD_STATE;
-}
-
-export async function deleteTabFile(tabId: string) {
-  return tryExecute(async () => {
-    const filePath = join(NOTEPAD_DIR, `${tabId}.txt`);
-    try {
-      await fs.unlink(filePath);
-    } catch (error) {
-      if ((error as { code?: string }).code !== 'ENOENT') {
-        throw error;
+      for (const file of tabFiles) {
+        const title = file.replace('.txt', '');
+        tabs.push({ title });
       }
     }
-  }, 'Failed to delete tab file');
-}
+  } catch {
+    return [];
+  }
 
-let tabCounter = 1;
+  return tabs;
+};
 
-export async function createNewTab(title?: string) {
+export const renameTab = async (oldTitle: string, newTitle: string) => {
+  try {
+    const notepadDir = getNotepadDir();
+
+    await rename(
+      join(notepadDir, `${oldTitle}.txt`),
+      join(notepadDir, `${newTitle}.txt`)
+    );
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const saveTabContent = async (title: string, content: string) => {
+  try {
+    const notepadDir = getNotepadDir();
+    const filePath = join(notepadDir, `${title}.txt`);
+
+    await writeFile(filePath, content, 'utf-8');
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const loadTabContent = async (title: string) => {
+  try {
+    const notepadDir = getNotepadDir();
+    return readFile(join(notepadDir, `${title}.txt`), 'utf-8');
+  } catch {
+    return '';
+  }
+};
+
+export const saveNotepadState = async (state: SavedNotepadState) => {
+  await set('notepad', state);
+  return true;
+};
+
+export const loadNotepadState = async () => {
+  const stored = get('notepad') || DEFAULT_NOTEPAD_STATE;
+  const tabs = await getTabsFromStorage();
+  const activeTabId =
+    stored.activeTabId && tabs.some((tab) => tab.title === stored.activeTabId)
+      ? stored.activeTabId
+      : tabs[0]?.title || null;
+
+  return { ...stored, tabs, activeTabId };
+};
+
+export const deleteTabFile = async (title: string) => {
+  try {
+    await unlink(join(getNotepadDir(), `${title}.txt`));
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const createNewTab = async (title?: string) => {
   if (!title) {
     const state = await loadNotepadState();
     const noteNumbers = state.tabs
-      .map((tab: SavedNotepadTab) => {
-        const match = tab.title.match(/^Note (\d+)$/);
-        return match ? parseInt(match[1], 10) : 0;
-      })
-      .filter((num: number) => num > 0)
-      .sort((a: number, b: number) => a - b);
+      .map((tab) => tab.title.match(/^Note (\d+)$/)?.[1])
+      .filter(Boolean)
+      .map(Number)
+      .sort((a, b) => a - b);
 
-    tabCounter = 1;
+    let counter = 1;
     for (const num of noteNumbers) {
-      if (num === tabCounter) {
-        tabCounter++;
-      } else {
-        break;
-      }
+      if (num === counter) counter++;
+      else break;
     }
+    title = `Note ${counter}`;
   }
 
-  const newTab = {
-    id: `tab-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
-    title: title || `Note ${tabCounter++}`,
-    content: DEFAULT_TAB_CONTENT,
-  };
-
-  await saveTabContent(newTab.id, newTab.content);
-
-  return newTab;
-}
+  await saveTabContent(title, DEFAULT_TAB_CONTENT);
+  return { title, content: DEFAULT_TAB_CONTENT };
+};
