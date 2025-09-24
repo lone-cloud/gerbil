@@ -210,13 +210,11 @@ export interface UpdaterAPI {
 }
 
 export interface NotepadTab {
-  id: string;
   title: string;
   content: string;
 }
 
 export interface SavedNotepadTab {
-  id: string;
   title: string;
 }
 
@@ -232,7 +230,6 @@ export interface NotepadState {
 }
 
 export interface SavedNotepadState {
-  tabs: SavedNotepadTab[];
   activeTabId: string | null;
   position: {
     width: number;
@@ -242,12 +239,17 @@ export interface SavedNotepadState {
   showLineNumbers?: boolean;
 }
 
+export interface NotepadStateWithTabs extends SavedNotepadState {
+  tabs: SavedNotepadTab[];
+}
+
 export interface NotepadAPI {
-  saveTabContent: (tabId: string, content: string) => Promise<boolean>;
-  loadTabContent: (tabId: string) => Promise<string>;
+  saveTabContent: (title: string, content: string) => Promise<boolean>;
+  loadTabContent: (title: string) => Promise<string>;
+  renameTab: (oldTitle: string, newTitle: string) => Promise<boolean>;
   saveState: (state: SavedNotepadState) => Promise<boolean>;
-  loadState: () => Promise<SavedNotepadState>;
-  deleteTab: (tabId: string) => Promise<boolean>;
+  loadState: () => Promise<NotepadStateWithTabs>;
+  deleteTab: (title: string) => Promise<boolean>;
   createNewTab: (title?: string) => Promise<NotepadTab>;
 }
 

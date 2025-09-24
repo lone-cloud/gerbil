@@ -191,13 +191,15 @@ const updaterAPI: UpdaterAPI = {
 };
 
 const notepadAPI: NotepadAPI = {
-  saveTabContent: (tabId, content) =>
-    ipcRenderer.invoke('notepad:saveTabContent', tabId, content),
-  loadTabContent: (tabId) =>
-    ipcRenderer.invoke('notepad:loadTabContent', tabId),
+  saveTabContent: (title, content) =>
+    ipcRenderer.invoke('notepad:saveTabContent', title, content),
+  loadTabContent: (title) =>
+    ipcRenderer.invoke('notepad:loadTabContent', title),
+  renameTab: (oldTitle, newTitle) =>
+    ipcRenderer.invoke('notepad:renameTab', oldTitle, newTitle),
   saveState: (state) => ipcRenderer.invoke('notepad:saveState', state),
   loadState: () => ipcRenderer.invoke('notepad:loadState'),
-  deleteTab: (tabId) => ipcRenderer.invoke('notepad:deleteTab', tabId),
+  deleteTab: (title) => ipcRenderer.invoke('notepad:deleteTab', title),
   createNewTab: (title) => ipcRenderer.invoke('notepad:createNewTab', title),
 };
 

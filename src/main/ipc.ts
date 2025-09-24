@@ -50,6 +50,7 @@ import {
   loadNotepadState,
   deleteTabFile,
   createNewTab,
+  renameTab,
 } from '@/main/modules/notepad';
 import {
   detectGPU,
@@ -279,11 +280,15 @@ export function setupIPCHandlers() {
 
   ipcMain.handle(
     'notepad:saveTabContent',
-    (_, tabId: string, content: string) => saveTabContent(tabId, content)
+    (_, title: string, content: string) => saveTabContent(title, content)
   );
 
-  ipcMain.handle('notepad:loadTabContent', (_, tabId: string) =>
-    loadTabContent(tabId)
+  ipcMain.handle('notepad:loadTabContent', (_, title: string) =>
+    loadTabContent(title)
+  );
+
+  ipcMain.handle('notepad:renameTab', (_, oldTitle: string, newTitle: string) =>
+    renameTab(oldTitle, newTitle)
   );
 
   ipcMain.handle('notepad:saveState', (_, state: NotepadState) =>
@@ -292,8 +297,8 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('notepad:loadState', () => loadNotepadState());
 
-  ipcMain.handle('notepad:deleteTab', (_, tabId: string) =>
-    deleteTabFile(tabId)
+  ipcMain.handle('notepad:deleteTab', (_, title: string) =>
+    deleteTabFile(title)
   );
 
   ipcMain.handle('notepad:createNewTab', (_, title?: string) =>

@@ -8,6 +8,7 @@ import { nativeTheme } from 'electron';
 import { PRODUCT_NAME } from '@/constants';
 import type { FrontendPreference } from '@/types';
 import type { MantineColorScheme } from '@mantine/core';
+import type { SavedNotepadState } from '@/types/electron';
 
 interface WindowBounds {
   x: number;
@@ -28,6 +29,7 @@ interface AppConfig {
   skipEjectConfirmation?: boolean;
   dismissedUpdates?: string[];
   zoomLevel?: number;
+  notepad?: SavedNotepadState;
 }
 
 let config: AppConfig = {};
