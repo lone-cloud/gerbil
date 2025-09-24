@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { Box, Paper, ActionIcon } from '@mantine/core';
-import { X } from 'lucide-react';
+import { Minus } from 'lucide-react';
 import { useNotepadStore } from '@/stores/notepad';
 import { usePreferencesStore } from '@/stores/preferences';
 import { NOTEPAD_MIN_WIDTH, NOTEPAD_MIN_HEIGHT } from '@/constants/notepad';
@@ -168,6 +168,27 @@ export const NotepadContainer = () => {
         onMouseDown={handleResizeStart('top-right')}
       />
 
+      {resizeDirection && (
+        <Box
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 9999,
+            backgroundColor: 'transparent',
+            cursor:
+              resizeDirection.includes('right') &&
+              resizeDirection.includes('top')
+                ? 'ne-resize'
+                : resizeDirection.includes('right')
+                  ? 'ew-resize'
+                  : 'ns-resize',
+          }}
+        />
+      )}
+
       <Box h="100%" style={{ display: 'flex', flexDirection: 'column' }}>
         <Box
           style={{
@@ -200,9 +221,8 @@ export const NotepadContainer = () => {
               variant="subtle"
               size="xs"
               onClick={() => setVisible(false)}
-              color="red"
             >
-              <X size={16} />
+              <Minus size="1rem" />
             </ActionIcon>
           </Box>
         </Box>
