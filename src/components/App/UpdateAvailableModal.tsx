@@ -60,7 +60,7 @@ export const UpdateAvailableModal = ({
       opened={opened}
       onClose={onClose}
       size="sm"
-      title="A newer version is available"
+      title="An update is available"
       closeOnEscape={!isDownloading && !isUpdating}
     >
       <Stack gap="md">
