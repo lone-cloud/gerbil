@@ -31,21 +31,17 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
     async (download: DownloadItem) => {
       setDownloadingAsset(download.name);
 
-      const success = await handleDownloadFromStore({
+      await handleDownloadFromStore({
         item: download,
         isUpdate: false,
         wasCurrentBinary: false,
       });
 
-      if (success) {
-        onDownloadComplete();
+      onDownloadComplete();
 
-        setTimeout(() => {
-          setDownloadingAsset(null);
-        }, 200);
-      }
-
-      setDownloadingAsset(null);
+      setTimeout(() => {
+        setDownloadingAsset(null);
+      }, 200);
     },
     [handleDownloadFromStore, onDownloadComplete]
   );

@@ -21,9 +21,12 @@ export const KLITE_CSS_OVERRIDE = `
   padding: 0 10px;
 }
 
-
 #navbarNavDropdown {
   padding: 0;
+}
+
+#actionmenuitems {
+  margin-left: 10px;
 }
 
 #inputrow > :nth-child(1) {

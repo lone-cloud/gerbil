@@ -1,6 +1,9 @@
 import { join } from 'path';
 import { homedir } from 'os';
 import { platform, resourcesPath } from 'process';
+import { shell } from 'electron';
+
+import { safeExecute } from '@/utils/logger';
 import { PRODUCT_NAME, CONFIG_FILE_NAME } from '@/constants';
 import { isDevelopment } from './environment';
 import { pathExists } from './fs';
@@ -37,3 +40,21 @@ export async function getLauncherPath(unpackedDir: string) {
 
   return null;
 }
+
+export const openPathHandler = async (path: string) =>
+  (await safeExecute(async () => {
+    await shell.openPath(path);
+    return { success: true };
+  }, 'Failed to open path')) || {
+    success: false,
+    error: 'Failed to open path',
+  };
+
+export const openUrl = (url: string) =>
+  safeExecute(async () => {
+    await shell.openExternal(url);
+    return { success: true };
+  }, 'Failed to open external URL') || {
+    success: false,
+    error: 'Failed to open external URL',
+  };
