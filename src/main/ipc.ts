@@ -40,7 +40,7 @@ import {
   isNpxAvailable,
   getUvVersion,
   getSystemNodeVersion,
-  isAURInstallation,
+  getAURVersion,
 } from '@/main/modules/dependencies';
 import { getMainWindow } from '@/main/modules/window';
 import {
@@ -160,12 +160,12 @@ export function setupIPCHandlers() {
   ipcMain.handle('app:getVersion', () => getAppVersion());
 
   ipcMain.handle('app:getVersionInfo', async () => {
-    const [appVersion, nodeJsSystemVersion, uvVersion, isAUR] =
+    const [appVersion, nodeJsSystemVersion, uvVersion, aurPackageVersion] =
       await Promise.all([
         getAppVersion(),
         getSystemNodeVersion(),
         getUvVersion(),
-        isAURInstallation(),
+        getAURVersion(),
       ]);
 
     return {
@@ -179,7 +179,7 @@ export function setupIPCHandlers() {
       arch,
       nodeJsSystemVersion,
       uvVersion,
-      isAUR,
+      aurPackageVersion,
     };
   });
 
@@ -276,7 +276,10 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('app:canAutoUpdate', () => canAutoUpdate());
 
-  ipcMain.handle('app:isAURInstallation', () => isAURInstallation());
+  ipcMain.handle('app:isAURInstallation', async () => {
+    const aurPackageVersion = await getAURVersion();
+    return aurPackageVersion !== null;
+  });
 
   ipcMain.handle(
     'notepad:saveTabContent',
