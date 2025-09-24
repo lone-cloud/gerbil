@@ -1,6 +1,7 @@
 [Desktop Entry]
 Name=Gerbil
 Comment=Run Large Language Models locally
+GenericName=Local LLM Runner
 Exec=gerbil %U
 Terminal=false
 Type=Application
