@@ -154,15 +154,15 @@ async function tryVersionManagerPath(
   return false;
 }
 
-let aurInstallationCache: boolean | null = null;
+let aurVersionCache: string | null = null;
 
-export async function isAURInstallation() {
+export async function getAURVersion() {
   if (platform !== 'linux') {
-    return false;
+    return null;
   }
 
-  if (aurInstallationCache !== null) {
-    return aurInstallationCache;
+  if (aurVersionCache !== null) {
+    return aurVersionCache;
   }
 
   try {
@@ -170,12 +170,15 @@ export async function isAURInstallation() {
       timeout: 1000,
       reject: false,
     });
-    aurInstallationCache = stdout.trim().length > 0;
-    return aurInstallationCache;
-  } catch {
-    aurInstallationCache = false;
-    return false;
-  }
+    const trimmed = stdout.trim();
+    if (trimmed.length > 0) {
+      aurVersionCache = trimmed.replace('gerbil ', '');
+      return aurVersionCache;
+    }
+  } catch {}
+
+  aurVersionCache = null;
+  return null;
 }
 
 function tryAddPathToEnv(

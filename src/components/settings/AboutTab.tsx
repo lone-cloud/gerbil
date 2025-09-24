@@ -43,8 +43,13 @@ export const AboutTab = () => {
   const versionItems = [
     {
       label: PRODUCT_NAME,
-      value: versionInfo.isAUR
-        ? `${versionInfo.appVersion} (AUR)`
+      value: versionInfo.aurPackageVersion
+        ? (() => {
+            const pkgrel = versionInfo.aurPackageVersion.split('-')[1];
+            return pkgrel && pkgrel !== '1'
+              ? `${versionInfo.appVersion} (AUR r${pkgrel})`
+              : versionInfo.appVersion;
+          })()
         : versionInfo.appVersion,
     },
     { label: 'Electron', value: versionInfo.electronVersion },

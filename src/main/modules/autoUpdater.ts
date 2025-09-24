@@ -3,10 +3,7 @@ import { app } from 'electron';
 import { platform } from 'process';
 import { logError, safeExecute } from '@/utils/node/logging';
 import { isDevelopment } from '@/utils/node/environment';
-import {
-  isAURInstallation,
-  isWindowsPortableInstallation,
-} from './dependencies';
+import { getAURVersion, isWindowsPortableInstallation } from './dependencies';
 
 export interface UpdateInfo {
   version: string;
@@ -78,7 +75,7 @@ export const isUpdateDownloaded = () => updateDownloaded;
 export const canAutoUpdate = async () => {
   if (!app.isPackaged) return false;
 
-  if (platform === 'linux' && (await isAURInstallation())) {
+  if (platform === 'linux' && (await getAURVersion()) !== null) {
     return false;
   }
 
