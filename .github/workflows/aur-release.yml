@@ -37,6 +37,17 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag }}
+          fetch-depth: 0
+
+      - name: Verify tag exists
+        run: |
+          if ! git rev-parse --verify "${{ inputs.tag }}" >/dev/null 2>&1; then
+            echo "❌ Tag '${{ inputs.tag }}' does not exist"
+            echo "Available tags:"
+            git tag -l | tail -10
+            exit 1
+          fi
+          echo "✅ Tag '${{ inputs.tag }}' exists"
 
       - name: Get release information
         id: release_info
