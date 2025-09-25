@@ -298,9 +298,8 @@ jobs:
 
       - name: Prepare local files for AUR package
         run: |
-          # Copy local files so they're available during PKGBUILD execution
+          # Copy desktop file so it's available during PKGBUILD execution
           cp "assets/gerbil.desktop" ./
-          cp "LICENSE" ./
           echo "✅ Local files prepared for AUR package"
 
       - name: Publish to AUR
