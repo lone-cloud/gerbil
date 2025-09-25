@@ -121,37 +121,9 @@ jobs:
             fi
           done
 
-          # Download desktop file with retry
-          for attempt in $(seq 1 $max_attempts); do
-            echo "Attempt $attempt: Downloading desktop file..."
-            if curl -L -o "gerbil.desktop" "https://github.com/lone-cloud/gerbil/releases/download/${{ inputs.tag }}/gerbil.desktop"; then
-              echo "✅ Desktop file downloaded successfully"
-              break
-            else
-              echo "❌ Desktop file download failed, waiting 10 seconds..."
-              sleep 10
-              if [ $attempt -eq $max_attempts ]; then
-                echo "❌ Failed to download desktop file after $max_attempts attempts"
-                exit 1
-              fi
-            fi
-          done
-
-          # Download license file with retry
-          for attempt in $(seq 1 $max_attempts); do
-            echo "Attempt $attempt: Downloading license file..."
-            if curl -L -o "LICENSE" "https://github.com/lone-cloud/gerbil/releases/download/${{ inputs.tag }}/LICENSE"; then
-              echo "✅ License file downloaded successfully"
-              break
-            else
-              echo "❌ License file download failed, waiting 10 seconds..."
-              sleep 10
-              if [ $attempt -eq $max_attempts ]; then
-                echo "❌ Failed to download license file after $max_attempts attempts"
-                exit 1
-              fi
-            fi
-          done
+          # Use local files from the repository (already checked out)
+          echo "✅ Using local desktop file from assets/"
+          echo "✅ Using local LICENSE file from repository root"
 
           # Verify file sizes
           appimage_size=$(stat -c%s "gerbil-${{ steps.release_info.outputs.version }}.AppImage")
@@ -162,7 +134,7 @@ jobs:
           fi
 
           SHA256_APPIMAGE=$(sha256sum "gerbil-${{ steps.release_info.outputs.version }}.AppImage" | cut -d' ' -f1)
-          SHA256_DESKTOP=$(sha256sum "gerbil.desktop" | cut -d' ' -f1)
+          SHA256_DESKTOP=$(sha256sum "assets/gerbil.desktop" | cut -d' ' -f1)
           SHA256_LICENSE=$(sha256sum "LICENSE" | cut -d' ' -f1)
 
           echo "sha256_appimage=$SHA256_APPIMAGE" >> $GITHUB_OUTPUT
@@ -176,136 +148,130 @@ jobs:
       - name: Generate PKGBUILD
         run: |
           cat > PKGBUILD << 'EOF'
-# Maintainer: ${{ steps.release_info.outputs.author_name }} <${{ steps.release_info.outputs.author_email }}>
-pkgname=gerbil
-pkgver=${{ steps.release_info.outputs.version }}
-pkgrel=${{ inputs.pkgrel || '1' }}
-pkgdesc="Run Large Language Models locally"
-arch=('x86_64')
-url="https://github.com/lone-cloud/gerbil"
-license=('AGPL-3.0-or-later')
-depends=('gtk3' 'nss')
-optdepends=('alsa-lib: Audio support for sound effects'
-           'libxss: Screen saver detection support')
-provides=('gerbil')
-conflicts=('gerbil-git')
-source=("gerbil-${pkgver}.AppImage::${{ steps.release_info.outputs.appimage_url }}"
-        "gerbil.desktop::https://github.com/lone-cloud/gerbil/releases/download/${{ steps.release_info.outputs.tag }}/gerbil.desktop"
-        "LICENSE::https://github.com/lone-cloud/gerbil/releases/download/${{ steps.release_info.outputs.tag }}/LICENSE")
-sha256sums=('${{ steps.sha_calc.outputs.sha256_appimage }}'
-            '${{ steps.sha_calc.outputs.sha256_desktop }}'
-            '${{ steps.sha_calc.outputs.sha256_license }}')
+          # Maintainer: ${{ steps.release_info.outputs.author_name }} <${{ steps.release_info.outputs.author_email }}>
+          pkgname=gerbil
+          pkgver=${{ steps.release_info.outputs.version }}
+          pkgrel=${{ inputs.pkgrel || '1' }}
+          pkgdesc="Run Large Language Models locally"
+          arch=('x86_64')
+          url="https://github.com/lone-cloud/gerbil"
+          license=('AGPL-3.0-or-later')
+          depends=('gtk3' 'nss')
+          optdepends=('alsa-lib: Audio support for sound effects'
+                     'libxss: Screen saver detection support')
+          provides=('gerbil')
+          conflicts=('gerbil-git')
+          source=("gerbil-${pkgver}.AppImage::${{ steps.release_info.outputs.appimage_url }}")
+          sha256sums=('${{ steps.sha_calc.outputs.sha256_appimage }}')
 
-prepare() {
-  chmod +x "gerbil-${pkgver}.AppImage"
-  "./gerbil-${pkgver}.AppImage" --appimage-extract
-}
+          prepare() {
+              chmod +x "gerbil-${pkgver}.AppImage"
+              "./gerbil-${pkgver}.AppImage" --appimage-extract
+          }
 
-package() {
-  # Install the application
-  install -dm755 "${pkgdir}/opt/gerbil"
-  cp -r squashfs-root/* "${pkgdir}/opt/gerbil/"
+          package() {
+              # Install the application
+              install -dm755 "${pkgdir}/opt/gerbil"
+              cp -r squashfs-root/* "${pkgdir}/opt/gerbil/"
+              
+              # Fix permissions on extracted files
+              chmod -R 755 "${pkgdir}/opt/gerbil/"
+              
+              # Rename the main executable to lowercase
+              mv "${pkgdir}/opt/gerbil/Gerbil" "${pkgdir}/opt/gerbil/gerbil"
+              
+              # Create executable wrapper
+              install -dm755 "${pkgdir}/usr/bin"
+              cat > "${pkgdir}/usr/bin/gerbil" << 'WRAPPER'
+          #!/bin/bash
+          exec "/opt/gerbil/gerbil" "$@"
+          WRAPPER
+              chmod +x "${pkgdir}/usr/bin/gerbil"
+              
+              # Install desktop file and license
+              install -dm755 "${pkgdir}/usr/share/applications"
+              install -dm755 "${pkgdir}/usr/share/licenses/gerbil"
+              install -m644 "${startdir}/gerbil.desktop" "${pkgdir}/usr/share/applications/"
+              install -m644 "${startdir}/LICENSE" "${pkgdir}/usr/share/licenses/gerbil/"
+              
+              # Install icon to hicolor theme directory and pixmaps as fallback
+              install -dm755 "${pkgdir}/usr/share/icons/hicolor/512x512/apps"
+              install -dm755 "${pkgdir}/usr/share/pixmaps"
 
-  # Rename main binary to lowercase for consistency
-  if [ -f "${pkgdir}/opt/gerbil/Gerbil" ]; then
-    mv "${pkgdir}/opt/gerbil/Gerbil" "${pkgdir}/opt/gerbil/gerbil"
-  fi
+              if [ -f "${pkgdir}/opt/gerbil/usr/share/icons/hicolor/512x512/apps/Gerbil.png" ]; then
+                  cp "${pkgdir}/opt/gerbil/usr/share/icons/hicolor/512x512/apps/Gerbil.png" "${pkgdir}/usr/share/icons/hicolor/512x512/apps/gerbil.png"
+                  cp "${pkgdir}/opt/gerbil/usr/share/icons/hicolor/512x512/apps/Gerbil.png" "${pkgdir}/usr/share/pixmaps/gerbil.png"
+              else
+                  echo "Warning: Could not find Gerbil.png in expected locations"
+                  find "${pkgdir}/opt/gerbil" -name "*erbil*.png" -type f | head -1 | while read icon_file; do
+                      if [ -n "$icon_file" ]; then
+                          echo "Found icon at: $icon_file"
+                          cp "$icon_file" "${pkgdir}/usr/share/icons/hicolor/512x512/apps/gerbil.png"
+                          cp "$icon_file" "${pkgdir}/usr/share/pixmaps/gerbil.png"
+                      fi
+                  done
+              fi
+              
+              # Install shell completions
+              install -dm755 "${pkgdir}/usr/share/bash-completion/completions"
+              install -dm755 "${pkgdir}/usr/share/zsh/site-functions"
+              
+              # Bash completion
+              cat > "${pkgdir}/usr/share/bash-completion/completions/gerbil" << 'BASH_COMP'
+          _gerbil() {
+              local cur prev opts
+              COMPREPLY=()
+              cur="${COMP_WORDS[COMP_CWORD]}"
+              prev="${COMP_WORDS[COMP_CWORD-1]}"
+              opts="--version --cli"
 
-  # Fix permissions on extracted files
-  chmod -R 755 "${pkgdir}/opt/gerbil/"
+              case "${prev}" in
+                  --cli)
+                      # Don't complete after --cli, let user type kobold args
+                      return 0
+                      ;;
+                  *)
+                      COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                      return 0
+                      ;;
+              esac
+          }
+          complete -F _gerbil gerbil
+          BASH_COMP
+              
+              # Zsh completion
+              cat > "${pkgdir}/usr/share/zsh/site-functions/_gerbil" << 'ZSH_COMP'
+          #compdef gerbil
 
-  # Create executable wrapper
-  install -dm755 "${pkgdir}/usr/bin"
-  cat > "${pkgdir}/usr/bin/gerbil" << 'WRAPPER'
-#!/bin/bash
-exec "/opt/gerbil/gerbil" "$@"
-WRAPPER
-  chmod +x "${pkgdir}/usr/bin/gerbil"
+          _gerbil() {
+              local context state line
+              
+              _arguments -C \
+                  '1: :->command' \
+                  '*: :->args' && return 0
+                  
+              case $state in
+                  command)
+                      local commands=(
+                          '--version:Show version information'
+                          '--cli:Run in CLI mode (pass remaining args to kobold binary)'
+                      )
+                      _describe 'commands' commands
+                      ;;
+                  args)
+                      case ${words[2]} in
+                          --cli)
+                              # Don't complete after --cli, let user type kobold args
+                              ;;
+                      esac
+                      ;;
+              esac
+          }
 
-  # Install desktop file and license
-  install -dm755 "${pkgdir}/usr/share/applications"
-  install -dm755 "${pkgdir}/usr/share/licenses/gerbil"
-  cp "${srcdir}/gerbil.desktop" "${pkgdir}/usr/share/applications/"
-  cp "${srcdir}/LICENSE" "${pkgdir}/usr/share/licenses/gerbil/"
-
-  # Install icon to hicolor theme directory and pixmaps as fallback
-  install -dm755 "${pkgdir}/usr/share/icons/hicolor/512x512/apps"
-  install -dm755 "${pkgdir}/usr/share/pixmaps"
-
-  if [ -f "${pkgdir}/opt/gerbil/usr/share/icons/hicolor/512x512/apps/Gerbil.png" ]; then
-    cp "${pkgdir}/opt/gerbil/usr/share/icons/hicolor/512x512/apps/Gerbil.png" "${pkgdir}/usr/share/icons/hicolor/512x512/apps/gerbil.png"
-    cp "${pkgdir}/opt/gerbil/usr/share/icons/hicolor/512x512/apps/Gerbil.png" "${pkgdir}/usr/share/pixmaps/gerbil.png"
-  else
-    echo "Warning: Could not find Gerbil.png in expected locations"
-    find "${pkgdir}/opt/gerbil" -name "*erbil*.png" -type f | head -1 | while read icon_file; do
-      if [ -n "$icon_file" ]; then
-        echo "Found icon at: $icon_file"
-        cp "$icon_file" "${pkgdir}/usr/share/icons/hicolor/512x512/apps/gerbil.png"
-        cp "$icon_file" "${pkgdir}/usr/share/pixmaps/gerbil.png"
-      fi
-    done
-  fi
-
-  # Install shell completions
-  install -dm755 "${pkgdir}/usr/share/bash-completion/completions"
-  install -dm755 "${pkgdir}/usr/share/zsh/site-functions"
-
-  # Bash completion
-  cat > "${pkgdir}/usr/share/bash-completion/completions/gerbil" << 'BASH_COMP'
-_gerbil() {
-  local cur prev opts
-  COMPREPLY=()
-  cur="${COMP_WORDS[COMP_CWORD]}"
-  prev="${COMP_WORDS[COMP_CWORD-1]}"
-  opts="--version --cli"
-
-  case "${prev}" in
-    --cli)
-      # Don't complete after --cli, let user type kobold args
-      return 0
-      ;;
-    *)
-      COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-      return 0
-      ;;
-  esac
-}
-complete -F _gerbil gerbil
-BASH_COMP
-
-  # Zsh completion
-  cat > "${pkgdir}/usr/share/zsh/site-functions/_gerbil" << 'ZSH_COMP'
-#compdef gerbil
-
-_gerbil() {
-  local context state line
-
-  _arguments -C \
-    '1: :->command' \
-    '*: :->args' && return 0
-
-  case $state in
-    command)
-      local commands=(
-        '--version:Show version information'
-        '--cli:Run in CLI mode (pass remaining args to kobold binary)'
-      )
-      _describe 'commands' commands
-      ;;
-    args)
-      case ${words[2]} in
-        --cli)
-          # Don't complete after --cli, let user type kobold args
-          ;;
-      esac
-      ;;
-  esac
-}
-
-_gerbil "$@"
-ZSH_COMP
-}
-EOF
+          _gerbil "$@"
+          ZSH_COMP
+          }
+          EOF
 
       - name: Create .SRCINFO
         run: |
@@ -325,14 +291,17 @@ EOF
           	provides = gerbil
           	conflicts = gerbil-git
           	source = gerbil-${{ steps.release_info.outputs.version }}.AppImage::${{ steps.release_info.outputs.appimage_url }}
-          	source = gerbil.desktop::https://github.com/lone-cloud/gerbil/releases/download/${{ steps.release_info.outputs.tag }}/gerbil.desktop
-          	source = LICENSE::https://github.com/lone-cloud/gerbil/releases/download/${{ steps.release_info.outputs.tag }}/LICENSE
           	sha256sums = ${{ steps.sha_calc.outputs.sha256_appimage }}
-          	sha256sums = ${{ steps.sha_calc.outputs.sha256_desktop }}
-          	sha256sums = ${{ steps.sha_calc.outputs.sha256_license }}
 
           pkgname = gerbil
           EOF
+
+      - name: Prepare local files for AUR package
+        run: |
+          # Copy local files so they're available during PKGBUILD execution
+          cp "assets/gerbil.desktop" ./
+          cp "LICENSE" ./
+          echo "✅ Local files prepared for AUR package"
 
       - name: Publish to AUR
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.2
