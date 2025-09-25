@@ -33,8 +33,8 @@ const koboldAPI: KoboldAPI = {
   getCurrentInstallDir: () => ipcRenderer.invoke('kobold:getCurrentInstallDir'),
   selectInstallDirectory: () =>
     ipcRenderer.invoke('kobold:selectInstallDirectory'),
-  downloadRelease: (asset) =>
-    ipcRenderer.invoke('kobold:downloadRelease', asset),
+  downloadRelease: (asset, options) =>
+    ipcRenderer.invoke('kobold:downloadRelease', asset, options),
   launchKoboldCpp: (args) => ipcRenderer.invoke('kobold:launchKoboldCpp', args),
   getConfigFiles: () => ipcRenderer.invoke('kobold:getConfigFiles'),
   saveConfigFile: (configName, configData) =>

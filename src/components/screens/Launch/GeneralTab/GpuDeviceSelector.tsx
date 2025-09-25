@@ -1,6 +1,7 @@
-import { Text, Group, Select, TextInput } from '@mantine/core';
+import { Text, Group, TextInput } from '@mantine/core';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
+import { Select } from '@/components/Select';
 import type { BackendOption } from '@/types';
 
 interface GpuDeviceSelectorProps {
@@ -68,7 +69,6 @@ export const GpuDeviceSelector = ({
               }
             }}
             data={deviceOptions}
-            allowDeselect={false}
           />
         </div>
 

@@ -2,10 +2,15 @@ import { BrowserWindow, app, shell, screen, Menu, clipboard } from 'electron';
 import type { BrowserWindowConstructorOptions } from 'electron';
 import { join } from 'path';
 import { stripVTControlCharacters } from 'util';
-import { PRODUCT_NAME } from '../../constants';
+import { PRODUCT_NAME } from '@/constants';
 import type { IPCChannel, IPCChannelPayloads } from '@/types/ipc';
 import { isDevelopment } from '@/utils/node/environment';
-import { getBackgroundColor, getWindowBounds, setWindowBounds } from './config';
+import {
+  getBackgroundColor,
+  getWindowBounds,
+  setWindowBounds,
+  WindowBounds,
+} from './config';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -42,35 +47,23 @@ export function createMainWindow() {
     },
   } as BrowserWindowConstructorOptions;
 
-  if (savedBounds) {
-    const isPseudoMaximized =
-      (savedBounds.width >= size.width * 0.95 ||
-        savedBounds.height >= size.height * 0.95) &&
-      !savedBounds.isMaximized;
-
-    if (isPseudoMaximized) {
-      windowOptions.width = defaultWidth;
-      windowOptions.height = defaultHeight;
-      windowOptions.x = Math.floor((size.width - defaultWidth) / 2);
-      windowOptions.y = Math.floor((size.height - defaultHeight) / 2);
+  if (savedBounds?.x !== undefined && savedBounds?.y !== undefined) {
+    const minVisibleSize = 100;
+    if (
+      savedBounds.x >= -minVisibleSize &&
+      savedBounds.y >= -minVisibleSize &&
+      savedBounds.x < size.width - minVisibleSize &&
+      savedBounds.y < size.height - minVisibleSize
+    ) {
+      windowOptions.x = savedBounds.x;
+      windowOptions.y = savedBounds.y;
     } else {
-      const minVisibleSize = 100;
-      if (
-        savedBounds.x >= -minVisibleSize &&
-        savedBounds.y >= -minVisibleSize &&
-        savedBounds.x < size.width - minVisibleSize &&
-        savedBounds.y < size.height - minVisibleSize
-      ) {
-        windowOptions.x = savedBounds.x;
-        windowOptions.y = savedBounds.y;
-      } else {
-        windowOptions.x = Math.floor(
-          (size.width - (savedBounds.width || defaultWidth)) / 2
-        );
-        windowOptions.y = Math.floor(
-          (size.height - (savedBounds.height || defaultHeight)) / 2
-        );
-      }
+      windowOptions.x = Math.floor(
+        (size.width - (savedBounds.width || defaultWidth)) / 2
+      );
+      windowOptions.y = Math.floor(
+        (size.height - (savedBounds.height || defaultHeight)) / 2
+      );
     }
   } else {
     windowOptions.x = Math.floor((size.width - defaultWidth) / 2);
@@ -83,103 +76,38 @@ export function createMainWindow() {
     mainWindow.maximize();
   }
 
-  let restoreBounds: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  } | null = savedBounds
-    ? {
-        x: savedBounds.x || 0,
-        y: savedBounds.y || 0,
-        width: savedBounds.width,
-        height: savedBounds.height,
-      }
-    : null;
-
   const saveBounds = () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
       const isMaximized = mainWindow.isMaximized();
       const currentBounds = mainWindow.getBounds();
+      let bounds: WindowBounds = { isMaximized };
 
-      if (isMaximized) {
-        if (restoreBounds) {
-          setWindowBounds({
-            x: restoreBounds.x,
-            y: restoreBounds.y,
-            width: restoreBounds.width,
-            height: restoreBounds.height,
-            isMaximized: true,
-          });
-        }
-      } else {
-        restoreBounds = currentBounds;
-        setWindowBounds({
+      if (!isMaximized) {
+        bounds = {
           x: currentBounds.x,
           y: currentBounds.y,
           width: currentBounds.width,
           height: currentBounds.height,
-          isMaximized: false,
-        });
+          isMaximized,
+        };
       }
+
+      setWindowBounds(bounds);
     }
   };
 
-  let lastSavedBounds: string | null = null;
-  let saveTimeout: ReturnType<typeof setTimeout> | null = null;
-
-  const debouncedSave = () => {
-    if (saveTimeout) {
-      clearTimeout(saveTimeout);
-    }
-
-    saveTimeout = setTimeout(() => {
-      saveBounds();
-      saveTimeout = null;
-    }, 1000);
-  };
-
-  const checkBounds = () => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      const currentBounds = mainWindow.getBounds();
-      const isMaximized = mainWindow.isMaximized();
-      const boundsString = JSON.stringify({ ...currentBounds, isMaximized });
-
-      if (boundsString !== lastSavedBounds) {
-        lastSavedBounds = boundsString;
-        debouncedSave();
-      }
-    }
-  };
-
-  const boundsInterval = setInterval(checkBounds, 500);
-
-  mainWindow.on('moved', () => {
-    debouncedSave();
-  });
-  mainWindow.on('resized', () => {
-    debouncedSave();
-  });
   mainWindow.on('maximize', () => {
-    saveBounds();
     sendToRenderer('window-maximized');
   });
   mainWindow.on('unmaximize', () => {
-    saveBounds();
     sendToRenderer('window-unmaximized');
   });
 
   mainWindow.on('closed', () => {
-    if (saveTimeout) {
-      clearTimeout(saveTimeout);
-    }
-    clearInterval(boundsInterval);
     mainWindow = null;
   });
 
-  mainWindow.once('ready-to-show', () => {
-    mainWindow?.show();
-  });
+  mainWindow.once('ready-to-show', () => mainWindow?.show());
 
   if (isDevelopment) {
     mainWindow.loadURL('http://localhost:5173');
@@ -218,6 +146,7 @@ export function createMainWindow() {
   }));
 
   mainWindow.on('close', () => {
+    saveBounds();
     app.quit();
   });
 

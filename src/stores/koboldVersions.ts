@@ -16,6 +16,7 @@ interface HandleDownloadParams {
   item: DownloadItem;
   isUpdate?: boolean;
   wasCurrentBinary?: boolean;
+  oldVersionPath?: string;
 }
 
 const transformReleaseToDownloadItems = (
@@ -96,7 +97,12 @@ export const useKoboldVersionsStore = create<KoboldVersionsState>(
     },
 
     handleDownload: async (params: HandleDownloadParams) => {
-      const { item, isUpdate = false, wasCurrentBinary = false } = params;
+      const {
+        item,
+        isUpdate = false,
+        wasCurrentBinary = false,
+        oldVersionPath,
+      } = params;
       const { downloading } = get();
 
       if (downloading) {
@@ -116,11 +122,13 @@ export const useKoboldVersionsStore = create<KoboldVersionsState>(
         browser_download_url: item.url,
         size: item.size,
         version: item.version,
-        isUpdate,
-        wasCurrentBinary,
       };
 
-      await window.electronAPI.kobold.downloadRelease(asset);
+      await window.electronAPI.kobold.downloadRelease(asset, {
+        isUpdate,
+        wasCurrentBinary,
+        oldVersionPath,
+      });
 
       progressCleanup();
       set({ downloading: null, downloadProgress: {} });

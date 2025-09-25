@@ -2,7 +2,6 @@ import { ipcMain, app } from 'electron';
 import { join } from 'path';
 import { release } from 'os';
 import { platform, versions, arch } from 'process';
-import type { MantineColorScheme } from '@mantine/core';
 import {
   stopKoboldCpp,
   launchKoboldCppWithCustomFrontends,
@@ -76,13 +75,12 @@ import {
   canAutoUpdate,
 } from '@/main/modules/autoUpdater';
 import { getAppVersion } from '@/utils/node/fs';
-import type { NotepadState } from '@/types/electron';
 
 export function setupIPCHandlers() {
   const mainWindow = getMainWindow();
 
-  ipcMain.handle('kobold:downloadRelease', async (_, asset) =>
-    downloadRelease(asset)
+  ipcMain.handle('kobold:downloadRelease', async (_, asset, options) =>
+    downloadRelease(asset, options)
   );
 
   ipcMain.handle('kobold:getInstalledVersions', () => getInstalledVersions());
@@ -182,7 +180,7 @@ export function setupIPCHandlers() {
     };
   });
 
-  ipcMain.handle('app:openPath', (_, path: string) => openPathHandler(path));
+  ipcMain.handle('app:openPath', (_, path) => openPathHandler(path));
 
   ipcMain.handle('app:showLogsFolder', () =>
     openPathHandler(join(app.getPath('userData'), 'logs'))
@@ -208,18 +206,18 @@ export function setupIPCHandlers() {
     mainWindow.webContents.getZoomLevel()
   );
 
-  ipcMain.handle('app:setZoomLevel', (_, level: number) => {
+  ipcMain.handle('app:setZoomLevel', (_, level) => {
     mainWindow.webContents.setZoomLevel(level);
     setConfig('zoomLevel', level);
   });
 
   ipcMain.handle('app:getColorScheme', () => getColorScheme());
 
-  ipcMain.handle('app:setColorScheme', (_, colorScheme: MantineColorScheme) =>
+  ipcMain.handle('app:setColorScheme', (_, colorScheme) =>
     setColorScheme(colorScheme)
   );
 
-  ipcMain.handle('app:openExternal', async (_, url: string) => openUrl(url));
+  ipcMain.handle('app:openExternal', async (_, url) => openUrl(url));
 
   mainWindow.webContents.once('did-finish-load', async () => {
     const savedZoomLevel = await getConfig('zoomLevel');
@@ -230,9 +228,7 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('app:openPerformanceManager', () => openPerformanceManager());
 
-  ipcMain.on('logs:logError', (_, message: string, error?: Error) =>
-    logError(message, error)
-  );
+  ipcMain.on('logs:logError', (_, message, error?) => logError(message, error));
 
   ipcMain.handle('dependencies:isNpxAvailable', () => isNpxAvailable());
 
@@ -257,30 +253,21 @@ export function setupIPCHandlers() {
     return aurPackageVersion !== null;
   });
 
-  ipcMain.handle(
-    'notepad:saveTabContent',
-    (_, title: string, content: string) => saveTabContent(title, content)
+  ipcMain.handle('notepad:saveTabContent', (_, title, content) =>
+    saveTabContent(title, content)
   );
 
-  ipcMain.handle('notepad:loadTabContent', (_, title: string) =>
-    loadTabContent(title)
-  );
+  ipcMain.handle('notepad:loadTabContent', (_, title) => loadTabContent(title));
 
-  ipcMain.handle('notepad:renameTab', (_, oldTitle: string, newTitle: string) =>
+  ipcMain.handle('notepad:renameTab', (_, oldTitle, newTitle) =>
     renameTab(oldTitle, newTitle)
   );
 
-  ipcMain.handle('notepad:saveState', (_, state: NotepadState) =>
-    saveNotepadState(state)
-  );
+  ipcMain.handle('notepad:saveState', (_, state) => saveNotepadState(state));
 
   ipcMain.handle('notepad:loadState', () => loadNotepadState());
 
-  ipcMain.handle('notepad:deleteTab', (_, title: string) =>
-    deleteTabFile(title)
-  );
+  ipcMain.handle('notepad:deleteTab', (_, title) => deleteTabFile(title));
 
-  ipcMain.handle('notepad:createNewTab', (_, title?: string) =>
-    createNewTab(title)
-  );
+  ipcMain.handle('notepad:createNewTab', (_, title) => createNewTab(title));
 }

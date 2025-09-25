@@ -17,8 +17,12 @@ export interface GitHubAsset {
   browser_download_url: string;
   size: number;
   version?: string;
+}
+
+export interface DownloadReleaseOptions {
   isUpdate?: boolean;
   wasCurrentBinary?: boolean;
+  oldVersionPath?: string;
 }
 
 export interface GitHubRelease {
@@ -113,7 +117,10 @@ export interface KoboldAPI {
   getAvailableBackends: (includeDisabled?: boolean) => Promise<BackendOption[]>;
   getCurrentInstallDir: () => Promise<string>;
   selectInstallDirectory: () => Promise<string | null>;
-  downloadRelease: (asset: GitHubAsset) => Promise<void>;
+  downloadRelease: (
+    asset: GitHubAsset,
+    options: DownloadReleaseOptions
+  ) => Promise<void>;
   launchKoboldCpp: (
     args?: string[]
   ) => Promise<{ success: boolean; pid?: number; error?: string }>;

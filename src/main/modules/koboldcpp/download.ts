@@ -14,7 +14,7 @@ import { getMainWindow, sendToRenderer } from '../window';
 import { pathExists } from '@/utils/node/fs';
 import { stripAssetExtensions } from '@/utils/version';
 import { getLauncherPath } from '@/utils/node/path';
-import type { GitHubAsset } from '@/types/electron';
+import type { DownloadReleaseOptions, GitHubAsset } from '@/types/electron';
 
 async function removeDirectoryWithRetry(
   dirPath: string,
@@ -132,6 +132,7 @@ async function setupLauncher(
 
 async function unpackKoboldCpp(packedPath: string, unpackDir: string) {
   try {
+    await mkdir(unpackDir, { recursive: true });
     await execa(packedPath, ['--unpack', unpackDir], {
       timeout: 60000,
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -148,18 +149,16 @@ async function unpackKoboldCpp(packedPath: string, unpackDir: string) {
   }
 }
 
-export async function downloadRelease(asset: GitHubAsset) {
+export async function downloadRelease(
+  asset: GitHubAsset,
+  options: DownloadReleaseOptions
+) {
   const tempPackedFilePath = join(getInstallDir(), `${asset.name}.packed`);
   const baseFilename = stripAssetExtensions(asset.name);
   const folderName = asset.version
     ? `${baseFilename}-${asset.version}`
     : baseFilename;
   const unpackedDirPath = join(getInstallDir(), folderName);
-
-  let currentBinaryPath: string | null = null;
-  if (asset.isUpdate && asset.wasCurrentBinary) {
-    currentBinaryPath = getCurrentKoboldBinary() || null;
-  }
 
   try {
     if (await pathExists(unpackedDirPath)) {
@@ -168,24 +167,26 @@ export async function downloadRelease(asset: GitHubAsset) {
 
     await downloadFile(asset, tempPackedFilePath);
 
-    await mkdir(unpackedDirPath, { recursive: true });
     await unpackKoboldCpp(tempPackedFilePath, unpackedDirPath);
+
     const launcherPath = await setupLauncher(
       tempPackedFilePath,
       unpackedDirPath
     );
 
-    const currentBinary = getCurrentKoboldBinary();
-    if (!currentBinary || (asset.isUpdate && asset.wasCurrentBinary)) {
-      await setCurrentKoboldBinary(launcherPath);
-    }
-
-    if (currentBinaryPath && asset.isUpdate && asset.wasCurrentBinary) {
-      const oldInstallDir = join(currentBinaryPath, '..');
+    if (options.oldVersionPath && options.isUpdate) {
+      const oldInstallDir = join(options.oldVersionPath, '..');
 
       if (oldInstallDir !== unpackedDirPath) {
         await removeDirectoryWithRetry(oldInstallDir);
       }
+    }
+
+    if (
+      !getCurrentKoboldBinary() ||
+      (options.isUpdate && options.wasCurrentBinary)
+    ) {
+      await setCurrentKoboldBinary(launcherPath);
     }
 
     sendToRenderer('versions-updated');

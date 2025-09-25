@@ -10,11 +10,11 @@ import type { FrontendPreference } from '@/types';
 import type { MantineColorScheme } from '@mantine/core';
 import type { SavedNotepadState } from '@/types/electron';
 
-interface WindowBounds {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+export interface WindowBounds {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
   isMaximized: boolean;
 }
 

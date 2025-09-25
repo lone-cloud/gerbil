@@ -1,9 +1,10 @@
-import { Stack, Text, Group, Button, Select, Tooltip } from '@mantine/core';
+import { Stack, Text, Group, Button, Tooltip } from '@mantine/core';
 import { useState, useCallback } from 'react';
 import { Save, File, Plus, Check, Trash2 } from 'lucide-react';
 import type { ConfigFile } from '@/types';
 import { CreateConfigModal } from './CreateConfigModal';
 import { DeleteConfigModal } from './DeleteConfigModal';
+import { Select } from '@/components/Select';
 
 interface ConfigFileManagerProps {
   configFiles: ConfigFile[];
@@ -108,8 +109,6 @@ export const ConfigFileManager = ({
               data={selectData}
               leftSection={<File size={16} />}
               searchable
-              clearable={false}
-              allowDeselect={false}
             />
           </div>
           <Button

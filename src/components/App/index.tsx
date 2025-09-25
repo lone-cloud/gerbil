@@ -90,10 +90,13 @@ export const App = () => {
   };
 
   const handleBinaryUpdate = async (download: DownloadItem) => {
+    const currentVersion = await window.electronAPI.kobold.getCurrentVersion();
+
     await handleDownload({
       item: download,
       isUpdate: true,
       wasCurrentBinary: true,
+      oldVersionPath: currentVersion?.path,
     });
 
     closeModal();
