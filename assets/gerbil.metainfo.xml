@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>gerbil.desktop</id>
+  <metadata_license>MIT</metadata_license>
+  <project_license>AGPL-3.0-or-later</project_license>
+  
+  <name>Gerbil</name>
+  <summary>A desktop app to easily run Large Language Models locally</summary>
+  <description>
+    <p>
+      Gerbil is a desktop app to easily run Large Language Models locally. Powered by KoboldCpp,
+      it provides a clean cross-platform interface for downloading, managing, and running
+      various language models locally while maintaining complete privacy and control over your data.
+    </p>
+    <p>Core Features:</p>
+    <ul>
+      <li>Run LLMs locally powered by KoboldCpp (highly modified fork of llama.cpp)</li>
+      <li>Cross-platform desktop app - Native support for Windows, macOS, and Linux (including Wayland)</li>
+      <li>Automatic updates - Download and keep your KoboldCpp binary up-to-date effortlessly</li>
+      <li>Smart process management - Prevents runaway background processes and system resource waste</li>
+      <li>Optimized performance - Automatically unpacks binaries for faster operation and reduced memory usage</li>
+      <li>Image generation support - Built-in presets for Flux and Chroma image generation workflows</li>
+      <li>SillyTavern integration - Seamlessly launch SillyTavern for advanced character interactions</li>
+      <li>OpenWebUI integration - Launch OpenWebUI for a modern web-based chat interface</li>
+      <li>Privacy-focused - Everything runs locally on your machine, no data sent to external servers</li>
+    </ul>
+  </description>
+  
+  <launchable type="desktop-id">gerbil.desktop</launchable>
+  <provides>
+    <binary>gerbil</binary>
+  </provides>
+  
+  <icon type="stock">gerbil</icon>
+  
+  <screenshots>
+    <screenshot type="default">
+      <image>https://github.com/lone-cloud/gerbil/raw/main/screenshots/launch.png</image>
+      <caption>Model Launch Configuration</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://github.com/lone-cloud/gerbil/raw/main/screenshots/download.png</image>
+      <caption>Download &amp; Setup</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://github.com/lone-cloud/gerbil/raw/main/screenshots/text-story.png</image>
+      <caption>Text Generation</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://github.com/lone-cloud/gerbil/raw/main/screenshots/gen-img.png</image>
+      <caption>Image Generation</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://github.com/lone-cloud/gerbil/raw/main/screenshots/sillytavern.png</image>
+      <caption>SillyTavern integration</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://github.com/lone-cloud/gerbil/raw/main/screenshots/openwebui.png</image>
+      <caption>OpenWebUI integration</caption>
+    </screenshot>
+  </screenshots>
+  
+  <url type="homepage">https://github.com/lone-cloud/gerbil</url>
+  <url type="bugtracker">https://github.com/lone-cloud/gerbil/issues</url>
+  
+  <categories>
+    <category>Network</category>
+    <category>Chat</category>
+    <category>Utility</category>
+  </categories>
+  
+  <keywords>
+    <keyword>AI</keyword>
+    <keyword>LLM</keyword>
+    <keyword>Large Language Model</keyword>
+    <keyword>Local</keyword>
+    <keyword>Machine Learning</keyword>
+    <keyword>Privacy</keyword>
+    <keyword>KoboldCpp</keyword>
+    <keyword>llama.cpp</keyword>
+    <keyword>SillyTavern</keyword>
+    <keyword>OpenWebUI</keyword>
+    <keyword>Text Generation</keyword>
+    <keyword>Image Generation</keyword>
+  </keywords>
+  
+  <developer_name>lone-cloud</developer_name>
+  
+  <content_rating type="oars-1.1" />
+</component>

@@ -159,6 +159,7 @@ const LINUX_PERFORMANCE_APPS = [
   'resources',
   'gnome-system-monitor',
   'plasma-systemmonitor',
+  'missioncenter',
   'ksysguard',
   'htop',
   'top',
