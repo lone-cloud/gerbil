@@ -8,9 +8,11 @@ interface PreferencesStore {
   frontendPreference: FrontendPreference;
   rawColorScheme: MantineColorScheme;
   resolvedColorScheme: ResolvedColorScheme;
+  systemMonitoringEnabled: boolean;
 
   setFrontendPreference: (preference: FrontendPreference) => void;
   setColorScheme: (scheme: MantineColorScheme) => Promise<void>;
+  setSystemMonitoringEnabled: (enabled: boolean) => void;
   loadPreferences: () => Promise<void>;
 }
 
@@ -27,10 +29,16 @@ export const usePreferencesStore = create<PreferencesStore>((set) => ({
   frontendPreference: 'koboldcpp',
   rawColorScheme: 'auto',
   resolvedColorScheme: 'light',
+  systemMonitoringEnabled: true,
 
   setFrontendPreference: (preference: FrontendPreference) => {
     set({ frontendPreference: preference });
     window.electronAPI.config.set('frontendPreference', preference);
+  },
+
+  setSystemMonitoringEnabled: (enabled: boolean) => {
+    set({ systemMonitoringEnabled: enabled });
+    window.electronAPI.config.set('systemMonitoringEnabled', enabled);
   },
 
   setColorScheme: async (scheme: MantineColorScheme) => {
@@ -42,17 +50,21 @@ export const usePreferencesStore = create<PreferencesStore>((set) => ({
   },
 
   loadPreferences: async () => {
-    const [frontendPref, colorScheme] = await Promise.all([
+    const [frontendPref, colorScheme, systemMonitoring] = await Promise.all([
       window.electronAPI.config.get(
         'frontendPreference'
       ) as Promise<FrontendPreference>,
       window.electronAPI.app.getColorScheme(),
+      window.electronAPI.config.get(
+        'systemMonitoringEnabled'
+      ) as Promise<boolean>,
     ]);
 
     set({
       frontendPreference: frontendPref || 'koboldcpp',
       rawColorScheme: colorScheme || 'auto',
       resolvedColorScheme: resolveColorScheme(colorScheme || 'auto'),
+      systemMonitoringEnabled: systemMonitoring ?? true,
     });
   },
 }));

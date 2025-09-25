@@ -8,6 +8,7 @@ import {
   rem,
   Box,
   Anchor,
+  Switch,
 } from '@mantine/core';
 import { Folder, FolderOpen, Monitor, ExternalLink } from 'lucide-react';
 import type { FrontendPreference } from '@/types';
@@ -37,7 +38,12 @@ export const GeneralTab = ({
   isOnInterfaceScreen = false,
 }: GeneralTabProps) => {
   const [installDir, setInstallDir] = useState('');
-  const { frontendPreference, setFrontendPreference } = usePreferencesStore();
+  const {
+    frontendPreference,
+    setFrontendPreference,
+    systemMonitoringEnabled,
+    setSystemMonitoringEnabled,
+  } = usePreferencesStore();
   const [frontendRequirements, setFrontendRequirements] = useState<
     Map<string, boolean>
   >(new Map());
@@ -329,6 +335,22 @@ export const GeneralTab = ({
             );
           })()}
         </Box>
+      </div>
+
+      <div>
+        <Text fw={500} mb="sm">
+          System Performance
+        </Text>
+        <Text size="sm" c="dimmed" mb="md">
+          Monitor CPU, memory, and GPU usage in the status bar
+        </Text>
+        <Switch
+          label="Show system metrics"
+          checked={systemMonitoringEnabled}
+          onChange={(event) =>
+            setSystemMonitoringEnabled(event.currentTarget.checked)
+          }
+        />
       </div>
     </Stack>
   );
