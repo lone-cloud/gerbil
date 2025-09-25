@@ -188,10 +188,12 @@ jobs:
           WRAPPER
               chmod +x "${pkgdir}/usr/bin/gerbil"
               
-              # Install desktop file and license
+              # Install desktop file, AppStream metadata, and license
               install -dm755 "${pkgdir}/usr/share/applications"
+              install -dm755 "${pkgdir}/usr/share/metainfo"
               install -dm755 "${pkgdir}/usr/share/licenses/gerbil"
               install -m644 "${startdir}/gerbil.desktop" "${pkgdir}/usr/share/applications/"
+              install -m644 "${startdir}/gerbil.metainfo.xml" "${pkgdir}/usr/share/metainfo/"
               install -m644 "${startdir}/LICENSE" "${pkgdir}/usr/share/licenses/gerbil/"
               
               # Install icon to hicolor theme directory and pixmaps as fallback
@@ -298,8 +300,9 @@ jobs:
 
       - name: Prepare local files for AUR package
         run: |
-          # Copy desktop file so it's available during PKGBUILD execution
+          # Copy desktop file and metainfo file so they're available during PKGBUILD execution
           cp "assets/gerbil.desktop" ./
+          cp "assets/gerbil.metainfo.xml" ./
           echo "✅ Local files prepared for AUR package"
 
       - name: Publish to AUR
