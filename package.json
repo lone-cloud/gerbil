@@ -1,7 +1,7 @@
 {
   "name": "gerbil",
   "productName": "Gerbil",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "description": "Run Large Language Models locally",
   "main": "out/main/index.js",
   "homepage": "./",
@@ -165,14 +165,6 @@
       "compression": "store",
       "category": "Utility",
       "icon": "src/assets/icon.png",
-      "desktop": {
-        "entry": {
-          "Name": "Gerbil",
-          "Comment": "Run Large Language Models locally",
-          "Categories": "Utility;",
-          "StartupWMClass": "Gerbil"
-        }
-      },
       "extraFiles": [
         {
           "from": "assets/gerbil.desktop",
