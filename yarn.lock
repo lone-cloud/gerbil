@@ -989,7 +989,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/core@npm:^8.3.1":
+"@mantine/core@npm:8.3.1":
   version: 8.3.1
   resolution: "@mantine/core@npm:8.3.1"
   dependencies:
@@ -1007,7 +1007,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/hooks@npm:^8.3.1":
+"@mantine/hooks@npm:8.3.1":
   version: 8.3.1
   resolution: "@mantine/hooks@npm:8.3.1"
   peerDependencies:
@@ -3863,8 +3863,8 @@ __metadata:
     "@codemirror/view": "npm:^6.38.3"
     "@eslint/js": "npm:^9.36.0"
     "@fontsource/inter": "npm:^5.2.8"
-    "@mantine/core": "npm:^8.3.1"
-    "@mantine/hooks": "npm:^8.3.1"
+    "@mantine/core": "npm:8.3.1"
+    "@mantine/hooks": "npm:8.3.1"
     "@types/node": "npm:^24.5.2"
     "@types/react": "npm:^19.1.13"
     "@types/react-dom": "npm:^19.1.9"

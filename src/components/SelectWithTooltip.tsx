@@ -1,8 +1,8 @@
 import type { CSSProperties } from 'react';
-import { Select } from '@mantine/core';
 import type { ComboboxItem } from '@mantine/core';
 import { LabelWithTooltip } from '@/components/LabelWithTooltip';
 import type { SelectOption } from '@/types';
+import { Select } from '@/components/Select';
 
 interface SelectWithTooltipProps {
   label: string;
@@ -36,7 +36,6 @@ export const SelectWithTooltip = ({
       data={data}
       disabled={disabled}
       clearable={clearable}
-      allowDeselect={false}
     />
   </div>
 );

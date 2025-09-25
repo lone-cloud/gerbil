@@ -1,10 +1,11 @@
-import { Text, Group, Select, Checkbox, TextInput } from '@mantine/core';
+import { Text, Group, Checkbox, TextInput } from '@mantine/core';
 import { useState, useEffect, useRef } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { BackendSelectItem } from '@/components/screens/Launch/GeneralTab/BackendSelectItem';
 import { GpuDeviceSelector } from '@/components/screens/Launch/GeneralTab/GpuDeviceSelector';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 import type { BackendOption } from '@/types';
+import { Select } from '@/components/Select';
 
 export const BackendSelector = () => {
   const {
@@ -89,11 +90,11 @@ export const BackendSelector = () => {
               disabled: b.disabled,
             }))}
             disabled={isLoadingBackends || availableBackends.length === 0}
-            allowDeselect={false}
             renderOption={({ option }) => {
               const backendData = availableBackends.find(
                 (b) => b.value === option.value
               );
+
               return (
                 <BackendSelectItem
                   label={backendData?.label || option.label.split(' (')[0]}

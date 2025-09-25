@@ -3,7 +3,6 @@ import {
   ActionIcon,
   Box,
   Image,
-  Select,
   AppShell,
   Tooltip,
 } from '@mantine/core';
@@ -18,6 +17,7 @@ import { UpdateButton } from '@/components/App/UpdateButton';
 import icon from '/icon.png';
 import { PRODUCT_NAME, TITLEBAR_HEIGHT } from '@/constants';
 import type { InterfaceTab, Screen, SelectOption } from '@/types';
+import { Select } from '@/components/Select';
 
 interface TitleBarProps {
   currentScreen: Screen;
@@ -135,9 +135,7 @@ export const TitleBar = ({
               onDropdownClose={() => setIsSelectOpen(false)}
               data={interfaceOptions}
               renderOption={renderOption}
-              allowDeselect={false}
               variant="unstyled"
-              size="sm"
               style={{ textAlign: 'center', minWidth: '7.5rem' }}
               styles={{
                 input: {

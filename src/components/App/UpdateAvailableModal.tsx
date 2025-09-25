@@ -91,9 +91,9 @@ export const UpdateAvailableModal = ({
               </div>
             </Group>
 
-            {currentVersion && (
+            {availableUpdate?.name && (
               <Text size="xs" c="dimmed">
-                Binary Type: {pretifyBinName(currentVersion.filename)}
+                Binary Type: {pretifyBinName(availableUpdate?.name)}
               </Text>
             )}
 

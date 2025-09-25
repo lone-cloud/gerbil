@@ -6,7 +6,6 @@ import {
   TextInput,
   Button,
   rem,
-  Select,
   Box,
   Anchor,
 } from '@mantine/core';
@@ -14,6 +13,7 @@ import { Folder, FolderOpen, Monitor, ExternalLink } from 'lucide-react';
 import type { FrontendPreference } from '@/types';
 import { usePreferencesStore } from '@/stores/preferences';
 import { FRONTENDS } from '@/constants';
+import { Select } from '@/components/Select';
 
 interface FrontendRequirement {
   id: string;
@@ -267,7 +267,6 @@ export const GeneralTab = ({
             disabled: !isFrontendAvailable(config.value),
           }))}
           leftSection={<Monitor style={{ width: rem(16), height: rem(16) }} />}
-          allowDeselect={false}
         />
 
         <Box mt="sm">

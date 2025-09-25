@@ -188,6 +188,7 @@ export const VersionsTab = () => {
       item: download,
       isUpdate: true,
       wasCurrentBinary: version.isCurrent,
+      oldVersionPath: version.installedPath,
     });
 
     await loadInstalledVersions();
