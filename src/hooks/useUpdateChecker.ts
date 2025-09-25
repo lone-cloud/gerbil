@@ -7,6 +7,7 @@ import {
 import { useKoboldVersionsStore } from '@/stores/koboldVersions';
 import { getROCmDownload } from '@/utils/rocm';
 import type { InstalledVersion, DownloadItem } from '@/types/electron';
+import type { DismissedUpdate } from '@/types';
 
 export interface BinaryUpdateInfo {
   currentVersion: InstalledVersion;
@@ -17,8 +18,8 @@ export const useUpdateChecker = () => {
   const [updateInfo, setUpdateInfo] = useState<BinaryUpdateInfo | null>(null);
   const [isChecking, setIsChecking] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [dismissedUpdates, setDismissedUpdates] = useState<Set<string>>(
-    new Set()
+  const [dismissedUpdates, setDismissedUpdates] = useState<DismissedUpdate[]>(
+    []
   );
 
   const { availableDownloads: releases, loadingRemote } =
@@ -27,10 +28,10 @@ export const useUpdateChecker = () => {
     const loadDismissedUpdates = async () => {
       const dismissed = (await window.electronAPI.config.get(
         'dismissedUpdates'
-      )) as string[] | undefined;
+      )) as DismissedUpdate[] | undefined;
 
       if (dismissed) {
-        setDismissedUpdates(new Set(dismissed));
+        setDismissedUpdates(dismissed);
       }
     };
 
@@ -72,9 +73,13 @@ export const useUpdateChecker = () => {
         compareVersions(matchingDownload.version, currentVersion.version) > 0;
 
       if (hasUpdate) {
-        const updateKey = `${currentVersion.path}-${matchingDownload.version}`;
+        const isUpdateDismissed = dismissedUpdates.some(
+          (dismissedUpdate) =>
+            dismissedUpdate.currentVersionPath === currentVersion.path &&
+            dismissedUpdate.targetVersion === matchingDownload.version
+        );
 
-        if (!dismissedUpdates.has(updateKey)) {
+        if (!isUpdateDismissed) {
           setUpdateInfo({
             currentVersion,
             availableUpdate: matchingDownload,
@@ -88,14 +93,15 @@ export const useUpdateChecker = () => {
   }, [dismissedUpdates, releases, loadingRemote]);
 
   const skipUpdate = useCallback(() => {
-    if (updateInfo) {
-      const updateKey = `${updateInfo.currentVersion.path}-${updateInfo.availableUpdate.version}`;
-      const newDismissedUpdates = new Set([...dismissedUpdates, updateKey]);
+    if (updateInfo && updateInfo.availableUpdate.version) {
+      const newDismissedUpdate: DismissedUpdate = {
+        currentVersionPath: updateInfo.currentVersion.path,
+        targetVersion: updateInfo.availableUpdate.version,
+      };
+
+      const newDismissedUpdates = [...dismissedUpdates, newDismissedUpdate];
       setDismissedUpdates(newDismissedUpdates);
-      window.electronAPI.config.set(
-        'dismissedUpdates',
-        Array.from(newDismissedUpdates)
-      );
+      window.electronAPI.config.set('dismissedUpdates', newDismissedUpdates);
     }
     setShowUpdateModal(false);
     setUpdateInfo(null);
