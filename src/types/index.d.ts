@@ -47,6 +47,11 @@ export interface InstalledVersion {
   size?: number;
 }
 
+export interface DismissedUpdate {
+  currentVersionPath: string;
+  targetVersion: string;
+}
+
 export interface SelectOption {
   value: string;
   label: string;

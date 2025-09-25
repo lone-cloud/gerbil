@@ -6,7 +6,7 @@ import { join } from 'path';
 import { platform } from 'process';
 import { nativeTheme } from 'electron';
 import { PRODUCT_NAME } from '@/constants';
-import type { FrontendPreference } from '@/types';
+import type { FrontendPreference, DismissedUpdate } from '@/types';
 import type { MantineColorScheme } from '@mantine/core';
 import type { SavedNotepadState } from '@/types/electron';
 
@@ -27,7 +27,7 @@ interface AppConfig {
   windowBounds?: WindowBounds;
   hasSeenWelcome?: boolean;
   skipEjectConfirmation?: boolean;
-  dismissedUpdates?: string[];
+  dismissedUpdates?: DismissedUpdate[];
   zoomLevel?: number;
   notepad?: SavedNotepadState;
 }
@@ -154,9 +154,9 @@ export function setSkipEjectConfirmation(skipEjectConfirmation: boolean) {
   saveConfigAsync();
 }
 
-export const getDismissedUpdates = () => config.dismissedUpdates;
+export const getDismissedUpdates = () => config.dismissedUpdates || [];
 
-export function setDismissedUpdates(dismissedUpdates: string[]) {
+export function setDismissedUpdates(dismissedUpdates: DismissedUpdate[]) {
   config.dismissedUpdates = dismissedUpdates;
   saveConfigAsync();
 }
