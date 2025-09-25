@@ -20,43 +20,52 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
     null
   );
   const [gpuMetrics, setGpuMetrics] = useState<GpuMetrics | null>(null);
-  const { resolvedColorScheme: colorScheme } = usePreferencesStore();
+  const { resolvedColorScheme: colorScheme, systemMonitoringEnabled } =
+    usePreferencesStore();
   const { isVisible, setVisible } = useNotepadStore();
 
   useEffect(() => {
     let isMounted = true;
+    let cleanupCpu: (() => void) | undefined;
+    let cleanupMemory: (() => void) | undefined;
+    let cleanupGpu: (() => void) | undefined;
+    let stopMonitoring: (() => void) | undefined;
 
-    const handleCpuMetrics = (metrics: CpuMetrics) => {
-      if (!isMounted) return;
-      setCpuMetrics(metrics);
-    };
+    if (systemMonitoringEnabled) {
+      const handleCpuMetrics = (metrics: CpuMetrics) => {
+        if (!isMounted) return;
+        setCpuMetrics(metrics);
+      };
 
-    const handleMemoryMetrics = (metrics: MemoryMetrics) => {
-      if (!isMounted) return;
-      setMemoryMetrics(metrics);
-    };
+      const handleMemoryMetrics = (metrics: MemoryMetrics) => {
+        if (!isMounted) return;
+        setMemoryMetrics(metrics);
+      };
 
-    const handleGpuMetrics = (metrics: GpuMetrics) => {
-      if (!isMounted) return;
-      setGpuMetrics(metrics);
-    };
+      const handleGpuMetrics = (metrics: GpuMetrics) => {
+        if (!isMounted) return;
+        setGpuMetrics(metrics);
+      };
 
-    const cleanupCpu =
-      window.electronAPI.monitoring.onCpuMetrics(handleCpuMetrics);
-    const cleanupMemory =
-      window.electronAPI.monitoring.onMemoryMetrics(handleMemoryMetrics);
-    const cleanupGpu =
-      window.electronAPI.monitoring.onGpuMetrics(handleGpuMetrics);
-    const stopMonitoring = window.electronAPI.monitoring.start();
+      cleanupCpu = window.electronAPI.monitoring.onCpuMetrics(handleCpuMetrics);
+      cleanupMemory =
+        window.electronAPI.monitoring.onMemoryMetrics(handleMemoryMetrics);
+      cleanupGpu = window.electronAPI.monitoring.onGpuMetrics(handleGpuMetrics);
+      stopMonitoring = window.electronAPI.monitoring.start();
+    } else {
+      setCpuMetrics(null);
+      setMemoryMetrics(null);
+      setGpuMetrics(null);
+    }
 
     return () => {
       isMounted = false;
-      cleanupCpu();
-      cleanupMemory();
-      cleanupGpu();
-      stopMonitoring();
+      cleanupCpu?.();
+      cleanupMemory?.();
+      cleanupGpu?.();
+      stopMonitoring?.();
     };
-  }, [maxDataPoints]);
+  }, [maxDataPoints, systemMonitoringEnabled]);
 
   return (
     <AppShell.Footer
