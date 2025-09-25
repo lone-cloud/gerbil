@@ -142,6 +142,7 @@ export function createMainWindow() {
         : join(__dirname, '../../assets/icon.png'),
       title: PRODUCT_NAME,
       backgroundColor: getBackgroundColor(),
+      autoHideMenuBar: true,
     },
   }));
 

@@ -16,11 +16,13 @@ import { stopFrontend as stopOpenWebUI } from '@/main/modules/openwebui';
 import { stopFrontend as stopComfyUI } from '@/main/modules/comfyui';
 import { setupIPCHandlers } from '@/main/ipc';
 import { ensureDir } from '@/utils/node/fs';
+import { PRODUCT_NAME } from '@/constants';
 
 export async function initializeApp() {
   const installDir = getInstallDir();
 
   await app.whenReady();
+  app.setName(PRODUCT_NAME);
   await initializeConfig();
   await ensureDir(installDir);
 
