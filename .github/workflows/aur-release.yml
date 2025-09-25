@@ -135,14 +135,17 @@ jobs:
 
           SHA256_APPIMAGE=$(sha256sum "gerbil-${{ steps.release_info.outputs.version }}.AppImage" | cut -d' ' -f1)
           SHA256_DESKTOP=$(sha256sum "assets/gerbil.desktop" | cut -d' ' -f1)
+          SHA256_METAINFO=$(sha256sum "assets/gerbil.metainfo.xml" | cut -d' ' -f1)
           SHA256_LICENSE=$(sha256sum "LICENSE" | cut -d' ' -f1)
 
           echo "sha256_appimage=$SHA256_APPIMAGE" >> $GITHUB_OUTPUT
           echo "sha256_desktop=$SHA256_DESKTOP" >> $GITHUB_OUTPUT
+          echo "sha256_metainfo=$SHA256_METAINFO" >> $GITHUB_OUTPUT
           echo "sha256_license=$SHA256_LICENSE" >> $GITHUB_OUTPUT
 
           echo "AppImage SHA256: $SHA256_APPIMAGE"
           echo "Desktop SHA256: $SHA256_DESKTOP"
+          echo "Metainfo SHA256: $SHA256_METAINFO"
           echo "License SHA256: $SHA256_LICENSE"
 
       - name: Generate PKGBUILD
@@ -161,8 +164,14 @@ jobs:
                      'libxss: Screen saver detection support')
           provides=('gerbil')
           conflicts=('gerbil-git')
-          source=("gerbil-${pkgver}.AppImage::${{ steps.release_info.outputs.appimage_url }}")
-          sha256sums=('${{ steps.sha_calc.outputs.sha256_appimage }}')
+          source=("gerbil-${pkgver}.AppImage::${{ steps.release_info.outputs.appimage_url }}"
+                  "gerbil.desktop::https://raw.githubusercontent.com/lone-cloud/gerbil/${{ inputs.tag }}/assets/gerbil.desktop"
+                  "gerbil.metainfo.xml::https://raw.githubusercontent.com/lone-cloud/gerbil/${{ inputs.tag }}/assets/gerbil.metainfo.xml"
+                  "LICENSE::https://raw.githubusercontent.com/lone-cloud/gerbil/${{ inputs.tag }}/LICENSE")
+          sha256sums=('${{ steps.sha_calc.outputs.sha256_appimage }}'
+                     '${{ steps.sha_calc.outputs.sha256_desktop }}'
+                     '${{ steps.sha_calc.outputs.sha256_metainfo }}'
+                     '${{ steps.sha_calc.outputs.sha256_license }}')
 
           prepare() {
               chmod +x "gerbil-${pkgver}.AppImage"
@@ -192,9 +201,9 @@ jobs:
               install -dm755 "${pkgdir}/usr/share/applications"
               install -dm755 "${pkgdir}/usr/share/metainfo"
               install -dm755 "${pkgdir}/usr/share/licenses/gerbil"
-              install -m644 "${startdir}/gerbil.desktop" "${pkgdir}/usr/share/applications/"
-              install -m644 "${startdir}/gerbil.metainfo.xml" "${pkgdir}/usr/share/metainfo/"
-              install -m644 "${startdir}/LICENSE" "${pkgdir}/usr/share/licenses/gerbil/"
+              install -m644 "${srcdir}/gerbil.desktop" "${pkgdir}/usr/share/applications/"
+              install -m644 "${srcdir}/gerbil.metainfo.xml" "${pkgdir}/usr/share/metainfo/"
+              install -m644 "${srcdir}/LICENSE" "${pkgdir}/usr/share/licenses/gerbil/"
               
               # Install icon to hicolor theme directory and pixmaps as fallback
               install -dm755 "${pkgdir}/usr/share/icons/hicolor/512x512/apps"
@@ -293,17 +302,16 @@ jobs:
           	provides = gerbil
           	conflicts = gerbil-git
           	source = gerbil-${{ steps.release_info.outputs.version }}.AppImage::${{ steps.release_info.outputs.appimage_url }}
+          	source = gerbil.desktop::https://raw.githubusercontent.com/lone-cloud/gerbil/${{ inputs.tag }}/assets/gerbil.desktop
+          	source = gerbil.metainfo.xml::https://raw.githubusercontent.com/lone-cloud/gerbil/${{ inputs.tag }}/assets/gerbil.metainfo.xml
+          	source = LICENSE::https://raw.githubusercontent.com/lone-cloud/gerbil/${{ inputs.tag }}/LICENSE
           	sha256sums = ${{ steps.sha_calc.outputs.sha256_appimage }}
+          	sha256sums = ${{ steps.sha_calc.outputs.sha256_desktop }}
+          	sha256sums = ${{ steps.sha_calc.outputs.sha256_metainfo }}
+          	sha256sums = ${{ steps.sha_calc.outputs.sha256_license }}
 
           pkgname = gerbil
           EOF
-
-      - name: Prepare local files for AUR package
-        run: |
-          # Copy desktop file and metainfo file so they're available during PKGBUILD execution
-          cp "assets/gerbil.desktop" ./
-          cp "assets/gerbil.metainfo.xml" ./
-          echo "✅ Local files prepared for AUR package"
 
       - name: Publish to AUR
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.2
