@@ -46,8 +46,9 @@ export const AboutTab = () => {
       value: versionInfo.aurPackageVersion
         ? (() => {
             const pkgrel = versionInfo.aurPackageVersion.split('-')[1];
-            return pkgrel && pkgrel !== '1'
-              ? `${versionInfo.appVersion} (AUR r${pkgrel})`
+
+            return pkgrel
+              ? `${versionInfo.appVersion} (AUR${pkgrel !== '1' ? ' r' + pkgrel : ''})`
               : versionInfo.appVersion;
           })()
         : versionInfo.appVersion,
