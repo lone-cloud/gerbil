@@ -15,11 +15,7 @@ import type {
 import { execa } from 'execa';
 import { formatDeviceName } from '@/utils/format';
 import { platform } from 'process';
-import {
-  getVulkanInfo,
-  detectLinuxGPUViaVulkan,
-  detectVulkan,
-} from '@/utils/node/vulkan';
+import { getVulkanInfo, detectLinuxGPUViaVulkan } from '@/utils/node/vulkan';
 
 const COMMON_EXEC_OPTIONS = {
   timeout: 3000,
@@ -104,6 +100,25 @@ export async function detectGPUCapabilities() {
   return gpuCapabilitiesCache;
 }
 
+async function detectVulkan() {
+  try {
+    const vulkanInfo = await getVulkanInfo();
+
+    const devices: string[] = [];
+
+    for (const gpu of vulkanInfo.discreteGPUs) {
+      devices.push(formatDeviceName(gpu.deviceName));
+    }
+
+    return {
+      devices,
+      version: vulkanInfo.apiVersion || 'Unknown',
+    };
+  } catch {
+    return { devices: [], version: 'Unknown' };
+  }
+}
+
 async function detectCUDA() {
   try {
     const { stdout } = await execa('nvidia-smi', [], COMMON_EXEC_OPTIONS);
@@ -122,7 +137,7 @@ async function detectCUDA() {
       );
 
       if (hasError) {
-        return { supported: false, devices: [] } as const;
+        return { devices: [] } as const;
       }
 
       const devices: string[] = [];
@@ -156,16 +171,15 @@ async function detectCUDA() {
       }
 
       return {
-        supported: devices.length > 0 || !!cudaVersion,
         devices,
         version: cudaVersion,
         driverVersion,
       } as const;
     }
 
-    return { supported: false, devices: [] } as const;
+    return { devices: [] } as const;
   } catch {
-    return { supported: false, devices: [] };
+    return { devices: [] };
   }
 }
 
@@ -300,16 +314,15 @@ export async function detectROCm() {
       }
 
       return {
-        supported: devices.length > 0,
         devices,
         version,
         driverVersion,
       };
     }
 
-    return { supported: false, devices: [] };
+    return { devices: [] };
   } catch {
-    return { supported: false, devices: [] };
+    return { devices: [] };
   }
 }
 
@@ -322,19 +335,19 @@ function parseClInfoOutput(output: string) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
 
-    if (line.includes('Platform Name:')) {
-      currentPlatform = line.split('Platform Name:')[1]?.trim() || '';
+    if (line.includes('Platform Name')) {
+      currentPlatform = line.split('Platform Name')[1]?.trim() || '';
       continue;
     }
 
-    if (line.includes('Device Type:') && line.includes('GPU')) {
+    if (line.includes('Device Type') && line.includes('GPU')) {
       const deviceName = findDeviceNameInClInfo(lines, i);
       const computeUnits = findComputeUnitsInClInfo(lines, i);
 
       if (deviceName && currentPlatform) {
         devices.push({
           name: formatDeviceName(deviceName),
-          isIntegrated: !isDiscreteGPU(deviceName, computeUnits),
+          isIntegrated: !isDiscreteGPU(computeUnits),
         });
       }
     }
@@ -350,6 +363,9 @@ function findDeviceNameInClInfo(lines: string[], startIndex: number) {
     j++
   ) {
     const nextLine = lines[j].trim();
+    if (nextLine.includes('Device Board Name (AMD)')) {
+      return nextLine.split('Device Board Name (AMD)')[1]?.trim() || '';
+    }
     if (nextLine.includes('Board name:')) {
       return nextLine.split('Board name:')[1]?.trim() || '';
     }
@@ -361,6 +377,9 @@ function findDeviceNameInClInfo(lines: string[], startIndex: number) {
     j++
   ) {
     const nextLine = lines[j].trim();
+    if (nextLine.startsWith('Device Name:')) {
+      return nextLine.split('Device Name:')[1]?.trim() || '';
+    }
     if (nextLine.startsWith('Name:')) {
       return nextLine.split('Name:')[1]?.trim() || '';
     }
@@ -376,30 +395,15 @@ function findComputeUnitsInClInfo(lines: string[], startIndex: number) {
     j++
   ) {
     const nextLine = lines[j].trim();
-    if (nextLine.includes('Max compute units:')) {
-      const units = nextLine.split('Max compute units:')[1]?.trim();
+    if (nextLine.includes('Max compute units')) {
+      const units = nextLine.split('Max compute units')[1]?.trim();
       return units ? parseInt(units, 10) : 0;
     }
   }
   return 0;
 }
 
-function isDiscreteGPU(deviceName: string, computeUnits: number) {
-  const lowerName = deviceName.toLowerCase();
-
-  if (
-    lowerName.includes('radeon(tm) graphics') ||
-    lowerName.includes('intel')
-  ) {
-    return false;
-  }
-
-  if (computeUnits <= 2) {
-    return false;
-  }
-
-  return true;
-}
+const isDiscreteGPU = (computeUnits: number) => computeUnits > 12;
 
 async function detectCLBlast() {
   try {
@@ -408,33 +412,17 @@ async function detectCLBlast() {
     if (stdout.trim()) {
       const devices = parseClInfoOutput(stdout);
 
-      let version = 'Unknown';
-      try {
-        const versionLine = stdout
-          .split('\n')
-          .find(
-            (line) =>
-              line.includes('OpenCL C version') ||
-              line.includes('CL_DEVICE_OPENCL_C_VERSION')
-          );
-        if (versionLine) {
-          const match = versionLine.match(/OpenCL C\s+(\d+\.\d+)/);
-          if (match) {
-            version = match[1];
-          }
-        }
-      } catch {}
+      const version = 'Available';
 
       return {
-        supported: devices.length > 0,
         devices,
         version,
       };
     }
 
-    return { supported: false, devices: [], version: 'Unknown' };
+    return { devices: [], version: 'Unknown' };
   } catch {
-    return { supported: false, devices: [], version: 'Unknown' };
+    return { devices: [], version: 'Unknown' };
   }
 }
 
