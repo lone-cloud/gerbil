@@ -3,12 +3,13 @@ import { execa } from 'execa';
 import { formatDeviceName } from '@/utils/format';
 
 let vulkanInfoCache: {
-  discreteGPUs: {
+  allGPUs: {
     deviceName: string;
     driverInfo?: string;
     apiVersion?: string;
     hasAMD: boolean;
     hasNVIDIA: boolean;
+    isIntegrated: boolean;
   }[];
   apiVersion?: string;
 } | null = null;
@@ -25,19 +26,20 @@ export async function getVulkanInfo() {
       reject: false,
     });
 
-    const discreteGPUs: {
+    const allGPUs: {
       deviceName: string;
       driverInfo?: string;
       apiVersion?: string;
       hasAMD: boolean;
       hasNVIDIA: boolean;
+      isIntegrated: boolean;
     }[] = [];
     let globalApiVersion: string | undefined;
 
     if (stdout.trim()) {
       const lines = stdout.split('\n');
-      let foundDiscreteGPU = false;
-      let currentGPU: (typeof discreteGPUs)[0] | null = null;
+      let foundGPU = false;
+      let currentGPU: (typeof allGPUs)[0] | null = null;
 
       for (const line of lines) {
         if (
@@ -51,15 +53,22 @@ export async function getVulkanInfo() {
           }
         }
 
-        if (line.includes('PHYSICAL_DEVICE_TYPE_DISCRETE_GPU')) {
-          foundDiscreteGPU = true;
+        if (
+          line.includes('PHYSICAL_DEVICE_TYPE_DISCRETE_GPU') ||
+          line.includes('PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU')
+        ) {
+          foundGPU = true;
+          const isIntegrated = line.includes(
+            'PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU'
+          );
           currentGPU = {
             deviceName: '',
             hasAMD: false,
             hasNVIDIA: false,
+            isIntegrated,
           };
         } else if (
-          foundDiscreteGPU &&
+          foundGPU &&
           currentGPU &&
           line.includes('deviceName') &&
           line.includes('=')
@@ -79,17 +88,13 @@ export async function getVulkanInfo() {
                 name.toLowerCase().includes('gtx');
             }
           }
-        } else if (
-          foundDiscreteGPU &&
-          currentGPU &&
-          line.includes('driverInfo')
-        ) {
+        } else if (foundGPU && currentGPU && line.includes('driverInfo')) {
           const mesaMatch = line.match(/Mesa\s+(.+)/);
           if (mesaMatch) {
             currentGPU.driverInfo = `Mesa ${mesaMatch[1].trim()}`;
           }
         } else if (
-          foundDiscreteGPU &&
+          foundGPU &&
           currentGPU &&
           line.includes('apiVersion') &&
           line.includes('=')
@@ -101,35 +106,35 @@ export async function getVulkanInfo() {
               globalApiVersion = match[1];
             }
           }
-        } else if (foundDiscreteGPU && currentGPU && line.includes('GPU')) {
+        } else if (foundGPU && currentGPU && line.includes('GPU')) {
           if (currentGPU.deviceName) {
-            discreteGPUs.push(currentGPU);
+            allGPUs.push(currentGPU);
           }
-          foundDiscreteGPU = false;
+          foundGPU = false;
           currentGPU = null;
         }
       }
 
-      if (foundDiscreteGPU && currentGPU && currentGPU.deviceName) {
-        discreteGPUs.push(currentGPU);
+      if (foundGPU && currentGPU && currentGPU.deviceName) {
+        allGPUs.push(currentGPU);
       }
     }
 
     vulkanInfoCache = {
-      discreteGPUs,
+      allGPUs,
       apiVersion: globalApiVersion,
     };
 
     return vulkanInfoCache;
   } catch {
     vulkanInfoCache = {
-      discreteGPUs: [],
+      allGPUs: [],
     };
     return vulkanInfoCache;
   }
 }
 
-export async function detectLinuxGPUViaVulkan() {
+export async function detectGPUViaVulkan() {
   try {
     const vulkanInfo = await getVulkanInfo();
 
@@ -137,7 +142,7 @@ export async function detectLinuxGPUViaVulkan() {
     let hasNVIDIA = false;
     const gpuInfo: string[] = [];
 
-    for (const gpu of vulkanInfo.discreteGPUs) {
+    for (const gpu of vulkanInfo.allGPUs.filter((g) => !g.isIntegrated)) {
       gpuInfo.push(formatDeviceName(gpu.deviceName));
 
       if (gpu.hasAMD) {

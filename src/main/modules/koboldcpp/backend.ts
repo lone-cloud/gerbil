@@ -159,7 +159,7 @@ export async function getAvailableBackends(includeDisabled = false) {
     backends.push({
       value: 'cpu',
       label: 'CPU',
-      devices: cpuCapabilities?.devices,
+      devices: cpuCapabilities?.devices.map((device) => device.name) || [],
       disabled: false,
     });
 

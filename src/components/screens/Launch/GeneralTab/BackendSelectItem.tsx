@@ -1,5 +1,6 @@
 import { Text, Group, Badge, Box } from '@mantine/core';
 import type { BackendOption } from '@/types';
+import { GPUDevice } from '@/types/hardware';
 
 type BackendSelectItemProps = Omit<BackendOption, 'value'>;
 
@@ -8,9 +9,7 @@ export const BackendSelectItem = ({
   devices,
   disabled = false,
 }: BackendSelectItemProps) => {
-  const renderDeviceName = (
-    device: string | { name: string; isIntegrated: boolean }
-  ) => {
+  const renderDeviceName = (device: string | GPUDevice) => {
     const deviceName = typeof device === 'string' ? device : device.name;
     return deviceName.length > 25
       ? `${deviceName.slice(0, 25)}...`

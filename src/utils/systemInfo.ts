@@ -130,7 +130,7 @@ export const createHardwareItems = (hardwareInfo: HardwareInfo) => [
     label: 'CPU',
     value:
       hardwareInfo.cpu.devices.length > 0
-        ? hardwareInfo.cpu.devices[0]
+        ? hardwareInfo.cpu.devices[0].detailedName
         : 'Unknown',
   },
   {
@@ -147,12 +147,42 @@ export const createHardwareItems = (hardwareInfo: HardwareInfo) => [
         }`
       : 'Detecting...',
   },
-  ...(hardwareInfo.gpu.gpuInfo.length > 0
-    ? hardwareInfo.gpu.gpuInfo.map((gpu, index) => ({
-        label: `GPU ${index > 0 ? index + 1 : ''}`.trim(),
-        value: gpu,
-      }))
-    : [{ label: 'GPU', value: 'No GPU detected' }]),
+  ...(() => {
+    const discreteGPUs = [];
+
+    if (hardwareInfo.gpuCapabilities.vulkan.devices.length > 0) {
+      discreteGPUs.push(
+        ...hardwareInfo.gpuCapabilities.vulkan.devices.filter(
+          (gpu) => !gpu.isIntegrated
+        )
+      );
+    }
+    if (hardwareInfo.gpuCapabilities.rocm.devices.length > 0) {
+      discreteGPUs.push(
+        ...hardwareInfo.gpuCapabilities.rocm.devices.filter(
+          (gpu) => !gpu.isIntegrated
+        )
+      );
+    }
+    if (hardwareInfo.gpuCapabilities.clblast.devices.length > 0) {
+      discreteGPUs.push(
+        ...hardwareInfo.gpuCapabilities.clblast.devices.filter(
+          (gpu) => !gpu.isIntegrated
+        )
+      );
+    }
+
+    const uniqueDiscreteGPUs = discreteGPUs.filter(
+      (gpu, index, arr) => arr.findIndex((g) => g.name === gpu.name) === index
+    );
+
+    return uniqueDiscreteGPUs.length > 0
+      ? uniqueDiscreteGPUs.map((gpu, index) => ({
+          label: `GPU ${index > 0 ? index + 1 : ''}`.trim(),
+          value: gpu.name,
+        }))
+      : [{ label: 'GPU', value: 'No discrete GPU detected' }];
+  })(),
   ...(hardwareInfo.gpuMemory && hardwareInfo.gpuMemory.length > 0
     ? hardwareInfo.gpuMemory.map((mem, index) => ({
         label: `VRAM ${index > 0 ? index + 1 : ''}`.trim(),
