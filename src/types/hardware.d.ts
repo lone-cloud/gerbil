@@ -5,11 +5,11 @@ export interface CPUCapabilities {
 }
 
 export interface GPUMemoryInfo {
-  totalMemoryGB: number | null;
+  totalMemoryGB: string | null;
 }
 
 export interface SystemMemoryInfo {
-  totalGB: number;
+  totalGB: string;
   speed?: number;
   type?: string;
 }

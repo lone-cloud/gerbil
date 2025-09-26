@@ -66,14 +66,14 @@ export const createDriverItems = (hardwareInfo: HardwareInfo) => {
     items.push({
       label: 'CUDA',
       value: gpuCapabilities.cuda.version
-        ? `v${gpuCapabilities.cuda.version}`
+        ? gpuCapabilities.cuda.version
         : 'Available',
     });
 
     if (gpuCapabilities.cuda.driverVersion) {
       items.push({
         label: 'NVIDIA Driver',
-        value: `v${gpuCapabilities.cuda.driverVersion}`,
+        value: gpuCapabilities.cuda.driverVersion,
       });
     }
   }
@@ -82,14 +82,14 @@ export const createDriverItems = (hardwareInfo: HardwareInfo) => {
     items.push({
       label: 'ROCm',
       value: gpuCapabilities.rocm.version
-        ? `v${gpuCapabilities.rocm.version}`
+        ? gpuCapabilities.rocm.version
         : 'Available',
     });
 
     if (gpuCapabilities.rocm.driverVersion) {
       items.push({
         label: 'AMD Driver',
-        value: `v${gpuCapabilities.rocm.driverVersion}`,
+        value: gpuCapabilities.rocm.driverVersion,
       });
     }
   }
@@ -98,7 +98,7 @@ export const createDriverItems = (hardwareInfo: HardwareInfo) => {
     items.push({
       label: 'Vulkan',
       value: gpuCapabilities.vulkan.version
-        ? `v${gpuCapabilities.vulkan.version}`
+        ? gpuCapabilities.vulkan.version
         : 'Available',
     });
   } else {
@@ -112,7 +112,7 @@ export const createDriverItems = (hardwareInfo: HardwareInfo) => {
     items.push({
       label: 'CLBlast',
       value: gpuCapabilities.clblast.version
-        ? `v${gpuCapabilities.clblast.version}`
+        ? gpuCapabilities.clblast.version
         : 'Available',
     });
   } else {
@@ -135,18 +135,17 @@ export const createHardwareItems = (hardwareInfo: HardwareInfo) => [
   },
   {
     label: 'RAM',
-    value:
-      hardwareInfo.systemMemory && hardwareInfo.systemMemory.totalGB > 0
-        ? `${hardwareInfo.systemMemory.totalGB.toFixed(1)} GB${
-            hardwareInfo.systemMemory.type
-              ? ` ${hardwareInfo.systemMemory.type}`
-              : ''
-          }${
-            hardwareInfo.systemMemory.speed
-              ? ` @ ${hardwareInfo.systemMemory.speed} MHz`
-              : ''
-          }`
-        : 'Detecting...',
+    value: hardwareInfo.systemMemory
+      ? `${hardwareInfo.systemMemory.totalGB} GB${
+          hardwareInfo.systemMemory.type
+            ? ` ${hardwareInfo.systemMemory.type}`
+            : ''
+        }${
+          hardwareInfo.systemMemory.speed
+            ? ` @ ${hardwareInfo.systemMemory.speed} MHz`
+            : ''
+        }`
+      : 'Detecting...',
   },
   ...(hardwareInfo.gpu.gpuInfo.length > 0
     ? hardwareInfo.gpu.gpuInfo.map((gpu, index) => ({
@@ -157,9 +156,7 @@ export const createHardwareItems = (hardwareInfo: HardwareInfo) => [
   ...(hardwareInfo.gpuMemory && hardwareInfo.gpuMemory.length > 0
     ? hardwareInfo.gpuMemory.map((mem, index) => ({
         label: `VRAM ${index > 0 ? index + 1 : ''}`.trim(),
-        value: mem.totalMemoryGB
-          ? `${mem.totalMemoryGB.toFixed(1)} GB`
-          : 'Unknown',
+        value: mem.totalMemoryGB ? `${mem.totalMemoryGB} GB` : 'Unknown',
       }))
     : []),
 ];

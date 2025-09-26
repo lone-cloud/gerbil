@@ -1,4 +1,4 @@
-import si from 'systeminformation';
+import { mem, cpuTemperature, currentLoad } from 'systeminformation';
 import { BrowserWindow } from 'electron';
 import { platform } from 'process';
 import { spawn } from 'child_process';
@@ -95,14 +95,14 @@ export function stopMonitoring() {
 
 async function collectAndSendCpuMetrics() {
   await tryExecute(async () => {
-    const cpuData = await si.currentLoad();
+    const cpuData = await currentLoad();
     const metrics: CpuMetrics = {
       usage: Math.round(cpuData.currentLoad),
     };
 
     if (platform === 'linux') {
       try {
-        const tempData = await si.cpuTemperature();
+        const tempData = await cpuTemperature();
         metrics.temperature =
           tempData.main && tempData.main > 0
             ? Math.round(tempData.main)
@@ -118,7 +118,7 @@ async function collectAndSendCpuMetrics() {
 
 async function collectAndSendMemoryMetrics() {
   await tryExecute(async () => {
-    const memData = await si.mem();
+    const memData = await mem();
     const usedBytes = memData.active || memData.used;
     const totalBytes = memData.total;
     const metrics: MemoryMetrics = {
