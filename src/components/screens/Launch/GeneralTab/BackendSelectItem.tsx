@@ -7,31 +7,51 @@ export const BackendSelectItem = ({
   label,
   devices,
   disabled = false,
-}: BackendSelectItemProps) => (
-  <Group justify="space-between" wrap="nowrap">
-    <Box w={!disabled ? '3rem' : 'auto'}>
-      <Text size="sm" truncate>
-        {label}
-        {disabled && (
-          <Text component="span" size="xs" ml="xs">
-            (Compatible devices not found)
-          </Text>
-        )}
-      </Text>
-    </Box>
-    {devices && devices.length > 0 && (
-      <Group gap={4}>
-        {devices.slice(0, 2).map((device, index) => (
-          <Badge key={index} size="md" variant="light" color="blue">
-            {device.length > 25 ? `${device.slice(0, 25)}...` : device}
-          </Badge>
-        ))}
-        {devices.length > 2 && (
-          <Badge size="md" variant="light" color="gray">
-            +{devices.length - 2}
-          </Badge>
-        )}
-      </Group>
-    )}
-  </Group>
-);
+}: BackendSelectItemProps) => {
+  const renderDeviceName = (
+    device: string | { name: string; isIntegrated: boolean }
+  ) => {
+    const deviceName = typeof device === 'string' ? device : device.name;
+    return deviceName.length > 25
+      ? `${deviceName.slice(0, 25)}...`
+      : deviceName;
+  };
+
+  return (
+    <Group justify="space-between" wrap="nowrap">
+      <Box w={!disabled ? '3.5rem' : 'auto'}>
+        <Text size="sm" truncate>
+          {label}
+          {disabled && (
+            <Text component="span" size="xs" ml="xs">
+              (Compatible devices not found)
+            </Text>
+          )}
+        </Text>
+      </Box>
+      {devices &&
+        devices.length > 0 &&
+        (() => {
+          const discreteDevices = devices.filter(
+            (device) => typeof device === 'string' || !device.isIntegrated
+          );
+          return (
+            discreteDevices.length > 0 && (
+              <Group gap={4}>
+                {discreteDevices.slice(0, 2).map((device, index) => (
+                  <Badge key={index} size="md" variant="light" color="blue">
+                    {renderDeviceName(device)}
+                  </Badge>
+                ))}
+                {discreteDevices.length > 2 && (
+                  <Badge size="md" variant="light" color="gray">
+                    +{discreteDevices.length - 2}
+                  </Badge>
+                )}
+              </Group>
+            )
+          );
+        })()}
+    </Group>
+  );
+};

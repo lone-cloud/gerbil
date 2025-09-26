@@ -72,7 +72,10 @@ export interface SelectOption {
 }
 
 export interface BackendOption extends SelectOption {
-  readonly devices?: readonly string[];
+  readonly devices?: readonly (
+    | string
+    | { name: string; isIntegrated: boolean }
+  )[];
   readonly disabled?: boolean;
 }
 

@@ -72,7 +72,7 @@ export const createDriverItems = (hardwareInfo: HardwareInfo) => {
 
     if (gpuCapabilities.cuda.driverVersion) {
       items.push({
-        label: 'NVIDIA Driver',
+        label: 'NVIDIA',
         value: gpuCapabilities.cuda.driverVersion,
       });
     }
@@ -88,7 +88,7 @@ export const createDriverItems = (hardwareInfo: HardwareInfo) => {
 
     if (gpuCapabilities.rocm.driverVersion) {
       items.push({
-        label: 'AMD Driver',
+        label: 'AMD',
         value: gpuCapabilities.rocm.driverVersion,
       });
     }

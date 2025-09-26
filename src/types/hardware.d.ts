@@ -1,6 +1,4 @@
 export interface CPUCapabilities {
-  avx: boolean;
-  avx2: boolean;
   devices: string[];
 }
 
@@ -34,7 +32,7 @@ export interface GPUCapabilities {
   };
   clblast: {
     readonly supported: boolean;
-    readonly devices: readonly string[];
+    readonly devices: readonly CLBlastDevice[];
     readonly version?: string;
   };
 }
@@ -43,6 +41,11 @@ export interface BasicGPUInfo {
   hasAMD: boolean;
   hasNVIDIA: boolean;
   gpuInfo: string[];
+}
+
+export interface CLBlastDevice {
+  readonly name: string;
+  readonly isIntegrated: boolean;
 }
 
 export interface HardwareDetectionResult {

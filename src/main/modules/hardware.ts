@@ -1,7 +1,6 @@
 /* eslint-disable no-comments/disallowComments */
 import {
   cpu as siCpu,
-  cpuFlags,
   mem as siMem,
   memLayout as siMemLayout,
 } from 'systeminformation';
@@ -16,7 +15,11 @@ import type {
 import { execa } from 'execa';
 import { formatDeviceName } from '@/utils/format';
 import { platform } from 'process';
-import { getVulkanInfo, detectLinuxGPUViaVulkan } from '@/utils/node/vulkan';
+import {
+  getVulkanInfo,
+  detectLinuxGPUViaVulkan,
+  detectVulkan,
+} from '@/utils/node/vulkan';
 
 const COMMON_EXEC_OPTIONS = {
   timeout: 3000,
@@ -34,7 +37,7 @@ export async function detectCPU() {
   }
 
   const result = await safeExecute(async () => {
-    const [cpu, flags] = await Promise.all([siCpu(), cpuFlags()]);
+    const cpu = await siCpu();
 
     const devices: string[] = [];
     if (cpu.brand) {
@@ -43,12 +46,7 @@ export async function detectCPU() {
       );
     }
 
-    const avx = flags.includes('avx') || flags.includes('AVX');
-    const avx2 = flags.includes('avx2') || flags.includes('AVX2');
-
     const capabilities = {
-      avx,
-      avx2,
       devices,
     };
 
@@ -57,8 +55,6 @@ export async function detectCPU() {
   }, 'CPU detection failed');
 
   const fallbackCapabilities = {
-    avx: false,
-    avx2: false,
     devices: [],
   };
 
@@ -74,15 +70,15 @@ export async function detectGPU() {
   const result = await safeExecute(async () => {
     if (platform === 'linux') {
       return detectLinuxGPUViaVulkan();
-    } else {
-      return detectGPUViaSI();
     }
+
+    return detectGPUViaSI();
   }, 'GPU detection failed');
 
   const fallbackGPUInfo = {
     hasAMD: false,
     hasNVIDIA: false,
-    gpuInfo: ['GPU detection failed'],
+    gpuInfo: [],
   };
 
   basicGPUInfoCache = result || fallbackGPUInfo;
@@ -317,28 +313,8 @@ export async function detectROCm() {
   }
 }
 
-async function detectVulkan() {
-  try {
-    const vulkanInfo = await getVulkanInfo();
-
-    const devices: string[] = [];
-
-    for (const gpu of vulkanInfo.discreteGPUs) {
-      devices.push(formatDeviceName(gpu.deviceName));
-    }
-
-    return {
-      supported: devices.length > 0,
-      devices,
-      version: vulkanInfo.apiVersion || 'Unknown',
-    };
-  } catch {
-    return { supported: false, devices: [], version: 'Unknown' };
-  }
-}
-
 function parseClInfoOutput(output: string) {
-  const devices: string[] = [];
+  const devices: { name: string; isIntegrated: boolean }[] = [];
   const lines = output.split('\n');
 
   let currentPlatform = '';
@@ -353,9 +329,13 @@ function parseClInfoOutput(output: string) {
 
     if (line.includes('Device Type:') && line.includes('GPU')) {
       const deviceName = findDeviceNameInClInfo(lines, i);
+      const computeUnits = findComputeUnitsInClInfo(lines, i);
 
       if (deviceName && currentPlatform) {
-        devices.push(formatDeviceName(deviceName));
+        devices.push({
+          name: formatDeviceName(deviceName),
+          isIntegrated: !isDiscreteGPU(deviceName, computeUnits),
+        });
       }
     }
   }
@@ -387,6 +367,38 @@ function findDeviceNameInClInfo(lines: string[], startIndex: number) {
   }
 
   return '';
+}
+
+function findComputeUnitsInClInfo(lines: string[], startIndex: number) {
+  for (
+    let j = startIndex + 1;
+    j < Math.min(startIndex + 50, lines.length);
+    j++
+  ) {
+    const nextLine = lines[j].trim();
+    if (nextLine.includes('Max compute units:')) {
+      const units = nextLine.split('Max compute units:')[1]?.trim();
+      return units ? parseInt(units, 10) : 0;
+    }
+  }
+  return 0;
+}
+
+function isDiscreteGPU(deviceName: string, computeUnits: number) {
+  const lowerName = deviceName.toLowerCase();
+
+  if (
+    lowerName.includes('radeon(tm) graphics') ||
+    lowerName.includes('intel')
+  ) {
+    return false;
+  }
+
+  if (computeUnits <= 2) {
+    return false;
+  }
+
+  return true;
 }
 
 async function detectCLBlast() {
