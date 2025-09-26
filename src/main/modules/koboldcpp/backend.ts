@@ -142,7 +142,10 @@ export async function getAvailableBackends(includeDisabled = false) {
     }
 
     if (backendSupport.clblast) {
-      const isSupported = hardwareCapabilities.clblast.devices.length > 0;
+      const discreteDevices = hardwareCapabilities.clblast.devices.filter(
+        (device) => typeof device === 'string' || !device.isIntegrated
+      );
+      const isSupported = discreteDevices.length > 0;
       if (isSupported || includeDisabled) {
         backends.push({
           value: 'clblast',

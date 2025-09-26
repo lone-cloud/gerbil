@@ -5,7 +5,7 @@ import {
   memLayout as siMemLayout,
 } from 'systeminformation';
 import { safeExecute } from '@/utils/node/logging';
-import { getGPUData, detectGPUViaSI } from '@/utils/node/gpu';
+import { getGPUData } from '@/utils/node/gpu';
 import type {
   CPUCapabilities,
   GPUCapabilities,
@@ -63,13 +63,10 @@ export async function detectGPU() {
     return basicGPUInfoCache;
   }
 
-  const result = await safeExecute(async () => {
-    if (platform === 'linux') {
-      return detectLinuxGPUViaVulkan();
-    }
-
-    return detectGPUViaSI();
-  }, 'GPU detection failed');
+  const result = await safeExecute(
+    () => detectLinuxGPUViaVulkan(),
+    'GPU detection failed'
+  );
 
   const fallbackGPUInfo = {
     hasAMD: false,
@@ -396,7 +393,10 @@ function findComputeUnitsInClInfo(lines: string[], startIndex: number) {
   ) {
     const nextLine = lines[j].trim();
     if (nextLine.includes('Max compute units')) {
-      const units = nextLine.split('Max compute units')[1]?.trim();
+      const units = nextLine
+        .split('Max compute units')[1]
+        ?.trim()
+        .replace(/^:?\s*/, '');
       return units ? parseInt(units, 10) : 0;
     }
   }
@@ -410,13 +410,9 @@ async function detectCLBlast() {
     const { stdout } = await execa('clinfo', [], COMMON_EXEC_OPTIONS);
 
     if (stdout.trim()) {
-      const devices = parseClInfoOutput(stdout);
-
-      const version = 'Available';
-
       return {
-        devices,
-        version,
+        devices: parseClInfoOutput(stdout),
+        version: 'Available',
       };
     }
 
