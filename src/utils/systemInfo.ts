@@ -62,7 +62,7 @@ export const createDriverItems = (hardwareInfo: HardwareInfo) => {
     ];
   }
 
-  if (gpuCapabilities.cuda.supported) {
+  if (gpuCapabilities.cuda.devices.length > 0) {
     items.push({
       label: 'CUDA',
       value: gpuCapabilities.cuda.version
@@ -78,7 +78,7 @@ export const createDriverItems = (hardwareInfo: HardwareInfo) => {
     }
   }
 
-  if (gpuCapabilities.rocm.supported) {
+  if (gpuCapabilities.rocm.devices.length > 0) {
     items.push({
       label: 'ROCm',
       value: gpuCapabilities.rocm.version
@@ -94,7 +94,7 @@ export const createDriverItems = (hardwareInfo: HardwareInfo) => {
     }
   }
 
-  if (gpuCapabilities.vulkan.supported) {
+  if (gpuCapabilities.vulkan.devices.length > 0) {
     items.push({
       label: 'Vulkan',
       value: gpuCapabilities.vulkan.version
@@ -108,7 +108,7 @@ export const createDriverItems = (hardwareInfo: HardwareInfo) => {
     });
   }
 
-  if (gpuCapabilities.clblast.supported) {
+  if (gpuCapabilities.clblast.devices.length > 0) {
     items.push({
       label: 'CLBlast',
       value: gpuCapabilities.clblast.version

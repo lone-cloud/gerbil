@@ -106,7 +106,7 @@ export async function getAvailableBackends(includeDisabled = false) {
     const backends: BackendOption[] = [];
 
     if (backendSupport.cuda) {
-      const isSupported = hardwareCapabilities.cuda.supported;
+      const isSupported = hardwareCapabilities.cuda.devices.length > 0;
       if (isSupported || includeDisabled) {
         backends.push({
           value: 'cuda',
@@ -118,7 +118,7 @@ export async function getAvailableBackends(includeDisabled = false) {
     }
 
     if (backendSupport.rocm) {
-      const isSupported = hardwareCapabilities.rocm.supported;
+      const isSupported = hardwareCapabilities.rocm.devices.length > 0;
       if (isSupported || includeDisabled) {
         backends.push({
           value: 'rocm',
@@ -130,7 +130,7 @@ export async function getAvailableBackends(includeDisabled = false) {
     }
 
     if (backendSupport.vulkan) {
-      const isSupported = hardwareCapabilities.vulkan.supported;
+      const isSupported = hardwareCapabilities.vulkan.devices.length > 0;
       if (isSupported || includeDisabled) {
         backends.push({
           value: 'vulkan',
@@ -142,7 +142,7 @@ export async function getAvailableBackends(includeDisabled = false) {
     }
 
     if (backendSupport.clblast) {
-      const isSupported = hardwareCapabilities.clblast.supported;
+      const isSupported = hardwareCapabilities.clblast.devices.length > 0;
       if (isSupported || includeDisabled) {
         backends.push({
           value: 'clblast',

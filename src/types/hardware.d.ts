@@ -14,24 +14,20 @@ export interface SystemMemoryInfo {
 
 export interface GPUCapabilities {
   cuda: {
-    readonly supported: boolean;
     readonly devices: readonly string[];
     readonly version?: string;
     readonly driverVersion?: string;
   };
   rocm: {
-    readonly supported: boolean;
     readonly devices: readonly string[];
     readonly version?: string;
     readonly driverVersion?: string;
   };
   vulkan: {
-    readonly supported: boolean;
     readonly devices: readonly string[];
     readonly version?: string;
   };
   clblast: {
-    readonly supported: boolean;
     readonly devices: readonly CLBlastDevice[];
     readonly version?: string;
   };

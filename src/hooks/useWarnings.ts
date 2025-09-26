@@ -45,8 +45,8 @@ const checkModelWarnings = (
 };
 
 interface GpuCapabilities {
-  cuda: { supported: boolean };
-  rocm: { supported: boolean };
+  cuda: { devices: readonly string[] };
+  rocm: { devices: readonly string[] };
 }
 
 interface GpuInfo {
@@ -63,7 +63,7 @@ const checkGpuWarnings = async (
 
   if (
     backendSupport.cuda &&
-    !gpuCapabilities.cuda.supported &&
+    gpuCapabilities.cuda.devices.length === 0 &&
     gpuInfo.hasNVIDIA
   ) {
     warnings.push({
@@ -75,7 +75,7 @@ const checkGpuWarnings = async (
 
   if (
     backendSupport.rocm &&
-    !gpuCapabilities.rocm.supported &&
+    gpuCapabilities.rocm.devices.length === 0 &&
     gpuInfo.hasAMD
   ) {
     const platform = await window.electronAPI.kobold.getPlatform();
