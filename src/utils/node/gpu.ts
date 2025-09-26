@@ -2,7 +2,6 @@ import { readFile, readdir } from 'fs/promises';
 import { join } from 'path';
 import { platform } from 'process';
 import { graphics as siGraphics } from 'systeminformation';
-import { formatDeviceName } from '../format';
 
 interface CachedGPUInfo {
   devicePath: string;
@@ -214,47 +213,4 @@ export function isDiscreteBusAddress(busAddress?: string) {
   }
 
   return false;
-}
-
-export async function detectGPUViaSI() {
-  const graphics = await siGraphics();
-
-  let hasAMD = false;
-  let hasNVIDIA = false;
-  const gpuInfo: string[] = [];
-
-  const discreteControllers = graphics.controllers.filter((controller) => {
-    if (platform === 'linux' && controller.busAddress) {
-      return isDiscreteBusAddress(controller.busAddress);
-    }
-
-    if (platform === 'win32') {
-      return controller.vram && controller.vram >= 1024;
-    }
-
-    return false;
-  });
-
-  for (const controller of discreteControllers) {
-    if (
-      controller.vendor?.toLowerCase().includes('amd') ||
-      controller.vendor?.toLowerCase().includes('ati')
-    ) {
-      hasAMD = true;
-    }
-
-    if (controller.vendor?.toLowerCase().includes('nvidia')) {
-      hasNVIDIA = true;
-    }
-
-    if (controller.model) {
-      gpuInfo.push(formatDeviceName(controller.model));
-    }
-  }
-
-  return {
-    hasAMD,
-    hasNVIDIA,
-    gpuInfo: gpuInfo.length > 0 ? gpuInfo : [],
-  };
 }
