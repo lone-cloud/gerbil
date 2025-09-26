@@ -3,6 +3,7 @@ import { BrowserWindow } from 'electron';
 import { platform } from 'process';
 import { spawn } from 'child_process';
 import { getGPUData } from '@/utils/node/gpu';
+import { detectGPU } from './hardware';
 import { tryExecute, safeExecute } from '@/utils/node/logging';
 
 export interface CpuMetrics {
@@ -134,18 +135,18 @@ async function collectAndSendMemoryMetrics() {
 
 async function collectAndSendGpuMetrics() {
   await tryExecute(async () => {
-    const gpuData = await getGPUData();
+    const [gpuData, gpuInfo] = await Promise.all([getGPUData(), detectGPU()]);
     const metrics: GpuMetrics = {
-      gpus: gpuData.map((gpuInfo) => ({
-        name: gpuInfo.deviceName,
-        usage: Math.round(gpuInfo.usage),
-        memoryUsed: gpuInfo.memoryUsed,
-        memoryTotal: gpuInfo.memoryTotal,
+      gpus: gpuData.map((gpuData, index) => ({
+        name: gpuInfo.gpuInfo[index] || `GPU ${index}`,
+        usage: Math.round(gpuData.usage),
+        memoryUsed: gpuData.memoryUsed,
+        memoryTotal: gpuData.memoryTotal,
         memoryUsage:
-          gpuInfo.memoryTotal > 0
-            ? Math.round((gpuInfo.memoryUsed / gpuInfo.memoryTotal) * 100)
+          gpuData.memoryTotal > 0
+            ? Math.round((gpuData.memoryUsed / gpuData.memoryTotal) * 100)
             : 0,
-        temperature: gpuInfo.temperature,
+        temperature: gpuData.temperature,
       })),
     };
 

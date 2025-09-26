@@ -3,6 +3,7 @@ import type {
   GPUCapabilities,
   BasicGPUInfo,
   GPUMemoryInfo,
+  SystemMemoryInfo,
 } from '@/types/hardware';
 import type { BackendOption, BackendSupport } from '@/types';
 import type { MantineColorScheme } from '@mantine/core';
@@ -55,6 +56,7 @@ export interface InstalledVersion {
   path: string;
   filename: string;
   size?: number;
+  actualVersion?: string;
 }
 
 export interface DownloadItem {
@@ -112,6 +114,7 @@ export interface KoboldAPI {
   detectCPU: () => Promise<CPUCapabilities>;
   detectGPUCapabilities: () => Promise<GPUCapabilities>;
   detectGPUMemory: () => Promise<GPUMemoryInfo[]>;
+  detectSystemMemory: () => Promise<SystemMemoryInfo>;
   detectROCm: () => Promise<{ supported: boolean; devices: string[] }>;
   detectBackendSupport: () => Promise<BackendSupport | null>;
   getAvailableBackends: (includeDisabled?: boolean) => Promise<BackendOption[]>;
@@ -141,7 +144,7 @@ export interface KoboldAPI {
   onKoboldOutput: (callback: (data: string) => void) => () => void;
 }
 
-export interface VersionInfo {
+export interface SystemVersionInfo {
   appVersion: string;
   electronVersion: string;
   nodeVersion: string;
@@ -160,7 +163,7 @@ export interface AppAPI {
   viewConfigFile: () => Promise<void>;
   openPath: (path: string) => Promise<void>;
   getVersion: () => Promise<string>;
-  getVersionInfo: () => Promise<VersionInfo>;
+  getVersionInfo: () => Promise<SystemVersionInfo>;
   minimizeWindow: () => void;
   maximizeWindow: () => void;
   closeWindow: () => void;

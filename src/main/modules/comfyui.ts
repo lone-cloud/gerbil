@@ -15,14 +15,14 @@ import type { ChildProcess } from 'child_process';
 import yauzl from 'yauzl';
 import { createWriteStream } from 'fs';
 
-import { logError, safeExecute } from '@/utils/node/logging';
+import { logError, safeExecute, tryExecute } from '@/utils/node/logging';
 import { sendKoboldOutput } from './window';
 import { getInstallDir } from './config';
 import { COMFYUI, SERVER_READY_SIGNALS, GITHUB_API } from '@/constants';
 import { terminateProcess } from '@/utils/node/process';
 import { parseKoboldConfig } from '@/utils/node/kobold';
 import { getAppVersion, ensureDir } from '@/utils/node/fs';
-import { getGPUData } from '@/utils/node/gpu';
+import { detectGPU } from './hardware';
 import { getUvEnvironment } from './dependencies';
 
 interface ComfyUIVersionInfo {
@@ -61,15 +61,10 @@ async function saveComfyUIVersion(
   workspaceDir: string,
   version: ComfyUIVersionInfo
 ) {
-  try {
+  await tryExecute(async () => {
     const versionFile = join(workspaceDir, '.version.json');
     await writeFile(versionFile, JSON.stringify(version, null, 2));
-  } catch (error) {
-    logError(
-      'Failed to save ComfyUI version info',
-      error instanceof Error ? error : undefined
-    );
-  }
+  }, 'Failed to save ComfyUI version info');
 }
 
 async function shouldUpdateComfyUI(workspaceDir: string) {
@@ -102,9 +97,8 @@ on('SIGTERM', () => {
 
 async function shouldForceCPUMode() {
   try {
-    const gpus = await getGPUData();
-    const hasAMD = gpus.some((gpu) => gpu.deviceName.includes('AMD'));
-    const hasNVIDIA = gpus.some((gpu) => gpu.deviceName.includes('NVIDIA'));
+    const gpuInfo = await detectGPU();
+    const { hasAMD, hasNVIDIA } = gpuInfo;
     const isWindows = platform === 'win32';
 
     return (hasAMD && isWindows) || (!hasAMD && !hasNVIDIA);
@@ -125,9 +119,8 @@ async function getPyTorchInstallArgs(pythonPath: string) {
   ];
 
   try {
-    const gpus = await getGPUData();
-    const hasAMD = gpus.some((gpu) => gpu.deviceName.includes('AMD'));
-    const hasNVIDIA = gpus.some((gpu) => gpu.deviceName.includes('NVIDIA'));
+    const gpuInfo = await detectGPU();
+    const { hasAMD, hasNVIDIA } = gpuInfo;
     const isWindows = platform === 'win32';
 
     if (hasAMD && !isWindows) {
@@ -597,10 +590,7 @@ export async function startFrontend(args: string[]) {
 
     await waitForComfyUIToStart();
   } catch (error) {
-    logError(
-      'Failed to start ComfyUI',
-      error instanceof Error ? error : undefined
-    );
+    logError('Failed to start ComfyUI', error as Error);
     throw error;
   }
 }

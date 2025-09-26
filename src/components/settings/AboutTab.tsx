@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
 import {
+  createSoftwareItems,
+  createDriverItems,
+  createHardwareItems,
+  type HardwareInfo,
+} from '@/utils/systemInfo';
+import {
   Text,
   Stack,
   Group,
@@ -9,19 +15,22 @@ import {
   Badge,
   Button,
   rem,
-  ActionIcon,
-  Tooltip,
 } from '@mantine/core';
-import { Github, FolderOpen, Copy, FileText } from 'lucide-react';
-import { safeExecute } from '@/utils/logger';
+import { Github, FolderOpen, FileText } from 'lucide-react';
 import { useLogoClickSounds } from '@/hooks/useLogoClickSounds';
-import type { VersionInfo } from '@/types/electron';
+import type { SystemVersionInfo } from '@/types/electron';
 import { PRODUCT_NAME, GITHUB_API } from '@/constants';
+import { InfoCard } from '@/components/InfoCard';
+
 import icon from '/icon.png';
 
 export const AboutTab = () => {
-  const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
+  const [versionInfo, setVersionInfo] = useState<SystemVersionInfo | null>(
+    null
+  );
+  const [hardwareInfo, setHardwareInfo] = useState<HardwareInfo | null>(null);
   const { handleLogoClick, getLogoStyles } = useLogoClickSounds();
+
   useEffect(() => {
     const loadVersionInfo = async () => {
       const info = await window.electronAPI.app.getVersionInfo();
@@ -29,7 +38,35 @@ export const AboutTab = () => {
         setVersionInfo(info);
       }
     };
+
+    const loadHardwareInfo = async () => {
+      try {
+        const [cpu, gpu, gpuCapabilities, gpuMemory, systemMemory] =
+          await Promise.all([
+            window.electronAPI.kobold.detectCPU(),
+            window.electronAPI.kobold.detectGPU(),
+            window.electronAPI.kobold.detectGPUCapabilities(),
+            window.electronAPI.kobold.detectGPUMemory(),
+            window.electronAPI.kobold.detectSystemMemory(),
+          ]);
+
+        setHardwareInfo({
+          cpu,
+          gpu,
+          gpuCapabilities,
+          gpuMemory,
+          systemMemory,
+        });
+      } catch (error) {
+        window.electronAPI.logs.logError(
+          'Failed to load hardware info',
+          error as Error
+        );
+      }
+    };
+
     loadVersionInfo();
+    loadHardwareInfo();
   }, []);
 
   if (!versionInfo) {
@@ -40,47 +77,9 @@ export const AboutTab = () => {
     );
   }
 
-  const versionItems = [
-    {
-      label: PRODUCT_NAME,
-      value: versionInfo.aurPackageVersion
-        ? (() => {
-            const pkgrel = versionInfo.aurPackageVersion.split('-')[1];
-
-            return pkgrel
-              ? `${versionInfo.appVersion} (AUR${pkgrel !== '1' ? ' r' + pkgrel : ''})`
-              : versionInfo.appVersion;
-          })()
-        : versionInfo.appVersion,
-    },
-    { label: 'Electron', value: versionInfo.electronVersion },
-    {
-      label: 'Node.js',
-      value: versionInfo.nodeJsSystemVersion
-        ? `${versionInfo.nodeVersion} (System: ${versionInfo.nodeJsSystemVersion})`
-        : versionInfo.nodeVersion,
-    },
-    { label: 'Chromium', value: versionInfo.chromeVersion },
-    { label: 'V8', value: versionInfo.v8Version },
-    {
-      label: 'OS',
-      value: `${versionInfo.platform} ${versionInfo.arch} (${versionInfo.osVersion})`,
-    },
-    ...(versionInfo.uvVersion
-      ? [{ label: 'uv', value: versionInfo.uvVersion }]
-      : []),
-  ];
-
-  const copyVersionInfo = async () => {
-    const info = versionItems
-      .map((item) => `${item.label}: ${item.value}`)
-      .join('\n');
-
-    await safeExecute(
-      () => navigator.clipboard.writeText(info),
-      'Failed to copy version info'
-    );
-  };
+  const softwareItems = createSoftwareItems(versionInfo);
+  const driverItems = hardwareInfo ? createDriverItems(hardwareInfo) : [];
+  const hardwareItems = hardwareInfo ? createHardwareItems(hardwareInfo) : [];
 
   const actionButtons = [
     {
@@ -158,48 +157,15 @@ export const AboutTab = () => {
         </Group>
       </Card>
 
-      <Card withBorder radius="md" p="xs" style={{ position: 'relative' }}>
-        <Tooltip label="Copy Info">
-          <ActionIcon
-            variant="subtle"
-            size="sm"
-            onClick={copyVersionInfo}
-            aria-label="Copy Version Info"
-            style={{
-              position: 'absolute',
-              top: 8,
-              right: 8,
-              zIndex: 1,
-            }}
-          >
-            <Copy style={{ width: rem(14), height: rem(14) }} />
-          </ActionIcon>
-        </Tooltip>
-        <Stack gap="xs">
-          {versionItems.map((item, index) => (
-            <Group key={index} gap="md" align="center" wrap="nowrap">
-              <Text
-                size="sm"
-                fw={500}
-                c="dimmed"
-                style={{ minWidth: '7.5rem' }}
-              >
-                {item.label}:
-              </Text>
-              <Text
-                size="sm"
-                ff="monospace"
-                style={{
-                  wordBreak: 'break-all',
-                  flex: 1,
-                }}
-              >
-                {item.value}
-              </Text>
-            </Group>
-          ))}
-        </Stack>
-      </Card>
+      <InfoCard title="Software" items={softwareItems} />
+
+      <InfoCard title="Drivers" items={driverItems} loading={!hardwareInfo} />
+
+      <InfoCard
+        title="Hardware"
+        items={hardwareItems}
+        loading={!hardwareInfo}
+      />
     </Stack>
   );
 };

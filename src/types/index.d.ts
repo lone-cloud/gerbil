@@ -45,6 +45,20 @@ export interface InstalledVersion {
   path: string;
   filename: string;
   size?: number;
+  actualVersion?: string;
+}
+
+export interface VersionInfo {
+  name: string;
+  version: string;
+  size?: number;
+  isInstalled: boolean;
+  isCurrent: boolean;
+  downloadUrl?: string;
+  installedPath?: string;
+  hasUpdate?: boolean;
+  newerVersion?: string;
+  actualVersion?: string;
 }
 
 export interface DismissedUpdate {

@@ -3,14 +3,12 @@ import { join } from 'path';
 import { platform } from 'process';
 
 interface CachedGPUInfo {
-  deviceName: string;
   devicePath: string;
   memoryTotal: number;
   hwmonPath?: string;
 }
 
 interface GPUData {
-  deviceName: string;
   usage: number;
   memoryUsed: number;
   memoryTotal: number;
@@ -38,7 +36,6 @@ async function initializeLinuxGPUCache() {
     return linuxCachePromise;
   }
 
-  // eslint-disable-next-line sonarjs/cognitive-complexity
   linuxCachePromise = (async () => {
     try {
       const drmPath = '/sys/class/drm';
@@ -50,42 +47,6 @@ async function initializeLinuxGPUCache() {
       const gpus = [];
       for (const card of cardEntries) {
         const devicePath = join(drmPath, card, 'device');
-
-        let deviceName = 'Unknown GPU';
-
-        try {
-          const modalias = await readFile(
-            `${devicePath}/modalias`,
-            'utf8'
-          ).catch(() => '');
-
-          if (modalias.includes('amdgpu')) {
-            deviceName = 'AMD GPU';
-          } else if (
-            modalias.includes('nouveau') ||
-            modalias.includes('nvidia')
-          ) {
-            deviceName = 'NVIDIA GPU';
-          } else {
-            try {
-              const [vendorData, deviceData] = await Promise.all([
-                readFile(`${devicePath}/vendor`, 'utf8').catch(() => ''),
-                readFile(`${devicePath}/device`, 'utf8').catch(() => ''),
-              ]);
-
-              const vendorId = vendorData.trim();
-              const deviceId = deviceData.trim();
-
-              if (vendorId === '0x1002') {
-                deviceName = 'AMD GPU';
-              } else if (vendorId === '0x10de') {
-                deviceName = 'NVIDIA GPU';
-              } else {
-                deviceName = `GPU (${vendorId}:${deviceId})`;
-              }
-            } catch {}
-          }
-        } catch {}
         try {
           const memTotalData = await readFile(
             `${devicePath}/mem_info_vram_total`,
@@ -109,7 +70,6 @@ async function initializeLinuxGPUCache() {
             } catch {}
 
             gpus.push({
-              deviceName,
               devicePath,
               memoryTotal,
               hwmonPath,
@@ -167,7 +127,6 @@ async function getLinuxGPUData() {
           }
 
           gpus.push({
-            deviceName: cachedGPU.deviceName,
             usage,
             memoryUsed: parseFloat(memoryUsed.toFixed(2)),
             memoryTotal: parseFloat(cachedGPU.memoryTotal.toFixed(2)),

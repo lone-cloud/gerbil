@@ -57,6 +57,7 @@ import {
   detectGPUCapabilities,
   detectGPUMemory,
   detectROCm,
+  detectSystemMemory,
 } from '@/main/modules/hardware';
 import {
   detectBackendSupport,
@@ -120,6 +121,8 @@ export function setupIPCHandlers() {
   ipcMain.handle('kobold:detectGPUCapabilities', () => detectGPUCapabilities());
 
   ipcMain.handle('kobold:detectGPUMemory', () => detectGPUMemory());
+
+  ipcMain.handle('kobold:detectSystemMemory', () => detectSystemMemory());
 
   ipcMain.handle('kobold:detectROCm', () => detectROCm());
 

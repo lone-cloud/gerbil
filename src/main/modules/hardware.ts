@@ -27,7 +27,9 @@ export async function detectCPU() {
 
     const devices: string[] = [];
     if (cpu.brand) {
-      devices.push(formatDeviceName(cpu.brand));
+      devices.push(
+        `${formatDeviceName(cpu.brand)} (${cpu.physicalCores} cores, ${cpu.speed} GHz)`
+      );
     }
 
     const avx = flags.includes('avx') || flags.includes('AVX');
@@ -59,34 +61,27 @@ export async function detectGPU() {
   }
 
   const result = await safeExecute(async () => {
-    const gpuData = await getGPUData();
+    const graphics = await si.graphics();
 
     let hasAMD = false;
     let hasNVIDIA = false;
     const gpuInfo: string[] = [];
 
-    for (const gpu of gpuData) {
-      if (gpu.deviceName) {
-        gpuInfo.push(formatDeviceName(gpu.deviceName));
-      }
-
-      const deviceName = gpu.deviceName?.toLowerCase() || '';
-
+    for (const controller of graphics.controllers) {
+      // Check vendor for AMD
       if (
-        deviceName.includes('amd') ||
-        deviceName.includes('ati') ||
-        deviceName.includes('radeon')
+        controller.vendor?.toLowerCase().includes('amd') ||
+        controller.vendor?.toLowerCase().includes('ati')
       ) {
         hasAMD = true;
       }
 
-      if (
-        deviceName.includes('nvidia') ||
-        deviceName.includes('geforce') ||
-        deviceName.includes('gtx') ||
-        deviceName.includes('rtx')
-      ) {
+      if (controller.vendor?.toLowerCase().includes('nvidia')) {
         hasNVIDIA = true;
+      }
+
+      if (controller.model) {
+        gpuInfo.push(controller.model);
       }
     }
 
@@ -95,7 +90,6 @@ export async function detectGPU() {
       hasNVIDIA,
       gpuInfo: gpuInfo.length > 0 ? gpuInfo : ['No GPU information available'],
     };
-
     basicGPUInfoCache = basicInfo;
     return basicInfo;
   }, 'GPU detection failed');
@@ -133,7 +127,7 @@ async function detectCUDA() {
   try {
     const { stdout } = await execa(
       'nvidia-smi',
-      ['--query-gpu=name,memory.total,memory.free', '--format=csv,noheader'],
+      ['--query-gpu=name,driver_version', '--format=csv,noheader,nounits'],
       {
         timeout: 5000,
         reject: false,
@@ -141,19 +135,41 @@ async function detectCUDA() {
     );
 
     if (stdout.trim()) {
-      const devices = stdout
-        .trim()
-        .split('\n')
-        .map((line) => {
-          const parts = line.split(',');
-          const rawName = parts[0]?.trim() || 'Unknown NVIDIA GPU';
-          return formatDeviceName(rawName);
-        })
-        .filter(Boolean);
+      // Check for error messages that indicate nvidia-smi failed
+      const errorPatterns = [
+        'NVIDIA-SMI has failed',
+        'No devices found',
+        'Unable to determine the device handle',
+        "couldn't communicate with the NVIDIA driver",
+        'No NVIDIA GPU found',
+      ];
+
+      const hasError = errorPatterns.some((pattern) =>
+        stdout.toLowerCase().includes(pattern.toLowerCase())
+      );
+
+      if (hasError) {
+        return { supported: false, devices: [] } as const;
+      }
+
+      const lines = stdout.trim().split('\n');
+      const devices: string[] = [];
+      let version: string | undefined;
+
+      for (const line of lines) {
+        const parts = line.split(',');
+        const rawName = parts[0]?.trim() || 'Unknown NVIDIA GPU';
+        devices.push(formatDeviceName(rawName));
+
+        if (!version && parts[1]?.trim()) {
+          version = parts[1].trim();
+        }
+      }
 
       return {
         supported: devices.length > 0,
         devices,
+        version,
       } as const;
     }
 
@@ -228,9 +244,28 @@ export async function detectROCm() {
         }
       }
 
+      let version: string | undefined;
+      try {
+        const { stdout: amdSmiOutput } = await execa('amd-smi', {
+          timeout: 3000,
+          reject: false,
+        });
+
+        if (amdSmiOutput.trim()) {
+          const match =
+            amdSmiOutput.match(/ROCm version:\s*(\d+\.\d+\.\d+)/i) ||
+            amdSmiOutput.match(/version\s*(\d+\.\d+\.\d+)/i) ||
+            amdSmiOutput.match(/(\d+\.\d+\.\d+)/);
+          if (match) {
+            version = match[1];
+          }
+        }
+      } catch {}
+
       return {
         supported: devices.length > 0,
         devices,
+        version,
       };
     }
 
@@ -263,15 +298,29 @@ async function detectVulkan() {
         }
       }
 
+      let version = 'Unknown';
+      try {
+        const apiVersionLine = lines.find(
+          (line) => line.includes('apiVersion') && line.includes('=')
+        );
+        if (apiVersionLine) {
+          const match = apiVersionLine.match(/=\s*(\d+\.\d+(?:\.\d+)?)/);
+          if (match) {
+            version = match[1];
+          }
+        }
+      } catch {}
+
       return {
         supported: devices.length > 0,
         devices,
+        version,
       };
     }
 
-    return { supported: false, devices: [] };
+    return { supported: false, devices: [], version: 'Unknown' };
   } catch {
-    return { supported: false, devices: [] };
+    return { supported: false, devices: [], version: 'Unknown' };
   }
 }
 
@@ -336,15 +385,34 @@ async function detectCLBlast() {
 
     if (stdout.trim()) {
       const devices = parseClInfoOutput(stdout);
+
+      let version = 'Unknown';
+      try {
+        const versionLine = stdout
+          .split('\n')
+          .find(
+            (line) =>
+              line.includes('OpenCL C version') ||
+              line.includes('CL_DEVICE_OPENCL_C_VERSION')
+          );
+        if (versionLine) {
+          const match = versionLine.match(/OpenCL C\s+(\d+\.\d+)/);
+          if (match) {
+            version = match[1];
+          }
+        }
+      } catch {}
+
       return {
         supported: devices.length > 0,
         devices,
+        version,
       };
     }
 
-    return { supported: false, devices: [] };
+    return { supported: false, devices: [], version: 'Unknown' };
   } catch {
-    return { supported: false, devices: [] };
+    return { supported: false, devices: [], version: 'Unknown' };
   }
 }
 
@@ -358,18 +426,15 @@ export async function detectGPUMemory() {
     const memoryInfo: GPUMemoryInfo[] = [];
 
     for (const gpu of gpuData) {
-      if (gpu.deviceName) {
-        let vram: number | null = gpu.memoryTotal;
+      let vram: number | null = gpu.memoryTotal;
 
-        if (!vram || vram <= 1) {
-          vram = null;
-        }
-
-        memoryInfo.push({
-          deviceName: formatDeviceName(gpu.deviceName),
-          totalMemoryGB: vram,
-        });
+      if (!vram || vram <= 1) {
+        vram = null;
       }
+
+      memoryInfo.push({
+        totalMemoryGB: vram,
+      });
     }
 
     return memoryInfo;
@@ -378,3 +443,44 @@ export async function detectGPUMemory() {
   gpuMemoryInfoCache = result || [];
   return gpuMemoryInfoCache;
 }
+
+export const detectSystemMemory = async () => {
+  try {
+    const [memInfo, memLayout] = await Promise.all([si.mem(), si.memLayout()]);
+
+    const totalGB = Math.round(memInfo.total / 1024 ** 3);
+
+    let speed: number | undefined;
+    let type: string | undefined;
+
+    if (memLayout && memLayout.length > 0) {
+      const populatedSlot = memLayout.find(
+        (slot) =>
+          slot.size > 0 &&
+          ((slot.clockSpeed && slot.clockSpeed > 0) ||
+            (slot.type && slot.type !== ''))
+      );
+
+      if (populatedSlot) {
+        speed =
+          populatedSlot.clockSpeed && populatedSlot.clockSpeed > 0
+            ? populatedSlot.clockSpeed
+            : undefined;
+        type =
+          populatedSlot.type && populatedSlot.type !== ''
+            ? populatedSlot.type
+            : undefined;
+      }
+    }
+
+    return {
+      totalGB,
+      speed,
+      type,
+    };
+  } catch {
+    return {
+      totalGB: Math.round((await si.mem()).total / 1024 ** 3),
+    };
+  }
+};
