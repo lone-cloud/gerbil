@@ -1,6 +1,7 @@
 import { readFile, readdir } from 'fs/promises';
 import { join } from 'path';
 import { platform } from 'process';
+import { execa } from 'execa';
 
 interface CachedGPUInfo {
   devicePath: string;
@@ -19,9 +20,11 @@ let linuxGpuCache: CachedGPUInfo[] | null = null;
 
 let linuxCachePromise: Promise<CachedGPUInfo[]> | null = null;
 
-export async function getGPUData() {
+export async function getGPUData(forNonMetrics = false) {
   if (platform === 'linux') {
     return getLinuxGPUData();
+  } else if (platform === 'win32' && forNonMetrics) {
+    return getWindowsGPUData();
   } else {
     return [];
   }
@@ -134,6 +137,61 @@ async function getLinuxGPUData() {
           });
         } catch {
           continue;
+        }
+      }
+    }
+
+    return gpus;
+  } catch {
+    return [];
+  }
+}
+
+async function getWindowsGPUData() {
+  try {
+    const { stdout } = await execa(
+      'powershell',
+      [
+        '-Command',
+        `$activeGpus = Get-CimInstance -ClassName Win32_VideoController | Where-Object { $_.Status -eq 'OK' } | Select-Object -ExpandProperty Name;
+         $gpuKeys = Get-ChildItem 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}' | Where-Object { $_.PSChildName -match '^\\d{4}$' };
+         foreach($key in $gpuKeys) {
+           $props = Get-ItemProperty $key.PSPath -ErrorAction SilentlyContinue;
+           if($props.DriverDesc -and $props.'HardwareInformation.qwMemorySize' -and $activeGpus -contains $props.DriverDesc) {
+             $vramBytes = $props.'HardwareInformation.qwMemorySize';
+             $vramGB = [math]::Round($vramBytes/1GB, 2);
+             if($vramGB -gt 0.5) {
+               Write-Output "$($props.DriverDesc)|$vramGB";
+             }
+           }
+         }`,
+      ],
+      {
+        timeout: 10000,
+        reject: false,
+      }
+    );
+
+    if (!stdout.trim()) {
+      return [];
+    }
+
+    const gpus: GPUData[] = [];
+    const lines = stdout.trim().split('\n');
+    const seenVram = new Set<number>();
+
+    for (const line of lines) {
+      const parts = line.trim().split('|');
+      if (parts.length === 2) {
+        const vramGB = parseFloat(parts[1]);
+        if (vramGB > 0 && !seenVram.has(vramGB)) {
+          seenVram.add(vramGB);
+          gpus.push({
+            usage: 0,
+            memoryUsed: 0,
+            memoryTotal: vramGB,
+            temperature: undefined,
+          });
         }
       }
     }

@@ -108,13 +108,14 @@ const checkVramWarnings = async (backend: string): Promise<Warning[]> => {
 
     if (gpuMemoryInfo) {
       const lowVramThreshold = 8;
-      const lowVramGpus = gpuMemoryInfo.filter(
-        (gpu) =>
-          typeof gpu.totalMemoryGB === 'number' &&
-          gpu.totalMemoryGB < lowVramThreshold
+      const validGpus = gpuMemoryInfo.filter(
+        (gpu) => typeof gpu.totalMemoryGB === 'number'
+      );
+      const lowVramGpus = validGpus.filter(
+        (gpu) => gpu.totalMemoryGB! < lowVramThreshold
       );
 
-      if (lowVramGpus.length > 0) {
+      if (validGpus.length > 0 && lowVramGpus.length === validGpus.length) {
         const memoryDetails = lowVramGpus
           .map((gpu) => `${gpu.totalMemoryGB!.toFixed(1)}GB`)
           .join(', ');

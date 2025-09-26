@@ -28,7 +28,7 @@ export async function detectCPU() {
     const devices: string[] = [];
     if (cpu.brand) {
       devices.push(
-        `${formatDeviceName(cpu.brand)} (${cpu.physicalCores} cores, ${cpu.speed} GHz)`
+        `${formatDeviceName(cpu.brand)} (${cpu.cores} cores) @ ${cpu.speed} GHz`
       );
     }
 
@@ -125,17 +125,12 @@ export async function detectGPUCapabilities() {
 
 async function detectCUDA() {
   try {
-    const { stdout } = await execa(
-      'nvidia-smi',
-      ['--query-gpu=name,driver_version', '--format=csv,noheader,nounits'],
-      {
-        timeout: 5000,
-        reject: false,
-      }
-    );
+    const { stdout } = await execa('nvidia-smi', [], {
+      timeout: 5000,
+      reject: false,
+    });
 
     if (stdout.trim()) {
-      // Check for error messages that indicate nvidia-smi failed
       const errorPatterns = [
         'NVIDIA-SMI has failed',
         'No devices found',
@@ -152,24 +147,39 @@ async function detectCUDA() {
         return { supported: false, devices: [] } as const;
       }
 
-      const lines = stdout.trim().split('\n');
       const devices: string[] = [];
-      let version: string | undefined;
+      let cudaVersion: string | undefined;
+      let driverVersion: string | undefined;
 
-      for (const line of lines) {
-        const parts = line.split(',');
-        const rawName = parts[0]?.trim() || 'Unknown NVIDIA GPU';
-        devices.push(formatDeviceName(rawName));
+      const cudaMatch = stdout.match(/CUDA Version:\s*(\d+\.\d+)/);
+      if (cudaMatch) {
+        cudaVersion = cudaMatch[1];
+      }
 
-        if (!version && parts[1]?.trim()) {
-          version = parts[1].trim();
+      const driverMatch = stdout.match(
+        /Driver Version:\s*(\d+\.\d+(?:\.\d+)?)/
+      );
+      if (driverMatch) {
+        driverVersion = driverMatch[1];
+      }
+
+      const gpuNameMatch = stdout.match(/\|\s+\d+\s+([^|]+)\s+On\s+\|/g);
+      if (gpuNameMatch) {
+        for (const match of gpuNameMatch) {
+          const name = match
+            .replace(/\|\s+\d+\s+([^|]+)\s+On\s+\|/, '$1')
+            .trim();
+          if (name) {
+            devices.push(formatDeviceName(name));
+          }
         }
       }
 
       return {
-        supported: devices.length > 0,
+        supported: devices.length > 0 || !!cudaVersion,
         devices,
-        version,
+        version: cudaVersion,
+        driverVersion,
       } as const;
     }
 
@@ -245,27 +255,69 @@ export async function detectROCm() {
       }
 
       let version: string | undefined;
-      try {
-        const { stdout: amdSmiOutput } = await execa('amd-smi', {
-          timeout: 3000,
-          reject: false,
-        });
 
-        if (amdSmiOutput.trim()) {
-          const match =
-            amdSmiOutput.match(/ROCm version:\s*(\d+\.\d+\.\d+)/i) ||
-            amdSmiOutput.match(/version\s*(\d+\.\d+\.\d+)/i) ||
-            amdSmiOutput.match(/(\d+\.\d+\.\d+)/);
-          if (match) {
-            version = match[1];
+      if (platform === 'linux' || platform === 'darwin') {
+        try {
+          const { stdout: amdSmiOutput } = await execa('amd-smi', {
+            timeout: 3000,
+            reject: false,
+          });
+
+          if (amdSmiOutput.trim()) {
+            const match =
+              amdSmiOutput.match(/ROCm version:\s*(\d+\.\d+\.\d+)/i) ||
+              amdSmiOutput.match(/version\s*(\d+\.\d+\.\d+)/i) ||
+              amdSmiOutput.match(/(\d+\.\d+\.\d+)/);
+            if (match) {
+              version = match[1];
+            }
           }
-        }
-      } catch {}
+        } catch {}
+      } else {
+        try {
+          const { stdout: hipccOutput } = await execa('hipcc', ['--version'], {
+            timeout: 3000,
+            reject: false,
+          });
+
+          if (hipccOutput.trim()) {
+            const hipVersionMatch = hipccOutput.match(
+              /HIP version:\s*(\d+\.\d+(?:\.\d+)?)/i
+            );
+            if (hipVersionMatch) {
+              version = hipVersionMatch[1];
+            }
+          }
+        } catch {}
+      }
+
+      let driverVersion: string | undefined;
+
+      if (platform === 'win32') {
+        try {
+          const { stdout: driverOutput } = await execa(
+            'powershell',
+            [
+              '-Command',
+              `Get-CimInstance -ClassName Win32_VideoController | Where-Object { $_.Name -like '*AMD*' -or $_.Name -like '*Radeon*' } | Select-Object -First 1 -ExpandProperty DriverVersion`,
+            ],
+            {
+              timeout: 3000,
+              reject: false,
+            }
+          );
+
+          if (driverOutput.trim()) {
+            driverVersion = driverOutput.trim();
+          }
+        } catch {}
+      }
 
       return {
         supported: devices.length > 0,
         devices,
         version,
+        driverVersion,
       };
     }
 
@@ -422,7 +474,7 @@ export async function detectGPUMemory() {
   }
 
   const result = await safeExecute(async () => {
-    const gpuData = await getGPUData();
+    const gpuData = await getGPUData(true);
     const memoryInfo: GPUMemoryInfo[] = [];
 
     for (const gpu of gpuData) {

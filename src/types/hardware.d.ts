@@ -19,11 +19,13 @@ export interface GPUCapabilities {
     readonly supported: boolean;
     readonly devices: readonly string[];
     readonly version?: string;
+    readonly driverVersion?: string;
   };
   rocm: {
     readonly supported: boolean;
     readonly devices: readonly string[];
     readonly version?: string;
+    readonly driverVersion?: string;
   };
   vulkan: {
     readonly supported: boolean;

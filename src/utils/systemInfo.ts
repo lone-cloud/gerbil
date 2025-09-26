@@ -32,9 +32,11 @@ export const createSoftwareItems = (versionInfo: SystemVersionInfo) => [
   { label: 'Electron', value: versionInfo.electronVersion },
   {
     label: 'Node.js',
-    value: versionInfo.nodeJsSystemVersion
-      ? `${versionInfo.nodeVersion} (System: ${versionInfo.nodeJsSystemVersion})`
-      : versionInfo.nodeVersion,
+    value:
+      versionInfo.nodeJsSystemVersion &&
+      versionInfo.nodeJsSystemVersion !== versionInfo.nodeVersion
+        ? `${versionInfo.nodeVersion} (system: ${versionInfo.nodeJsSystemVersion})`
+        : versionInfo.nodeVersion,
   },
   { label: 'Chromium', value: versionInfo.chromeVersion },
   { label: 'V8', value: versionInfo.v8Version },
@@ -67,6 +69,13 @@ export const createDriverItems = (hardwareInfo: HardwareInfo) => {
         ? `v${gpuCapabilities.cuda.version}`
         : 'Available',
     });
+
+    if (gpuCapabilities.cuda.driverVersion) {
+      items.push({
+        label: 'NVIDIA Driver',
+        value: `v${gpuCapabilities.cuda.driverVersion}`,
+      });
+    }
   }
 
   if (gpuCapabilities.rocm.supported) {
@@ -76,6 +85,13 @@ export const createDriverItems = (hardwareInfo: HardwareInfo) => {
         ? `v${gpuCapabilities.rocm.version}`
         : 'Available',
     });
+
+    if (gpuCapabilities.rocm.driverVersion) {
+      items.push({
+        label: 'AMD Driver',
+        value: `v${gpuCapabilities.rocm.driverVersion}`,
+      });
+    }
   }
 
   if (gpuCapabilities.vulkan.supported) {
