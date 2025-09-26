@@ -1,3 +1,5 @@
+import { GPUDevice } from './hardware';
+
 export interface ConfigFile {
   name: string;
   path: string;
@@ -72,10 +74,7 @@ export interface SelectOption {
 }
 
 export interface BackendOption extends SelectOption {
-  readonly devices?: readonly (
-    | string
-    | { name: string; isIntegrated: boolean }
-  )[];
+  readonly devices?: readonly (string | GPUDevice)[];
   readonly disabled?: boolean;
 }
 

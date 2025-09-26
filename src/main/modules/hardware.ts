@@ -11,11 +11,12 @@ import type {
   GPUCapabilities,
   BasicGPUInfo,
   GPUMemoryInfo,
+  GPUDevice,
 } from '@/types/hardware';
 import { execa } from 'execa';
 import { formatDeviceName } from '@/utils/format';
 import { platform } from 'process';
-import { getVulkanInfo, detectLinuxGPUViaVulkan } from '@/utils/node/vulkan';
+import { getVulkanInfo, detectGPUViaVulkan } from '@/utils/node/vulkan';
 
 const COMMON_EXEC_OPTIONS = {
   timeout: 3000,
@@ -35,11 +36,14 @@ export async function detectCPU() {
   const result = await safeExecute(async () => {
     const cpu = await siCpu();
 
-    const devices: string[] = [];
+    const devices: { name: string; detailedName: string }[] = [];
     if (cpu.brand) {
-      devices.push(
-        `${formatDeviceName(cpu.brand)} (${cpu.cores} cores) @ ${cpu.speed} GHz`
-      );
+      const name = formatDeviceName(cpu.brand);
+
+      devices.push({
+        name,
+        detailedName: `${name} (${cpu.cores} cores) @ ${cpu.speed} GHz`,
+      });
     }
 
     const capabilities = {
@@ -50,11 +54,10 @@ export async function detectCPU() {
     return capabilities;
   }, 'CPU detection failed');
 
-  const fallbackCapabilities = {
+  cpuCapabilitiesCache = result || {
     devices: [],
   };
 
-  cpuCapabilitiesCache = result || fallbackCapabilities;
   return cpuCapabilitiesCache;
 }
 
@@ -64,7 +67,7 @@ export async function detectGPU() {
   }
 
   const result = await safeExecute(
-    () => detectLinuxGPUViaVulkan(),
+    () => detectGPUViaVulkan(),
     'GPU detection failed'
   );
 
@@ -101,10 +104,15 @@ async function detectVulkan() {
   try {
     const vulkanInfo = await getVulkanInfo();
 
-    const devices: string[] = [];
+    const devices: GPUDevice[] = [];
 
-    for (const gpu of vulkanInfo.discreteGPUs) {
-      devices.push(formatDeviceName(gpu.deviceName));
+    for (const gpu of vulkanInfo.allGPUs) {
+      const isIntegrated = gpu.isIntegrated;
+
+      devices.push({
+        name: isIntegrated ? gpu.deviceName : formatDeviceName(gpu.deviceName),
+        isIntegrated,
+      });
     }
 
     return {
@@ -187,21 +195,56 @@ export async function detectROCm() {
     const { stdout } = await execa(rocminfoCommand, [], COMMON_EXEC_OPTIONS);
 
     if (stdout.trim()) {
-      const devices: string[] = [];
+      const devices: GPUDevice[] = [];
 
       if (platform === 'win32') {
         const lines = stdout.split('\n');
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
 
-        for (const line of lines) {
-          const trimmedLine = line.trim();
-          if (trimmedLine.startsWith('Name:')) {
-            const name = trimmedLine.split('Name:')[1]?.trim();
-            if (
-              name &&
-              !name.toLowerCase().includes('cpu') &&
-              !devices.includes(formatDeviceName(name))
-            ) {
-              devices.push(formatDeviceName(name));
+          if (line.includes('Marketing Name:')) {
+            const name = line.split('Marketing Name:')[1]?.trim();
+            if (name && !name.toLowerCase().includes('cpu')) {
+              let deviceType = '';
+
+              const searchRangeLines = 20;
+              const searchStartIndex = Math.max(0, i - searchRangeLines);
+              const searchEndIndex = Math.min(
+                lines.length,
+                i + searchRangeLines
+              );
+
+              for (
+                let searchIndex = searchStartIndex;
+                searchIndex < searchEndIndex;
+                searchIndex++
+              ) {
+                if (lines[searchIndex].includes('Device Type:')) {
+                  deviceType =
+                    lines[searchIndex].split('Device Type:')[1]?.trim() || '';
+                  break;
+                }
+              }
+
+              if (deviceType !== 'CPU') {
+                let isIntegrated = true;
+                try {
+                  const vulkanInfo = await getVulkanInfo();
+                  const matchingGPU = vulkanInfo.allGPUs.find(
+                    (gpu) =>
+                      gpu.deviceName.includes(name) ||
+                      name.includes(gpu.deviceName)
+                  );
+                  isIntegrated = matchingGPU ? matchingGPU.isIntegrated : false;
+                } catch {
+                  isIntegrated = false;
+                }
+
+                devices.push({
+                  name: isIntegrated ? name : formatDeviceName(name),
+                  isIntegrated,
+                });
+              }
             }
           }
         }
@@ -235,7 +278,24 @@ export async function detectROCm() {
               }
 
               if (deviceType !== 'CPU') {
-                devices.push(formatDeviceName(name));
+                // Check if integrated by cross-referencing with vulkan GPU list
+                let isIntegrated = true;
+                try {
+                  const vulkanInfo = await getVulkanInfo();
+                  const matchingGPU = vulkanInfo.allGPUs.find(
+                    (gpu) =>
+                      gpu.deviceName.includes(name) ||
+                      name.includes(gpu.deviceName)
+                  );
+                  isIntegrated = matchingGPU ? matchingGPU.isIntegrated : false;
+                } catch {
+                  isIntegrated = false;
+                }
+
+                devices.push({
+                  name: isIntegrated ? name : formatDeviceName(name),
+                  isIntegrated,
+                });
               }
             }
           }
@@ -301,8 +361,8 @@ export async function detectROCm() {
         try {
           const vulkanInfo = await getVulkanInfo();
 
-          for (const gpu of vulkanInfo.discreteGPUs) {
-            if (gpu.driverInfo) {
+          for (const gpu of vulkanInfo.allGPUs) {
+            if (gpu.driverInfo && !gpu.isIntegrated) {
               driverVersion = gpu.driverInfo;
               break;
             }
@@ -324,7 +384,7 @@ export async function detectROCm() {
 }
 
 function parseClInfoOutput(output: string) {
-  const devices: { name: string; isIntegrated: boolean }[] = [];
+  const devices: GPUDevice[] = [];
   const lines = output.split('\n');
 
   let currentPlatform = '';
@@ -342,9 +402,11 @@ function parseClInfoOutput(output: string) {
       const computeUnits = findComputeUnitsInClInfo(lines, i);
 
       if (deviceName && currentPlatform) {
+        const isIntegrated = !isDiscreteGPU(computeUnits);
+
         devices.push({
-          name: formatDeviceName(deviceName),
-          isIntegrated: !isDiscreteGPU(computeUnits),
+          name: isIntegrated ? deviceName : formatDeviceName(deviceName),
+          isIntegrated,
         });
       }
     }

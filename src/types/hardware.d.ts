@@ -1,5 +1,5 @@
 export interface CPUCapabilities {
-  devices: string[];
+  devices: { name: string; detailedName: string }[];
 }
 
 export interface GPUMemoryInfo {
@@ -12,6 +12,11 @@ export interface SystemMemoryInfo {
   type?: string;
 }
 
+export interface GPUDevice {
+  readonly name: string;
+  readonly isIntegrated: boolean;
+}
+
 export interface GPUCapabilities {
   cuda: {
     readonly devices: readonly string[];
@@ -19,16 +24,16 @@ export interface GPUCapabilities {
     readonly driverVersion?: string;
   };
   rocm: {
-    readonly devices: readonly string[];
+    readonly devices: readonly GPUDevice[];
     readonly version?: string;
     readonly driverVersion?: string;
   };
   vulkan: {
-    readonly devices: readonly string[];
+    readonly devices: readonly GPUDevice[];
     readonly version?: string;
   };
   clblast: {
-    readonly devices: readonly CLBlastDevice[];
+    readonly devices: readonly GPUDevice[];
     readonly version?: string;
   };
 }
@@ -37,11 +42,6 @@ export interface BasicGPUInfo {
   hasAMD: boolean;
   hasNVIDIA: boolean;
   gpuInfo: string[];
-}
-
-export interface CLBlastDevice {
-  readonly name: string;
-  readonly isIntegrated: boolean;
 }
 
 export interface HardwareDetectionResult {

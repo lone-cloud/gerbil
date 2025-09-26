@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import type { BackendOption, BackendSupport } from '@/types';
+import { CPUCapabilities, GPUDevice } from '@/types/hardware';
 
 export interface Warning {
   type: 'warning' | 'info';
@@ -46,7 +47,9 @@ const checkModelWarnings = (
 
 interface GpuCapabilities {
   cuda: { devices: readonly string[] };
-  rocm: { devices: readonly string[] };
+  rocm: { devices: readonly GPUDevice[] };
+  vulkan: { devices: readonly GPUDevice[] };
+  clblast: { devices: readonly GPUDevice[] };
 }
 
 interface GpuInfo {
@@ -155,11 +158,9 @@ const checkCpuWarnings = (
 
 const checkBackendWarnings = async (params?: {
   backend: string;
-  cpuCapabilities: {
-    devices: string[];
-  } | null;
+  cpuCapabilities: CPUCapabilities | null;
   availableBackends: BackendOption[];
-}): Promise<Warning[]> => {
+}) => {
   const warnings: Warning[] = [];
 
   const [backendSupport, gpuCapabilities, gpuInfo] = await Promise.all([

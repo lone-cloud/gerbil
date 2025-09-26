@@ -28,7 +28,7 @@ export const GpuDeviceSelector = ({
 
   const getDiscreteDeviceCount = () => {
     if (!selectedBackend?.devices) return 0;
-    if (backend === 'clblast') {
+    if (backend === 'clblast' || backend === 'vulkan' || backend === 'rocm') {
       return selectedBackend.devices.filter(
         (device) => typeof device === 'string' || !device.isIntegrated
       ).length;
@@ -64,6 +64,25 @@ export const GpuDeviceSelector = ({
         .filter(
           (option): option is NonNullable<typeof option> => option !== null
         );
+    }
+
+    if (backend === 'vulkan' || backend === 'rocm') {
+      const discreteDeviceOptions = selectedBackend.devices
+        .map((device, index) => {
+          if (typeof device === 'object' && device.isIntegrated) {
+            return null;
+          }
+          const deviceName = typeof device === 'string' ? device : device.name;
+          return {
+            value: index.toString(),
+            label: `GPU ${index}: ${deviceName}`,
+          };
+        })
+        .filter(
+          (option): option is NonNullable<typeof option> => option !== null
+        );
+
+      return [{ value: 'all', label: 'All GPUs' }, ...discreteDeviceOptions];
     }
 
     return [
