@@ -116,7 +116,7 @@ const checkVramWarnings = async (backend: string): Promise<Warning[]> => {
 
       if (lowVramGpus.length > 0) {
         const memoryDetails = lowVramGpus
-          .map((gpu) => `${gpu.deviceName}: ${gpu.totalMemoryGB!.toFixed(1)}GB`)
+          .map((gpu) => `${gpu.totalMemoryGB!.toFixed(1)}GB`)
           .join(', ');
 
         warnings.push({

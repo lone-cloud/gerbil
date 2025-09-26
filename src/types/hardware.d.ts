@@ -5,26 +5,35 @@ export interface CPUCapabilities {
 }
 
 export interface GPUMemoryInfo {
-  deviceName: string;
   totalMemoryGB: number | null;
+}
+
+export interface SystemMemoryInfo {
+  totalGB: number;
+  speed?: number;
+  type?: string;
 }
 
 export interface GPUCapabilities {
   cuda: {
     readonly supported: boolean;
     readonly devices: readonly string[];
+    readonly version?: string;
   };
   rocm: {
     readonly supported: boolean;
     readonly devices: readonly string[];
+    readonly version?: string;
   };
   vulkan: {
     readonly supported: boolean;
     readonly devices: readonly string[];
+    readonly version?: string;
   };
   clblast: {
     readonly supported: boolean;
     readonly devices: readonly string[];
+    readonly version?: string;
   };
 }
 
@@ -43,9 +52,6 @@ export interface HardwareInfo {
   cpu: CPUCapabilities;
   gpu: BasicGPUInfo;
   gpuCapabilities?: GPUCapabilities;
-}
-
-export interface SystemCapabilities {
-  hardware: HardwareInfo;
-  platform: string;
+  gpuMemory?: GPUMemoryInfo[];
+  systemMemory?: SystemMemoryInfo;
 }

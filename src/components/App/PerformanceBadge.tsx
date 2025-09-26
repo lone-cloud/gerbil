@@ -1,15 +1,18 @@
-import { Button, Tooltip } from '@mantine/core';
+import { Button, Tooltip, ActionIcon } from '@mantine/core';
+import { Activity } from 'lucide-react';
 
 interface PerformanceBadgeProps {
-  label: string;
-  value: string;
+  label?: string;
+  value?: string;
   tooltipLabel: string;
+  iconOnly?: boolean;
 }
 
 export const PerformanceBadge = ({
   label,
   value,
   tooltipLabel,
+  iconOnly = false,
 }: PerformanceBadgeProps) => {
   const handlePerformanceClick = async () => {
     const result = await window.electronAPI.app.openPerformanceManager();
@@ -20,6 +23,16 @@ export const PerformanceBadge = ({
       );
     }
   };
+
+  if (iconOnly) {
+    return (
+      <Tooltip label={tooltipLabel} position="top">
+        <ActionIcon size="sm" variant="subtle" onClick={handlePerformanceClick}>
+          <Activity size="1.125rem" />
+        </ActionIcon>
+      </Tooltip>
+    );
+  }
 
   return (
     <Tooltip label={tooltipLabel} position="top">

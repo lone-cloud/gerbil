@@ -82,12 +82,19 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
                           ref={isDownloading ? downloadingItemRef : null}
                         >
                           <DownloadCard
-                            name={download.name}
+                            version={{
+                              name: download.name,
+                              version: download.version || '',
+                              size: download.size,
+                              isInstalled: false,
+                              isCurrent: false,
+                              downloadUrl: download.url,
+                              hasUpdate: false,
+                            }}
                             size={formatDownloadSize(
                               download.size,
                               download.url
                             )}
-                            version={download.version}
                             description={getAssetDescription(download.name)}
                             isDownloading={isDownloading}
                             downloadProgress={

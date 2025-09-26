@@ -93,37 +93,43 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
         </Group>
 
         <Group gap="xs">
-          {cpuMetrics && memoryMetrics && (
+          {systemMonitoringEnabled ? (
             <>
-              <PerformanceBadge
-                label="CPU"
-                value={`${cpuMetrics.usage}%`}
-                tooltipLabel={`${cpuMetrics.usage}%${cpuMetrics.temperature ? ` • ${cpuMetrics.temperature}°C` : ''}`}
-              />
+              {cpuMetrics && memoryMetrics && (
+                <>
+                  <PerformanceBadge
+                    label="CPU"
+                    value={`${cpuMetrics.usage}%`}
+                    tooltipLabel={`${cpuMetrics.usage}%${cpuMetrics.temperature ? ` • ${cpuMetrics.temperature}°C` : ''}`}
+                  />
 
-              <PerformanceBadge
-                label="RAM"
-                value={`${memoryMetrics.usage}%`}
-                tooltipLabel={`${memoryMetrics.used.toFixed(2)} GB / ${memoryMetrics.total.toFixed(2)} GB (${memoryMetrics.usage}%)`}
-              />
+                  <PerformanceBadge
+                    label="RAM"
+                    value={`${memoryMetrics.usage}%`}
+                    tooltipLabel={`${memoryMetrics.used.toFixed(2)} GB / ${memoryMetrics.total.toFixed(2)} GB (${memoryMetrics.usage}%)`}
+                  />
+                </>
+              )}
+
+              {gpuMetrics?.gpus.map((gpu, index) => (
+                <Group gap="xs" key={`gpu-${index}`}>
+                  <PerformanceBadge
+                    label={`GPU${gpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}`}
+                    value={`${gpu.usage}%`}
+                    tooltipLabel={`${gpu.usage}%${gpu.temperature ? ` • ${gpu.temperature}°C` : ''}`}
+                  />
+
+                  <PerformanceBadge
+                    label={`VRAM${gpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}`}
+                    value={`${gpu.memoryUsage}%`}
+                    tooltipLabel={`${gpu.memoryUsed.toFixed(2)} GB / ${gpu.memoryTotal.toFixed(2)} GB (${gpu.memoryUsage}%)`}
+                  />
+                </Group>
+              ))}
             </>
+          ) : (
+            <PerformanceBadge tooltipLabel="System resource manager" iconOnly />
           )}
-
-          {gpuMetrics?.gpus.map((gpu, index) => (
-            <Group gap="xs" key={`gpu-${index}`}>
-              <PerformanceBadge
-                label={`GPU${gpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}`}
-                value={`${gpu.usage}%`}
-                tooltipLabel={`${gpu.usage}%${gpu.temperature ? ` • ${gpu.temperature}°C` : ''}`}
-              />
-
-              <PerformanceBadge
-                label={`VRAM${gpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}`}
-                value={`${gpu.memoryUsage}%`}
-                tooltipLabel={`${gpu.memoryUsed.toFixed(2)} GB / ${gpu.memoryTotal.toFixed(2)} GB (${gpu.memoryUsage}%)`}
-              />
-            </Group>
-          ))}
         </Group>
       </Group>
     </AppShell.Footer>

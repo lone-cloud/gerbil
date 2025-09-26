@@ -26,6 +26,7 @@ const koboldAPI: KoboldAPI = {
   detectGPUCapabilities: () =>
     ipcRenderer.invoke('kobold:detectGPUCapabilities'),
   detectGPUMemory: () => ipcRenderer.invoke('kobold:detectGPUMemory'),
+  detectSystemMemory: () => ipcRenderer.invoke('kobold:detectSystemMemory'),
   detectROCm: () => ipcRenderer.invoke('kobold:detectROCm'),
   detectBackendSupport: () => ipcRenderer.invoke('kobold:detectBackendSupport'),
   getAvailableBackends: (includeDisabled) =>

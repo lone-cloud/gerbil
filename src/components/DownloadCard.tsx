@@ -13,45 +13,43 @@ import { Download } from 'lucide-react';
 import { MouseEvent } from 'react';
 import { pretifyBinName, isWindowsROCmBuild } from '@/utils/assets';
 import { usePreferencesStore } from '@/stores/preferences';
+import type { VersionInfo } from '@/types';
 
 interface DownloadCardProps {
-  name: string;
+  version: VersionInfo;
   size: string;
-  version?: string;
   description?: string;
-  isCurrent?: boolean;
-  isInstalled?: boolean;
   isDownloading?: boolean;
   downloadProgress?: number;
   disabled?: boolean;
-  hasUpdate?: boolean;
-  newerVersion?: string;
   onDownload: (e: MouseEvent<HTMLButtonElement>) => void;
   onMakeCurrent?: () => void;
   onUpdate?: (e: MouseEvent<HTMLButtonElement>) => void;
+  onRedownload?: (e: MouseEvent<HTMLButtonElement>) => void;
 }
 
 export const DownloadCard = ({
-  name,
+  version: versionInfo,
   size,
-  version,
   description,
-  isCurrent = false,
-  isInstalled = false,
   isDownloading = false,
   downloadProgress = 0,
   disabled = false,
-  hasUpdate = false,
-  newerVersion,
   onDownload,
   onMakeCurrent,
   onUpdate,
+  onRedownload,
 }: DownloadCardProps) => {
   const { resolvedColorScheme: colorScheme } = usePreferencesStore();
+  const hasVersionMismatch = Boolean(
+    versionInfo.version &&
+      versionInfo.actualVersion &&
+      versionInfo.version !== versionInfo.actualVersion
+  );
   const renderActionButtons = () => {
     const buttons = [];
 
-    if (!isInstalled) {
+    if (!versionInfo.isInstalled) {
       return (
         <Button
           key="download"
@@ -73,20 +71,21 @@ export const DownloadCard = ({
       );
     }
 
-    if (!isCurrent && onMakeCurrent) {
+    if (!versionInfo.isCurrent && onMakeCurrent) {
       buttons.push(
         <Button
           key="makeCurrent"
           variant="filled"
           size="xs"
           onClick={onMakeCurrent}
+          disabled={disabled}
         >
           Make Current
         </Button>
       );
     }
 
-    if (hasUpdate && onUpdate) {
+    if (versionInfo.hasUpdate && onUpdate) {
       buttons.push(
         <Button
           key="update"
@@ -104,7 +103,32 @@ export const DownloadCard = ({
             )
           }
         >
-          {isDownloading ? 'Updating...' : `Update to ${newerVersion}`}
+          {isDownloading
+            ? 'Updating...'
+            : `Update to ${versionInfo.newerVersion}`}
+        </Button>
+      );
+    }
+
+    if (hasVersionMismatch && onRedownload) {
+      buttons.push(
+        <Button
+          key="redownload"
+          variant="filled"
+          size="xs"
+          onClick={onRedownload}
+          loading={isDownloading}
+          disabled={disabled}
+          color="red"
+          leftSection={
+            isDownloading ? (
+              <Loader size="1rem" />
+            ) : (
+              <Download style={{ width: rem(14), height: rem(14) }} />
+            )
+          }
+        >
+          {isDownloading ? 'Re-downloading...' : 'Re-download'}
         </Button>
       );
     }
@@ -117,7 +141,7 @@ export const DownloadCard = ({
       withBorder
       radius="sm"
       padding="sm"
-      {...(isCurrent && {
+      {...(versionInfo.isCurrent && {
         bg: colorScheme === 'dark' ? 'dark.6' : 'gray.0',
         bd: `2px solid var(--mantine-color-${colorScheme === 'dark' ? 'blue-4' : 'blue-6'})`,
       })}
@@ -126,19 +150,19 @@ export const DownloadCard = ({
         <div style={{ flex: 1 }}>
           <Group gap="xs" align="center" mb="xs">
             <Text fw={500} size="sm">
-              {pretifyBinName(name)}
+              {pretifyBinName(versionInfo.name)}
             </Text>
-            {isCurrent && (
+            {versionInfo.isCurrent && (
               <Badge variant="light" color="blue" size="sm">
                 Current
               </Badge>
             )}
-            {hasUpdate && (
+            {versionInfo.hasUpdate && (
               <Badge variant="light" color="orange" size="sm">
                 Update Available
               </Badge>
             )}
-            {isWindowsROCmBuild(name) && (
+            {isWindowsROCmBuild(versionInfo.name) && (
               <Badge variant="light" color="yellow" size="sm">
                 Experimental
               </Badge>
@@ -150,9 +174,15 @@ export const DownloadCard = ({
             </Text>
           )}
           <Group gap="xs" align="center">
-            {version && (
+            {versionInfo.version && (
               <Text size="xs" c="dimmed">
-                Version {version}
+                Version {versionInfo.version}
+                {hasVersionMismatch && versionInfo.actualVersion && (
+                  <span style={{ color: 'var(--mantine-color-red-6)' }}>
+                    {' '}
+                    (actual: {versionInfo.actualVersion})
+                  </span>
+                )}
               </Text>
             )}
             {size && (

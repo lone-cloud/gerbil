@@ -20,18 +20,7 @@ import { formatDownloadSize } from '@/utils/format';
 
 import { useKoboldVersionsStore } from '@/stores/koboldVersions';
 import type { InstalledVersion, ReleaseWithStatus } from '@/types/electron';
-
-interface VersionInfo {
-  name: string;
-  version: string;
-  size?: number;
-  isInstalled: boolean;
-  isCurrent: boolean;
-  downloadUrl?: string;
-  installedPath?: string;
-  hasUpdate?: boolean;
-  newerVersion?: string;
-}
+import type { VersionInfo } from '@/types';
 
 export const VersionsTab = () => {
   const {
@@ -119,6 +108,7 @@ export const VersionsTab = () => {
           installedPath: installedVersion.path,
           hasUpdate,
           newerVersion: hasUpdate ? download.version : undefined,
+          actualVersion: installedVersion.actualVersion,
         });
       } else {
         versions.push({
@@ -146,6 +136,7 @@ export const VersionsTab = () => {
           isInstalled: true,
           isCurrent,
           installedPath: installed.path,
+          actualVersion: installed.actualVersion,
         });
       }
     });
@@ -194,16 +185,31 @@ export const VersionsTab = () => {
     await loadInstalledVersions();
   };
 
-  const makeCurrent = async (version: VersionInfo) => {
+  const handleRedownload = async (version: VersionInfo) => {
+    const download = availableDownloads.find((d) => d.name === version.name);
+    if (!download) return;
+
+    await handleDownloadFromStore({
+      item: download,
+      isUpdate: true,
+      wasCurrentBinary: version.isCurrent,
+      oldVersionPath: version.installedPath,
+    });
+
+    await loadInstalledVersions();
+  };
+
+  const makeCurrent = (version: VersionInfo) => {
     if (!version.installedPath) return;
 
-    const success = await window.electronAPI.kobold.setCurrentVersion(
-      version.installedPath
+    const targetInstalledVersion = installedVersions.find(
+      (v) => v.path === version.installedPath
     );
-
-    if (success) {
-      await loadInstalledVersions();
+    if (targetInstalledVersion) {
+      setCurrentVersion(targetInstalledVersion);
     }
+
+    window.electronAPI.kobold.setCurrentVersion(version.installedPath);
   };
 
   if (loadingInstalled || loadingPlatform || loadingRemote) {
@@ -257,21 +263,16 @@ export const VersionsTab = () => {
             ref={isDownloading ? downloadingItemRef : null}
           >
             <DownloadCard
-              name={version.name}
+              version={version}
               size={
                 version.size
                   ? formatDownloadSize(version.size, version.downloadUrl)
                   : ''
               }
-              version={version.version}
               description={getAssetDescription(version.name)}
-              isCurrent={version.isCurrent}
-              isInstalled={version.isInstalled}
               isDownloading={isDownloading}
               downloadProgress={downloadProgress[version.name]}
               disabled={downloading !== null}
-              hasUpdate={version.hasUpdate}
-              newerVersion={version.newerVersion}
               onDownload={(e) => {
                 e.stopPropagation();
                 handleDownload(version);
@@ -279,6 +280,10 @@ export const VersionsTab = () => {
               onUpdate={(e) => {
                 e.stopPropagation();
                 handleUpdate(version);
+              }}
+              onRedownload={(e) => {
+                e.stopPropagation();
+                handleRedownload(version);
               }}
               onMakeCurrent={() => makeCurrent(version)}
             />

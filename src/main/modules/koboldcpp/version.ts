@@ -43,14 +43,18 @@ export async function getInstalledVersions() {
 
     const versionPromises = launchers.map(async (launcher) => {
       try {
-        const detectedVersion = await getVersionFromBinary(launcher.path);
-        const version = detectedVersion || 'unknown';
+        const versionInfo = await getVersionFromBinary(launcher.path);
+
+        if (!versionInfo) {
+          return null;
+        }
 
         return {
-          version,
+          version: versionInfo.version,
           path: launcher.path,
           filename: launcher.filename,
           size: launcher.size,
+          actualVersion: versionInfo.actualVersion,
         } as InstalledVersion;
       } catch (error) {
         logError(
@@ -131,42 +135,56 @@ export async function getVersionFromBinary(launcherPath: string) {
       return null;
     }
 
+    let folderVersion: string | null = null;
+    let actualVersion: string | null = null;
+
     const folderName = launcherPath.split(/[/\\]/).slice(-2, -1)[0];
     if (folderName) {
       const versionMatch = folderName.match(
         /-(\d+\.\d+(?:\.\d+)?(?:\.[a-zA-Z0-9]+)*(?:-[a-zA-Z0-9]+)*)$/
       );
       if (versionMatch) {
-        return versionMatch[1];
+        folderVersion = versionMatch[1];
       }
     }
 
-    const result = await execa(launcherPath, ['--version'], {
-      timeout: 30000,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
+    try {
+      const result = await execa(launcherPath, ['--version'], {
+        timeout: 30000,
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
 
-    const allOutput = (result.stdout + result.stderr).trim();
+      const allOutput = (result.stdout + result.stderr).trim();
 
-    if (/^\d+\.\d+/.test(allOutput)) {
-      const versionParts = allOutput.split(/\s+/)[0];
-      if (versionParts && /^\d+\.\d+/.test(versionParts)) {
-        return versionParts;
-      }
-    }
-
-    const lines = allOutput.split('\n');
-    for (const line of lines) {
-      const trimmedLine = line.trim();
-      if (/^\d+\.\d+/.test(trimmedLine)) {
-        const versionPart = trimmedLine.split(/\s+/)[0];
-        if (versionPart) {
-          return versionPart;
+      if (/^\d+\.\d+/.test(allOutput)) {
+        const versionParts = allOutput.split(/\s+/)[0];
+        if (versionParts && /^\d+\.\d+/.test(versionParts)) {
+          actualVersion = versionParts;
         }
       }
-    }
 
-    return null;
+      if (!actualVersion) {
+        const lines = allOutput.split('\n');
+        for (const line of lines) {
+          const trimmedLine = line.trim();
+          if (/^\d+\.\d+/.test(trimmedLine)) {
+            const versionPart = trimmedLine.split(/\s+/)[0];
+            if (versionPart) {
+              actualVersion = versionPart;
+              break;
+            }
+          }
+        }
+      }
+    } catch {}
+
+    return {
+      version: folderVersion || actualVersion || 'unknown',
+      actualVersion:
+        folderVersion && actualVersion && folderVersion !== actualVersion
+          ? actualVersion
+          : undefined,
+    };
   } catch {
     return null;
   }
