@@ -151,13 +151,33 @@ export async function detectLinuxGPUViaVulkan() {
     return {
       hasAMD,
       hasNVIDIA,
-      gpuInfo: gpuInfo.length > 0 ? gpuInfo : ['No GPU information available'],
+      gpuInfo: gpuInfo.length > 0 ? gpuInfo : [],
     };
   } catch {
     return {
       hasAMD: false,
       hasNVIDIA: false,
-      gpuInfo: ['GPU detection failed'],
+      gpuInfo: [],
     };
+  }
+}
+
+export async function detectVulkan() {
+  try {
+    const vulkanInfo = await getVulkanInfo();
+
+    const devices: string[] = [];
+
+    for (const gpu of vulkanInfo.discreteGPUs) {
+      devices.push(formatDeviceName(gpu.deviceName));
+    }
+
+    return {
+      supported: devices.length > 0,
+      devices,
+      version: vulkanInfo.apiVersion || 'Unknown',
+    };
+  } catch {
+    return { supported: false, devices: [], version: 'Unknown' };
   }
 }

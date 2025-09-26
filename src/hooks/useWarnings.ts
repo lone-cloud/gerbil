@@ -10,8 +10,6 @@ interface UseWarningsProps {
   model: string;
   sdmodel: string;
   backend?: string;
-  noavx2?: boolean;
-  failsafe?: boolean;
   configLoaded?: boolean;
 }
 
@@ -133,31 +131,12 @@ const checkVramWarnings = async (backend: string): Promise<Warning[]> => {
 
 const checkCpuWarnings = (
   backend: string,
-  cpuCapabilities: { avx: boolean; avx2: boolean },
-  noavx2: boolean,
-  failsafe: boolean,
   availableBackends: BackendOption[]
 ) => {
   const warnings: Warning[] = [];
 
   if (backend !== 'cpu') {
     return warnings;
-  }
-
-  if (!cpuCapabilities.avx2 && !noavx2) {
-    warnings.push({
-      type: 'warning',
-      message:
-        'Your CPU does not support AVX2. Enable the "Disable AVX2" option on the Advanced tab to avoid crashes.',
-    });
-  }
-
-  if (!cpuCapabilities.avx && !cpuCapabilities.avx2 && !failsafe) {
-    warnings.push({
-      type: 'warning',
-      message:
-        'Your CPU does not support AVX or AVX2. Enable the "Failsafe" option on the Advanced tab to avoid crashes.',
-    });
   }
 
   if (
@@ -177,11 +156,8 @@ const checkCpuWarnings = (
 const checkBackendWarnings = async (params?: {
   backend: string;
   cpuCapabilities: {
-    avx: boolean;
-    avx2: boolean;
+    devices: string[];
   } | null;
-  noavx2: boolean;
-  failsafe: boolean;
   availableBackends: BackendOption[];
 }): Promise<Warning[]> => {
   const warnings: Warning[] = [];
@@ -204,20 +180,13 @@ const checkBackendWarnings = async (params?: {
   warnings.push(...gpuWarnings);
 
   if (params) {
-    const { backend, cpuCapabilities, noavx2, failsafe, availableBackends } =
-      params;
+    const { backend, cpuCapabilities, availableBackends } = params;
 
     const vramWarnings = await checkVramWarnings(backend);
     warnings.push(...vramWarnings);
 
     if (cpuCapabilities) {
-      const cpuWarnings = checkCpuWarnings(
-        backend,
-        cpuCapabilities,
-        noavx2,
-        failsafe,
-        availableBackends
-      );
+      const cpuWarnings = checkCpuWarnings(backend, availableBackends);
       warnings.push(...cpuWarnings);
     }
   }
@@ -229,8 +198,6 @@ export const useWarnings = ({
   model,
   sdmodel,
   backend,
-  noavx2 = false,
-  failsafe = false,
   configLoaded = false,
 }: UseWarningsProps) => {
   const [backendWarnings, setBackendWarnings] = useState<Warning[]>([]);
@@ -251,21 +218,14 @@ export const useWarnings = ({
       window.electronAPI.kobold.getAvailableBackends(),
     ]);
 
-    const cpuCapabilities = {
-      avx: cpuCapabilitiesResult.avx,
-      avx2: cpuCapabilitiesResult.avx2,
-    };
-
     const result = await checkBackendWarnings({
       backend,
-      cpuCapabilities,
-      noavx2,
-      failsafe,
+      cpuCapabilities: cpuCapabilitiesResult,
       availableBackends,
     });
 
     setBackendWarnings(result);
-  }, [backend, noavx2, failsafe]);
+  }, [backend]);
 
   useEffect(() => {
     updateBackendWarnings();

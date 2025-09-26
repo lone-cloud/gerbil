@@ -1,8 +1,8 @@
 import { readFile, readdir } from 'fs/promises';
 import { join } from 'path';
 import { platform } from 'process';
-import { execa } from 'execa';
 import { graphics as siGraphics } from 'systeminformation';
+import { formatDeviceName } from '../format';
 
 interface CachedGPUInfo {
   devicePath: string;
@@ -167,50 +167,23 @@ async function getLinuxGPUData() {
 
 async function getWindowsGPUData() {
   try {
-    const { stdout } = await execa(
-      'powershell',
-      [
-        '-Command',
-        `$activeGpus = Get-CimInstance -ClassName Win32_VideoController | Where-Object { $_.Status -eq 'OK' -and $_.Name -notlike '*Intel*UHD*' -and $_.Name -notlike '*Intel*Iris*' -and $_.Name -notlike '*Basic Display*' } | Select-Object -ExpandProperty Name;
-         $gpuKeys = Get-ChildItem 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}' | Where-Object { $_.PSChildName -match '^\\d{4}$' };
-         foreach($key in $gpuKeys) {
-           $props = Get-ItemProperty $key.PSPath -ErrorAction SilentlyContinue;
-           if($props.DriverDesc -and $props.'HardwareInformation.qwMemorySize' -and $activeGpus -contains $props.DriverDesc) {
-             $vramBytes = $props.'HardwareInformation.qwMemorySize';
-             $vramGB = [math]::Round($vramBytes/1GB, 2);
-             if($vramGB -ge 1) {
-               Write-Output "$($props.DriverDesc)|$vramGB";
-             }
-           }
-         }`,
-      ],
-      {
-        timeout: 10000,
-        reject: false,
-      }
+    const graphics = await siGraphics();
+
+    const discreteControllers = graphics.controllers.filter(
+      (controller) => controller.vram && controller.vram >= 1024
     );
 
-    if (!stdout.trim()) {
-      return [];
-    }
-
     const gpus: GPUData[] = [];
-    const lines = stdout.trim().split('\n');
-    const seenVram = new Set<number>();
 
-    for (const line of lines) {
-      const parts = line.trim().split('|');
-      if (parts.length === 2) {
-        const vramGB = parseFloat(parts[1]);
-        if (vramGB > 0 && !seenVram.has(vramGB)) {
-          seenVram.add(vramGB);
-          gpus.push({
-            usage: 0,
-            memoryUsed: 0,
-            memoryTotal: vramGB,
-            temperature: undefined,
-          });
-        }
+    for (const controller of discreteControllers) {
+      if (controller.vram) {
+        const vramGB = parseFloat((controller.vram / 1024).toFixed(2));
+        gpus.push({
+          usage: 0,
+          memoryUsed: 0,
+          memoryTotal: vramGB,
+          temperature: undefined,
+        });
       }
     }
 
@@ -250,10 +223,17 @@ export async function detectGPUViaSI() {
   let hasNVIDIA = false;
   const gpuInfo: string[] = [];
 
-  const discreteControllers = graphics.controllers.filter(
-    (controller) =>
-      controller.busAddress && isDiscreteBusAddress(controller.busAddress)
-  );
+  const discreteControllers = graphics.controllers.filter((controller) => {
+    if (platform === 'linux' && controller.busAddress) {
+      return isDiscreteBusAddress(controller.busAddress);
+    }
+
+    if (platform === 'win32') {
+      return controller.vram && controller.vram >= 1024;
+    }
+
+    return false;
+  });
 
   for (const controller of discreteControllers) {
     if (
@@ -268,13 +248,13 @@ export async function detectGPUViaSI() {
     }
 
     if (controller.model) {
-      gpuInfo.push(controller.model);
+      gpuInfo.push(formatDeviceName(controller.model));
     }
   }
 
   return {
     hasAMD,
     hasNVIDIA,
-    gpuInfo: gpuInfo.length > 0 ? gpuInfo : ['No GPU information available'],
+    gpuInfo: gpuInfo.length > 0 ? gpuInfo : [],
   };
 }

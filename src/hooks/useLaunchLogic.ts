@@ -85,10 +85,14 @@ const buildModelArgs = (
 const buildConfigArgs = (isImageMode: boolean, launchArgs: LaunchArgs) => {
   const args: string[] = [];
 
-  if (launchArgs.autoGpuLayers) {
-    args.push('--gpulayers', '-1');
-  } else if (launchArgs.gpuLayers > 0) {
-    args.push('--gpulayers', launchArgs.gpuLayers.toString());
+  const isGpuBackend = launchArgs.backend && launchArgs.backend !== 'cpu';
+
+  if (isGpuBackend) {
+    if (launchArgs.autoGpuLayers) {
+      args.push('--gpulayers', '-1');
+    } else if (launchArgs.gpuLayers > 0) {
+      args.push('--gpulayers', launchArgs.gpuLayers.toString());
+    }
   }
 
   if (launchArgs.contextSize) {
@@ -193,6 +197,9 @@ const buildBackendArgs = (launchArgs: LaunchArgs) => {
   const args: string[] = [];
 
   if (!launchArgs.backend || launchArgs.backend === 'cpu') {
+    if (launchArgs.backend === 'cpu') {
+      args.push('--usecpu');
+    }
     return args;
   }
 

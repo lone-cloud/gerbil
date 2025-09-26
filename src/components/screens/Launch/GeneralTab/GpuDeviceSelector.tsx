@@ -25,8 +25,18 @@ export const GpuDeviceSelector = ({
     backend === 'rocm' ||
     backend === 'vulkan' ||
     backend === 'clblast';
-  const hasMultipleDevices =
-    selectedBackend?.devices && selectedBackend.devices.length > 1;
+
+  const getDiscreteDeviceCount = () => {
+    if (!selectedBackend?.devices) return 0;
+    if (backend === 'clblast') {
+      return selectedBackend.devices.filter(
+        (device) => typeof device === 'string' || !device.isIntegrated
+      ).length;
+    }
+    return selectedBackend.devices.length;
+  };
+
+  const hasMultipleDevices = getDiscreteDeviceCount() > 1;
   const showTensorSplit =
     (backend === 'cuda' || backend === 'rocm' || backend === 'vulkan') &&
     hasMultipleDevices &&
@@ -36,19 +46,42 @@ export const GpuDeviceSelector = ({
     return null;
   }
 
-  const deviceOptions =
-    backend === 'clblast'
-      ? selectedBackend.devices!.map((device, index) => ({
-          value: index.toString(),
-          label: `GPU ${index}: ${device}`,
-        }))
-      : [
-          { value: 'all', label: 'All GPUs' },
-          ...selectedBackend.devices!.map((device, index) => ({
+  const deviceOptions = (() => {
+    if (!selectedBackend?.devices) return [];
+
+    if (backend === 'clblast') {
+      return selectedBackend.devices
+        .map((device, index) => {
+          if (typeof device === 'object' && device.isIntegrated) {
+            return null;
+          }
+          const deviceName = typeof device === 'string' ? device : device.name;
+          return {
             value: index.toString(),
-            label: `GPU ${index}: ${device}`,
-          })),
-        ];
+            label: `GPU ${index}: ${deviceName}`,
+          };
+        })
+        .filter(
+          (option): option is NonNullable<typeof option> => option !== null
+        );
+    }
+
+    return [
+      { value: 'all', label: 'All GPUs' },
+      ...selectedBackend.devices.map((device, index) => {
+        const deviceName =
+          typeof device === 'string'
+            ? device
+            : typeof device === 'object' && 'name' in device
+              ? device.name
+              : String(device);
+        return {
+          value: index.toString(),
+          label: `GPU ${index}: ${deviceName}`,
+        };
+      }),
+    ];
+  })();
 
   return (
     <div>

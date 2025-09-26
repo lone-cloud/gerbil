@@ -75,8 +75,6 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     model,
     sdmodel,
     backend,
-    noavx2,
-    failsafe,
     configLoaded,
   });
 
