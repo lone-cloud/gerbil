@@ -13,6 +13,19 @@ import { logError } from '@/utils/node/logging';
 import { getLauncherPath } from '@/utils/node/path';
 import type { InstalledVersion } from '@/types/electron';
 
+const versionCache = new Map<
+  string,
+  { version: string; actualVersion?: string } | null
+>();
+
+export function clearVersionCache(path?: string) {
+  if (path) {
+    versionCache.delete(path);
+  } else {
+    versionCache.clear();
+  }
+}
+
 export async function getInstalledVersions() {
   try {
     const installDir = getInstallDir();
@@ -129,10 +142,46 @@ export async function setCurrentVersion(binaryPath: string) {
   return false;
 }
 
+export async function deleteRelease(binaryPath: string) {
+  try {
+    if (!(await pathExists(binaryPath))) {
+      return { success: false, error: 'Release not found' };
+    }
+
+    const currentBinaryPath = getCurrentKoboldBinary();
+    if (currentBinaryPath === binaryPath) {
+      return {
+        success: false,
+        error: 'Cannot delete the currently active release',
+      };
+    }
+
+    const releaseDir = binaryPath.split(/[/\\]/).slice(0, -1).join('/');
+
+    if (await pathExists(releaseDir)) {
+      const { rm } = await import('fs/promises');
+      await rm(releaseDir, { recursive: true, force: true });
+
+      clearVersionCache(binaryPath);
+      sendToRenderer('versions-updated');
+
+      return { success: true };
+    }
+
+    return { success: false, error: 'Release directory not found' };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+}
+
 export async function getVersionFromBinary(launcherPath: string) {
   try {
     if (!(await pathExists(launcherPath))) {
       return null;
+    }
+
+    if (versionCache.has(launcherPath)) {
+      return versionCache.get(launcherPath);
     }
 
     let folderVersion: string | null = null;
@@ -155,37 +204,31 @@ export async function getVersionFromBinary(launcherPath: string) {
       });
 
       const allOutput = (result.stdout + result.stderr).trim();
+      const lines = allOutput.split('\n').filter((line) => line.trim());
 
-      if (/^\d+\.\d+/.test(allOutput)) {
-        const versionParts = allOutput.split(/\s+/)[0];
-        if (versionParts && /^\d+\.\d+/.test(versionParts)) {
-          actualVersion = versionParts;
-        }
-      }
-
-      if (!actualVersion) {
-        const lines = allOutput.split('\n');
-        for (const line of lines) {
-          const trimmedLine = line.trim();
-          if (/^\d+\.\d+/.test(trimmedLine)) {
-            const versionPart = trimmedLine.split(/\s+/)[0];
-            if (versionPart) {
-              actualVersion = versionPart;
-              break;
-            }
-          }
+      if (lines.length > 0) {
+        const lastLine = lines[lines.length - 1].trim();
+        const versionMatch = lastLine.match(
+          /^(\d+\.\d+(?:\.\d+)?(?:\.[a-zA-Z0-9]+)*(?:-[a-zA-Z0-9]+)*)$/
+        );
+        if (versionMatch) {
+          actualVersion = versionMatch[1];
         }
       }
     } catch {}
 
-    return {
+    const result = {
       version: folderVersion || actualVersion || 'unknown',
       actualVersion:
         folderVersion && actualVersion && folderVersion !== actualVersion
           ? actualVersion
           : undefined,
     };
+
+    versionCache.set(launcherPath, result);
+    return result;
   } catch {
+    versionCache.set(launcherPath, null);
     return null;
   }
 }

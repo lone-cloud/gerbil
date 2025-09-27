@@ -96,7 +96,7 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
                               download.url
                             )}
                             description={getAssetDescription(download.name)}
-                            isDownloading={isDownloading}
+                            isLoading={isDownloading}
                             downloadProgress={
                               isDownloading
                                 ? downloadProgress[download.name] || 0

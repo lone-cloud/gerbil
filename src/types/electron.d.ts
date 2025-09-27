@@ -124,6 +124,9 @@ export interface KoboldAPI {
     asset: GitHubAsset,
     options: DownloadReleaseOptions
   ) => Promise<void>;
+  deleteRelease: (
+    binaryPath: string
+  ) => Promise<{ success: boolean; error?: string }>;
   launchKoboldCpp: (
     args?: string[]
   ) => Promise<{ success: boolean; pid?: number; error?: string }>;

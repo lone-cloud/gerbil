@@ -4,7 +4,7 @@ import { formatDeviceName } from '@/utils/format';
 
 let vulkanInfoCache: {
   allGPUs: {
-    deviceName: string;
+    name: string;
     driverInfo?: string;
     apiVersion?: string;
     hasAMD: boolean;
@@ -27,7 +27,7 @@ export async function getVulkanInfo() {
     });
 
     const allGPUs: {
-      deviceName: string;
+      name: string;
       driverInfo?: string;
       apiVersion?: string;
       hasAMD: boolean;
@@ -62,7 +62,7 @@ export async function getVulkanInfo() {
             'PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU'
           );
           currentGPU = {
-            deviceName: '',
+            name: '',
             hasAMD: false,
             hasNVIDIA: false,
             isIntegrated,
@@ -77,7 +77,7 @@ export async function getVulkanInfo() {
           if (parts.length >= 2) {
             const name = parts[1]?.trim();
             if (name) {
-              currentGPU.deviceName = name;
+              currentGPU.name = name;
               currentGPU.hasAMD =
                 name.toLowerCase().includes('amd') ||
                 name.toLowerCase().includes('radeon');
@@ -107,7 +107,7 @@ export async function getVulkanInfo() {
             }
           }
         } else if (foundGPU && currentGPU && line.includes('GPU')) {
-          if (currentGPU.deviceName) {
+          if (currentGPU.name) {
             allGPUs.push(currentGPU);
           }
           foundGPU = false;
@@ -115,7 +115,7 @@ export async function getVulkanInfo() {
         }
       }
 
-      if (foundGPU && currentGPU && currentGPU.deviceName) {
+      if (foundGPU && currentGPU && currentGPU.name) {
         allGPUs.push(currentGPU);
       }
     }
@@ -143,7 +143,7 @@ export async function detectGPUViaVulkan() {
     const gpuInfo: string[] = [];
 
     for (const gpu of vulkanInfo.allGPUs.filter((g) => !g.isIntegrated)) {
-      gpuInfo.push(formatDeviceName(gpu.deviceName));
+      gpuInfo.push(formatDeviceName(gpu.name));
 
       if (gpu.hasAMD) {
         hasAMD = true;

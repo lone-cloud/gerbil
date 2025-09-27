@@ -1,21 +1,7 @@
 import type { SystemVersionInfo } from '@/types/electron';
-import type {
-  CPUCapabilities,
-  GPUCapabilities,
-  BasicGPUInfo,
-  GPUMemoryInfo,
-  SystemMemoryInfo,
-} from '@/types/hardware';
 import { PRODUCT_NAME } from '@/constants';
 import type { InfoItem } from '@/components/InfoCard';
-
-export interface HardwareInfo {
-  cpu: CPUCapabilities;
-  gpu: BasicGPUInfo;
-  gpuCapabilities: GPUCapabilities;
-  gpuMemory: GPUMemoryInfo[];
-  systemMemory: SystemMemoryInfo;
-}
+import type { HardwareInfo } from '@/types/hardware';
 
 export const createSoftwareItems = (versionInfo: SystemVersionInfo) => [
   {
