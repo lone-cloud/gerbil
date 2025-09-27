@@ -1,10 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-  createSoftwareItems,
-  createDriverItems,
-  createHardwareItems,
-} from '@/utils/systemInfo';
-import {
   Text,
   Stack,
   Group,
@@ -15,11 +10,9 @@ import {
   Button,
   rem,
 } from '@mantine/core';
-import { Github, FolderOpen, FileText } from 'lucide-react';
+import { Github } from 'lucide-react';
 import { useLogoClickSounds } from '@/hooks/useLogoClickSounds';
 import { PRODUCT_NAME, GITHUB_API } from '@/constants';
-import { InfoCard } from '@/components/InfoCard';
-import type { HardwareInfo } from '@/types/hardware';
 import type { SystemVersionInfo } from '@/types/electron';
 
 import icon from '/icon.png';
@@ -28,7 +21,6 @@ export const AboutTab = () => {
   const [versionInfo, setVersionInfo] = useState<SystemVersionInfo | null>(
     null
   );
-  const [hardwareInfo, setHardwareInfo] = useState<HardwareInfo | null>(null);
   const { handleLogoClick, getLogoStyles } = useLogoClickSounds();
 
   useEffect(() => {
@@ -39,34 +31,7 @@ export const AboutTab = () => {
       }
     };
 
-    const loadHardwareInfo = async () => {
-      try {
-        const [cpu, gpu, gpuCapabilities, gpuMemory, systemMemory] =
-          await Promise.all([
-            window.electronAPI.kobold.detectCPU(),
-            window.electronAPI.kobold.detectGPU(),
-            window.electronAPI.kobold.detectGPUCapabilities(),
-            window.electronAPI.kobold.detectGPUMemory(),
-            window.electronAPI.kobold.detectSystemMemory(),
-          ]);
-
-        setHardwareInfo({
-          cpu,
-          gpu,
-          gpuCapabilities,
-          gpuMemory,
-          systemMemory,
-        });
-      } catch (error) {
-        window.electronAPI.logs.logError(
-          'Failed to load hardware info',
-          error as Error
-        );
-      }
-    };
-
     loadVersionInfo();
-    loadHardwareInfo();
   }, []);
 
   if (!versionInfo) {
@@ -77,26 +42,12 @@ export const AboutTab = () => {
     );
   }
 
-  const softwareItems = createSoftwareItems(versionInfo);
-  const driverItems = hardwareInfo ? createDriverItems(hardwareInfo) : [];
-  const hardwareItems = hardwareInfo ? createHardwareItems(hardwareInfo) : [];
-
   const actionButtons = [
     {
       icon: Github,
       label: 'GitHub',
       onClick: () =>
         window.electronAPI.app.openExternal(GITHUB_API.GERBIL_GITHUB_URL),
-    },
-    {
-      icon: FolderOpen,
-      label: 'Show Logs',
-      onClick: () => window.electronAPI.app.showLogsFolder(),
-    },
-    {
-      icon: FileText,
-      label: 'View Config',
-      onClick: () => window.electronAPI.app.viewConfigFile(),
     },
   ];
 
@@ -157,15 +108,18 @@ export const AboutTab = () => {
         </Group>
       </Card>
 
-      <InfoCard title="Software" items={softwareItems} />
-
-      <InfoCard title="Drivers" items={driverItems} loading={!hardwareInfo} />
-
-      <InfoCard
-        title="Hardware"
-        items={hardwareItems}
-        loading={!hardwareInfo}
-      />
+      <Card withBorder radius="md" p="md">
+        <Text size="lg" fw={500} mb="md">
+          About {PRODUCT_NAME}
+        </Text>
+        <Text size="sm" c="dimmed" mb="md">
+          {PRODUCT_NAME} is a user-friendly desktop application that makes it
+          easy to run large language models locally on your machine. Whether
+          you&apos;re looking to chat with AI models, generate images, or
+          explore different interfaces like SillyTavern and Open WebUI,{' '}
+          {PRODUCT_NAME} provides a streamlined experience for local AI.
+        </Text>
+      </Card>
     </Stack>
   );
 };

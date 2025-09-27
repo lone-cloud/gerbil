@@ -5,11 +5,13 @@ import {
   Palette,
   SlidersHorizontal,
   GitBranch,
+  Monitor,
   Info,
 } from 'lucide-react';
 import { GeneralTab } from '@/components/settings/GeneralTab';
 import { VersionsTab } from '@/components/settings/VersionsTab';
 import { AppearanceTab } from '@/components/settings/AppearanceTab';
+import { SystemTab } from '@/components/settings/SystemTab';
 import { AboutTab } from '@/components/settings/AboutTab';
 import type { Screen } from '@/types';
 import { Modal } from '@/components/Modal';
@@ -130,6 +132,14 @@ export const SettingsModal = ({
               Appearance
             </Tabs.Tab>
             <Tabs.Tab
+              value="system"
+              leftSection={
+                <Monitor style={{ width: rem(16), height: rem(16) }} />
+              }
+            >
+              System
+            </Tabs.Tab>
+            <Tabs.Tab
               value="about"
               leftSection={<Info style={{ width: rem(16), height: rem(16) }} />}
             >
@@ -138,7 +148,7 @@ export const SettingsModal = ({
           </Tabs.List>
 
           <Tabs.Panel value="general">
-            <GeneralTab isOnInterfaceScreen={isOnInterfaceScreen} />
+            <GeneralTab />
           </Tabs.Panel>
 
           {showVersionsTab && (
@@ -148,7 +158,11 @@ export const SettingsModal = ({
           )}
 
           <Tabs.Panel value="appearance">
-            <AppearanceTab />
+            <AppearanceTab isOnInterfaceScreen={isOnInterfaceScreen} />
+          </Tabs.Panel>
+
+          <Tabs.Panel value="system">
+            <SystemTab />
           </Tabs.Panel>
 
           <Tabs.Panel value="about">

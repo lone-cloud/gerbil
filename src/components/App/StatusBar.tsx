@@ -128,7 +128,7 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
               ))}
             </>
           ) : (
-            <PerformanceBadge tooltipLabel="System resource manager" iconOnly />
+            <PerformanceBadge tooltipLabel="Resource manager" iconOnly />
           )}
         </Group>
       </Group>
