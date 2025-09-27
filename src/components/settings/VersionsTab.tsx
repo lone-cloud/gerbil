@@ -199,6 +199,17 @@ export const VersionsTab = () => {
     await loadInstalledVersions();
   };
 
+  const handleDelete = async (version: VersionInfo) => {
+    if (!version.installedPath || version.isCurrent) return;
+
+    const result = await window.electronAPI.kobold.deleteRelease(
+      version.installedPath
+    );
+    if (result.success) {
+      await loadInstalledVersions();
+    }
+  };
+
   const makeCurrent = (version: VersionInfo) => {
     if (!version.installedPath) return;
 
@@ -270,7 +281,7 @@ export const VersionsTab = () => {
                   : ''
               }
               description={getAssetDescription(version.name)}
-              isDownloading={isDownloading}
+              isLoading={isDownloading}
               downloadProgress={downloadProgress[version.name]}
               disabled={downloading !== null}
               onDownload={(e) => {
@@ -284,6 +295,10 @@ export const VersionsTab = () => {
               onRedownload={(e) => {
                 e.stopPropagation();
                 handleRedownload(version);
+              }}
+              onDelete={(e) => {
+                e.stopPropagation();
+                handleDelete(version);
               }}
               onMakeCurrent={() => makeCurrent(version)}
             />

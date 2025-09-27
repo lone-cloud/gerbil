@@ -110,7 +110,7 @@ async function detectVulkan() {
       const isIntegrated = gpu.isIntegrated;
 
       devices.push({
-        name: isIntegrated ? gpu.deviceName : formatDeviceName(gpu.deviceName),
+        name: isIntegrated ? gpu.name : formatDeviceName(gpu.name),
         isIntegrated,
       });
     }
@@ -192,155 +192,30 @@ async function detectCUDA() {
 export async function detectROCm() {
   try {
     const rocminfoCommand = platform === 'win32' ? 'hipInfo' : 'rocminfo';
-    const { stdout } = await execa(rocminfoCommand, [], COMMON_EXEC_OPTIONS);
+    const [rocminfoResult, vulkanInfo, hipccVersion] = await Promise.all([
+      execa(rocminfoCommand, [], COMMON_EXEC_OPTIONS),
+      getVulkanInfo(),
+      execa('hipcc', ['--version'], COMMON_EXEC_OPTIONS),
+    ]);
+    const { stdout } = rocminfoResult;
+    const { stdout: hipccOutput } = hipccVersion;
+    let version: string | undefined;
+    let driverVersion: string | undefined;
+
+    try {
+      if (hipccOutput.trim()) {
+        const hipVersionMatch = hipccOutput.match(
+          /HIP version:\s*(\d+\.\d+(?:\.\d+)?)/i
+        );
+
+        if (hipVersionMatch) {
+          version = hipVersionMatch[1];
+        }
+      }
+    } catch {}
 
     if (stdout.trim()) {
-      const devices: GPUDevice[] = [];
-
-      if (platform === 'win32') {
-        const lines = stdout.split('\n');
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i];
-
-          if (line.includes('Marketing Name:')) {
-            const name = line.split('Marketing Name:')[1]?.trim();
-            if (name && !name.toLowerCase().includes('cpu')) {
-              let deviceType = '';
-
-              const searchRangeLines = 20;
-              const searchStartIndex = Math.max(0, i - searchRangeLines);
-              const searchEndIndex = Math.min(
-                lines.length,
-                i + searchRangeLines
-              );
-
-              for (
-                let searchIndex = searchStartIndex;
-                searchIndex < searchEndIndex;
-                searchIndex++
-              ) {
-                if (lines[searchIndex].includes('Device Type:')) {
-                  deviceType =
-                    lines[searchIndex].split('Device Type:')[1]?.trim() || '';
-                  break;
-                }
-              }
-
-              if (deviceType !== 'CPU') {
-                let isIntegrated = true;
-                try {
-                  const vulkanInfo = await getVulkanInfo();
-                  const matchingGPU = vulkanInfo.allGPUs.find(
-                    (gpu) =>
-                      gpu.deviceName.includes(name) ||
-                      name.includes(gpu.deviceName)
-                  );
-                  isIntegrated = matchingGPU ? matchingGPU.isIntegrated : false;
-                } catch {
-                  isIntegrated = false;
-                }
-
-                devices.push({
-                  name: isIntegrated ? name : formatDeviceName(name),
-                  isIntegrated,
-                });
-              }
-            }
-          }
-        }
-      } else {
-        const lines = stdout.split('\n');
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i];
-
-          if (line.includes('Marketing Name:')) {
-            const name = line.split('Marketing Name:')[1]?.trim();
-            if (name) {
-              let deviceType = '';
-
-              const searchRangeLines = 20;
-              const searchStartIndex = Math.max(0, i - searchRangeLines);
-              const searchEndIndex = Math.min(
-                lines.length,
-                i + searchRangeLines
-              );
-
-              for (
-                let searchIndex = searchStartIndex;
-                searchIndex < searchEndIndex;
-                searchIndex++
-              ) {
-                if (lines[searchIndex].includes('Device Type:')) {
-                  deviceType =
-                    lines[searchIndex].split('Device Type:')[1]?.trim() || '';
-                  break;
-                }
-              }
-
-              if (deviceType !== 'CPU') {
-                // Check if integrated by cross-referencing with vulkan GPU list
-                let isIntegrated = true;
-                try {
-                  const vulkanInfo = await getVulkanInfo();
-                  const matchingGPU = vulkanInfo.allGPUs.find(
-                    (gpu) =>
-                      gpu.deviceName.includes(name) ||
-                      name.includes(gpu.deviceName)
-                  );
-                  isIntegrated = matchingGPU ? matchingGPU.isIntegrated : false;
-                } catch {
-                  isIntegrated = false;
-                }
-
-                devices.push({
-                  name: isIntegrated ? name : formatDeviceName(name),
-                  isIntegrated,
-                });
-              }
-            }
-          }
-        }
-      }
-
-      let version: string | undefined;
-
-      if (platform === 'linux' || platform === 'darwin') {
-        try {
-          const { stdout: amdSmiOutput } = await execa(
-            'amd-smi',
-            COMMON_EXEC_OPTIONS
-          );
-
-          if (amdSmiOutput.trim()) {
-            const match =
-              amdSmiOutput.match(/ROCm version:\s*(\d+\.\d+\.\d+)/i) ||
-              amdSmiOutput.match(/version\s*(\d+\.\d+\.\d+)/i) ||
-              amdSmiOutput.match(/(\d+\.\d+\.\d+)/);
-            if (match) {
-              version = match[1];
-            }
-          }
-        } catch {}
-      } else {
-        try {
-          const { stdout: hipccOutput } = await execa(
-            'hipcc',
-            ['--version'],
-            COMMON_EXEC_OPTIONS
-          );
-
-          if (hipccOutput.trim()) {
-            const hipVersionMatch = hipccOutput.match(
-              /HIP version:\s*(\d+\.\d+(?:\.\d+)?)/i
-            );
-            if (hipVersionMatch) {
-              version = hipVersionMatch[1];
-            }
-          }
-        } catch {}
-      }
-
-      let driverVersion: string | undefined;
+      const devices = parseRocmOutput(stdout, vulkanInfo);
 
       if (platform === 'win32') {
         try {
@@ -357,10 +232,8 @@ export async function detectROCm() {
             driverVersion = driverOutput.trim();
           }
         } catch {}
-      } else if (platform === 'linux') {
+      } else {
         try {
-          const vulkanInfo = await getVulkanInfo();
-
           for (const gpu of vulkanInfo.allGPUs) {
             if (gpu.driverInfo && !gpu.isIntegrated) {
               driverVersion = gpu.driverInfo;
@@ -466,6 +339,119 @@ function findComputeUnitsInClInfo(lines: string[], startIndex: number) {
 }
 
 const isDiscreteGPU = (computeUnits: number) => computeUnits > 12;
+
+function parseRocmOutput(output: string, vulkanInfo: { allGPUs: GPUDevice[] }) {
+  const devices: GPUDevice[] = [];
+  const lines = output.split('\n');
+  let currentDevice: Partial<GPUDevice> | null = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmedLine = line.trim();
+
+    // Handle hipInfo format
+    if (handleHipInfoLine(trimmedLine, currentDevice, devices)) {
+      currentDevice = trimmedLine.startsWith('device#') ? {} : currentDevice;
+      continue;
+    }
+
+    // Handle rocminfo format
+    if (line.includes('Marketing Name:')) {
+      const device = parseRocmInfoDevice(line, lines, i, vulkanInfo);
+      if (device) {
+        devices.push(device);
+      }
+    }
+  }
+
+  // Add the last device for hipInfo format
+  if (currentDevice?.name) {
+    devices.push(
+      createDevice(currentDevice.name, currentDevice.isIntegrated || false)
+    );
+  }
+
+  return devices;
+}
+
+function handleHipInfoLine(
+  trimmedLine: string,
+  currentDevice: Partial<GPUDevice> | null,
+  devices: GPUDevice[]
+): boolean {
+  if (trimmedLine.startsWith('device#')) {
+    if (currentDevice?.name) {
+      devices.push(
+        createDevice(currentDevice.name, currentDevice.isIntegrated || false)
+      );
+    }
+    return true;
+  }
+
+  if (currentDevice) {
+    if (trimmedLine.startsWith('Name:')) {
+      currentDevice.name = trimmedLine.split('Name:')[1]?.trim();
+    } else if (trimmedLine.startsWith('isIntegrated:')) {
+      const value = trimmedLine.split('isIntegrated:')[1]?.trim();
+      currentDevice.isIntegrated = value === '1';
+    }
+    return true;
+  }
+
+  return false;
+}
+
+function parseRocmInfoDevice(
+  line: string,
+  lines: string[],
+  index: number,
+  vulkanInfo: { allGPUs: GPUDevice[] }
+) {
+  const name = line.split('Marketing Name:')[1]?.trim();
+  if (!name) return null;
+
+  const deviceType = findDeviceType(lines, index);
+  if (deviceType === 'CPU') return null;
+
+  const isIntegrated = determineIfIntegrated(name, vulkanInfo);
+  return createDevice(name, isIntegrated);
+}
+
+const createDevice = (name: string, isIntegrated: boolean) => ({
+  name: isIntegrated ? name : formatDeviceName(name),
+  isIntegrated,
+});
+
+function findDeviceType(lines: string[], startIndex: number) {
+  const searchRangeLines = 20;
+  const searchStartIndex = Math.max(0, startIndex - searchRangeLines);
+  const searchEndIndex = Math.min(lines.length, startIndex + searchRangeLines);
+
+  for (
+    let searchIndex = searchStartIndex;
+    searchIndex < searchEndIndex;
+    searchIndex++
+  ) {
+    if (lines[searchIndex].includes('Device Type:')) {
+      return lines[searchIndex].split('Device Type:')[1]?.trim() || '';
+    }
+  }
+  return '';
+}
+
+function determineIfIntegrated(
+  name: string,
+  vulkanInfo: { allGPUs: GPUDevice[] }
+): boolean {
+  try {
+    const matchingGPU = vulkanInfo.allGPUs.find(
+      (gpu) => gpu.name.includes(name) || name.includes(gpu.name)
+    );
+    return matchingGPU ? matchingGPU.isIntegrated : false;
+  } catch {
+    return false;
+  }
+}
 
 async function detectCLBlast() {
   try {

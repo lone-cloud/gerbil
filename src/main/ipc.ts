@@ -11,6 +11,7 @@ import {
   getInstalledVersions,
   getCurrentVersion,
   setCurrentVersion,
+  deleteRelease,
 } from '@/main/modules/koboldcpp/version';
 import {
   getConfigFiles,
@@ -136,6 +137,10 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('kobold:launchKoboldCpp', (_, args) =>
     launchKoboldCppWithCustomFrontends(args)
+  );
+
+  ipcMain.handle('kobold:deleteRelease', (_, binaryPath) =>
+    deleteRelease(binaryPath)
   );
 
   ipcMain.handle('kobold:stopKoboldCpp', () => {

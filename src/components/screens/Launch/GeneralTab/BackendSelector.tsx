@@ -26,8 +26,10 @@ export const BackendSelector = () => {
   useEffect(() => {
     const loadBackends = async () => {
       setIsLoadingBackends(true);
+
       const backends =
         await window.electronAPI.kobold.getAvailableBackends(true);
+
       setAvailableBackends(backends || []);
       setIsLoadingBackends(false);
       hasInitialized.current = true;

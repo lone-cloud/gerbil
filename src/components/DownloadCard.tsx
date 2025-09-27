@@ -9,7 +9,7 @@ import {
   Progress,
   rem,
 } from '@mantine/core';
-import { Download } from 'lucide-react';
+import { Download, Trash2 } from 'lucide-react';
 import { MouseEvent } from 'react';
 import { pretifyBinName, isWindowsROCmBuild } from '@/utils/assets';
 import { usePreferencesStore } from '@/stores/preferences';
@@ -19,26 +19,28 @@ interface DownloadCardProps {
   version: VersionInfo;
   size: string;
   description?: string;
-  isDownloading?: boolean;
+  isLoading?: boolean;
   downloadProgress?: number;
   disabled?: boolean;
   onDownload: (e: MouseEvent<HTMLButtonElement>) => void;
   onMakeCurrent?: () => void;
   onUpdate?: (e: MouseEvent<HTMLButtonElement>) => void;
   onRedownload?: (e: MouseEvent<HTMLButtonElement>) => void;
+  onDelete?: (e: MouseEvent<HTMLButtonElement>) => void;
 }
 
 export const DownloadCard = ({
   version: versionInfo,
   size,
   description,
-  isDownloading = false,
+  isLoading = false,
   downloadProgress = 0,
   disabled = false,
   onDownload,
   onMakeCurrent,
   onUpdate,
   onRedownload,
+  onDelete,
 }: DownloadCardProps) => {
   const { resolvedColorScheme: colorScheme } = usePreferencesStore();
   const hasVersionMismatch = Boolean(
@@ -46,6 +48,8 @@ export const DownloadCard = ({
       versionInfo.actualVersion &&
       versionInfo.version !== versionInfo.actualVersion
   );
+
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   const renderActionButtons = () => {
     const buttons = [];
 
@@ -56,17 +60,17 @@ export const DownloadCard = ({
           variant="filled"
           size="xs"
           onClick={onDownload}
-          loading={isDownloading}
+          loading={isLoading}
           disabled={disabled}
           leftSection={
-            isDownloading ? (
+            isLoading ? (
               <Loader size="1rem" />
             ) : (
               <Download style={{ width: rem(14), height: rem(14) }} />
             )
           }
         >
-          {isDownloading ? 'Downloading...' : 'Download'}
+          {isLoading ? 'Downloading...' : 'Download'}
         </Button>
       );
     }
@@ -92,20 +96,18 @@ export const DownloadCard = ({
           variant="filled"
           size="xs"
           onClick={onUpdate}
-          loading={isDownloading}
+          loading={isLoading}
           disabled={disabled}
           color="orange"
           leftSection={
-            isDownloading ? (
+            isLoading ? (
               <Loader size="1rem" />
             ) : (
               <Download style={{ width: rem(14), height: rem(14) }} />
             )
           }
         >
-          {isDownloading
-            ? 'Updating...'
-            : `Update to ${versionInfo.newerVersion}`}
+          {isLoading ? 'Updating...' : `Update to ${versionInfo.newerVersion}`}
         </Button>
       );
     }
@@ -117,18 +119,41 @@ export const DownloadCard = ({
           variant="filled"
           size="xs"
           onClick={onRedownload}
-          loading={isDownloading}
+          loading={isLoading}
           disabled={disabled}
           color="red"
           leftSection={
-            isDownloading ? (
+            isLoading ? (
               <Loader size="1rem" />
             ) : (
               <Download style={{ width: rem(14), height: rem(14) }} />
             )
           }
         >
-          {isDownloading ? 'Re-downloading...' : 'Re-download'}
+          {isLoading ? 'Re-downloading...' : 'Re-download'}
+        </Button>
+      );
+    }
+
+    if (onDelete && versionInfo.isInstalled && !versionInfo.isCurrent) {
+      buttons.push(
+        <Button
+          key="delete"
+          variant="light"
+          size="xs"
+          onClick={onDelete}
+          loading={isLoading}
+          disabled={disabled}
+          color="red"
+          leftSection={
+            isLoading ? (
+              <Loader size="1rem" />
+            ) : (
+              <Trash2 style={{ width: rem(14), height: rem(14) }} />
+            )
+          }
+        >
+          {isLoading ? 'Deleting...' : 'Delete'}
         </Button>
       );
     }
@@ -201,7 +226,7 @@ export const DownloadCard = ({
         {renderActionButtons()}
       </Group>
 
-      {isDownloading && downloadProgress !== undefined && (
+      {isLoading && downloadProgress !== undefined && (
         <Stack gap="xs" mt="sm">
           <Progress
             value={Math.min(downloadProgress, 100)}

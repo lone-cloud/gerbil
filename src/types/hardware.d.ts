@@ -13,8 +13,8 @@ export interface SystemMemoryInfo {
 }
 
 export interface GPUDevice {
-  readonly name: string;
-  readonly isIntegrated: boolean;
+  name: string;
+  isIntegrated: boolean;
 }
 
 export interface GPUCapabilities {
@@ -52,7 +52,7 @@ export interface HardwareDetectionResult {
 export interface HardwareInfo {
   cpu: CPUCapabilities;
   gpu: BasicGPUInfo;
-  gpuCapabilities?: GPUCapabilities;
-  gpuMemory?: GPUMemoryInfo[];
-  systemMemory?: SystemMemoryInfo;
+  gpuCapabilities: GPUCapabilities;
+  gpuMemory: GPUMemoryInfo[];
+  systemMemory: SystemMemoryInfo;
 }

@@ -3,7 +3,6 @@ import {
   createSoftwareItems,
   createDriverItems,
   createHardwareItems,
-  type HardwareInfo,
 } from '@/utils/systemInfo';
 import {
   Text,
@@ -18,9 +17,10 @@ import {
 } from '@mantine/core';
 import { Github, FolderOpen, FileText } from 'lucide-react';
 import { useLogoClickSounds } from '@/hooks/useLogoClickSounds';
-import type { SystemVersionInfo } from '@/types/electron';
 import { PRODUCT_NAME, GITHUB_API } from '@/constants';
 import { InfoCard } from '@/components/InfoCard';
+import type { HardwareInfo } from '@/types/hardware';
+import type { SystemVersionInfo } from '@/types/electron';
 
 import icon from '/icon.png';
 
