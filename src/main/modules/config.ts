@@ -51,10 +51,6 @@ async function saveConfig() {
   return success !== null;
 }
 
-function saveConfigAsync() {
-  saveConfig();
-}
-
 export async function initialize() {
   configPath = getConfigDir();
   config = await loadConfig();
@@ -85,9 +81,9 @@ function getDefaultInstallDir() {
 
 export const getInstallDir = () => config.installDir || getDefaultInstallDir();
 
-export function setInstallDir(dir: string) {
+export async function setInstallDir(dir: string) {
   config.installDir = dir;
-  saveConfigAsync();
+  await saveConfig();
 }
 
 export function getCurrentKoboldBinary() {
@@ -95,23 +91,23 @@ export function getCurrentKoboldBinary() {
   return path ? path.trim() : path;
 }
 
-export function setCurrentKoboldBinary(binaryPath: string) {
+export async function setCurrentKoboldBinary(binaryPath: string) {
   config.currentKoboldBinary = binaryPath;
-  saveConfigAsync();
+  await saveConfig();
 }
 
 export const getSelectedConfig = () => config.selectedConfig;
 
-export function setSelectedConfig(configName: string) {
+export async function setSelectedConfig(configName: string) {
   config.selectedConfig = configName;
-  saveConfigAsync();
+  await saveConfig();
 }
 
 export const getColorScheme = () => config.colorScheme || 'auto';
 
-export function setColorScheme(colorScheme: MantineColorScheme) {
+export async function setColorScheme(colorScheme: MantineColorScheme) {
   config.colorScheme = colorScheme;
-  saveConfigAsync();
+  await saveConfig();
 }
 
 export function getBackgroundColor() {
@@ -128,42 +124,42 @@ export function getBackgroundColor() {
 
 export const getWindowBounds = () => config.windowBounds;
 
-export function setWindowBounds(bounds: WindowBounds) {
+export async function setWindowBounds(bounds: WindowBounds) {
   config.windowBounds = bounds;
-  saveConfigAsync();
+  await saveConfig();
 }
 
 export const getFrontendPreference = () => config.frontendPreference;
 
-export function setFrontendPreference(preference: FrontendPreference) {
+export async function setFrontendPreference(preference: FrontendPreference) {
   config.frontendPreference = preference;
-  saveConfigAsync();
+  await saveConfig();
 }
 
 export const getHasSeenWelcome = () => config.hasSeenWelcome;
 
-export function setHasSeenWelcome(hasSeenWelcome: boolean) {
+export async function setHasSeenWelcome(hasSeenWelcome: boolean) {
   config.hasSeenWelcome = hasSeenWelcome;
-  saveConfigAsync();
+  await saveConfig();
 }
 
 export const getSkipEjectConfirmation = () => config.skipEjectConfirmation;
 
-export function setSkipEjectConfirmation(skipEjectConfirmation: boolean) {
+export async function setSkipEjectConfirmation(skipEjectConfirmation: boolean) {
   config.skipEjectConfirmation = skipEjectConfirmation;
-  saveConfigAsync();
+  await saveConfig();
 }
 
 export const getDismissedUpdates = () => config.dismissedUpdates || [];
 
-export function setDismissedUpdates(dismissedUpdates: DismissedUpdate[]) {
+export async function setDismissedUpdates(dismissedUpdates: DismissedUpdate[]) {
   config.dismissedUpdates = dismissedUpdates;
-  saveConfigAsync();
+  await saveConfig();
 }
 
 export const getZoomLevel = () => config.zoomLevel;
 
-export function setZoomLevel(zoomLevel: number) {
+export async function setZoomLevel(zoomLevel: number) {
   config.zoomLevel = zoomLevel;
-  saveConfigAsync();
+  await saveConfig();
 }

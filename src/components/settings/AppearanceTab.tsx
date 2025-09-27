@@ -11,14 +11,21 @@ import {
 import { Sun, Moon, Monitor } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { usePreferencesStore } from '@/stores/preferences';
+import { ZOOM } from '@/constants';
+import { FrontendInterfaceSelector } from '@/components/settings/FrontendInterfaceSelector';
 import {
   zoomLevelToPercentage,
   percentageToZoomLevel,
   isValidZoomPercentage,
 } from '@/utils/zoom';
-import { ZOOM } from '@/constants';
 
-export const AppearanceTab = () => {
+interface AppearanceTabProps {
+  isOnInterfaceScreen?: boolean;
+}
+
+export const AppearanceTab = ({
+  isOnInterfaceScreen = false,
+}: AppearanceTabProps) => {
   const {
     rawColorScheme,
     resolvedColorScheme,
@@ -70,6 +77,9 @@ export const AppearanceTab = () => {
 
   return (
     <Stack gap="lg" h="100%">
+      <div>
+        <FrontendInterfaceSelector isOnInterfaceScreen={isOnInterfaceScreen} />
+      </div>
       <div>
         <Text fw={500} mb="sm">
           Theme
@@ -127,7 +137,6 @@ export const AppearanceTab = () => {
           ]}
         />
       </div>
-
       <div>
         <Text fw={500} mb="sm">
           Zoom Level
