@@ -57,7 +57,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-sonarjs": "^3.0.5",
     "globals": "^16.4.0",
-    "jiti": "^2.6.0",
+    "jiti": "^2.6.1",
     "prettier": "^3.6.2",
     "rollup-plugin-visualizer": "^6.0.3",
     "typescript": "^5.9.3",

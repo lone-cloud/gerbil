@@ -59,6 +59,7 @@ export function updateTrayState(state: {
   if (state.monitoringEnabled !== undefined) {
     appState.monitoringEnabled = state.monitoringEnabled;
   }
+
   updateTrayMenu();
 }
 
@@ -179,14 +180,7 @@ function buildContextMenu() {
 }
 
 export function createTray() {
-  const isEnabled = getEnableSystemTray();
-
-  if (!isEnabled) {
-    destroyTray();
-    return;
-  }
-
-  if (tray) {
+  if (!getEnableSystemTray() || tray) {
     return;
   }
 
@@ -230,13 +224,6 @@ export function createTray() {
       tray.setContextMenu(buildContextMenu());
     }
   });
-}
-
-export function destroyTray() {
-  if (tray) {
-    tray.destroy();
-    tray = null;
-  }
 }
 
 export function updateTrayMenu() {
