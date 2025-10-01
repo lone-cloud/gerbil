@@ -45,3 +45,6 @@ export const formatDeviceName = (deviceName: string) =>
     .replace(/\s*\d+-core\s*/gi, '')
     .replace(/\s+/g, ' ')
     .trim();
+
+export const stripFileExtension = (filename: string) =>
+  filename.replace(/\.[^/.]+$/, '');

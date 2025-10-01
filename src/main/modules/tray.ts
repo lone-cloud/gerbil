@@ -9,6 +9,7 @@ import { join } from 'path';
 import { platform, resourcesPath } from 'process';
 import { getEnableSystemTray } from './config';
 import { getMainWindow } from './window';
+import { stripFileExtension } from '@/utils/format';
 import type { CpuMetrics, MemoryMetrics, GpuMetrics } from './monitoring';
 import type { Screen } from '@/types';
 import { PRODUCT_NAME } from '@/constants';
@@ -142,8 +143,13 @@ function buildContextMenu() {
   menuTemplate.push({ type: 'separator' });
 
   if (appState.currentScreen === 'launch' && !appState.isLaunched) {
+    const configDisplayName = appState.currentConfig
+      ? stripFileExtension(appState.currentConfig)
+      : null;
     menuTemplate.push({
-      label: 'Launch with Current Config',
+      label: configDisplayName
+        ? `Launch: ${configDisplayName}`
+        : 'Launch with Current Config',
       enabled: !!appState.currentConfig,
       click: () => {
         const mainWindow = getMainWindow();

@@ -5,6 +5,7 @@ import type { ConfigFile } from '@/types';
 import { CreateConfigModal } from './CreateConfigModal';
 import { DeleteConfigModal } from './DeleteConfigModal';
 import { Select } from '@/components/Select';
+import { stripFileExtension } from '@/utils/format';
 
 interface ConfigFileManagerProps {
   configFiles: ConfigFile[];
@@ -29,10 +30,9 @@ export const ConfigFileManager = ({
   const [deleteModalOpened, setDeleteModalOpened] = useState(false);
   const [configToDelete, setConfigToDelete] = useState<string | null>(null);
 
-  const existingConfigNames = configFiles.map((file) => {
-    const extension = file.name.split('.').pop() || '';
-    return file.name.replace(`.${extension}`, '').toLowerCase();
-  });
+  const existingConfigNames = configFiles.map((file) =>
+    stripFileExtension(file.name).toLowerCase()
+  );
 
   const handleOpenConfigModal = () => {
     setConfigModalOpened(true);
@@ -78,7 +78,7 @@ export const ConfigFileManager = ({
 
   const selectData = configFiles.map((file) => {
     const extension = file.name.split('.').pop() || '';
-    const nameWithoutExtension = file.name.replace(`.${extension}`, '');
+    const nameWithoutExtension = stripFileExtension(file.name);
 
     return {
       value: file.name,

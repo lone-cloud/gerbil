@@ -1,5 +1,6 @@
 import { Text, Group, Button, Stack } from '@mantine/core';
 import { Modal } from '@/components/Modal';
+import { stripFileExtension } from '@/utils/format';
 
 interface DeleteConfigModalProps {
   opened: boolean;
@@ -14,7 +15,7 @@ export const DeleteConfigModal = ({
   onConfirm,
   configName,
 }: DeleteConfigModalProps) => {
-  const displayName = configName?.replace(/\.[^/.]+$/, '') || '';
+  const displayName = configName ? stripFileExtension(configName) : '';
 
   return (
     <Modal opened={opened} onClose={onClose} title="Delete Configuration">

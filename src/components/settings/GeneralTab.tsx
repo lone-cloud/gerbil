@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Stack, Text, Switch } from '@mantine/core';
+import { Stack, Text } from '@mantine/core';
 import { usePreferencesStore } from '@/stores/preferences';
+import { Switch } from '@/components/Switch';
 
 export const GeneralTab = () => {
   const [enableSystemTray, setEnableSystemTray] = useState(false);
