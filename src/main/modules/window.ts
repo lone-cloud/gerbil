@@ -8,7 +8,7 @@ import { isDevelopment } from '@/utils/node/environment';
 import {
   getBackgroundColor,
   getWindowBounds,
-  setWindowBounds,
+  set as setConfig,
   WindowBounds,
   getEnableSystemTray,
 } from './config';
@@ -94,10 +94,9 @@ export function createMainWindow() {
         };
       }
 
-      setWindowBounds(bounds);
+      setConfig('windowBounds', bounds);
     }
   };
-
   mainWindow.on('maximize', () => {
     sendToRenderer('window-maximized');
   });
