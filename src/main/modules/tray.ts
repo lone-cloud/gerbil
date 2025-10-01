@@ -6,7 +6,7 @@ import {
   MenuItemConstructorOptions,
 } from 'electron';
 import { join } from 'path';
-import { resourcesPath, platform } from 'process';
+import { platform, resourcesPath } from 'process';
 import { getEnableSystemTray } from './config';
 import { getMainWindow } from './window';
 import type { CpuMetrics, MemoryMetrics, GpuMetrics } from './monitoring';
@@ -184,12 +184,9 @@ export function createTray() {
     return;
   }
 
-  let iconPath: string;
-  if (app.isPackaged) {
-    iconPath = join(resourcesPath, 'assets', 'icon.png');
-  } else {
-    iconPath = join(__dirname, '../../src/assets/icon.png');
-  }
+  const iconPath = app.isPackaged
+    ? join(resourcesPath, 'icon.png')
+    : join(__dirname, '../../src/assets/icon.png');
 
   const icon = nativeImage.createFromPath(iconPath);
 

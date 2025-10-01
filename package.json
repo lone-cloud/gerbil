@@ -1,7 +1,7 @@
 {
   "name": "gerbil",
   "productName": "Gerbil",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "description": "Run Large Language Models locally",
   "main": "out/main/index.js",
   "homepage": "./",
@@ -107,6 +107,12 @@
       {
         "from": "assets/kcpp_sdui.embd",
         "to": "assets/kcpp_sdui.embd"
+      }
+    ],
+    "extraResources": [
+      {
+        "from": "src/assets/icon.png",
+        "to": "icon.png"
       }
     ],
     "mac": {
