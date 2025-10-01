@@ -30,7 +30,7 @@ import {
   getColorScheme,
   getEnableSystemTray,
 } from '@/main/modules/config';
-import { createTray, updateTrayState } from '@/main/modules/tray';
+import { createTray, updateTrayState, destroyTray } from '@/main/modules/tray';
 import { getConfigDir, openPathHandler, openUrl } from '@/utils/node/path';
 import { logError } from '@/utils/node/logging';
 import { stopFrontend as stopSillyTavernFrontend } from '@/main/modules/sillytavern';
@@ -229,7 +229,11 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('app:setEnableSystemTray', async (_, enabled: boolean) => {
     await setConfig('enableSystemTray', enabled);
-    createTray();
+    if (enabled) {
+      createTray();
+    } else {
+      destroyTray();
+    }
   });
 
   ipcMain.handle(

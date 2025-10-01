@@ -6,7 +6,7 @@ import {
   MenuItemConstructorOptions,
 } from 'electron';
 import { join } from 'path';
-import { resourcesPath } from 'process';
+import { resourcesPath, platform } from 'process';
 import { getEnableSystemTray } from './config';
 import { getMainWindow } from './window';
 import type { CpuMetrics, MemoryMetrics, GpuMetrics } from './monitoring';
@@ -230,6 +230,13 @@ export function updateTrayMenu() {
   if (tray) {
     tray.setContextMenu(buildContextMenu());
     updateTrayTooltip();
+  }
+}
+
+export function destroyTray() {
+  if (tray && platform !== 'linux') {
+    tray.destroy();
+    tray = null;
   }
 }
 
