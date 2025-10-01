@@ -9,6 +9,7 @@ import {
   initialize as initializeConfig,
   getInstallDir,
 } from '@/main/modules/config';
+import { createTray } from '@/main/modules/tray';
 import { safeExecute } from '@/utils/node/logging';
 import { stopKoboldCpp } from '@/main/modules/koboldcpp/launcher';
 import { stopFrontend as stopSillyTavern } from '@/main/modules/sillytavern';
@@ -27,6 +28,7 @@ export async function initializeApp() {
   await ensureDir(installDir);
 
   createMainWindow();
+  createTray();
 
   setupIPCHandlers();
 

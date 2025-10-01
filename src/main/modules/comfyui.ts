@@ -14,6 +14,7 @@ import { platform, on } from 'process';
 import type { ChildProcess } from 'child_process';
 import yauzl from 'yauzl';
 import { createWriteStream } from 'fs';
+import { app } from 'electron';
 
 import { logError, safeExecute, tryExecute } from '@/utils/node/logging';
 import { sendKoboldOutput } from './window';
@@ -21,7 +22,7 @@ import { getInstallDir } from './config';
 import { COMFYUI, SERVER_READY_SIGNALS, GITHUB_API } from '@/constants';
 import { terminateProcess } from '@/utils/node/process';
 import { parseKoboldConfig } from '@/utils/node/kobold';
-import { getAppVersion, ensureDir } from '@/utils/node/fs';
+import { ensureDir } from '@/utils/node/fs';
 import { detectGPU } from './hardware';
 import { getUvEnvironment } from './dependencies';
 
@@ -559,7 +560,7 @@ export async function startFrontend(args: string[]) {
       stdio: 'pipe',
     });
 
-    const version = await getAppVersion();
+    const version = await app.getVersion();
     sendKoboldOutput(`ComfyUI started via Gerbil v${version}`);
 
     if (comfyUIProcess.stdout) {

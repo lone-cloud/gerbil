@@ -1,7 +1,8 @@
 import { spawn } from 'child_process';
-import type { ChildProcess } from 'child_process';
 import { join } from 'path';
 import { on } from 'process';
+import { app } from 'electron';
+import type { ChildProcess } from 'child_process';
 
 import { logError } from '@/utils/node/logging';
 import { sendKoboldOutput } from './window';
@@ -9,7 +10,6 @@ import { getInstallDir } from './config';
 import { OPENWEBUI, SERVER_READY_SIGNALS } from '@/constants';
 import { terminateProcess } from '@/utils/node/process';
 import { parseKoboldConfig } from '@/utils/node/kobold';
-import { getAppVersion } from '@/utils/node/fs';
 import { getUvEnvironment } from './dependencies';
 
 let openWebUIProcess: ChildProcess | null = null;
@@ -69,7 +69,10 @@ export async function startFrontend(args: string[]) {
       isImageMode,
     } = parseKoboldConfig(args);
 
-    const [, appVersion] = await Promise.all([stopFrontend(), getAppVersion()]);
+    const [, appVersion] = await Promise.all([
+      stopFrontend(),
+      app.getVersion(),
+    ]);
 
     sendKoboldOutput(
       `Preparing Open WebUI to connect at ${koboldHost}:${koboldPort}${isImageMode ? ' (with image generation)' : ''}...`

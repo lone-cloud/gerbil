@@ -2,6 +2,7 @@ import { ipcMain, app } from 'electron';
 import { join } from 'path';
 import { release } from 'os';
 import { platform, versions, arch } from 'process';
+import type { Screen } from '@/types';
 import {
   stopKoboldCpp,
   launchKoboldCppWithCustomFrontends,
@@ -25,11 +26,11 @@ import {
   get as getConfig,
   set as setConfig,
   getSelectedConfig,
-  setSelectedConfig,
   getInstallDir,
   getColorScheme,
-  setColorScheme,
+  getEnableSystemTray,
 } from '@/main/modules/config';
+import { createTray, updateTrayState } from '@/main/modules/tray';
 import { getConfigDir, openPathHandler, openUrl } from '@/utils/node/path';
 import { logError } from '@/utils/node/logging';
 import { stopFrontend as stopSillyTavernFrontend } from '@/main/modules/sillytavern';
@@ -76,7 +77,6 @@ import {
   isUpdateDownloaded,
   canAutoUpdate,
 } from '@/main/modules/autoUpdater';
-import { getAppVersion } from '@/utils/node/fs';
 
 export function setupIPCHandlers() {
   const mainWindow = getMainWindow();
@@ -102,7 +102,7 @@ export function setupIPCHandlers() {
   ipcMain.handle('kobold:getSelectedConfig', () => getSelectedConfig());
 
   ipcMain.handle('kobold:setSelectedConfig', (_, configName) =>
-    setSelectedConfig(configName)
+    setConfig('selectedConfig', configName)
   );
 
   ipcMain.handle('kobold:setCurrentVersion', (_, version) =>
@@ -162,12 +162,12 @@ export function setupIPCHandlers() {
 
   ipcMain.on('config:set', (_, key, value) => setConfig(key, value));
 
-  ipcMain.handle('app:getVersion', () => getAppVersion());
+  ipcMain.handle('app:getVersion', () => app.getVersion());
 
   ipcMain.handle('app:getVersionInfo', async () => {
     const [appVersion, nodeJsSystemVersion, uvVersion, aurPackageVersion] =
       await Promise.all([
-        getAppVersion(),
+        app.getVersion(),
         getSystemNodeVersion(),
         getUvVersion(),
         getAURVersion(),
@@ -222,7 +222,29 @@ export function setupIPCHandlers() {
   ipcMain.handle('app:getColorScheme', () => getColorScheme());
 
   ipcMain.handle('app:setColorScheme', (_, colorScheme) =>
-    setColorScheme(colorScheme)
+    setConfig('colorScheme', colorScheme)
+  );
+
+  ipcMain.handle('app:getEnableSystemTray', () => getEnableSystemTray());
+
+  ipcMain.handle('app:setEnableSystemTray', async (_, enabled: boolean) => {
+    await setConfig('enableSystemTray', enabled);
+    createTray();
+  });
+
+  ipcMain.handle(
+    'app:updateTrayState',
+    (
+      _,
+      state: {
+        screen?: Screen | null;
+        model?: string | null;
+        config?: string | null;
+        monitoringEnabled?: boolean;
+      }
+    ) => {
+      updateTrayState(state);
+    }
   );
 
   ipcMain.handle('app:openExternal', async (_, url) => openUrl(url));

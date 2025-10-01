@@ -102,6 +102,24 @@ const appAPI: AppAPI = {
   getColorScheme: () => ipcRenderer.invoke('app:getColorScheme'),
   setColorScheme: (colorScheme) =>
     ipcRenderer.invoke('app:setColorScheme', colorScheme),
+  getEnableSystemTray: () => ipcRenderer.invoke('app:getEnableSystemTray'),
+  setEnableSystemTray: (enabled) =>
+    ipcRenderer.invoke('app:setEnableSystemTray', enabled),
+  updateTrayState: (state) => ipcRenderer.invoke('app:updateTrayState', state),
+  onTrayLaunch: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on('tray:launch', handler);
+    return () => {
+      ipcRenderer.removeListener('tray:launch', handler);
+    };
+  },
+  onTrayEject: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on('tray:eject', handler);
+    return () => {
+      ipcRenderer.removeListener('tray:eject', handler);
+    };
+  },
   openExternal: (url) => ipcRenderer.invoke('app:openExternal', url),
   openPerformanceManager: () =>
     ipcRenderer.invoke('app:openPerformanceManager'),

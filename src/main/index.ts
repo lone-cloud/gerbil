@@ -1,10 +1,10 @@
 import { argv, exit } from 'process';
-import { getAppVersion } from '@/utils/node/fs';
 
 if (argv[1] === '--version') {
   (async () => {
     try {
-      const version = await getAppVersion();
+      const { app } = await import('electron');
+      const version = await app.getVersion();
       // eslint-disable-next-line no-console
       console.log(version);
     } catch {

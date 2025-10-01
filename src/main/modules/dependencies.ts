@@ -5,6 +5,8 @@ import { platform, env as processEnv } from 'process';
 import { execa } from 'execa';
 import { app } from 'electron';
 
+import { PRODUCT_NAME } from '@/constants';
+
 async function executeCommand(
   command: string,
   args: string[],
@@ -166,7 +168,7 @@ export async function getAURVersion() {
   }
 
   try {
-    const { stdout } = await execa('pacman', ['-Q', 'gerbil'], {
+    const { stdout } = await execa('pacman', ['-Q', PRODUCT_NAME], {
       timeout: 1000,
       reject: false,
     });

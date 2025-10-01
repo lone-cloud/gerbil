@@ -1,4 +1,4 @@
-import { readdir, stat } from 'fs/promises';
+import { readdir, stat, rm } from 'fs/promises';
 import { join } from 'path';
 import { execa } from 'execa';
 
@@ -159,7 +159,6 @@ export async function deleteRelease(binaryPath: string) {
     const releaseDir = binaryPath.split(/[/\\]/).slice(0, -1).join('/');
 
     if (await pathExists(releaseDir)) {
-      const { rm } = await import('fs/promises');
       await rm(releaseDir, { recursive: true, force: true });
 
       clearVersionCache(binaryPath);
