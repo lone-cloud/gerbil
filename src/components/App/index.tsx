@@ -17,6 +17,7 @@ import { NotepadContainer } from '@/components/Notepad/Container';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { useKoboldVersionsStore } from '@/stores/koboldVersions';
 import { usePreferencesStore } from '@/stores/preferences';
+import { useLaunchConfigStore } from '@/stores/launchConfig';
 import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
 import type { DownloadItem } from '@/types/electron';
 import type { InterfaceTab, Screen } from '@/types';
@@ -29,12 +30,43 @@ export const App = () => {
   const [ejectConfirmModalOpen, setEjectConfirmModalOpen] = useState(false);
   const isInterfaceScreen = currentScreen === 'interface';
 
-  const { resolvedColorScheme: appColorScheme } = usePreferencesStore();
+  const { resolvedColorScheme: appColorScheme, systemMonitoringEnabled } =
+    usePreferencesStore();
   const { setColorScheme } = useMantineColorScheme();
+  const { model, sdmodel } = useLaunchConfigStore();
 
   useEffect(() => {
     setColorScheme(appColorScheme);
   }, [appColorScheme, setColorScheme]);
+
+  useEffect(() => {
+    const updateTray = async () => {
+      const config = await window.electronAPI.kobold.getSelectedConfig();
+      const displayModel = model || sdmodel || null;
+      const modelName = displayModel
+        ? displayModel.split('/').pop() || displayModel
+        : null;
+
+      window.electronAPI.app.updateTrayState({
+        screen: currentScreen,
+        model: modelName,
+        config: config || null,
+        monitoringEnabled: systemMonitoringEnabled,
+      });
+    };
+
+    void updateTray();
+  }, [currentScreen, model, sdmodel, systemMonitoringEnabled]);
+
+  useEffect(() => {
+    const ejectCleanup = window.electronAPI.app.onTrayEject(() => {
+      performEject();
+    });
+
+    return () => {
+      ejectCleanup();
+    };
+  }, []);
 
   const {
     updateInfo: binaryUpdateInfo,

@@ -30,6 +30,7 @@ interface AppConfig {
   dismissedUpdates?: DismissedUpdate[];
   zoomLevel?: number;
   notepad?: SavedNotepadState;
+  enableSystemTray?: boolean;
 }
 
 let config: AppConfig = {};
@@ -98,17 +99,7 @@ export async function setCurrentKoboldBinary(binaryPath: string) {
 
 export const getSelectedConfig = () => config.selectedConfig;
 
-export async function setSelectedConfig(configName: string) {
-  config.selectedConfig = configName;
-  await saveConfig();
-}
-
 export const getColorScheme = () => config.colorScheme || 'auto';
-
-export async function setColorScheme(colorScheme: MantineColorScheme) {
-  config.colorScheme = colorScheme;
-  await saveConfig();
-}
 
 export function getBackgroundColor() {
   const colorScheme = getColorScheme();
@@ -124,42 +115,4 @@ export function getBackgroundColor() {
 
 export const getWindowBounds = () => config.windowBounds;
 
-export async function setWindowBounds(bounds: WindowBounds) {
-  config.windowBounds = bounds;
-  await saveConfig();
-}
-
-export const getFrontendPreference = () => config.frontendPreference;
-
-export async function setFrontendPreference(preference: FrontendPreference) {
-  config.frontendPreference = preference;
-  await saveConfig();
-}
-
-export const getHasSeenWelcome = () => config.hasSeenWelcome;
-
-export async function setHasSeenWelcome(hasSeenWelcome: boolean) {
-  config.hasSeenWelcome = hasSeenWelcome;
-  await saveConfig();
-}
-
-export const getSkipEjectConfirmation = () => config.skipEjectConfirmation;
-
-export async function setSkipEjectConfirmation(skipEjectConfirmation: boolean) {
-  config.skipEjectConfirmation = skipEjectConfirmation;
-  await saveConfig();
-}
-
-export const getDismissedUpdates = () => config.dismissedUpdates || [];
-
-export async function setDismissedUpdates(dismissedUpdates: DismissedUpdate[]) {
-  config.dismissedUpdates = dismissedUpdates;
-  await saveConfig();
-}
-
-export const getZoomLevel = () => config.zoomLevel;
-
-export async function setZoomLevel(zoomLevel: number) {
-  config.zoomLevel = zoomLevel;
-  await saveConfig();
-}
+export const getEnableSystemTray = () => config.enableSystemTray ?? false;

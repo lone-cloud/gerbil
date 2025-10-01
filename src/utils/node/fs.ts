@@ -40,8 +40,3 @@ export const ensureDir = async (path: string) => {
     }
   }
 };
-
-export const getAppVersion = async () => {
-  const { app } = await import('electron');
-  return app.getVersion();
-};

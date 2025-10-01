@@ -10,7 +10,9 @@ import {
   getWindowBounds,
   setWindowBounds,
   WindowBounds,
+  getEnableSystemTray,
 } from './config';
+import { isTrayActive } from './tray';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -146,9 +148,14 @@ export function createMainWindow() {
     },
   }));
 
-  mainWindow.on('close', () => {
-    saveBounds();
-    app.quit();
+  mainWindow.on('close', (event) => {
+    if (getEnableSystemTray() && isTrayActive()) {
+      event.preventDefault();
+      mainWindow?.hide();
+    } else {
+      saveBounds();
+      app.quit();
+    }
   });
 
   setupContextMenu(mainWindow);

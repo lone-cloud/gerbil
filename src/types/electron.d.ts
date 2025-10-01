@@ -5,7 +5,7 @@ import type {
   GPUMemoryInfo,
   SystemMemoryInfo,
 } from '@/types/hardware';
-import type { BackendOption, BackendSupport } from '@/types';
+import type { BackendOption, BackendSupport, Screen } from '@/types';
 import type { MantineColorScheme } from '@mantine/core';
 import type {
   CpuMetrics,
@@ -175,6 +175,16 @@ export interface AppAPI {
   setZoomLevel: (level: number) => Promise<void>;
   getColorScheme: () => Promise<MantineColorScheme>;
   setColorScheme: (colorScheme: MantineColorScheme) => Promise<void>;
+  getEnableSystemTray: () => Promise<boolean>;
+  setEnableSystemTray: (enabled: boolean) => Promise<void>;
+  updateTrayState: (state: {
+    screen?: Screen | null;
+    model?: string | null;
+    config?: string | null;
+    monitoringEnabled?: boolean;
+  }) => Promise<void>;
+  onTrayLaunch: (callback: () => void) => () => void;
+  onTrayEject: (callback: () => void) => () => void;
   openExternal: (url: string) => Promise<void>;
   openPerformanceManager: () => Promise<{
     success: boolean;

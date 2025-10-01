@@ -5,6 +5,7 @@ import { spawn } from 'child_process';
 import { getGPUData } from '@/utils/node/gpu';
 import { detectGPU } from './hardware';
 import { tryExecute, safeExecute } from '@/utils/node/logging';
+import { isTrayActive, updateMetrics } from './tray';
 
 export interface CpuMetrics {
   usage: number;
@@ -53,6 +54,10 @@ let isRunning = false;
 const updateFrequency = 1000;
 let mainWindow: BrowserWindow | null = null;
 
+let latestCpuMetrics: CpuMetrics | null = null;
+let latestMemoryMetrics: MemoryMetrics | null = null;
+let latestGpuMetrics: GpuMetrics | null = null;
+
 export function startMonitoring(window: BrowserWindow) {
   if (isRunning) return;
 
@@ -93,6 +98,12 @@ export function stopMonitoring() {
   isRunning = false;
 }
 
+function updateTrayWithMetrics() {
+  if (isTrayActive()) {
+    updateMetrics(latestCpuMetrics, latestMemoryMetrics, latestGpuMetrics);
+  }
+}
+
 async function collectAndSendCpuMetrics() {
   await tryExecute(async () => {
     const cpuData = await currentLoad();
@@ -110,6 +121,9 @@ async function collectAndSendCpuMetrics() {
       } catch {}
     }
 
+    latestCpuMetrics = metrics;
+    updateTrayWithMetrics();
+
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('cpu-metrics', metrics);
     }
@@ -126,6 +140,9 @@ async function collectAndSendMemoryMetrics() {
       total: totalBytes / (1024 * 1024 * 1024),
       usage: Math.round((usedBytes / totalBytes) * 100),
     };
+
+    latestMemoryMetrics = metrics;
+    updateTrayWithMetrics();
 
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('memory-metrics', metrics);
@@ -149,6 +166,9 @@ async function collectAndSendGpuMetrics() {
         temperature: gpuData.temperature,
       })),
     };
+
+    latestGpuMetrics = metrics;
+    updateTrayWithMetrics();
 
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('gpu-metrics', metrics);

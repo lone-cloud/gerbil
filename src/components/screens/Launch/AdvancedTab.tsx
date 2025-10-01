@@ -167,14 +167,11 @@ export const AdvancedTab = () => {
               </Group>
               <NumberInput
                 value={moeexperts}
-                onChange={(value) =>
-                  handleMoeexpertsChange(Number(value) || -1)
-                }
+                onChange={(value) => handleMoeexpertsChange(Number(value))}
                 min={-1}
                 max={128}
                 step={1}
                 size="sm"
-                placeholder="-1"
               />
             </div>
 
@@ -192,7 +189,6 @@ export const AdvancedTab = () => {
                 max={999}
                 step={1}
                 size="sm"
-                placeholder="0"
               />
             </div>
           </Group>

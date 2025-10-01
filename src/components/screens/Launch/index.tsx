@@ -261,7 +261,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     return cleanup;
   }, [loadConfigFiles]);
 
-  const handleLaunchClick = () => {
+  const handleLaunchClick = useCallback(() => {
     handleLaunch({
       autoGpuLayers,
       gpuLayers,
@@ -295,7 +295,51 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
       moecpu,
       moeexperts,
     });
-  };
+  }, [
+    handleLaunch,
+    autoGpuLayers,
+    gpuLayers,
+    contextSize,
+    port,
+    host,
+    multiuser,
+    multiplayer,
+    remotetunnel,
+    nocertify,
+    websearch,
+    noshift,
+    flashattention,
+    noavx2,
+    failsafe,
+    backend,
+    lowvram,
+    gpuDeviceSelection,
+    gpuPlatform,
+    tensorSplit,
+    quantmatmul,
+    usemmap,
+    additionalArguments,
+    sdt5xxl,
+    sdclipl,
+    sdclipg,
+    sdphotomaker,
+    sdvae,
+    sdlora,
+    sdconvdirect,
+    moecpu,
+    moeexperts,
+  ]);
+
+  useEffect(() => {
+    const cleanup = window.electronAPI.app.onTrayLaunch(() => {
+      if (!model && !sdmodel) return;
+      if (isLaunching) return;
+
+      handleLaunchClick();
+    });
+
+    return cleanup;
+  }, [model, sdmodel, isLaunching, handleLaunchClick]);
 
   return (
     <Container size="sm" mt="md">
