@@ -4,6 +4,7 @@ import { platform } from 'process';
 import {
   createMainWindow,
   cleanup as cleanupWindow,
+  getMainWindow,
 } from '@/main/modules/window';
 import {
   initialize as initializeConfig,
@@ -20,6 +21,27 @@ import { ensureDir } from '@/utils/node/fs';
 import { PRODUCT_NAME } from '@/constants';
 
 export async function initializeApp() {
+  const gotTheLock = app.requestSingleInstanceLock();
+
+  if (!gotTheLock) {
+    app.quit();
+    return;
+  }
+
+  app.on('second-instance', () => {
+    const mainWindow = getMainWindow();
+    
+    if (!mainWindow.isVisible()) {
+      mainWindow.show();
+    }
+    
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore();
+    }
+    
+    mainWindow.focus();
+  });
+
   const installDir = getInstallDir();
 
   await app.whenReady();
