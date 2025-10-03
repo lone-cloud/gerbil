@@ -16,7 +16,7 @@ import { isTrayActive } from './tray';
 
 let mainWindow: BrowserWindow | null = null;
 
-export function createMainWindow() {
+export function createMainWindow(options?: { startHidden?: boolean }) {
   const { size } = screen.getPrimaryDisplay();
   const savedBounds = getWindowBounds();
 
@@ -97,30 +97,26 @@ export function createMainWindow() {
       setConfig('windowBounds', bounds);
     }
   };
+
   mainWindow.on('maximize', () => {
     sendToRenderer('window-maximized');
   });
   mainWindow.on('unmaximize', () => {
     sendToRenderer('window-unmaximized');
   });
-
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
-
-  mainWindow.once('ready-to-show', () => mainWindow?.show());
+  mainWindow.once('ready-to-show', () => {
+    if (!options?.startHidden) {
+      mainWindow?.show();
+    }
+  });
 
   if (isDevelopment) {
     mainWindow.loadURL('http://localhost:5173');
   } else {
     mainWindow.loadFile(join(__dirname, '../../dist/index.html'));
-  }
-
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
-
-  if (!isDevelopment) {
     Menu.setApplicationMenu(null);
   }
 
