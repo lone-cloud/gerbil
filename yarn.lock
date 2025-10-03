@@ -1069,9 +1069,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/core@npm:8.3.1":
-  version: 8.3.1
-  resolution: "@mantine/core@npm:8.3.1"
+"@mantine/core@npm:^8.3.3":
+  version: 8.3.3
+  resolution: "@mantine/core@npm:8.3.3"
   dependencies:
     "@floating-ui/react": "npm:^0.27.16"
     clsx: "npm:^2.1.1"
@@ -1080,19 +1080,19 @@ __metadata:
     react-textarea-autosize: "npm:8.5.9"
     type-fest: "npm:^4.41.0"
   peerDependencies:
-    "@mantine/hooks": 8.3.1
+    "@mantine/hooks": 8.3.3
     react: ^18.x || ^19.x
     react-dom: ^18.x || ^19.x
-  checksum: 10c0/6faab4553d35e3f676e852ea9b926e0d3b744eda5b38d450eb3bdb89c92cdd2ce8ae9fd7e4b47c83fc870d215a62c8fa3299d25fcaa83a07f67c782883a8ca30
+  checksum: 10c0/5ce82c59a3199e7364997aef3e578b06c4dabfba3c030970097d19874a0628f540d7752d00f275f4d3fbc09067b01f9277846ce2e376c7aa1ecadf534b187a0e
   languageName: node
   linkType: hard
 
-"@mantine/hooks@npm:8.3.1":
-  version: 8.3.1
-  resolution: "@mantine/hooks@npm:8.3.1"
+"@mantine/hooks@npm:^8.3.3":
+  version: 8.3.3
+  resolution: "@mantine/hooks@npm:8.3.3"
   peerDependencies:
     react: ^18.x || ^19.x
-  checksum: 10c0/d64ea9c848a687668ce34007e3ab226b5c45c52ea1f4bdd721ca17b07d7f7a642b86e23ee65777179d6cd1ae9c3ce56fe43602828f332bfc2cbd59658b1c9047
+  checksum: 10c0/9bc5f9bc7fad06be530a32a1450f7dfbcb61676080e364966a3fdf5d45de2e53330efa88000b019596818b7f3b4d18c0ed04e3964bdfe9b8dec20128cf2a69bb
   languageName: node
   linkType: hard
 
@@ -2242,16 +2242,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"builder-util-runtime@npm:9.3.1":
-  version: 9.3.1
-  resolution: "builder-util-runtime@npm:9.3.1"
-  dependencies:
-    debug: "npm:^4.3.4"
-    sax: "npm:^1.2.4"
-  checksum: 10c0/32de87e5f294154de707f40acf59a5600af9d1ce903ccbba53b81824de7a1dd9568c5f0c033ed765e14c4ea73347aac09ecbce686e1bc7fefbd7b4f64d2c9d68
-  languageName: node
-  linkType: hard
-
 "builder-util-runtime@npm:9.4.0":
   version: 9.4.0
   resolution: "builder-util-runtime@npm:9.4.0"
@@ -2970,11 +2960,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron-updater@npm:6.6.2":
-  version: 6.6.2
-  resolution: "electron-updater@npm:6.6.2"
+"electron-updater@npm:^6.6.2":
+  version: 6.6.8
+  resolution: "electron-updater@npm:6.6.8"
   dependencies:
-    builder-util-runtime: "npm:9.3.1"
+    builder-util-runtime: "npm:9.4.0"
     fs-extra: "npm:^10.1.0"
     js-yaml: "npm:^4.1.0"
     lazy-val: "npm:^1.0.5"
@@ -2982,7 +2972,7 @@ __metadata:
     lodash.isequal: "npm:^4.5.0"
     semver: "npm:^7.6.3"
     tiny-typed-emitter: "npm:^2.1.0"
-  checksum: 10c0/2b9ae5583b95f6772c4a2515ddba7ba52b65460ab81f09ae4f0b97c7e3d7b7e3d9426775eb9a53d3193bd4c3d5466bf30827c1a6ee75e4aca739c647f6ac46ff
+  checksum: 10c0/e3531fe9e75d893b73bcb0eb0b6add1322cb230e146d5565e9f3ea2ffe66a2d070af5d0f68076c429b6c74ec44757d8c0e4ccfd11a4966b379f834c1cab9b98f
   languageName: node
   linkType: hard
 
@@ -3949,8 +3939,8 @@ __metadata:
     "@codemirror/view": "npm:^6.38.4"
     "@eslint/js": "npm:^9.36.0"
     "@fontsource/inter": "npm:^5.2.8"
-    "@mantine/core": "npm:8.3.1"
-    "@mantine/hooks": "npm:8.3.1"
+    "@mantine/core": "npm:^8.3.3"
+    "@mantine/hooks": "npm:^8.3.3"
     "@types/node": "npm:^24.6.2"
     "@types/react": "npm:^19.2.0"
     "@types/react-dom": "npm:^19.2.0"
@@ -3962,7 +3952,7 @@ __metadata:
     cross-env: "npm:^10.1.0"
     electron: "npm:^38.2.0"
     electron-builder: "npm:^26.0.12"
-    electron-updater: "npm:6.6.2"
+    electron-updater: "npm:^6.6.2"
     electron-vite: "npm:^4.0.1"
     eslint: "npm:^9.36.0"
     eslint-plugin-import: "npm:^2.32.0"
@@ -3979,10 +3969,10 @@ __metadata:
     react: "npm:^19.2.0"
     react-dom: "npm:^19.2.0"
     react-error-boundary: "npm:^6.0.0"
-    rollup-plugin-visualizer: "npm:^6.0.3"
+    rollup-plugin-visualizer: "npm:^6.0.4"
     systeminformation: "npm:^5.27.10"
     typescript: "npm:^5.9.3"
-    vite: "npm:^7.1.7"
+    vite: "npm:^7.1.9"
     winston: "npm:^3.18.3"
     winston-daily-rotate-file: "npm:^5.0.0"
     yauzl: "npm:^3.2.0"
@@ -6337,9 +6327,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup-plugin-visualizer@npm:^6.0.3":
-  version: 6.0.3
-  resolution: "rollup-plugin-visualizer@npm:6.0.3"
+"rollup-plugin-visualizer@npm:^6.0.4":
+  version: 6.0.4
+  resolution: "rollup-plugin-visualizer@npm:6.0.4"
   dependencies:
     open: "npm:^8.0.0"
     picomatch: "npm:^4.0.2"
@@ -6355,7 +6345,7 @@ __metadata:
       optional: true
   bin:
     rollup-plugin-visualizer: dist/bin/cli.js
-  checksum: 10c0/595d68936a6338744e8facd165fceedf7f2ebedc44863e640e725198001ed62948cc4a5d8403aa74e679de92957e4def3b1dffc4a9f8de71e4245929566553a3
+  checksum: 10c0/e5d472bec0c863c9c3c46f55b303a9457e854bf1b654215e727a586da12897e2cfc30029f029c6c44dd8e9e61ce0d22f113a68ed8e5fe2256abeb58f265c0a89
   languageName: node
   linkType: hard
 
@@ -7458,9 +7448,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^7.1.7":
-  version: 7.1.7
-  resolution: "vite@npm:7.1.7"
+"vite@npm:^7.1.9":
+  version: 7.1.9
+  resolution: "vite@npm:7.1.9"
   dependencies:
     esbuild: "npm:^0.25.0"
     fdir: "npm:^6.5.0"
@@ -7509,7 +7499,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10c0/3f6bd61a65aaa81368f4dda804f0e23b103664724218ccb5a0b1a0c7e284df498107b57ced951dc40ae4c5d472435bc8fb5c836414e729ee7e102809eaf6ff80
+  checksum: 10c0/f628f903a137c1410232558bde99c223ea00a090bda6af77752c61f912955f0050aac12d3cfe024d08a0f150ff6fab61b3d0be75d634a59b94d49f525392e1f7
   languageName: node
   linkType: hard
 

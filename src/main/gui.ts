@@ -9,6 +9,7 @@ import {
 import {
   initialize as initializeConfig,
   getInstallDir,
+  getEnableSystemTray,
 } from '@/main/modules/config';
 import { createTray } from '@/main/modules/tray';
 import { safeExecute } from '@/utils/node/logging';
@@ -20,7 +21,7 @@ import { setupIPCHandlers } from '@/main/ipc';
 import { ensureDir } from '@/utils/node/fs';
 import { PRODUCT_NAME } from '@/constants';
 
-export async function initializeApp() {
+export async function initializeApp(options?: { startMinimized?: boolean }) {
   const gotTheLock = app.requestSingleInstanceLock();
 
   if (!gotTheLock) {
@@ -30,15 +31,15 @@ export async function initializeApp() {
 
   app.on('second-instance', () => {
     const mainWindow = getMainWindow();
-    
+
     if (!mainWindow.isVisible()) {
       mainWindow.show();
     }
-    
+
     if (mainWindow.isMinimized()) {
       mainWindow.restore();
     }
-    
+
     mainWindow.focus();
   });
 
@@ -49,7 +50,10 @@ export async function initializeApp() {
   await initializeConfig();
   await ensureDir(installDir);
 
-  createMainWindow();
+  const startMinimized = options?.startMinimized ?? false;
+  const trayEnabled = getEnableSystemTray();
+
+  createMainWindow({ startHidden: startMinimized && trayEnabled });
   createTray();
 
   setupIPCHandlers();
