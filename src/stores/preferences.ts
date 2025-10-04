@@ -25,6 +25,16 @@ const resolveColorScheme = (raw: MantineColorScheme): ResolvedColorScheme => {
   return raw;
 };
 
+const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+mediaQuery.addEventListener('change', () => {
+  const { rawColorScheme } = usePreferencesStore.getState();
+  if (rawColorScheme === 'auto') {
+    usePreferencesStore.setState({
+      resolvedColorScheme: resolveColorScheme('auto'),
+    });
+  }
+});
+
 export const usePreferencesStore = create<PreferencesStore>((set) => ({
   frontendPreference: 'koboldcpp',
   rawColorScheme: 'auto',
