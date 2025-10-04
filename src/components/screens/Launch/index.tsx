@@ -107,7 +107,6 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
         void setInitialDefaults(model, sdmodel);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [configLoaded, setHappyDefaults]);
 
   const loadConfigFiles = useCallback(async () => {
