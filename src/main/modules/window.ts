@@ -1,9 +1,7 @@
 import { BrowserWindow, app, shell, screen, Menu, clipboard } from 'electron';
-import type { BrowserWindowConstructorOptions } from 'electron';
 import { join } from 'path';
 import { stripVTControlCharacters } from 'util';
 import { PRODUCT_NAME } from '@/constants';
-import type { IPCChannel, IPCChannelPayloads } from '@/types/ipc';
 import { isDevelopment } from '@/utils/node/environment';
 import {
   getBackgroundColor,
@@ -13,6 +11,8 @@ import {
   getEnableSystemTray,
 } from './config';
 import { isTrayActive } from './tray';
+import type { IPCChannel, IPCChannelPayloads } from '@/types/ipc';
+import type { BrowserWindowConstructorOptions } from 'electron';
 
 let mainWindow: BrowserWindow | null = null;
 
