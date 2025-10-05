@@ -3890,7 +3890,7 @@ __metadata:
     react-dom: "npm:^19.2.0"
     react-error-boundary: "npm:^6.0.0"
     rollup-plugin-visualizer: "npm:^6.0.4"
-    systeminformation: "npm:^5.27.10"
+    systeminformation: "npm:^5.27.11"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.1.9"
     winston: "npm:^3.18.3"
@@ -6900,12 +6900,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"systeminformation@npm:^5.27.10":
-  version: 5.27.10
-  resolution: "systeminformation@npm:5.27.10"
+"systeminformation@npm:^5.27.11":
+  version: 5.27.11
+  resolution: "systeminformation@npm:5.27.11"
   bin:
     systeminformation: lib/cli.js
-  checksum: 10c0/aaaafb3d5738150e4d63908b4516f712810ed9047dc69ba061eacb1c2aa2824bfc352a1dff596e9d81db8a75c2f27da1a3e5daaa88fffb658a3f5a68288a1d02
+  checksum: 10c0/f0ef8cec7d2bead69060c5f1d45f9727d549e858f3132cf9e7ba4a8e9ae60bf30072fc7eb8a4269a8e5f293dca7bddd2b0261d7dc498e4a2cb9c0b66cbd46b16
   conditions: (os=darwin | os=linux | os=win32 | os=freebsd | os=openbsd | os=netbsd | os=sunos | os=android)
   languageName: node
   linkType: hard
