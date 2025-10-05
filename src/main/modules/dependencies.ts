@@ -4,7 +4,6 @@ import { join } from 'path';
 import { platform, env as processEnv } from 'process';
 import { execa } from 'execa';
 import { app } from 'electron';
-
 import { PRODUCT_NAME } from '@/constants';
 
 async function executeCommand(
@@ -167,14 +166,16 @@ export async function getAURVersion() {
     return aurVersionCache;
   }
 
+  const packageName = PRODUCT_NAME.toLowerCase();
+
   try {
-    const { stdout } = await execa('pacman', ['-Q', PRODUCT_NAME], {
+    const { stdout } = await execa('pacman', ['-Q', packageName], {
       timeout: 1000,
       reject: false,
     });
     const trimmed = stdout.trim();
     if (trimmed.length > 0) {
-      aurVersionCache = trimmed.replace('gerbil ', '');
+      aurVersionCache = trimmed.replace(`${packageName} `, '');
       return aurVersionCache;
     }
   } catch {}

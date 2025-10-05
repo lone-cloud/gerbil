@@ -144,11 +144,11 @@ export function createMainWindow(options?: { startHidden?: boolean }) {
   }));
 
   mainWindow.on('close', (event) => {
+    saveBounds();
     if (getEnableSystemTray() && isTrayActive()) {
       event.preventDefault();
       mainWindow?.hide();
     } else {
-      saveBounds();
       app.quit();
     }
   });
