@@ -208,6 +208,10 @@ export const TitleBar = ({
               color={button.color}
               aria-label={button.label}
               tabIndex={-1}
+              style={{
+                cursor: 'default',
+                outline: 'none',
+              }}
             >
               {button.icon}
             </ActionIcon>

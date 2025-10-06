@@ -73,6 +73,15 @@ export function updateMetrics(
   updateTrayTooltip();
 }
 
+function showAndFocusWindow() {
+  const mainWindow = getMainWindow();
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore();
+  }
+  mainWindow.show();
+  mainWindow.focus();
+}
+
 function buildTooltipText() {
   const parts: string[] = [];
 
@@ -133,10 +142,7 @@ function buildContextMenu() {
   } else {
     menuTemplate.push({
       label: 'Show Gerbil',
-      click: () => {
-        mainWindow.show();
-        mainWindow.focus();
-      },
+      click: () => showAndFocusWindow(),
     });
   }
 
@@ -210,8 +216,7 @@ export function createTray() {
     if (mainWindow.isVisible()) {
       mainWindow.hide();
     } else {
-      mainWindow.show();
-      mainWindow.focus();
+      showAndFocusWindow();
     }
   });
 

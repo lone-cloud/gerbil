@@ -1,7 +1,7 @@
 import { access, readdir } from 'fs/promises';
-import { homedir } from 'os';
+import { homedir, release } from 'os';
 import { join } from 'path';
-import { platform, env as processEnv } from 'process';
+import { platform, env as processEnv, versions, arch } from 'process';
 import { execa } from 'execa';
 import { app } from 'electron';
 import { PRODUCT_NAME } from '@/constants';
@@ -182,6 +182,31 @@ export async function getAURVersion() {
 
   aurVersionCache = null;
   return null;
+}
+
+export async function isAURInstallation() {
+  const aurPackageVersion = await getAURVersion();
+  return aurPackageVersion !== null;
+}
+
+export async function getVersionInfo() {
+  const [nodeJsSystemVersion, uvVersion, aurPackageVersion] = await Promise.all(
+    [getSystemNodeVersion(), getUvVersion(), getAURVersion()]
+  );
+
+  return {
+    appVersion: app.getVersion(),
+    electronVersion: versions.electron,
+    nodeVersion: versions.node,
+    chromeVersion: versions.chrome,
+    v8Version: versions.v8,
+    osVersion: release(),
+    platform,
+    arch,
+    nodeJsSystemVersion,
+    uvVersion,
+    aurPackageVersion,
+  };
 }
 
 function tryAddPathToEnv(
