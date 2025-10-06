@@ -149,6 +149,9 @@ export function createMainWindow(options?: { startHidden?: boolean }) {
       event.preventDefault();
       mainWindow?.hide();
     } else {
+      if (mainWindow?.isMinimized()) {
+        mainWindow.restore();
+      }
       app.quit();
     }
   });

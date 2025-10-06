@@ -1,7 +1,6 @@
 import { ipcMain, app } from 'electron';
 import { join } from 'path';
-import { release } from 'os';
-import { platform, versions, arch } from 'process';
+import { platform } from 'process';
 import type { Screen } from '@/types';
 import {
   stopKoboldCpp,
@@ -39,9 +38,8 @@ import { stopFrontend as stopComfyUIFrontend } from '@/main/modules/comfyui';
 import {
   isUvAvailable,
   isNpxAvailable,
-  getUvVersion,
-  getSystemNodeVersion,
-  getAURVersion,
+  getVersionInfo,
+  isAURInstallation,
 } from '@/main/modules/dependencies';
 import { getMainWindow } from '@/main/modules/window';
 import {
@@ -164,29 +162,7 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('app:getVersion', () => app.getVersion());
 
-  ipcMain.handle('app:getVersionInfo', async () => {
-    const [appVersion, nodeJsSystemVersion, uvVersion, aurPackageVersion] =
-      await Promise.all([
-        app.getVersion(),
-        getSystemNodeVersion(),
-        getUvVersion(),
-        getAURVersion(),
-      ]);
-
-    return {
-      appVersion,
-      electronVersion: versions.electron,
-      nodeVersion: versions.node,
-      chromeVersion: versions.chrome,
-      v8Version: versions.v8,
-      osVersion: release(),
-      platform,
-      arch,
-      nodeJsSystemVersion,
-      uvVersion,
-      aurPackageVersion,
-    };
-  });
+  ipcMain.handle('app:getVersionInfo', () => getVersionInfo());
 
   ipcMain.handle('app:openPath', (_, path) => openPathHandler(path));
 
@@ -282,10 +258,7 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('app:canAutoUpdate', () => canAutoUpdate());
 
-  ipcMain.handle('app:isAURInstallation', async () => {
-    const aurPackageVersion = await getAURVersion();
-    return aurPackageVersion !== null;
-  });
+  ipcMain.handle('app:isAURInstallation', () => isAURInstallation());
 
   ipcMain.handle('notepad:saveTabContent', (_, title, content) =>
     saveTabContent(title, content)
