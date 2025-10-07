@@ -9,10 +9,10 @@ import { join } from 'path';
 import { platform, resourcesPath } from 'process';
 import { getEnableSystemTray } from './config';
 import { getMainWindow } from './window';
-import { stripFileExtension } from '@/utils/format';
 import type { CpuMetrics, MemoryMetrics, GpuMetrics } from './monitoring';
 import type { Screen } from '@/types';
 import { PRODUCT_NAME } from '@/constants';
+import { stripFileExtension } from '@/utils/format';
 
 let tray: Tray | null = null;
 let currentMetrics: {
@@ -148,27 +148,14 @@ function buildContextMenu() {
 
   menuTemplate.push({ type: 'separator' });
 
-  if (appState.currentScreen === 'launch' && !appState.isLaunched) {
-    const configDisplayName = appState.currentConfig
-      ? stripFileExtension(appState.currentConfig)
-      : null;
-    menuTemplate.push({
-      label: configDisplayName
-        ? `Launch: ${configDisplayName}`
-        : 'Launch with Current Config',
-      enabled: !!appState.currentConfig,
-      click: () => {
-        const mainWindow = getMainWindow();
-        mainWindow.webContents.send('tray:launch');
-      },
-    });
-  } else if (appState.isLaunched && appState.currentScreen === 'interface') {
+  if (appState.isLaunched && appState.currentScreen === 'interface') {
     if (appState.currentModel) {
       menuTemplate.push({
-        label: `Running: ${appState.currentModel}`,
+        label: `Running: ${stripFileExtension(appState.currentConfig || '')}`,
         enabled: false,
       });
     }
+
     menuTemplate.push({
       label: 'Eject Model',
       click: () => {

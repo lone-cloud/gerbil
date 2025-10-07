@@ -106,13 +106,6 @@ const appAPI: AppAPI = {
   setEnableSystemTray: (enabled) =>
     ipcRenderer.invoke('app:setEnableSystemTray', enabled),
   updateTrayState: (state) => ipcRenderer.invoke('app:updateTrayState', state),
-  onTrayLaunch: (callback) => {
-    const handler = () => callback();
-    ipcRenderer.on('tray:launch', handler);
-    return () => {
-      ipcRenderer.removeListener('tray:launch', handler);
-    };
-  },
   onTrayEject: (callback) => {
     const handler = () => callback();
     ipcRenderer.on('tray:eject', handler);
