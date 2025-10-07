@@ -329,17 +329,6 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     moeexperts,
   ]);
 
-  useEffect(() => {
-    const cleanup = window.electronAPI.app.onTrayLaunch(() => {
-      if (!model && !sdmodel) return;
-      if (isLaunching) return;
-
-      handleLaunchClick();
-    });
-
-    return cleanup;
-  }, [model, sdmodel, isLaunching, handleLaunchClick]);
-
   return (
     <Container size="sm" mt="md">
       <Stack gap="md">

@@ -183,7 +183,6 @@ export interface AppAPI {
     config?: string | null;
     monitoringEnabled?: boolean;
   }) => Promise<void>;
-  onTrayLaunch: (callback: () => void) => () => void;
   onTrayEject: (callback: () => void) => () => void;
   openExternal: (url: string) => Promise<void>;
   openPerformanceManager: () => Promise<{
