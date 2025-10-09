@@ -36,16 +36,11 @@ export const SettingsModal = ({
   const showVersionsTab =
     currentScreen !== 'download' && currentScreen !== 'welcome';
 
-  useEffect(() => {
-    if (!showVersionsTab && activeTab === 'versions') {
-      setActiveTab('general');
-    }
-  }, [showVersionsTab, activeTab]);
+  const effectiveActiveTab =
+    !showVersionsTab && activeTab === 'versions' ? 'general' : activeTab;
 
   useEffect(() => {
     if (opened) {
-      setActiveTab('general');
-
       const originalOverflow = document.body.style.overflow;
       const scrollbarWidth =
         window.innerWidth - document.documentElement.clientWidth;
@@ -83,7 +78,7 @@ export const SettingsModal = ({
         }}
       >
         <Tabs
-          value={activeTab}
+          value={effectiveActiveTab}
           onChange={(value) => value && setActiveTab(value)}
           orientation="vertical"
           variant="pills"

@@ -58,6 +58,11 @@ export const App = () => {
     void updateTray();
   }, [currentScreen, model, sdmodel, systemMonitoringEnabled]);
 
+  const performEject = () => {
+    window.electronAPI.kobold.stopKoboldCpp();
+    setCurrentScreen('launch');
+  };
+
   useEffect(() => {
     const ejectCleanup = window.electronAPI.app.onTrayEject(() => {
       performEject();
@@ -77,6 +82,19 @@ export const App = () => {
   } = useUpdateChecker();
 
   const { handleDownload, loadingRemote } = useKoboldVersionsStore();
+
+  const determineScreen = (
+    currentVersion: unknown,
+    hasSeenWelcome: boolean
+  ) => {
+    if (!hasSeenWelcome) {
+      setCurrentScreen('welcome');
+    } else if (currentVersion) {
+      setCurrentScreen('launch');
+    } else {
+      setCurrentScreen('download');
+    }
+  };
 
   useEffect(() => {
     const checkInstallation = async () => {
@@ -108,19 +126,6 @@ export const App = () => {
     runUpdateCheck();
   }, [loadingRemote, hasInitialized, checkForUpdates]);
 
-  const determineScreen = (
-    currentVersion: unknown,
-    hasSeenWelcome: boolean
-  ) => {
-    if (!hasSeenWelcome) {
-      setCurrentScreen('welcome');
-    } else if (currentVersion) {
-      setCurrentScreen('launch');
-    } else {
-      setCurrentScreen('download');
-    }
-  };
-
   const handleBinaryUpdate = async (download: DownloadItem) => {
     const currentVersion = await window.electronAPI.kobold.getCurrentVersion();
 
@@ -144,11 +149,6 @@ export const App = () => {
     } else {
       setEjectConfirmModalOpen(true);
     }
-  };
-
-  const performEject = () => {
-    window.electronAPI.kobold.stopKoboldCpp();
-    setCurrentScreen('launch');
   };
 
   const handleEjectConfirm = (skipConfirmation: boolean) => {

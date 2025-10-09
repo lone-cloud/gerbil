@@ -6,15 +6,15 @@ export const TroubleshootingTab = () => {
   const [installDir, setInstallDir] = useState('');
 
   useEffect(() => {
+    const loadCurrentInstallDir = async () => {
+      const currentDir = await window.electronAPI.kobold.getCurrentInstallDir();
+      if (currentDir) {
+        setInstallDir(currentDir);
+      }
+    };
+
     loadCurrentInstallDir();
   }, []);
-
-  const loadCurrentInstallDir = async () => {
-    const currentDir = await window.electronAPI.kobold.getCurrentInstallDir();
-    if (currentDir) {
-      setInstallDir(currentDir);
-    }
-  };
 
   const handleSelectInstallDir = async () => {
     const selectedDir =

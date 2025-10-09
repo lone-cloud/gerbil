@@ -18,7 +18,6 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
     loadingPlatform,
     loadingRemote,
     downloading,
-    downloadProgress,
     handleDownload: handleDownloadFromStore,
   } = useKoboldVersionsStore();
 
@@ -96,12 +95,6 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
                               download.url
                             )}
                             description={getAssetDescription(download.name)}
-                            isLoading={isDownloading}
-                            downloadProgress={
-                              isDownloading
-                                ? downloadProgress[download.name] || 0
-                                : 0
-                            }
                             disabled={
                               Boolean(downloading) &&
                               downloadingAsset !== download.name

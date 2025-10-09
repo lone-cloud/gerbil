@@ -23,7 +23,7 @@ export const NotepadEditor = ({ tab }: NotepadEditorProps) => {
   const { saveTabContent, showLineNumbers, setShowLineNumbers } =
     useNotepadStore();
   const { resolvedColorScheme } = usePreferencesStore();
-  const [content, setContent] = useState(tab.content);
+  const [content, setContent] = useState(() => tab.content);
   const [saveTimeout, setSaveTimeout] = useState<ReturnType<
     typeof setTimeout
   > | null>(null);
@@ -59,10 +59,6 @@ export const NotepadEditor = ({ tab }: NotepadEditorProps) => {
       editorRef.current.view.focus();
     }
   }, []);
-
-  useEffect(() => {
-    setContent(tab.content);
-  }, [tab.content, tab.title]);
 
   useEffect(
     () => () => {

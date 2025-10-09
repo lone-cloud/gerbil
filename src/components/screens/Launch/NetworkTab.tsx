@@ -1,5 +1,5 @@
 import { Stack, Text, TextInput, Group } from '@mantine/core';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
@@ -21,11 +21,7 @@ export const NetworkTab = () => {
     handleNocertifyChange,
     handleWebsearchChange,
   } = useLaunchConfig();
-  const [portInput, setPortInput] = useState(port?.toString() ?? '');
-
-  useEffect(() => {
-    setPortInput(port?.toString() ?? '');
-  }, [port]);
+  const [portInput, setPortInput] = useState('');
 
   return (
     <Stack gap="md">
@@ -53,7 +49,7 @@ export const NetworkTab = () => {
           </Group>
           <TextInput
             placeholder="5001"
-            value={portInput}
+            value={portInput || port?.toString() || ''}
             onChange={(event) => {
               const value = event.currentTarget.value;
               setPortInput(value);

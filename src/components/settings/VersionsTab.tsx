@@ -28,7 +28,6 @@ export const VersionsTab = () => {
     loadingPlatform,
     loadingRemote,
     downloading,
-    downloadProgress,
     handleDownload: handleDownloadFromStore,
     getLatestReleaseWithDownloadStatus,
   } = useKoboldVersionsStore();
@@ -67,8 +66,10 @@ export const VersionsTab = () => {
   }, [getLatestReleaseWithDownloadStatus]);
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     loadInstalledVersions();
     loadLatestRelease();
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [loadInstalledVersions, loadLatestRelease]);
 
   const allVersions = useMemo((): VersionInfo[] => {
@@ -281,8 +282,6 @@ export const VersionsTab = () => {
                   : ''
               }
               description={getAssetDescription(version.name)}
-              isLoading={isDownloading}
-              downloadProgress={downloadProgress[version.name]}
               disabled={downloading !== null}
               onDownload={(e) => {
                 e.stopPropagation();

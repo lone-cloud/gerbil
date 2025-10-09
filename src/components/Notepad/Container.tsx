@@ -228,7 +228,7 @@ export const NotepadContainer = () => {
         </Box>
 
         <Box style={{ flex: 1, position: 'relative' }}>
-          {activeTab && <NotepadEditor tab={activeTab} />}
+          {activeTab && <NotepadEditor key={activeTab.title} tab={activeTab} />}
         </Box>
       </Box>
 
