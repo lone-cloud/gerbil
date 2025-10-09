@@ -215,6 +215,7 @@ export const FrontendInterfaceSelector = ({
 
   useEffect(() => {
     if (frontendPreference) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       checkAllFrontendRequirements();
     }
   }, [frontendPreference, checkAllFrontendRequirements]);

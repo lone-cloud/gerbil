@@ -147,6 +147,7 @@ export const ConfigFileManager = ({
       </Stack>
 
       <CreateConfigModal
+        key={configModalOpened ? 'open' : 'closed'}
         opened={configModalOpened}
         onClose={handleCloseConfigModal}
         onCreateConfig={onCreateNewConfig}

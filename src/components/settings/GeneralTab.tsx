@@ -9,13 +9,13 @@ export const GeneralTab = () => {
     usePreferencesStore();
 
   useEffect(() => {
+    const loadSystemTrayPreference = async () => {
+      const enabled = await window.electronAPI.app.getEnableSystemTray();
+      setEnableSystemTray(enabled);
+    };
+
     loadSystemTrayPreference();
   }, []);
-
-  const loadSystemTrayPreference = async () => {
-    const enabled = await window.electronAPI.app.getEnableSystemTray();
-    setEnableSystemTray(enabled);
-  };
 
   const handleSystemTrayToggle = async (checked: boolean) => {
     setEnableSystemTray(checked);

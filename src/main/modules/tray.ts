@@ -28,7 +28,6 @@ let currentMetrics: {
 interface TrayAppState {
   currentScreen: Screen | null;
   isLaunched: boolean;
-  currentModel: string | null;
   currentConfig: string | null;
   monitoringEnabled: boolean;
 }
@@ -36,7 +35,6 @@ interface TrayAppState {
 const appState: TrayAppState = {
   currentScreen: null,
   isLaunched: false,
-  currentModel: null,
   currentConfig: null,
   monitoringEnabled: false,
 };
@@ -51,12 +49,11 @@ export function updateTrayState(state: {
     appState.currentScreen = state.screen;
     appState.isLaunched = state.screen === 'interface';
   }
-  if (state.model !== undefined) {
-    appState.currentModel = state.model;
-  }
+
   if (state.config !== undefined) {
     appState.currentConfig = state.config;
   }
+
   if (state.monitoringEnabled !== undefined) {
     appState.monitoringEnabled = state.monitoringEnabled;
   }
@@ -149,7 +146,7 @@ function buildContextMenu() {
   menuTemplate.push({ type: 'separator' });
 
   if (appState.isLaunched && appState.currentScreen === 'interface') {
-    if (appState.currentModel) {
+    if (appState.currentConfig) {
       menuTemplate.push({
         label: `Running: ${stripFileExtension(appState.currentConfig || '')}`,
         enabled: false,

@@ -220,6 +220,7 @@ export const TitleBar = ({
       </Box>
 
       <SettingsModal
+        key={settingsModalOpen ? 'open' : 'closed'}
         isOnInterfaceScreen={currentScreen === 'interface'}
         opened={settingsModalOpen}
         onClose={() => setSettingsModalOpen(false)}

@@ -1,6 +1,6 @@
 import { TextInput, Group, Button, Stack } from '@mantine/core';
 import { Modal } from '@/components/Modal';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 interface CreateConfigModalProps {
   opened: boolean;
@@ -33,12 +33,6 @@ export const CreateConfigModal = ({
     await onCreateConfig(configName);
     onClose();
   };
-
-  useEffect(() => {
-    if (opened) {
-      setNewConfigName('');
-    }
-  }, [opened]);
 
   return (
     <Modal

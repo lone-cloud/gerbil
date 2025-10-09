@@ -13,14 +13,13 @@ import { Download, Trash2 } from 'lucide-react';
 import { MouseEvent } from 'react';
 import { pretifyBinName, isWindowsROCmBuild } from '@/utils/assets';
 import { usePreferencesStore } from '@/stores/preferences';
+import { useKoboldVersionsStore } from '@/stores/koboldVersions';
 import type { VersionInfo } from '@/types';
 
 interface DownloadCardProps {
   version: VersionInfo;
   size: string;
   description?: string;
-  isLoading?: boolean;
-  downloadProgress?: number;
   disabled?: boolean;
   onDownload: (e: MouseEvent<HTMLButtonElement>) => void;
   onMakeCurrent?: () => void;
@@ -33,8 +32,6 @@ export const DownloadCard = ({
   version: versionInfo,
   size,
   description,
-  isLoading = false,
-  downloadProgress = 0,
   disabled = false,
   onDownload,
   onMakeCurrent,
@@ -43,6 +40,12 @@ export const DownloadCard = ({
   onDelete,
 }: DownloadCardProps) => {
   const { resolvedColorScheme: colorScheme } = usePreferencesStore();
+  const { downloading, downloadProgress } = useKoboldVersionsStore();
+
+  const isLoading = downloading === versionInfo.name;
+  const currentProgress = isLoading
+    ? downloadProgress[versionInfo.name] || 0
+    : 0;
   const hasVersionMismatch = Boolean(
     versionInfo.version &&
       versionInfo.actualVersion &&
@@ -226,18 +229,17 @@ export const DownloadCard = ({
         {renderActionButtons()}
       </Group>
 
-      {isLoading && downloadProgress !== undefined && (
+      {isLoading && currentProgress !== undefined && (
         <Stack gap="xs" mt="sm">
           <Progress
-            value={Math.min(downloadProgress, 100)}
+            value={Math.min(currentProgress, 100)}
             color="blue"
             radius="xl"
           />
           <Text size="xs" c="dimmed" ta="center">
-            {Math.min(downloadProgress, 100) === 100
-              ? '100%'
-              : `${Math.min(downloadProgress, 100).toFixed(1)}%`}{' '}
-            complete
+            {Math.min(currentProgress, 100) === 100
+              ? '100.0% complete'
+              : `${Math.min(currentProgress, 100).toFixed(1).padStart(5, ' ')}% complete`}
           </Text>
         </Stack>
       )}

@@ -107,7 +107,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
         void setInitialDefaults(model, sdmodel);
       }
     }
-  }, [configLoaded, setHappyDefaults]);
+  }, [configLoaded, setHappyDefaults, model, sdmodel, setInitialDefaults]);
 
   const loadConfigFiles = useCallback(async () => {
     const [files, currentDir, savedConfig] = await Promise.all([
@@ -131,7 +131,14 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     }
 
     setConfigLoaded(true);
-  }, [selectedFile, loadConfigFromFile]);
+  }, [
+    selectedFile,
+    loadConfigFromFile,
+    setConfigFiles,
+    setInstallDir,
+    setSelectedFile,
+    setConfigLoaded,
+  ]);
 
   const handleFileSelection = async (fileName: string) => {
     setSelectedFile(fileName);
@@ -247,6 +254,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadConfigFiles();
 
     const handleInstallDirChange = () => {

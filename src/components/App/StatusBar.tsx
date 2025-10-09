@@ -25,38 +25,34 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
   const { isVisible, setVisible } = useNotepadStore();
 
   useEffect(() => {
-    let isMounted = true;
-    let cleanupCpu: (() => void) | undefined;
-    let cleanupMemory: (() => void) | undefined;
-    let cleanupGpu: (() => void) | undefined;
-    let stopMonitoring: (() => void) | undefined;
-
-    if (systemMonitoringEnabled) {
-      const handleCpuMetrics = (metrics: CpuMetrics) => {
-        if (!isMounted) return;
-        setCpuMetrics(metrics);
-      };
-
-      const handleMemoryMetrics = (metrics: MemoryMetrics) => {
-        if (!isMounted) return;
-        setMemoryMetrics(metrics);
-      };
-
-      const handleGpuMetrics = (metrics: GpuMetrics) => {
-        if (!isMounted) return;
-        setGpuMetrics(metrics);
-      };
-
-      cleanupCpu = window.electronAPI.monitoring.onCpuMetrics(handleCpuMetrics);
-      cleanupMemory =
-        window.electronAPI.monitoring.onMemoryMetrics(handleMemoryMetrics);
-      cleanupGpu = window.electronAPI.monitoring.onGpuMetrics(handleGpuMetrics);
-      stopMonitoring = window.electronAPI.monitoring.start();
-    } else {
-      setCpuMetrics(null);
-      setMemoryMetrics(null);
-      setGpuMetrics(null);
+    if (!systemMonitoringEnabled) {
+      return;
     }
+
+    let isMounted = true;
+
+    const handleCpuMetrics = (metrics: CpuMetrics) => {
+      if (!isMounted) return;
+      setCpuMetrics(metrics);
+    };
+
+    const handleMemoryMetrics = (metrics: MemoryMetrics) => {
+      if (!isMounted) return;
+      setMemoryMetrics(metrics);
+    };
+
+    const handleGpuMetrics = (metrics: GpuMetrics) => {
+      if (!isMounted) return;
+      setGpuMetrics(metrics);
+    };
+
+    const cleanupCpu =
+      window.electronAPI.monitoring.onCpuMetrics(handleCpuMetrics);
+    const cleanupMemory =
+      window.electronAPI.monitoring.onMemoryMetrics(handleMemoryMetrics);
+    const cleanupGpu =
+      window.electronAPI.monitoring.onGpuMetrics(handleGpuMetrics);
+    const stopMonitoring = window.electronAPI.monitoring.start();
 
     return () => {
       isMounted = false;
@@ -66,6 +62,10 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
       stopMonitoring?.();
     };
   }, [maxDataPoints, systemMonitoringEnabled]);
+
+  const displayCpuMetrics = systemMonitoringEnabled ? cpuMetrics : null;
+  const displayMemoryMetrics = systemMonitoringEnabled ? memoryMetrics : null;
+  const displayGpuMetrics = systemMonitoringEnabled ? gpuMetrics : null;
 
   return (
     <AppShell.Footer
@@ -95,32 +95,32 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
         <Group gap="xs">
           {systemMonitoringEnabled ? (
             <>
-              {cpuMetrics && memoryMetrics && (
+              {displayCpuMetrics && displayMemoryMetrics && (
                 <>
                   <PerformanceBadge
                     label="CPU"
-                    value={`${cpuMetrics.usage}%`}
-                    tooltipLabel={`${cpuMetrics.usage}%${cpuMetrics.temperature ? ` • ${cpuMetrics.temperature}°C` : ''}`}
+                    value={`${displayCpuMetrics.usage}%`}
+                    tooltipLabel={`${displayCpuMetrics.usage}%${displayCpuMetrics.temperature ? ` • ${displayCpuMetrics.temperature}°C` : ''}`}
                   />
 
                   <PerformanceBadge
                     label="RAM"
-                    value={`${memoryMetrics.usage}%`}
-                    tooltipLabel={`${memoryMetrics.used.toFixed(2)} GB / ${memoryMetrics.total.toFixed(2)} GB (${memoryMetrics.usage}%)`}
+                    value={`${displayMemoryMetrics.usage}%`}
+                    tooltipLabel={`${displayMemoryMetrics.used.toFixed(2)} GB / ${displayMemoryMetrics.total.toFixed(2)} GB (${displayMemoryMetrics.usage}%)`}
                   />
                 </>
               )}
 
-              {gpuMetrics?.gpus.map((gpu, index) => (
+              {displayGpuMetrics?.gpus.map((gpu, index) => (
                 <Group gap="xs" key={`gpu-${index}`}>
                   <PerformanceBadge
-                    label={`GPU${gpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}`}
+                    label={`GPU${displayGpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}`}
                     value={`${gpu.usage}%`}
                     tooltipLabel={`${gpu.usage}%${gpu.temperature ? ` • ${gpu.temperature}°C` : ''}`}
                   />
 
                   <PerformanceBadge
-                    label={`VRAM${gpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}`}
+                    label={`VRAM${displayGpuMetrics.gpus.length > 1 ? ` ${index + 1}` : ''}`}
                     value={`${gpu.memoryUsage}%`}
                     tooltipLabel={`${gpu.memoryUsed.toFixed(2)} GB / ${gpu.memoryTotal.toFixed(2)} GB (${gpu.memoryUsage}%)`}
                   />
