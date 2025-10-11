@@ -165,10 +165,7 @@ export const App = () => {
     determineScreen(currentVersion, true);
   };
 
-  const handleDownloadComplete = () => {
-    setTimeout(() => setCurrentScreen('launch'), 500);
-  };
-
+  const handleDownloadComplete = () => setCurrentScreen('launch');
   const handleLaunch = () => {
     setActiveInterfaceTab('terminal');
     setCurrentScreen('interface');

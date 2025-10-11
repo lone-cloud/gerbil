@@ -30,6 +30,7 @@ export const VersionsTab = () => {
     downloading,
     handleDownload: handleDownloadFromStore,
     getLatestReleaseWithDownloadStatus,
+    initialize,
   } = useKoboldVersionsStore();
 
   const [installedVersions, setInstalledVersions] = useState<
@@ -66,11 +67,21 @@ export const VersionsTab = () => {
   }, [getLatestReleaseWithDownloadStatus]);
 
   useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect */
+    if (availableDownloads.length === 0 && !loadingRemote && !loadingPlatform) {
+      initialize();
+    }
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadInstalledVersions();
     loadLatestRelease();
-    /* eslint-enable react-hooks/set-state-in-effect */
-  }, [loadInstalledVersions, loadLatestRelease]);
+  }, [
+    loadInstalledVersions,
+    loadLatestRelease,
+    availableDownloads.length,
+    loadingRemote,
+    loadingPlatform,
+    initialize,
+  ]);
 
   const allVersions = useMemo((): VersionInfo[] => {
     const versions: VersionInfo[] = [];
