@@ -1,7 +1,7 @@
 {
   "name": "gerbil",
   "productName": "Gerbil",
-  "version": "1.6.8",
+  "version": "1.6.9",
   "description": "Run Large Language Models locally",
   "main": "out/main/index.js",
   "homepage": "./",
@@ -39,7 +39,7 @@
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@eslint/js": "^9.37.0",
-    "@types/node": "^24.7.1",
+    "@types/node": "^24.7.2",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.1",
     "@typescript-eslint/eslint-plugin": "^8.46.0",

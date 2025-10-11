@@ -1,4 +1,4 @@
-import { readFile, writeFile, access, mkdir, rename } from 'fs/promises';
+import { readFile, writeFile, access, mkdir } from 'fs/promises';
 import { constants } from 'fs';
 import { dirname } from 'path';
 
@@ -26,9 +26,7 @@ export const writeJsonFile = async (path: string, data: unknown) => {
   await ensureDir(dir);
 
   const content = JSON.stringify(data, null, 2);
-  const tempPath = `${path}.tmp`;
-  await writeFile(tempPath, content, 'utf-8');
-  await rename(tempPath, path);
+  await writeFile(path, content, 'utf-8');
 };
 
 export const ensureDir = async (path: string) => {
