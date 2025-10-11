@@ -113,6 +113,14 @@ Not all koboldcpp features have currently been ported over to the UI. As a worka
 
 The `--cli` argument allows you to use the Gerbil binary as a proxy to the downloaded KoboldCpp binary. This enables you to run KoboldCpp from the command line using the same binary that the GUI has downloaded.
 
+### CLI Arguments
+
+Gerbil supports the following command-line arguments:
+
+- `--version` - Display the Gerbil version and exit
+- `--cli` - Run in CLI mode (proxy to KoboldCpp binary). All arguments after `--cli` are passed to KoboldCpp
+- `--minimized` - Start Gerbil GUI minimized to system tray (requires system tray to be enabled in settings)
+
 ### Considerations
 
 You might want to run CLI Mode if you're looking to use a different frontend, such as OpenWebUI, than the ones bundled (eg. KoboldAI Lite, Stable UI) with KoboldCpp AND you're looking to minimize any resource utilization of this app. Note that at the time of this writing, Gerbil only takes about ~200MB of RAM and ~100MB of VRAM for its Chromium-based UI. When running in CLI Mode, Gerbil will still take about 1/3 of those RAM and VRAM numbers.
