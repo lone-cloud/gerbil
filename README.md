@@ -48,9 +48,13 @@ makepkg -si
 
 The AUR package automatically handles installation, desktop integration, and system updates. This is the ideal way to run Gerbil on Linux.
 
-## Screenshots
+## Demo & Screenshots
+
+See Gerbil in action:
 
 <!-- markdownlint-disable MD033 MD022 -->
+
+<video src="media/demo.mp4" controls></video>
 
 <table>
 <tr>
@@ -58,14 +62,14 @@ The AUR package automatically handles installation, desktop integration, and sys
 
 ### Download & Setup
 
-<img src="screenshots/download.png" alt="Download Interface" width="400">
+<img src="media/screenshots/download.png" alt="Download Interface" width="400">
 
 </td>
 <td width="50%">
 
 ### Model Launch Configuration
 
-<img src="screenshots/launch.png" alt="Launch Configuration" width="400">
+<img src="media/screenshots/launch.png" alt="Launch Configuration" width="400">
 
 </td>
 </tr>
@@ -74,14 +78,14 @@ The AUR package automatically handles installation, desktop integration, and sys
 
 ### Text Generation
 
-<img src="screenshots/text-story.png" alt="Text Story Generation" width="400">
+<img src="media/screenshots/text-story.png" alt="Text Story Generation" width="400">
 
 </td>
 <td width="50%">
 
 ### Image Generation
 
-<img src="screenshots/gen-img.png" alt="Image Generation" width="400">
+<img src="media/screenshots/gen-img.png" alt="Image Generation" width="400">
 
 </td>
 </tr>
@@ -90,14 +94,14 @@ The AUR package automatically handles installation, desktop integration, and sys
 
 ### SillyTavern integration
 
-<img src="screenshots/sillytavern.png" alt="SillyTavern integration" width="400">
+<img src="media/screenshots/sillytavern.png" alt="SillyTavern integration" width="400">
 
 </td>
 <td width="50%">
 
 ### OpenWebUI integration
 
-<img src="screenshots/openwebui.png" alt="OpenWebUI integration" width="400">
+<img src="media/screenshots/openwebui.png" alt="OpenWebUI integration" width="400">
 
 </td>
 </tr>
