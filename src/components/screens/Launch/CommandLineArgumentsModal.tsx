@@ -55,11 +55,14 @@ const UI_COVERED_ARGS = new Set([
   '--sdt5xxl',
   '--sdclipl',
   '--sdclipg',
+  '--sdclip1',
+  '--sdclip2',
   '--sdphotomaker',
   '--sdvae',
   '--sdlora',
-  '--sdflashattention',
   '--sdconvdirect',
+  '--sdvaecpu',
+  '--sdclipgpu',
   '--tensor_split',
 ] as const) as ReadonlySet<string>;
 
@@ -387,6 +390,14 @@ const COMMAND_LINE_ARGUMENTS = [
     category: 'Performance',
   },
   {
+    flag: '--lowvram',
+    aliases: ['-nkvo', '--no-kv-offload'],
+    description:
+      'If supported by the backend, do not offload KV to GPU (lowvram mode). Not recommended, will be slow.',
+    type: 'boolean',
+    category: 'Performance',
+  },
+  {
     flag: '--defaultgenamt',
     description:
       'How many tokens to generate by default, if not specified. Must be smaller than context size. Usually, your frontend GUI will override this.',
@@ -637,6 +648,21 @@ const COMMAND_LINE_ARGUMENTS = [
     metavar: '[maxres]',
     type: 'int',
     default: 768,
+    category: 'Image Generation',
+  },
+  {
+    flag: '--sdoffloadcpu',
+    description:
+      'Offload image weights in RAM to save VRAM, swap into VRAM when needed.',
+    type: 'boolean',
+    category: 'Image Generation',
+  },
+  {
+    flag: '--sdgendefaults',
+    description:
+      'Sets default parameters for image generation, as a JSON string.',
+    metavar: '{"parameter":"value",...}',
+    default: '',
     category: 'Image Generation',
   },
   {

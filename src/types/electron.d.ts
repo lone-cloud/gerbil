@@ -97,6 +97,8 @@ export interface KoboldConfig {
   sdvae?: string;
   sdlora?: string;
   sdconvdirect?: string;
+  sdvaecpu?: boolean;
+  sdclipgpu?: boolean;
   additionalArguments?: string;
   moecpu?: number;
   moeexperts?: number;

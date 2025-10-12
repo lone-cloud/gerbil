@@ -119,7 +119,7 @@ export const App = () => {
       if (currentVersion) {
         setTimeout(() => {
           checkForUpdates();
-        }, 1000);
+        }, 5000);
       }
     };
 

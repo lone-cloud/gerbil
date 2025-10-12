@@ -1,7 +1,8 @@
-import { Stack } from '@mantine/core';
+import { Stack, Group } from '@mantine/core';
 import { useState } from 'react';
 import { ModelFileField } from '@/components/screens/Launch/ModelFileField';
 import { SelectWithTooltip } from '@/components/SelectWithTooltip';
+import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
 import { IMAGE_MODEL_PRESETS } from '@/constants/imageModelPresets';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 
@@ -15,6 +16,8 @@ export const ImageGenerationTab = () => {
     sdvae,
     sdlora,
     sdconvdirect,
+    sdvaecpu,
+    sdclipgpu,
     handleSdmodelChange,
     handleSdt5xxlChange,
     handleSdcliplChange,
@@ -23,6 +26,8 @@ export const ImageGenerationTab = () => {
     handleSdvaeChange,
     handleSdloraChange,
     handleSdconvdirectChange,
+    handleSdvaecpuChange,
+    handleSdclipgpuChange,
     handleApplyPreset,
     handleSelectSdmodelFile,
     handleSelectSdt5xxlFile,
@@ -143,6 +148,22 @@ export const ImageGenerationTab = () => {
           { value: 'full', label: 'Full' },
         ]}
       />
+
+      <Group gap="xs" grow>
+        <CheckboxWithTooltip
+          label="Force VAE to CPU"
+          tooltip="Forces the VAE (Variational Autoencoder) to run on CPU instead of GPU. This can save VRAM but will be slower. Useful for systems with limited GPU memory."
+          checked={sdvaecpu}
+          onChange={handleSdvaecpuChange}
+        />
+
+        <CheckboxWithTooltip
+          label="Offload CLIP/T5"
+          tooltip="Offloads CLIP and T5 text encoders to the GPU for faster processing. By default they run on CPU. Only enable if you have VRAM to spare."
+          checked={sdclipgpu}
+          onChange={handleSdclipgpuChange}
+        />
+      </Group>
     </Stack>
   );
 };

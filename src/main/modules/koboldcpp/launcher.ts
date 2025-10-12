@@ -25,7 +25,7 @@ let koboldProcess: ChildProcess | null = null;
 const patchKliteEmbd = (unpackedDir: string) =>
   tryExecute(async () => {
     const possiblePaths = [
-      join(unpackedDir, '_internal', 'klite.embd'),
+      join(unpackedDir, '_internal', 'embd_res', 'klite.embd'),
       join(unpackedDir, 'klite.embd'),
     ];
 
@@ -72,7 +72,7 @@ const patchKliteEmbd = (unpackedDir: string) =>
 const patchKcppSduiEmbd = (unpackedDir: string) =>
   tryExecute(async () => {
     const possiblePaths = [
-      join(unpackedDir, '_internal', 'kcpp_sdui.embd'),
+      join(unpackedDir, '_internal', 'embd_res', 'kcpp_sdui.embd'),
       join(unpackedDir, 'kcpp_sdui.embd'),
     ];
 

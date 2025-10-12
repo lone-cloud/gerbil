@@ -35,6 +35,8 @@ interface LaunchConfigState {
   sdvae: string;
   sdlora: string;
   sdconvdirect: SdConvDirectMode;
+  sdvaecpu: boolean;
+  sdclipgpu: boolean;
   moecpu: number;
   moeexperts: number;
   isImageGenerationMode: boolean;
@@ -71,6 +73,8 @@ interface LaunchConfigState {
   setSdvae: (vae: string) => void;
   setSdlora: (loraModel: string) => void;
   setSdconvdirect: (mode: SdConvDirectMode) => void;
+  setSdvaecpu: (enabled: boolean) => void;
+  setSdclipgpu: (enabled: boolean) => void;
   setMoecpu: (moecpu: number) => void;
   setMoeexperts: (moeexperts: number) => void;
 
@@ -123,6 +127,8 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   sdvae: '',
   sdlora: '',
   sdconvdirect: 'off' as const,
+  sdvaecpu: false,
+  sdclipgpu: false,
   moecpu: 0,
   moeexperts: -1,
 
@@ -173,6 +179,8 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   setSdvae: (vae) => set({ sdvae: vae }),
   setSdlora: (loraModel) => set({ sdlora: loraModel }),
   setSdconvdirect: (mode) => set({ sdconvdirect: mode }),
+  setSdvaecpu: (enabled) => set({ sdvaecpu: enabled }),
+  setSdclipgpu: (enabled) => set({ sdclipgpu: enabled }),
   setMoecpu: (moeCpu) => set({ moecpu: moeCpu }),
   setMoeexperts: (moeExperts) => set({ moeexperts: moeExperts }),
 
@@ -361,6 +369,18 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
         ['off', 'vaeonly', 'full'].includes(configData.sdconvdirect)
       ) {
         updates.sdconvdirect = configData.sdconvdirect as SdConvDirectMode;
+      }
+
+      if (typeof configData.sdvaecpu === 'boolean') {
+        updates.sdvaecpu = configData.sdvaecpu;
+      } else {
+        updates.sdvaecpu = false;
+      }
+
+      if (typeof configData.sdclipgpu === 'boolean') {
+        updates.sdclipgpu = configData.sdclipgpu;
+      } else {
+        updates.sdclipgpu = false;
       }
 
       if (typeof configData.moecpu === 'number') {
