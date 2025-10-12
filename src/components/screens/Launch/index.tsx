@@ -57,6 +57,8 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     sdvae,
     sdlora,
     sdconvdirect,
+    sdvaecpu,
+    sdclipgpu,
     moecpu,
     moeexperts,
     parseAndApplyConfigFile,
@@ -181,6 +183,10 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     sdclipg,
     sdphotomaker,
     sdvae,
+    sdlora,
+    sdconvdirect,
+    sdvaecpu,
+    sdclipgpu,
   });
 
   const handleCreateNewConfig = async (configName: string) => {
@@ -299,6 +305,8 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
       sdvae,
       sdlora,
       sdconvdirect,
+      sdvaecpu,
+      sdclipgpu,
       moecpu,
       moeexperts,
     });
@@ -333,6 +341,8 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     sdvae,
     sdlora,
     sdconvdirect,
+    sdvaecpu,
+    sdclipgpu,
     moecpu,
     moeexperts,
   ]);

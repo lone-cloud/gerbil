@@ -37,6 +37,8 @@ interface LaunchArgs {
   sdvae: string;
   sdlora: string;
   sdconvdirect: SdConvDirectMode;
+  sdvaecpu: boolean;
+  sdclipgpu: boolean;
   moecpu: number;
   moeexperts: number;
 }
@@ -72,6 +74,14 @@ const buildModelArgs = (
 
     if (launchArgs.flashattention) {
       args.push('--sdflashattention');
+    }
+
+    if (launchArgs.sdvaecpu) {
+      args.push('--sdvaecpu');
+    }
+
+    if (launchArgs.sdclipgpu) {
+      args.push('--sdclipgpu');
     }
 
     if (launchArgs.sdconvdirect !== 'off') {
