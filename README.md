@@ -50,11 +50,9 @@ The AUR package automatically handles installation, desktop integration, and sys
 
 ## Demo & Screenshots
 
-See Gerbil in action:
+https://github.com/user-attachments/assets/9e7ecfb3-3576-443c-8cef-a14e06ab5b60
 
 <!-- markdownlint-disable MD033 MD022 -->
-
-<video src="media/demo.mp4" controls></video>
 
 <table>
 <tr>
