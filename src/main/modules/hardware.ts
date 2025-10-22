@@ -126,7 +126,11 @@ async function detectVulkan() {
 
 async function detectCUDA() {
   try {
-    const { stdout } = await execa('nvidia-smi', [], COMMON_EXEC_OPTIONS);
+    const { stdout } = await execa(
+      'nvidia-smi',
+      ['--query-gpu=name,driver_version,cuda_version', '--format=csv,noheader'],
+      COMMON_EXEC_OPTIONS
+    );
 
     if (stdout.trim()) {
       const errorPatterns = [
@@ -145,33 +149,21 @@ async function detectCUDA() {
         return { devices: [] } as const;
       }
 
+      const lines = stdout.split('\n').filter((line) => line.trim());
       const devices: string[] = [];
-      let cudaVersion: string | undefined;
       let driverVersion: string | undefined;
+      let cudaVersion: string | undefined;
 
-      const cudaMatch = stdout.match(/CUDA Version:\s*(\d+\.\d+)/);
-      if (cudaMatch) {
-        cudaVersion = cudaMatch[1];
-      }
-
-      const driverMatch = stdout.match(
-        /Driver Version:\s*(\d+\.\d+(?:\.\d+)?)/
-      );
-
-      if (driverMatch) {
-        driverVersion = driverMatch[1];
-      }
-
-      const gpuNameMatch = stdout.match(/\|\s+\d+\s+([^|]+)\s+On\s+\|/g);
-
-      if (gpuNameMatch) {
-        for (const match of gpuNameMatch) {
-          const name = match
-            .replace(/\|\s+\d+\s+([^|]+)\s+On\s+\|/, '$1')
-            .trim();
-          if (name) {
-            devices.push(formatDeviceName(name));
-          }
+      for (const line of lines) {
+        const [name, driver, cuda] = line.split(',').map((s) => s.trim());
+        if (name) {
+          devices.push(formatDeviceName(name));
+        }
+        if (driver && !driverVersion) {
+          driverVersion = driver;
+        }
+        if (cuda && !cudaVersion) {
+          cudaVersion = cuda;
         }
       }
 

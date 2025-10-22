@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import type { BackendOption, BackendSupport } from '@/types';
 import { CPUCapabilities, GPUDevice } from '@/types/hardware';
+import type { BackendOption, BackendSupport } from '@/types';
 
 export interface Warning {
   type: 'warning' | 'info';
@@ -61,7 +61,7 @@ const checkGpuWarnings = async (
   backendSupport: BackendSupport,
   gpuCapabilities: GpuCapabilities,
   gpuInfo: GpuInfo
-): Promise<Warning[]> => {
+) => {
   const warnings: Warning[] = [];
 
   if (
