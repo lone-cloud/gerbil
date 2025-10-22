@@ -128,7 +128,7 @@ async function detectCUDA() {
   try {
     const { stdout } = await execa(
       'nvidia-smi',
-      ['--query-gpu=name,driver_version,cuda_version', '--format=csv,noheader'],
+      ['--query-gpu=name,driver_version', '--format=csv,noheader'],
       COMMON_EXEC_OPTIONS
     );
 
@@ -152,24 +152,19 @@ async function detectCUDA() {
       const lines = stdout.split('\n').filter((line) => line.trim());
       const devices: string[] = [];
       let driverVersion: string | undefined;
-      let cudaVersion: string | undefined;
 
       for (const line of lines) {
-        const [name, driver, cuda] = line.split(',').map((s) => s.trim());
+        const [name, driver] = line.split(',').map((s) => s.trim());
         if (name) {
           devices.push(formatDeviceName(name));
         }
         if (driver && !driverVersion) {
           driverVersion = driver;
         }
-        if (cuda && !cudaVersion) {
-          cudaVersion = cuda;
-        }
       }
 
       return {
         devices,
-        version: cudaVersion,
         driverVersion,
       } as const;
     }
