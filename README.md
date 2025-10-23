@@ -193,7 +193,7 @@ You can use the CLI mode on Windows in exactly the same way as in the Linux/macO
 - Gerbil: installed from [AUR](https://aur.archlinux.org/packages/gerbil) via [yay](https://github.com/Jguer/yay)
 - KoboldCPP: nocuda build, vulkan backend
 - Hardware: RX 7900 GRE (16GB VRAM, undervolted, overclocked), Ryzen 7 7800X3D, ASUS B650-E, 32GB RAM (EXPO 1: 6000Mhz)
-- LLM: [Q4 Gemma 3 27b abliterated](https://huggingface.co/mlabonne/gemma-3-27b-it-abliterated-GGUF?show_file_info=gemma-3-27b-it-abliterated.q4_k_m.gguf) with [Dolphin system message](https://github.com/QuixiAI/dolphin-system-messages)
+- LLM: [Q4 Gemma 3 27b abliterated](https://huggingface.co/mlabonne/gemma-3-27b-it-abliterated-GGUF?show_file_info=gemma-3-27b-it-abliterated.q4_k_m.gguf)+ [Open WebUI](https://openwebui.com/) + [Dolphin system message](https://github.com/QuixiAI/dolphin-system-messages)
 
 ## Known Issues
 

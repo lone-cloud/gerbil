@@ -62,7 +62,7 @@
     "prettier": "^3.6.2",
     "rollup-plugin-visualizer": "^6.0.5",
     "typescript": "^5.9.3",
-    "vite": "^7.1.11"
+    "vite": "^7.1.12"
   },
   "dependencies": {
     "@codemirror/search": "^6.5.11",

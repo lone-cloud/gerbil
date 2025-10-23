@@ -89,22 +89,22 @@ function buildTooltipText() {
   ) {
     const metrics: string[] = [];
 
-    const cpuText = `CPU: ${currentMetrics.cpu.usage}%${currentMetrics.cpu.temperature ? ` • ${currentMetrics.cpu.temperature}°C` : ''}`;
+    const cpuText = `CPU:   ${currentMetrics.cpu.usage}%${currentMetrics.cpu.temperature ? ` • ${currentMetrics.cpu.temperature}°C` : ''}`;
     metrics.push(cpuText);
 
-    const ramText = `RAM: ${currentMetrics.memory.used.toFixed(2)} GB / ${currentMetrics.memory.total.toFixed(2)} GB (${currentMetrics.memory.usage}%)`;
+    const ramText = `RAM:   ${currentMetrics.memory.used.toFixed(2)} GB • ${currentMetrics.memory.usage}%`;
     metrics.push(ramText);
 
     if (currentMetrics.gpu?.gpus) {
       currentMetrics.gpu.gpus.forEach((gpu, index) => {
         const gpuLabel =
           currentMetrics.gpu!.gpus.length > 1 ? `GPU ${index + 1}` : 'GPU';
-        const gpuText = `${gpuLabel}: ${gpu.usage}%${gpu.temperature ? ` • ${gpu.temperature}°C` : ''}`;
+        const gpuText = `${gpuLabel}:   ${gpu.usage}%${gpu.temperature ? ` • ${gpu.temperature}°C` : ''}`;
         metrics.push(gpuText);
 
         const vramLabel =
           currentMetrics.gpu!.gpus.length > 1 ? `VRAM ${index + 1}` : 'VRAM';
-        const vramText = `${vramLabel}: ${gpu.memoryUsed.toFixed(2)} GB / ${gpu.memoryTotal.toFixed(2)} GB (${gpu.memoryUsage}%)`;
+        const vramText = `${vramLabel}: ${gpu.memoryUsed.toFixed(2)} GB • ${gpu.memoryUsage}%`;
         metrics.push(vramText);
       });
     }
