@@ -1,7 +1,11 @@
-import { Group, TextInput, Button } from '@mantine/core';
-import { File, Search } from 'lucide-react';
+import { Group, TextInput, ActionIcon, Tooltip, Button } from '@mantine/core';
+import { useState } from 'react';
+import { File, Search, Info } from 'lucide-react';
 import { LabelWithTooltip } from '@/components/LabelWithTooltip';
+import { ModelAnalysisModal } from '@/components/screens/Launch/ModelAnalysisModal';
 import { getInputValidationState } from '@/utils/validation';
+import { logError } from '@/utils/logger';
+import type { ModelAnalysis } from '@/types';
 
 interface ModelFileFieldProps {
   label: string;
@@ -10,8 +14,8 @@ interface ModelFileFieldProps {
   tooltip?: string;
   onChange: (value: string) => void;
   onSelectFile: () => void;
-  showSearchHF?: boolean;
   searchUrl?: string;
+  showAnalyze?: boolean;
 }
 
 export const ModelFileField = ({
@@ -21,10 +25,16 @@ export const ModelFileField = ({
   tooltip,
   onChange,
   onSelectFile,
-  showSearchHF = false,
-  searchUrl = 'https://huggingface.co/models?pipeline_tag=text-to-image&library=gguf&sort=trending',
+  searchUrl,
+  showAnalyze = false,
 }: ModelFileFieldProps) => {
   const validationState = getInputValidationState(value);
+  const [analysisModalOpened, setAnalysisModalOpened] = useState(false);
+  const [modelAnalysis, setModelAnalysis] = useState<ModelAnalysis | null>(
+    null
+  );
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string>();
 
   const getHelperText = () => {
     if (!value.trim()) return undefined;
@@ -34,6 +44,29 @@ export const ModelFileField = ({
     }
 
     return undefined;
+  };
+
+  const isLocalFile = value.trim() && validationState === 'local';
+
+  const handleAnalyzeModel = async () => {
+    if (!value.trim()) return;
+
+    setAnalysisModalOpened(true);
+    setAnalysisLoading(true);
+    setAnalysisError(undefined);
+    setModelAnalysis(null);
+
+    try {
+      const analysis = await window.electronAPI.kobold.analyzeModel(value);
+      setModelAnalysis(analysis);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to analyze model';
+      setAnalysisError(errorMessage);
+      logError('Failed to analyze model:', error as Error);
+    } finally {
+      setAnalysisLoading(false);
+    }
   };
 
   return (
@@ -55,16 +88,38 @@ export const ModelFileField = ({
         >
           Browse
         </Button>
-        {showSearchHF && (
-          <Button
-            onClick={() => window.electronAPI.app.openExternal(searchUrl!)}
-            variant="outline"
-            leftSection={<Search size={16} />}
-          >
-            Search HF
-          </Button>
+        {searchUrl && (
+          <Tooltip label="Search Hugging Face">
+            <ActionIcon
+              onClick={() => window.electronAPI.app.openExternal(searchUrl)}
+              variant="outline"
+              size="lg"
+            >
+              <Search size={16} />
+            </ActionIcon>
+          </Tooltip>
+        )}
+        {showAnalyze && isLocalFile && (
+          <Tooltip label="Analyze model">
+            <ActionIcon
+              onClick={handleAnalyzeModel}
+              variant="light"
+              color="blue"
+              size="lg"
+            >
+              <Info size={16} />
+            </ActionIcon>
+          </Tooltip>
         )}
       </Group>
+
+      <ModelAnalysisModal
+        opened={analysisModalOpened}
+        onClose={() => setAnalysisModalOpened(false)}
+        analysis={modelAnalysis}
+        loading={analysisLoading}
+        error={analysisError}
+      />
     </div>
   );
 };

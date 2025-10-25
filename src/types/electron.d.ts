@@ -5,7 +5,12 @@ import type {
   GPUMemoryInfo,
   SystemMemoryInfo,
 } from '@/types/hardware';
-import type { BackendOption, BackendSupport, Screen } from '@/types';
+import type {
+  BackendOption,
+  BackendSupport,
+  Screen,
+  ModelAnalysis,
+} from '@/types';
 import type { MantineColorScheme } from '@mantine/core';
 import type {
   CpuMetrics,
@@ -142,6 +147,7 @@ export interface KoboldAPI {
   setSelectedConfig: (configName: string) => Promise<boolean>;
   parseConfigFile: (filePath: string) => Promise<KoboldConfig | null>;
   selectModelFile: (title?: string) => Promise<string | null>;
+  analyzeModel: (filePath: string) => Promise<ModelAnalysis>;
   stopKoboldCpp: () => void;
   onDownloadProgress: (callback: (progress: number) => void) => () => void;
   onInstallDirChanged: (callback: (newPath: string) => void) => () => void;

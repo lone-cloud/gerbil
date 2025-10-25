@@ -75,8 +75,8 @@ export const ImageGenerationTab = () => {
         tooltip="The primary image generation model. This is the main model that will generate images."
         onChange={handleSdmodelChange}
         onSelectFile={handleSelectSdmodelFile}
-        showSearchHF
         searchUrl="https://huggingface.co/models?pipeline_tag=text-to-image&library=gguf&sort=trending"
+        showAnalyze
       />
 
       <ModelFileField
