@@ -42,8 +42,8 @@ export const GeneralTab = ({ configLoaded = true }: GeneralTabProps) => {
             tooltip="Select a GGUF text generation model file for chat and completion tasks."
             onChange={handleModelChange}
             onSelectFile={handleSelectModelFile}
-            showSearchHF
             searchUrl="https://huggingface.co/models?pipeline_tag=text-generation&library=gguf&sort=trending"
+            showAnalyze
           />
 
           <div>

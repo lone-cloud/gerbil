@@ -86,3 +86,24 @@ export interface BackendSupport {
   failsafe: boolean;
   cuda: boolean;
 }
+
+export interface ModelAnalysis {
+  general: {
+    architecture: string;
+    name?: string;
+    fileSize: string;
+    parameterCount?: string;
+  };
+  context: {
+    maxContextLength?: string;
+  };
+  architecture: {
+    layers?: number;
+    expertCount?: number;
+  };
+  estimates: {
+    fullGpuVram: string;
+    systemRam: string;
+    vramPerLayer?: string;
+  };
+}

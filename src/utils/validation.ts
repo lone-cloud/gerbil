@@ -21,9 +21,11 @@ const isValidFilePath = (path: string) => {
 export const getInputValidationState = (path: string) => {
   if (!path.trim()) return 'neutral';
 
-  if (isValidUrl(path) || isValidFilePath(path)) {
-    return 'valid';
-  }
+  const isUrl = isValidUrl(path);
+  const isFile = isValidFilePath(path);
+
+  if (isUrl) return 'valid';
+  if (isFile) return 'local';
 
   return 'invalid';
 };

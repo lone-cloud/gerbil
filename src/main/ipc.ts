@@ -21,6 +21,7 @@ import {
   selectModelFile,
   selectInstallDirectory,
 } from '@/main/modules/koboldcpp/config';
+import { analyzeGGUFModel } from '@/main/modules/koboldcpp/analyze';
 import {
   get as getConfig,
   set as setConfig,
@@ -154,6 +155,10 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('kobold:selectModelFile', (_, title) =>
     selectModelFile(title)
+  );
+
+  ipcMain.handle('kobold:analyzeModel', async (_, filePath: string) =>
+    analyzeGGUFModel(filePath)
   );
 
   ipcMain.handle('config:get', (_, key) => getConfig(key));

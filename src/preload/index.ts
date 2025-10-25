@@ -51,6 +51,8 @@ const koboldAPI: KoboldAPI = {
     ipcRenderer.invoke('kobold:parseConfigFile', filePath),
   selectModelFile: (title) =>
     ipcRenderer.invoke('kobold:selectModelFile', title),
+  analyzeModel: (filePath) =>
+    ipcRenderer.invoke('kobold:analyzeModel', filePath),
   stopKoboldCpp: () => ipcRenderer.invoke('kobold:stopKoboldCpp'),
   onDownloadProgress: (callback) => {
     const handler = (_: IpcRendererEvent, progress: number) =>
