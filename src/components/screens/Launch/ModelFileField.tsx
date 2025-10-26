@@ -37,7 +37,7 @@ export const ModelFileField = ({
   const [analysisError, setAnalysisError] = useState<string>();
 
   const getHelperText = () => {
-    if (!value.trim()) return undefined;
+    if (validationState === 'neutral') return undefined;
 
     if (validationState === 'invalid') {
       return 'Enter a valid URL or file path';
@@ -47,7 +47,7 @@ export const ModelFileField = ({
   };
 
   const handleAnalyzeModel = async () => {
-    if (!value.trim()) return;
+    if (validationState === 'neutral' || validationState === 'invalid') return;
 
     setAnalysisModalOpened(true);
     setAnalysisLoading(true);
@@ -97,13 +97,22 @@ export const ModelFileField = ({
             </ActionIcon>
           </Tooltip>
         )}
-        {showAnalyze && value.trim() && validationState !== 'invalid' && (
-          <Tooltip label="Analyze model">
+        {showAnalyze && (
+          <Tooltip
+            label={
+              validationState === 'neutral' || validationState === 'invalid'
+                ? 'Enter a valid model path'
+                : 'Analyze model'
+            }
+          >
             <ActionIcon
               onClick={handleAnalyzeModel}
               variant="light"
               color="blue"
               size="lg"
+              disabled={
+                validationState === 'neutral' || validationState === 'invalid'
+              }
             >
               <Info size={16} />
             </ActionIcon>
