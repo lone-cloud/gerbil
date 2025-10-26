@@ -64,7 +64,7 @@ export const ModelAnalysisModal = ({
     {analysis && (
       <Stack gap="xs">
         {analysis.general.name && (
-          <InfoRow label="Model Name" value={analysis.general.name} />
+          <InfoRow label="Name" value={analysis.general.name} />
         )}
         <InfoRow label="Architecture" value={analysis.general.architecture} />
         {analysis.general.parameterCount && (
