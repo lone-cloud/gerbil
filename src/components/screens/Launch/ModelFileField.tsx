@@ -46,8 +46,6 @@ export const ModelFileField = ({
     return undefined;
   };
 
-  const isLocalFile = value.trim() && validationState === 'local';
-
   const handleAnalyzeModel = async () => {
     if (!value.trim()) return;
 
@@ -99,7 +97,7 @@ export const ModelFileField = ({
             </ActionIcon>
           </Tooltip>
         )}
-        {showAnalyze && isLocalFile && (
+        {showAnalyze && value.trim() && validationState !== 'invalid' && (
           <Tooltip label="Analyze model">
             <ActionIcon
               onClick={handleAnalyzeModel}

@@ -43,11 +43,21 @@ function getMetadataValue(metadata: Record<string, unknown>, key: string) {
 
 export async function analyzeGGUFModel(filePath: string) {
   try {
-    const stats = await stat(filePath);
-    const fileSize = stats.size;
+    const isUrl =
+      filePath.startsWith('http://') || filePath.startsWith('https://');
+
+    let fileSize: number;
+    if (isUrl) {
+      const response = await fetch(filePath, { method: 'HEAD' });
+      const contentLength = response.headers.get('content-length');
+      fileSize = contentLength ? parseInt(contentLength, 10) : 0;
+    } else {
+      const stats = await stat(filePath);
+      fileSize = stats.size;
+    }
 
     const { metadata } = await gguf(filePath, {
-      allowLocalFile: true,
+      allowLocalFile: !isUrl,
     });
 
     const metadataRecord = metadata as Record<string, unknown>;

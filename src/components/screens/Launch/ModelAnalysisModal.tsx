@@ -1,5 +1,5 @@
 import { Modal } from '@/components/Modal';
-import { Stack, Group, Text, Divider, Alert, rem } from '@mantine/core';
+import { Stack, Group, Text, Alert, rem } from '@mantine/core';
 import { Info } from 'lucide-react';
 import type { ModelAnalysis } from '@/types';
 
@@ -21,7 +21,7 @@ const InfoRow = ({ label, value }: InfoRowProps) => {
 
   return (
     <Group gap="md" wrap="nowrap">
-      <Text size="sm" c="dimmed" style={{ minWidth: rem(160) }}>
+      <Text size="sm" c="dimmed" style={{ minWidth: rem(150) }}>
         {label}:
       </Text>
       <Text size="sm" fw={500}>
@@ -47,7 +47,6 @@ export const ModelAnalysisModal = ({
         <Text>Model Analysis</Text>
       </Group>
     }
-    size="lg"
     showCloseButton
   >
     {loading && (
@@ -63,72 +62,38 @@ export const ModelAnalysisModal = ({
     )}
 
     {analysis && (
-      <Stack gap="md">
-        <div>
-          <Text size="sm" fw={600} mb="xs">
-            General Information
-          </Text>
-          <Stack gap="xs">
-            <InfoRow
-              label="Architecture"
-              value={analysis.general.architecture}
-            />
-            {analysis.general.name && (
-              <InfoRow label="Model Name" value={analysis.general.name} />
-            )}
-            {analysis.general.parameterCount && (
-              <InfoRow
-                label="Parameters"
-                value={analysis.general.parameterCount}
-              />
-            )}
-            <InfoRow label="File Size" value={analysis.general.fileSize} />
-            {analysis.architecture.layers && (
-              <InfoRow label="Layers" value={analysis.architecture.layers} />
-            )}
-            {analysis.architecture.expertCount && (
-              <InfoRow
-                label="Expert Count (MoE)"
-                value={analysis.architecture.expertCount}
-              />
-            )}
-          </Stack>
-        </div>
-
-        {analysis.context.maxContextLength && (
-          <>
-            <Divider />
-            <div>
-              <Text size="sm" fw={600} mb="xs">
-                Context
-              </Text>
-              <Stack gap="xs">
-                <InfoRow
-                  label="Max Context Length"
-                  value={analysis.context.maxContextLength}
-                />
-              </Stack>
-            </div>
-          </>
+      <Stack gap="xs">
+        {analysis.general.name && (
+          <InfoRow label="Model Name" value={analysis.general.name} />
         )}
+        <InfoRow label="Architecture" value={analysis.general.architecture} />
+        {analysis.general.parameterCount && (
+          <InfoRow label="Parameters" value={analysis.general.parameterCount} />
+        )}
+        <InfoRow label="File Size" value={analysis.general.fileSize} />
 
-        <Divider />
-
-        <div>
-          <Text size="sm" fw={600} mb="xs">
-            Memory Estimates
-          </Text>
-          <Stack gap="xs">
-            <InfoRow label="Full VRAM" value={analysis.estimates.fullGpuVram} />
-            <InfoRow label="Full RAM" value={analysis.estimates.systemRam} />
-            {analysis.estimates.vramPerLayer && (
-              <InfoRow
-                label="VRAM per Layer"
-                value={analysis.estimates.vramPerLayer}
-              />
-            )}
-          </Stack>
-        </div>
+        {analysis.architecture.expertCount && (
+          <InfoRow
+            label="Expert Count (MoE)"
+            value={analysis.architecture.expertCount}
+          />
+        )}
+        {analysis.context.maxContextLength && (
+          <InfoRow
+            label="Max Context Length"
+            value={analysis.context.maxContextLength}
+          />
+        )}
+        {analysis.architecture.layers && (
+          <InfoRow
+            label="Layers / VRAM"
+            value={`${analysis.architecture.layers} (${analysis.estimates.vramPerLayer || 'N/A'} per layer) = ${analysis.estimates.fullGpuVram}`}
+          />
+        )}
+        {!analysis.architecture.layers && (
+          <InfoRow label="Full VRAM" value={analysis.estimates.fullGpuVram} />
+        )}
+        <InfoRow label="Full RAM" value={analysis.estimates.systemRam} />
       </Stack>
     )}
   </Modal>
