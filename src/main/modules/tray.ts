@@ -92,7 +92,7 @@ function buildTooltipText() {
     const cpuText = `CPU:   ${currentMetrics.cpu.usage}%${currentMetrics.cpu.temperature ? ` • ${currentMetrics.cpu.temperature}°C` : ''}`;
     metrics.push(cpuText);
 
-    const ramText = `RAM:   ${currentMetrics.memory.used.toFixed(2)} GB • ${currentMetrics.memory.usage}%`;
+    const ramText = `RAM:   ${currentMetrics.memory.usage}% • ${currentMetrics.memory.used.toFixed(2)} GB`;
     metrics.push(ramText);
 
     if (currentMetrics.gpu?.gpus) {
@@ -104,7 +104,7 @@ function buildTooltipText() {
 
         const vramLabel =
           currentMetrics.gpu!.gpus.length > 1 ? `VRAM ${index + 1}` : 'VRAM';
-        const vramText = `${vramLabel}: ${gpu.memoryUsed.toFixed(2)} GB • ${gpu.memoryUsage}%`;
+        const vramText = `${vramLabel}: ${gpu.memoryUsage}% • ${gpu.memoryUsed.toFixed(2)} GB`;
         metrics.push(vramText);
       });
     }
