@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Text, Box, Anchor, rem } from '@mantine/core';
-import { Monitor } from 'lucide-react';
+import { Monitor, Image } from 'lucide-react';
 import { usePreferencesStore } from '@/stores/preferences';
-import type { FrontendPreference } from '@/types';
+import type {
+  FrontendPreference,
+  ImageGenerationFrontendPreference,
+} from '@/types';
 import { FRONTENDS } from '@/constants';
 import { Select } from '@/components/Select';
 
@@ -27,7 +30,12 @@ interface FrontendInterfaceSelectorProps {
 export const FrontendInterfaceSelector = ({
   isOnInterfaceScreen = false,
 }: FrontendInterfaceSelectorProps) => {
-  const { frontendPreference, setFrontendPreference } = usePreferencesStore();
+  const {
+    frontendPreference,
+    setFrontendPreference,
+    imageGenerationFrontendPreference,
+    setImageGenerationFrontendPreference,
+  } = usePreferencesStore();
 
   const [frontendRequirements, setFrontendRequirements] = useState<
     Map<string, boolean>
@@ -130,6 +138,12 @@ export const FrontendInterfaceSelector = ({
 
   const handleFrontendPreferenceChange = (value: string | null) => {
     setFrontendPreference(value as FrontendPreference);
+  };
+
+  const handleImageGenerationFrontendChange = (value: string | null) => {
+    setImageGenerationFrontendPreference(
+      value as ImageGenerationFrontendPreference
+    );
   };
 
   const renderDisabledFrontendWarnings = () => {
@@ -266,6 +280,25 @@ export const FrontendInterfaceSelector = ({
       />
 
       {renderDisabledFrontendWarnings()}
+
+      <Text fw={500} mb="sm" mt="xl">
+        Image Generation Frontend
+      </Text>
+
+      <Text size="sm" c="dimmed" mb="md">
+        Choose which frontend to use for image generation specifically
+      </Text>
+
+      <Select
+        value={imageGenerationFrontendPreference}
+        onChange={handleImageGenerationFrontendChange}
+        disabled={isOnInterfaceScreen}
+        data={[
+          { value: 'match', label: 'Match Frontend' },
+          { value: 'builtin', label: 'Built-in' },
+        ]}
+        leftSection={<Image style={{ width: rem(16), height: rem(16) }} />}
+      />
     </>
   );
 };

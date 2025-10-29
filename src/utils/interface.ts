@@ -1,4 +1,8 @@
-import type { FrontendPreference, InterfaceTab } from '@/types';
+import type {
+  FrontendPreference,
+  InterfaceTab,
+  ImageGenerationFrontendPreference,
+} from '@/types';
 import { FRONTENDS, SILLYTAVERN, OPENWEBUI, COMFYUI } from '@/constants';
 
 export interface InterfaceOption {
@@ -8,22 +12,32 @@ export interface InterfaceOption {
 
 export interface InterfaceSelectionParams {
   frontendPreference: FrontendPreference;
+  imageGenerationFrontendPreference?: ImageGenerationFrontendPreference;
   isTextMode: boolean;
   isImageGenerationMode: boolean;
 }
 
 export function getAvailableInterfaceOptions({
   frontendPreference,
+  imageGenerationFrontendPreference = 'match',
   isTextMode,
   isImageGenerationMode,
 }: InterfaceSelectionParams) {
   const chatItems: InterfaceOption[] = [];
 
+  const effectiveImageFrontend =
+    imageGenerationFrontendPreference === 'builtin'
+      ? 'koboldcpp'
+      : frontendPreference;
+
   if (
     frontendPreference === 'sillytavern' ||
     frontendPreference === 'openwebui'
   ) {
-    if (isTextMode || isImageGenerationMode) {
+    if (
+      isTextMode ||
+      (isImageGenerationMode && effectiveImageFrontend === frontendPreference)
+    ) {
       const label =
         frontendPreference === 'sillytavern'
           ? FRONTENDS.SILLYTAVERN
@@ -34,23 +48,25 @@ export function getAvailableInterfaceOptions({
         label,
       });
     }
-  } else {
+  } else if (frontendPreference === 'koboldcpp') {
     if (isTextMode) {
       chatItems.push({
         value: 'chat-text',
         label: FRONTENDS.KOBOLDAI_LITE,
       });
     }
+  }
 
-    if (isImageGenerationMode) {
-      const imageLabel =
-        frontendPreference === 'comfyui'
-          ? FRONTENDS.COMFYUI
-          : FRONTENDS.STABLE_UI;
-
+  if (isImageGenerationMode) {
+    if (effectiveImageFrontend === 'comfyui') {
       chatItems.push({
         value: 'chat-image',
-        label: imageLabel,
+        label: FRONTENDS.COMFYUI,
+      });
+    } else if (effectiveImageFrontend === 'koboldcpp') {
+      chatItems.push({
+        value: 'chat-image',
+        label: FRONTENDS.STABLE_UI,
       });
     }
   }
@@ -64,17 +80,29 @@ export function getAvailableInterfaceOptions({
 
 export function getDefaultInterfaceTab({
   frontendPreference,
+  imageGenerationFrontendPreference = 'match',
   isTextMode,
   isImageGenerationMode,
 }: InterfaceSelectionParams) {
+  const effectiveImageFrontend =
+    imageGenerationFrontendPreference === 'builtin'
+      ? 'koboldcpp'
+      : frontendPreference;
+
   if (
     frontendPreference === 'sillytavern' ||
     frontendPreference === 'openwebui'
   ) {
+    if (
+      isImageGenerationMode &&
+      effectiveImageFrontend !== frontendPreference
+    ) {
+      return 'chat-image';
+    }
     return 'chat-text';
   }
 
-  if (frontendPreference === 'comfyui' && isImageGenerationMode) {
+  if (effectiveImageFrontend === 'comfyui' && isImageGenerationMode) {
     return 'chat-image';
   }
 
@@ -96,13 +124,25 @@ export interface ServerInterfaceInfo {
 
 export function getServerInterfaceInfo({
   frontendPreference,
+  imageGenerationFrontendPreference = 'match',
   isImageGenerationMode,
   serverUrl,
 }: {
   frontendPreference: FrontendPreference;
+  imageGenerationFrontendPreference?: ImageGenerationFrontendPreference;
   isImageGenerationMode: boolean;
   serverUrl: string;
 }) {
+  if (
+    isImageGenerationMode &&
+    imageGenerationFrontendPreference === 'builtin'
+  ) {
+    return {
+      url: `${serverUrl}/sdui`,
+      title: FRONTENDS.STABLE_UI,
+    };
+  }
+
   if (frontendPreference === 'sillytavern') {
     return {
       url: SILLYTAVERN.PROXY_URL,

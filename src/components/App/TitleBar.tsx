@@ -32,19 +32,17 @@ export const TitleBar = ({
   onEject,
   onTabChange,
 }: TitleBarProps) => {
-  const { resolvedColorScheme: colorScheme, frontendPreference } =
-    usePreferencesStore();
+  const {
+    resolvedColorScheme: colorScheme,
+    frontendPreference,
+    imageGenerationFrontendPreference,
+  } = usePreferencesStore();
   const { handleLogoClick, getLogoStyles } = useLogoClickSounds();
   const [isMaximized, setIsMaximized] = useState(false);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
 
   const { isTextMode, isImageGenerationMode } = useLaunchConfigStore();
-  const interfaceOptions = getAvailableInterfaceOptions({
-    frontendPreference,
-    isTextMode,
-    isImageGenerationMode,
-  });
 
   const handleTabChange = (value: string | null) => {
     if (value === 'eject') {
@@ -133,7 +131,12 @@ export const TitleBar = ({
               onChange={handleTabChange}
               onDropdownOpen={() => setIsSelectOpen(true)}
               onDropdownClose={() => setIsSelectOpen(false)}
-              data={interfaceOptions}
+              data={getAvailableInterfaceOptions({
+                frontendPreference,
+                imageGenerationFrontendPreference,
+                isTextMode,
+                isImageGenerationMode,
+              })}
               renderOption={renderOption}
               variant="unstyled"
               style={{ textAlign: 'center', minWidth: '7.5rem' }}

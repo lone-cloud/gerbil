@@ -6,7 +6,11 @@ import { join } from 'path';
 import { platform } from 'process';
 import { nativeTheme } from 'electron';
 import { PRODUCT_NAME } from '@/constants';
-import type { FrontendPreference, DismissedUpdate } from '@/types';
+import type {
+  FrontendPreference,
+  DismissedUpdate,
+  ImageGenerationFrontendPreference,
+} from '@/types';
 import type { MantineColorScheme } from '@mantine/core';
 import type { SavedNotepadState } from '@/types/electron';
 
@@ -23,6 +27,7 @@ interface AppConfig {
   currentKoboldBinary?: string;
   selectedConfig?: string;
   frontendPreference?: FrontendPreference;
+  imageGenerationFrontendPreference?: ImageGenerationFrontendPreference;
   colorScheme?: MantineColorScheme;
   windowBounds?: WindowBounds;
   hasSeenWelcome?: boolean;

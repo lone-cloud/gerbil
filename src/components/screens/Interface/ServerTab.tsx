@@ -17,7 +17,8 @@ export const ServerTab = ({
   activeTab,
 }: ServerTabProps) => {
   const { isImageGenerationMode } = useLaunchConfigStore();
-  const { frontendPreference } = usePreferencesStore();
+  const { frontendPreference, imageGenerationFrontendPreference } =
+    usePreferencesStore();
 
   const effectiveImageMode =
     activeTab === 'chat-image'
@@ -30,10 +31,16 @@ export const ServerTab = ({
     () =>
       getServerInterfaceInfo({
         frontendPreference,
+        imageGenerationFrontendPreference,
         isImageGenerationMode: effectiveImageMode,
         serverUrl: serverUrl || '',
       }),
-    [frontendPreference, effectiveImageMode, serverUrl]
+    [
+      frontendPreference,
+      imageGenerationFrontendPreference,
+      effectiveImageMode,
+      serverUrl,
+    ]
   );
 
   if (!isServerReady || !serverUrl) {

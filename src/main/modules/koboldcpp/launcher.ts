@@ -18,7 +18,10 @@ import { getCurrentKoboldBinary, get as getConfig } from '../config';
 import { startFrontend as startSillyTavernFrontend } from '@/main/modules/sillytavern';
 import { startFrontend as startOpenWebUIFrontend } from '@/main/modules/openwebui';
 import { startFrontend as startComfyUIFrontend } from '@/main/modules/comfyui';
-import type { FrontendPreference } from '@/types';
+import type {
+  FrontendPreference,
+  ImageGenerationFrontendPreference,
+} from '@/types';
 
 let koboldProcess: ChildProcess | null = null;
 
@@ -219,9 +222,20 @@ export const launchKoboldCppWithCustomFrontends = async (args: string[] = []) =>
       'frontendPreference'
     )) as FrontendPreference;
 
+    const imageGenerationFrontendPreference = (await getConfig(
+      'imageGenerationFrontendPreference'
+    )) as ImageGenerationFrontendPreference | undefined;
+
     const result = await launchKoboldCpp(args, frontendPreference);
 
-    const { isImageMode } = parseKoboldConfig(args);
+    const { isImageMode, isTextMode } = parseKoboldConfig(args);
+
+    if (
+      frontendPreference === 'koboldcpp' ||
+      (!isTextMode && imageGenerationFrontendPreference === 'builtin')
+    ) {
+      return result;
+    }
 
     if (frontendPreference === 'sillytavern') {
       startSillyTavernFrontend(args);

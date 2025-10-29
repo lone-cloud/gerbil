@@ -28,7 +28,7 @@ const checkModelWarnings = (
 
   if (showModelPriorityWarning) {
     warnings.push({
-      type: 'warning',
+      type: 'info',
       message:
         'Both text and image generation models are selected. This may load both models into VRAM simultaneously, which requires significant memory (typically 16GB+ VRAM recommended). Ensure your system has sufficient VRAM to avoid crashes or poor performance.',
     });

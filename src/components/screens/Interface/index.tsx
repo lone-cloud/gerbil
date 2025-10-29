@@ -23,16 +23,23 @@ export const InterfaceScreen = ({
   const terminalTabRef = useRef<TerminalTabRef>(null);
 
   const { isTextMode, isImageGenerationMode } = useLaunchConfigStore();
-  const { frontendPreference } = usePreferencesStore();
+  const { frontendPreference, imageGenerationFrontendPreference } =
+    usePreferencesStore();
 
   const defaultInterfaceTab = useMemo(
     () =>
       getDefaultInterfaceTab({
         frontendPreference,
+        imageGenerationFrontendPreference,
         isTextMode,
         isImageGenerationMode,
       }),
-    [frontendPreference, isTextMode, isImageGenerationMode]
+    [
+      frontendPreference,
+      imageGenerationFrontendPreference,
+      isTextMode,
+      isImageGenerationMode,
+    ]
   );
 
   const handleServerReady = useCallback(
