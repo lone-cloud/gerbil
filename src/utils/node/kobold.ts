@@ -2,6 +2,7 @@ export function parseKoboldConfig(args: string[]) {
   let host = 'localhost';
   let port = 5001;
   let hasSdModel = false;
+  let hasTextModel = false;
 
   for (let i = 0; i < args.length - 1; i++) {
     if (args[i] === '--hostname' || args[i] === '--host') {
@@ -13,10 +14,13 @@ export function parseKoboldConfig(args: string[]) {
       }
     } else if (args[i] === '--sdmodel') {
       hasSdModel = true;
+    } else if (args[i] === '--model') {
+      hasTextModel = true;
     }
   }
 
   const isImageMode = hasSdModel;
+  const isTextMode = hasTextModel;
 
-  return { host, port, isImageMode };
+  return { host, port, isImageMode, isTextMode };
 }

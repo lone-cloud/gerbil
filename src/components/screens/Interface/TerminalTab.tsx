@@ -26,9 +26,13 @@ export interface TerminalTabRef {
 
 export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
   ({ onServerReady }, ref) => {
-    const { host, port, isImageGenerationMode } = useLaunchConfigStore();
-    const { frontendPreference, resolvedColorScheme: colorScheme } =
-      usePreferencesStore();
+    const { host, port, isImageGenerationMode, isTextMode } =
+      useLaunchConfigStore();
+    const {
+      frontendPreference,
+      imageGenerationFrontendPreference,
+      resolvedColorScheme: colorScheme,
+    } = usePreferencesStore();
     const [terminalContent, setTerminalContent] = useState('');
     const [isUserScrolling, setIsUserScrolling] = useState(false);
     const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
@@ -79,16 +83,19 @@ export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
               const serverHost = host || 'localhost';
               const serverPort = port || 5001;
 
+              const effectiveFrontend = isTextMode
+                ? frontendPreference
+                : imageGenerationFrontendPreference === 'builtin'
+                  ? 'koboldcpp'
+                  : frontendPreference;
+
               let signalToCheck: string = SERVER_READY_SIGNALS.KOBOLDCPP;
 
-              if (frontendPreference === 'sillytavern') {
+              if (effectiveFrontend === 'sillytavern') {
                 signalToCheck = SERVER_READY_SIGNALS.SILLYTAVERN;
-              } else if (frontendPreference === 'openwebui') {
+              } else if (effectiveFrontend === 'openwebui') {
                 signalToCheck = SERVER_READY_SIGNALS.OPENWEBUI;
-              } else if (
-                frontendPreference === 'comfyui' &&
-                isImageGenerationMode
-              ) {
+              } else if (effectiveFrontend === 'comfyui') {
                 signalToCheck = SERVER_READY_SIGNALS.COMFYUI;
               }
 
@@ -106,7 +113,15 @@ export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
       );
 
       return cleanup;
-    }, [onServerReady, host, port, frontendPreference, isImageGenerationMode]);
+    }, [
+      onServerReady,
+      host,
+      port,
+      frontendPreference,
+      imageGenerationFrontendPreference,
+      isImageGenerationMode,
+      isTextMode,
+    ]);
 
     const scrollToBottom = () => {
       if (viewportRef.current) {

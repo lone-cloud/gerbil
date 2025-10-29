@@ -18,6 +18,8 @@ export type FrontendPreference =
   | 'openwebui'
   | 'comfyui';
 
+export type ImageGenerationFrontendPreference = 'match' | 'builtin';
+
 export type Screen = 'welcome' | 'download' | 'launch' | 'interface';
 
 export interface GitHubAsset {
