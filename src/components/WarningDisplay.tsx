@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Group, useMantineTheme, List, Tooltip } from '@mantine/core';
+import { Group, List, Tooltip } from '@mantine/core';
 import { AlertTriangle, Info } from 'lucide-react';
 
 interface WarningItem {
@@ -13,8 +13,6 @@ interface WarningDisplayProps {
 }
 
 export const WarningDisplay = ({ warnings, children }: WarningDisplayProps) => {
-  const theme = useMantineTheme();
-
   if (warnings.length === 0) {
     return <Group gap="xs">{children}</Group>;
   }
@@ -40,7 +38,11 @@ export const WarningDisplay = ({ warnings, children }: WarningDisplayProps) => {
           multiline
           maw={320}
         >
-          <AlertTriangle size={18} color={theme.colors.orange[6]} />
+          <AlertTriangle
+            size={18}
+            color="var(--mantine-color-orange-6)"
+            strokeWidth={2}
+          />
         </Tooltip>
       )}
       {infoMessages.length > 0 && (
@@ -59,7 +61,7 @@ export const WarningDisplay = ({ warnings, children }: WarningDisplayProps) => {
           multiline
           maw={320}
         >
-          <Info size={18} color={theme.colors.blue[6]} />
+          <Info size={18} color="var(--mantine-color-blue-6)" strokeWidth={2} />
         </Tooltip>
       )}
       {children}
