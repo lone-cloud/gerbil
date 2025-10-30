@@ -2822,16 +2822,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:^39.0.0":
-  version: 39.0.0
-  resolution: "electron@npm:39.0.0"
+"electron@npm:^38.5.0":
+  version: 38.5.0
+  resolution: "electron@npm:38.5.0"
   dependencies:
     "@electron/get": "npm:^2.0.0"
     "@types/node": "npm:^22.7.7"
     extract-zip: "npm:^2.0.1"
   bin:
     electron: cli.js
-  checksum: 10c0/7d2272fe6d479edd6544a010008382f3acb21b6206a2585f67df25c43274a3c905affb98dac2e7ea367b51653e8697738c83409f051293545f69d69305d2892e
+  checksum: 10c0/14f27ac406b0525cdc5d9f6eb137b695b43096d22ddd590eebcfeb779e98c05def8e71007d3cc6dcba47de06a200307fce1f249f2d4ee458d15a7483db0e0099
   languageName: node
   linkType: hard
 
@@ -3780,7 +3780,7 @@ __metadata:
     "@uiw/react-codemirror": "npm:^4.25.2"
     "@vitejs/plugin-react": "npm:^5.1.0"
     cross-env: "npm:^10.1.0"
-    electron: "npm:^39.0.0"
+    electron: "npm:^38.5.0"
     electron-builder: "npm:^26.0.12"
     electron-updater: "npm:^6.6.2"
     electron-vite: "npm:^4.0.1"
