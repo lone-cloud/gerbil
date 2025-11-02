@@ -6,10 +6,7 @@ import { terminateProcess } from '@/utils/node/process';
 import { logError, tryExecute, safeExecute } from '@/utils/node/logging';
 import { sendKoboldOutput } from '../window';
 import { SERVER_READY_SIGNALS } from '@/constants';
-import {
-  KLITE_CSS_OVERRIDE,
-  KLITE_AUTOSCROLL_PATCHES,
-} from '@/constants/patches';
+import { KLITE_CSS_OVERRIDE } from '@/constants/patches';
 import { pathExists } from '@/utils/node/fs';
 import { parseKoboldConfig } from '@/utils/node/kobold';
 import { getAssetPath } from '@/utils/node/path';
@@ -65,7 +62,7 @@ const patchKliteEmbd = (unpackedDir: string) =>
 
       patchedContent = patchedContent.replace(
         '</head>',
-        `${KLITE_CSS_OVERRIDE}\n${KLITE_AUTOSCROLL_PATCHES}\n</head>`
+        `${KLITE_CSS_OVERRIDE}\n</head>`
       );
 
       await writeFile(kliteEmbdPath, patchedContent, 'utf8');

@@ -63,6 +63,7 @@ const UI_COVERED_ARGS = new Set([
   '--sdconvdirect',
   '--sdvaecpu',
   '--sdclipgpu',
+  '--sdflashattention',
   '--tensor_split',
 ] as const) as ReadonlySet<string>;
 
@@ -91,26 +92,6 @@ const COMMAND_LINE_ARGUMENTS = [
     category: 'Basic',
   },
   {
-    flag: '--launch',
-    description: 'Launches a web browser when load is completed.',
-    type: 'boolean',
-    category: 'Basic',
-  },
-  {
-    flag: '--config',
-    description:
-      'Load settings from a .kcpps file. Other arguments will be ignored',
-    metavar: '[filename]',
-    type: 'string',
-    category: 'Basic',
-  },
-  {
-    flag: '--version',
-    description: 'Prints version and exits.',
-    type: 'boolean',
-    category: 'Advanced',
-  },
-  {
     flag: '--analyze',
     description:
       'Reads the metadata, weight types and tensor names in any GGUF file.',
@@ -130,9 +111,9 @@ const COMMAND_LINE_ARGUMENTS = [
   },
   {
     flag: '--blasbatchsize',
-    aliases: ['--batch-size', '-b'],
+    aliases: ['--batchsize', '--batch-size', '-b'],
     description:
-      'Sets the batch size used in BLAS processing (default 512). Setting it to -1 disables BLAS mode, but keeps other benefits like GPU offload.',
+      'Sets the batch size used in batched processing (default 512). Setting it to -1 disables batched mode, but keeps other benefits like GPU offload.',
     type: 'int',
     choices: [
       '-1',
@@ -151,9 +132,9 @@ const COMMAND_LINE_ARGUMENTS = [
   },
   {
     flag: '--blasthreads',
-    aliases: ['--threads-batch'],
+    aliases: ['--batchthreads', '--threadsbatch', '--threads-batch'],
     description:
-      'Use a different number of threads during BLAS if specified. Otherwise, has the same value as --threads',
+      'Use a different number of threads during batching if specified. Otherwise, has the same value as --threads',
     metavar: '[threads]',
     type: 'int',
     default: 0,
@@ -513,7 +494,7 @@ const COMMAND_LINE_ARGUMENTS = [
     flag: '--overridekv',
     aliases: ['--override-kv'],
     description:
-      'Advanced option to override a metadata by key, same as in llama.cpp. Mainly for debugging, not intended for general use. Types: int, float, bool, str',
+      'Override metadata value by key. Separate multiple values with commas. Format is name=type:value. Types: int, float, bool, str',
     metavar: '[name=type:value]',
     default: '',
     category: 'Advanced',
