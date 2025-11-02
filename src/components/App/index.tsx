@@ -120,6 +120,15 @@ export const App = () => {
         setTimeout(() => {
           checkForUpdates();
         }, 5000);
+
+        const interval = setInterval(
+          () => {
+            checkForUpdates();
+          },
+          6 * 60 * 60 * 1000
+        );
+
+        return () => clearInterval(interval);
       }
     };
 
