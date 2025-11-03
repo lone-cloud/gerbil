@@ -14,28 +14,42 @@ export const IMAGE_MODEL_PRESETS = [
     name: 'FLUX.1',
     description: 'FLUX.1 development model with default encoders',
     sdmodel:
-      'https://huggingface.co/bullerwins/FLUX.1-Kontext-dev-GGUF/resolve/main/flux1-kontext-dev-Q3_K_S.gguf?download=true',
+      'https://huggingface.co/bullerwins/FLUX.1-Kontext-dev-GGUF/resolve/main/flux1-kontext-dev-Q4_K_S.gguf',
     sdt5xxl:
-      'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/t5xxl_fp8_e4m3fn.safetensors?download=true',
+      'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/t5xxl_fp8_e4m3fn.safetensors',
     sdclipl:
-      'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/clip_l.safetensors?download=true',
+      'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/clip_l.safetensors',
     sdclipg: '',
     sdphotomaker: '',
     sdvae:
-      'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/ae.safetensors?download=true',
+      'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/ae.safetensors',
   },
   {
     name: 'Chroma',
     description: 'Chroma with optimized VAE and shared encoders',
     sdmodel:
-      'https://huggingface.co/silveroxides/Chroma-GGUF/resolve/main/chroma-unlocked-v29/chroma-unlocked-v29-Q3_K_L.gguf?download=true',
+      'https://huggingface.co/silveroxides/Chroma-GGUF/resolve/main/chroma-unlocked-v45/chroma-unlocked-v45-Q4_0.gguf',
     sdt5xxl:
-      'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/t5xxl_fp8_e4m3fn.safetensors?download=true',
+      'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/t5xxl_fp8_e4m3fn.safetensors',
     sdclipl:
-      'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/clip_l.safetensors?download=true',
+      'https://huggingface.co/camenduru/FLUX.1-dev/resolve/main/clip_l.safetensors',
     sdclipg: '',
     sdphotomaker: '',
     sdvae:
-      'https://huggingface.co/lodestones/Chroma/resolve/main/ae.safetensors?download=true',
+      'https://huggingface.co/lodestones/Chroma/resolve/main/ae.safetensors',
+  },
+  {
+    name: 'Qwen Image Edit 2509',
+    description: 'Qwen Image Edit model with vision encoder and VAE',
+    sdmodel:
+      'https://huggingface.co/QuantStack/Qwen-Image-Edit-2509-GGUF/resolve/main/Qwen-Image-Edit-2509-Q4_K_S.gguf',
+    sdt5xxl: '',
+    sdclipl:
+      'https://huggingface.co/mradermacher/Qwen2.5-VL-7B-Instruct-GGUF/resolve/main/Qwen2.5-VL-7B-Instruct.Q4_K_S.gguf',
+    sdclipg:
+      'https://huggingface.co/mradermacher/Qwen2.5-VL-7B-Instruct-GGUF/resolve/main/Qwen2.5-VL-7B-Instruct.mmproj-Q8_0.gguf',
+    sdphotomaker: '',
+    sdvae:
+      'https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/vae/qwen_image_vae.safetensors',
   },
 ] as const;
