@@ -3,7 +3,10 @@ import { PRODUCT_NAME } from '@/constants';
 import type { InfoItem } from '@/components/InfoCard';
 import type { HardwareInfo } from '@/types/hardware';
 
-export const createSoftwareItems = (versionInfo: SystemVersionInfo) => [
+export const createSoftwareItems = (
+  versionInfo: SystemVersionInfo,
+  koboldVersion?: string | null
+) => [
   {
     label: PRODUCT_NAME,
     value: versionInfo.aurPackageVersion
@@ -14,6 +17,11 @@ export const createSoftwareItems = (versionInfo: SystemVersionInfo) => [
             : versionInfo.appVersion;
         })()
       : versionInfo.appVersion,
+  },
+  ...(koboldVersion ? [{ label: 'KoboldCpp', value: koboldVersion }] : []),
+  {
+    label: 'OS',
+    value: `${versionInfo.platform} ${versionInfo.arch} (${versionInfo.osVersion})`,
   },
   { label: 'Electron', value: versionInfo.electronVersion },
   {
@@ -26,10 +34,6 @@ export const createSoftwareItems = (versionInfo: SystemVersionInfo) => [
   },
   { label: 'Chromium', value: versionInfo.chromeVersion },
   { label: 'V8', value: versionInfo.v8Version },
-  {
-    label: 'OS',
-    value: `${versionInfo.platform} ${versionInfo.arch} (${versionInfo.osVersion})`,
-  },
   ...(versionInfo.uvVersion
     ? [{ label: 'uv', value: versionInfo.uvVersion }]
     : []),

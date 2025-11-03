@@ -14,12 +14,21 @@ export const SystemTab = () => {
     null
   );
   const [hardwareInfo, setHardwareInfo] = useState<HardwareInfo | null>(null);
+  const [koboldVersion, setKoboldVersion] = useState<string | null>(null);
 
   useEffect(() => {
     const loadVersionInfo = async () => {
       const info = await window.electronAPI.app.getVersionInfo();
       if (info) {
         setVersionInfo(info);
+      }
+    };
+
+    const loadKoboldVersion = async () => {
+      const currentVersion =
+        await window.electronAPI.kobold.getCurrentVersion();
+      if (currentVersion) {
+        setKoboldVersion(currentVersion.version);
       }
     };
 
@@ -50,6 +59,7 @@ export const SystemTab = () => {
     };
 
     loadVersionInfo();
+    loadKoboldVersion();
     loadHardwareInfo();
   }, []);
 
@@ -61,7 +71,7 @@ export const SystemTab = () => {
     );
   }
 
-  const softwareItems = createSoftwareItems(versionInfo);
+  const softwareItems = createSoftwareItems(versionInfo, koboldVersion);
   const driverItems = hardwareInfo ? createDriverItems(hardwareInfo) : [];
   const hardwareItems = hardwareInfo ? createHardwareItems(hardwareInfo) : [];
 

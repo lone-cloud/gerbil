@@ -19,3 +19,9 @@ flux1-kontext-dev-Q3_K_S.gguf
 gemma-3-4b-it.Q8_0.gguf
 .webui_secret_key
 chroma-unlocked-v29-Q3_K_L.gguf
+Qwen-Image-Edit-2509-Q4_K_S.gguf
+Qwen2.5-VL-7B-Instruct.mmproj-Q8_0.gguf
+Qwen2.5-VL-7B-Instruct.Q4_K_S.gguf
+qwen_image_vae.safetensors
+flux1-kontext-dev-Q4_K_S.gguf
+chroma-unlocked-v45-Q4_0.gguf

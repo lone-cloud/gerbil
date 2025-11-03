@@ -88,7 +88,8 @@ const patchKcppSduiEmbd = (unpackedDir: string) =>
 
 export async function launchKoboldCpp(
   args: string[] = [],
-  frontendPreference: FrontendPreference = 'koboldcpp'
+  frontendPreference: FrontendPreference = 'koboldcpp',
+  imageGenerationFrontendPreference?: ImageGenerationFrontendPreference
 ) {
   try {
     if (koboldProcess) {
@@ -114,14 +115,17 @@ export async function launchKoboldCpp(
 
     const binaryDir = currentVersion.path.split(/[/\\]/).slice(0, -1).join('/');
 
-    const { isImageMode } = parseKoboldConfig(args);
+    const { isImageMode, isTextMode } = parseKoboldConfig(args);
 
     if (frontendPreference === 'koboldcpp') {
       if (isImageMode) {
         await patchKcppSduiEmbd(binaryDir);
-      } else {
+      }
+      if (isTextMode) {
         await patchKliteEmbd(binaryDir);
       }
+    } else if (isImageMode && imageGenerationFrontendPreference === 'builtin') {
+      await patchKcppSduiEmbd(binaryDir);
     }
 
     const finalArgs = [...args];
@@ -223,7 +227,11 @@ export const launchKoboldCppWithCustomFrontends = async (args: string[] = []) =>
       'imageGenerationFrontendPreference'
     )) as ImageGenerationFrontendPreference | undefined;
 
-    const result = await launchKoboldCpp(args, frontendPreference);
+    const result = await launchKoboldCpp(
+      args,
+      frontendPreference,
+      imageGenerationFrontendPreference
+    );
 
     const { isImageMode, isTextMode } = parseKoboldConfig(args);
 
