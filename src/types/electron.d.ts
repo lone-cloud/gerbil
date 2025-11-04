@@ -71,6 +71,15 @@ export interface DownloadItem {
   version?: string;
 }
 
+export interface OptimalLayersResult {
+  recommendedLayers: number;
+  totalLayers: number;
+  estimatedVramUsageGB: number;
+  modelVramGB: number;
+  contextVramGB: number;
+  headroomGB: number;
+}
+
 export interface KoboldConfig {
   gpulayers?: number;
   contextsize?: number;
@@ -148,6 +157,12 @@ export interface KoboldAPI {
   parseConfigFile: (filePath: string) => Promise<KoboldConfig | null>;
   selectModelFile: (title?: string) => Promise<string | null>;
   analyzeModel: (filePath: string) => Promise<ModelAnalysis>;
+  calculateOptimalLayers: (
+    modelPath: string,
+    contextSize: number,
+    availableVramGB: number,
+    flashAttention: boolean
+  ) => Promise<OptimalLayersResult>;
   stopKoboldCpp: () => void;
   onDownloadProgress: (callback: (progress: number) => void) => () => void;
   onInstallDirChanged: (callback: (newPath: string) => void) => () => void;

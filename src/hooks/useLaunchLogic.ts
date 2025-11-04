@@ -98,9 +98,9 @@ const buildConfigArgs = (isImageMode: boolean, launchArgs: LaunchArgs) => {
   const isGpuBackend = launchArgs.backend && launchArgs.backend !== 'cpu';
 
   if (isGpuBackend) {
-    if (launchArgs.autoGpuLayers) {
-      args.push('--gpulayers', '-1');
-    } else if (launchArgs.gpuLayers > 0) {
+    if (launchArgs.autoGpuLayers && launchArgs.gpuLayers > 0) {
+      args.push('--gpulayers', launchArgs.gpuLayers.toString());
+    } else if (!launchArgs.autoGpuLayers && launchArgs.gpuLayers > 0) {
       args.push('--gpulayers', launchArgs.gpuLayers.toString());
     }
   }

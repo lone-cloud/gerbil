@@ -45,7 +45,7 @@ export const GeneralTab = () => {
           System Tray
         </Text>
         <Text size="sm" c="dimmed" mb="md">
-          Add a system tray icon with quick access to launch, eject, and monitor
+          Add a system tray icon with quick access to launch, eject and monitor
           system metrics
         </Text>
         <Switch
