@@ -1,7 +1,7 @@
 import type { SystemVersionInfo } from '@/types/electron';
 import { PRODUCT_NAME } from '@/constants';
 import type { InfoItem } from '@/components/InfoCard';
-import type { HardwareInfo } from '@/types/hardware';
+import type { HardwareInfo, GPUDevice } from '@/types/hardware';
 
 export const createSoftwareItems = (
   versionInfo: SystemVersionInfo,
@@ -138,8 +138,16 @@ export const createHardwareItems = (hardwareInfo: HardwareInfo) => [
       : 'Detecting...',
   },
   ...(() => {
-    const discreteGPUs = [];
+    const discreteGPUs: GPUDevice[] = [];
 
+    if (hardwareInfo.gpuCapabilities.cuda.devices.length > 0) {
+      discreteGPUs.push(
+        ...hardwareInfo.gpuCapabilities.cuda.devices.map((name) => ({
+          name,
+          isIntegrated: false,
+        }))
+      );
+    }
     if (hardwareInfo.gpuCapabilities.vulkan.devices.length > 0) {
       discreteGPUs.push(
         ...hardwareInfo.gpuCapabilities.vulkan.devices.filter(

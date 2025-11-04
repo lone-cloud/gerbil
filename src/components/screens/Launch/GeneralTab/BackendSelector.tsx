@@ -12,6 +12,10 @@ export const BackendSelector = () => {
     backend,
     gpuLayers,
     autoGpuLayers,
+    model,
+    contextSize,
+    gpuDeviceSelection,
+    flashattention,
     handleBackendChange,
     handleGpuLayersChange,
     handleAutoGpuLayersChange,
@@ -21,6 +25,7 @@ export const BackendSelector = () => {
     []
   );
   const [isLoadingBackends, setIsLoadingBackends] = useState(false);
+  const [isCalculatingLayers, setIsCalculatingLayers] = useState(false);
   const hasInitialized = useRef(false);
 
   useEffect(() => {
@@ -62,6 +67,76 @@ export const BackendSelector = () => {
     }
   }, [availableBackends, backend, handleBackendChange]);
 
+  useEffect(() => {
+    const calculateLayers = async () => {
+      if (
+        !autoGpuLayers ||
+        !model ||
+        !contextSize ||
+        backend === 'cpu' ||
+        isLoadingBackends
+      ) {
+        return;
+      }
+
+      try {
+        setIsCalculatingLayers(true);
+
+        const gpuMemory = await window.electronAPI.kobold.detectGPUMemory();
+        if (!gpuMemory || gpuMemory.length === 0) {
+          return;
+        }
+
+        const selectedDeviceIndices = gpuDeviceSelection
+          .split(',')
+          .map((d) => parseInt(d.trim(), 10))
+          .filter((d) => !isNaN(d));
+
+        const availableVramGB = selectedDeviceIndices.reduce(
+          (total, deviceIndex) => {
+            const device = gpuMemory[deviceIndex];
+            const vramGB = device?.totalMemoryGB
+              ? parseFloat(device.totalMemoryGB)
+              : 0;
+            return total + vramGB;
+          },
+          0
+        );
+
+        if (availableVramGB === 0) {
+          return;
+        }
+
+        const result = await window.electronAPI.kobold.calculateOptimalLayers(
+          model,
+          contextSize,
+          availableVramGB,
+          flashattention
+        );
+
+        handleGpuLayersChange(result.recommendedLayers);
+      } catch (error) {
+        window.electronAPI.logs.logError(
+          'Failed to calculate optimal GPU layers',
+          error as Error
+        );
+      } finally {
+        setIsCalculatingLayers(false);
+      }
+    };
+
+    calculateLayers();
+  }, [
+    autoGpuLayers,
+    model,
+    contextSize,
+    backend,
+    gpuDeviceSelection,
+    flashattention,
+    isLoadingBackends,
+    handleGpuLayersChange,
+  ]);
+
   return (
     <div>
       <Group justify="space-between" align="flex-start" mb="xs">
@@ -70,7 +145,7 @@ export const BackendSelector = () => {
             <Text size="sm" fw={500}>
               Backend
             </Text>
-            <InfoTooltip label="Select a backend to use to run LLMs. CUDA runs on NVIDIA GPUs, and is much faster. ROCm is the AMD equivalent. Vulkan and CLBlast work on all GPUs." />
+            <InfoTooltip label="Select a backend to use to run LLMs. CUDA runs on NVIDIA GPUs and is much faster. ROCm is the AMD equivalent. Vulkan and CLBlast work on all GPUs." />
           </Group>
           <Select
             placeholder={
@@ -113,11 +188,18 @@ export const BackendSelector = () => {
             <Text size="sm" fw={500}>
               GPU Layers
             </Text>
-            <InfoTooltip label="The number of layers to offload to your GPU's VRAM. Ideally the entire LLM should fit inside the VRAM for optimal performance." />
+            <InfoTooltip label="The number of layers to offload to your GPU's VRAM. When Auto is enabled, this is calculated based on your model size, context size, available VRAM and flash attention settings." />
           </Group>
           <Group gap="lg" align="center">
             <TextInput
-              value={gpuLayers.toString()}
+              value={autoGpuLayers ? '' : gpuLayers.toString()}
+              placeholder={
+                autoGpuLayers
+                  ? isCalculatingLayers
+                    ? 'Calculating...'
+                    : gpuLayers.toString()
+                  : undefined
+              }
               onChange={(event) =>
                 handleGpuLayersChange(Number(event.target.value) || 0)
               }
@@ -139,7 +221,7 @@ export const BackendSelector = () => {
                 size="sm"
                 disabled={backend === 'cpu'}
               />
-              <InfoTooltip label="Automatically try to allocate the GPU layers based on available VRAM." />
+              <InfoTooltip label="Automatically calculate optimal GPU layers based on available VRAM. The calculation accounts for model size, context size and flash attention." />
             </Group>
           </Group>
         </div>

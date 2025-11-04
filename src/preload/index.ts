@@ -53,6 +53,19 @@ const koboldAPI: KoboldAPI = {
     ipcRenderer.invoke('kobold:selectModelFile', title),
   analyzeModel: (filePath) =>
     ipcRenderer.invoke('kobold:analyzeModel', filePath),
+  calculateOptimalLayers: (
+    modelPath,
+    contextSize,
+    availableVramGB,
+    flashAttention
+  ) =>
+    ipcRenderer.invoke(
+      'kobold:calculateOptimalLayers',
+      modelPath,
+      contextSize,
+      availableVramGB,
+      flashAttention
+    ),
   stopKoboldCpp: () => ipcRenderer.invoke('kobold:stopKoboldCpp'),
   onDownloadProgress: (callback) => {
     const handler = (_: IpcRendererEvent, progress: number) =>

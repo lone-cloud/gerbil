@@ -610,7 +610,7 @@ const COMMAND_LINE_ARGUMENTS = [
   {
     flag: '--sdvaeauto',
     description:
-      'Uses a built-in VAE via TAE SD, which is very fast, and fixed bad VAEs.',
+      'Uses a built-in VAE via TAE SD, which is very fast and fixed bad VAEs.',
     type: 'boolean',
     category: 'Image Generation',
   },

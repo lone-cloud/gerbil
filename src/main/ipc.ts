@@ -76,6 +76,7 @@ import {
   isUpdateDownloaded,
   canAutoUpdate,
 } from '@/main/modules/autoUpdater';
+import { calculateOptimalGpuLayers } from '@/utils/node/vram';
 
 export function setupIPCHandlers() {
   const mainWindow = getMainWindow();
@@ -159,6 +160,23 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('kobold:analyzeModel', async (_, filePath: string) =>
     analyzeGGUFModel(filePath)
+  );
+
+  ipcMain.handle(
+    'kobold:calculateOptimalLayers',
+    async (
+      _,
+      modelPath: string,
+      contextSize: number,
+      availableVramGB: number,
+      flashAttention: boolean
+    ) =>
+      calculateOptimalGpuLayers({
+        modelPath,
+        contextSize,
+        availableVramGB,
+        flashAttention,
+      })
   );
 
   ipcMain.handle('config:get', (_, key) => getConfig(key));
