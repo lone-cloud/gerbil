@@ -11,6 +11,7 @@ Thumbs.db
 # Yarn
 .yarn/
 .pnp.*
+
 t5xxl_fp8_e4m3fn.safetensors.aria2
 ae.safetensors
 clip_l.safetensors

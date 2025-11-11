@@ -44,7 +44,7 @@ export const DownloadCard = ({
 
   const isLoading = downloading === versionInfo.name;
   const currentProgress = isLoading
-    ? downloadProgress[versionInfo.name] || 0
+    ? Math.min(downloadProgress[versionInfo.name], 100) || 0
     : 0;
   const hasVersionMismatch = Boolean(
     versionInfo.version &&
@@ -231,15 +231,11 @@ export const DownloadCard = ({
 
       {isLoading && currentProgress !== undefined && (
         <Stack gap="xs" mt="sm">
-          <Progress
-            value={Math.min(currentProgress, 100)}
-            color="blue"
-            radius="xl"
-          />
+          <Progress value={currentProgress} color="blue" radius="xl" />
           <Text size="xs" c="dimmed" ta="center">
-            {Math.min(currentProgress, 100) === 100
+            {currentProgress === 100
               ? '100.0% complete'
-              : `${Math.min(currentProgress, 100).toFixed(1).padStart(5, ' ')}% complete`}
+              : `${currentProgress.toFixed(1).padStart(5, ' ')}% complete`}
           </Text>
         </Stack>
       )}

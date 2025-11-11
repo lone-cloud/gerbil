@@ -173,12 +173,12 @@ export const TitleBar = ({
 
           <Box
             style={{
-              width: '0.0625rem',
+              width: '0.1rem',
               height: '1.25rem',
               backgroundColor:
                 colorScheme === 'dark'
                   ? 'var(--mantine-color-dark-3)'
-                  : 'var(--mantine-color-default-border)',
+                  : 'var(--mantine-color-gray-4)',
               margin: '0 0.25rem',
             }}
           />
