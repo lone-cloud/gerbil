@@ -48,6 +48,10 @@ makepkg -si
 
 The AUR package automatically handles installation, desktop integration, and system updates. This is the ideal way to run Gerbil on Linux.
 
+#### macOS Codesigning Issues
+
+After installing on macOS, you will have to issue `xattr -r -d com.apple.quarantine /Applications/Gerbil.app` in the terminal to make macOS trust the application, because it is unsigned.
+
 ## Demo & Screenshots
 
 https://github.com/user-attachments/assets/9e7ecfb3-3576-443c-8cef-a14e06ab5b60
