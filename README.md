@@ -48,6 +48,10 @@ makepkg -si
 
 The AUR package automatically handles installation, desktop integration, and system updates. This is the ideal way to run Gerbil on Linux.
 
+#### Open a Mac app from an unknown developer
+
+After installing on macOS, you will notice that the app will not run as it was not verified by Apple. You will need to [follow these instructions](https://support.apple.com/en-ca/guide/mac-help/mh40616/mac) to remove it from your system's quarantine to be able to run it. Alternatively you can run `xattr -r -d com.apple.quarantine /Applications/Gerbil.app` in the terminal.
+
 ## Demo & Screenshots
 
 https://github.com/user-attachments/assets/9e7ecfb3-3576-443c-8cef-a14e06ab5b60
@@ -198,10 +202,6 @@ You can use the CLI mode on Windows in exactly the same way as in the Linux/macO
 ## Known Issues
 
 - Windows ROCm support is... problematic and currently requires for the user to manually add the installed ROCm bin directory to the system PATH. In particular "hipInfo.exe" must be present, which is not always the case for older verions of ROCm.
-
-## Future Considerations
-
-- transition to using llama.cpp binaries directly instead of running them indirectly through koboldcpp?
 
 ## License
 
