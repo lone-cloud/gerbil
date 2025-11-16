@@ -6,16 +6,11 @@ import { getServerInterfaceInfo } from '@/utils/interface';
 import { TITLEBAR_HEIGHT, STATUSBAR_HEIGHT } from '@/constants';
 
 interface ServerTabProps {
-  serverUrl?: string;
   isServerReady?: boolean;
   activeTab?: string;
 }
 
-export const ServerTab = ({
-  serverUrl,
-  isServerReady,
-  activeTab,
-}: ServerTabProps) => {
+export const ServerTab = ({ isServerReady, activeTab }: ServerTabProps) => {
   const { isImageGenerationMode } = useLaunchConfigStore();
   const { frontendPreference, imageGenerationFrontendPreference } =
     usePreferencesStore();
@@ -33,17 +28,11 @@ export const ServerTab = ({
         frontendPreference,
         imageGenerationFrontendPreference,
         isImageGenerationMode: effectiveImageMode,
-        serverUrl: serverUrl || '',
       }),
-    [
-      frontendPreference,
-      imageGenerationFrontendPreference,
-      effectiveImageMode,
-      serverUrl,
-    ]
+    [frontendPreference, imageGenerationFrontendPreference, effectiveImageMode]
   );
 
-  if (!isServerReady || !serverUrl) {
+  if (!isServerReady) {
     return (
       <Box
         style={{
@@ -60,10 +49,7 @@ export const ServerTab = ({
           </Text>
           <Text c="dimmed" size="sm">
             The{' '}
-            {title.toLowerCase().includes('ui') ||
-            title.toLowerCase().includes('comfy')
-              ? 'image generation'
-              : 'chat'}{' '}
+            {title.toLowerCase().includes('ui') ? 'image generation' : 'chat'}{' '}
             interface will load automatically when ready
           </Text>
         </Stack>

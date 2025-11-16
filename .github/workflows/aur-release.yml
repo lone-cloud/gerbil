@@ -161,7 +161,7 @@ jobs:
           license=('AGPL-3.0-or-later')
           depends=('gtk3' 'nss')
           optdepends=('nodejs: Required for SillyTavern integration'
-                     'uv: Required for OpenWebUI and ComfyUI integrations')
+                     'uv: Required for OpenWebUI integration')
           provides=('gerbil')
           conflicts=('gerbil-git')
           source=("gerbil-${pkgver}.AppImage::${{ steps.release_info.outputs.appimage_url }}"
@@ -298,7 +298,7 @@ jobs:
           	depends = gtk3
           	depends = nss
           	optdepends = nodejs: Required for SillyTavern integration
-          	optdepends = uv: Required for OpenWebUI and ComfyUI integrations
+          	optdepends = uv: Required for OpenWebUI integration
           	provides = gerbil
           	conflicts = gerbil-git
           	source = gerbil-${{ steps.release_info.outputs.version }}.AppImage::${{ steps.release_info.outputs.appimage_url }}

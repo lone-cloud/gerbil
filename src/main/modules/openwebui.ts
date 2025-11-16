@@ -11,6 +11,7 @@ import { OPENWEBUI, SERVER_READY_SIGNALS } from '@/constants';
 import { terminateProcess } from '@/utils/node/process';
 import { parseKoboldConfig } from '@/utils/node/kobold';
 import { getUvEnvironment } from './dependencies';
+import { PROXY } from '@/constants/proxy';
 
 let openWebUIProcess: ChildProcess | null = null;
 
@@ -79,6 +80,7 @@ export async function startFrontend(args: string[]) {
     );
 
     const koboldUrl = `http://${koboldHost}:${koboldPort}`;
+    const proxyUrl = PROXY.URL;
 
     const openWebUIArgs = [
       ...OPENWEBUI_BASE_ARGS,
@@ -94,7 +96,7 @@ export async function startFrontend(args: string[]) {
     const openWebUIDataDir = join(installDir, 'openwebui-data');
 
     const envConfig: Record<string, string> = {
-      OPENAI_API_BASE_URL: `${koboldUrl}/v1`,
+      OPENAI_API_BASE_URL: `${proxyUrl}/v1`,
       DATA_DIR: openWebUIDataDir,
       WEBUI_AUTH: 'false',
       WEBUI_SECRET_KEY: 'gerbil',
@@ -150,7 +152,7 @@ export async function startFrontend(args: string[]) {
 
     sendKoboldOutput(`Open WebUI is ready and auto-configured!`);
     sendKoboldOutput(`Access Open WebUI at: http://localhost:${config.port}`);
-    sendKoboldOutput(`Text Generation: ${koboldUrl}/v1 (auto-configured)`);
+    sendKoboldOutput(`Text Generation: ${proxyUrl}/v1 (auto-configured)`);
     if (isImageMode) {
       sendKoboldOutput(`Image Generation: ${koboldUrl} (auto-configured)`);
     }

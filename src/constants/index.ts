@@ -10,7 +10,6 @@ export const SERVER_READY_SIGNALS = {
   KOBOLDCPP: 'Please connect to custom endpoint at',
   SILLYTAVERN: 'SillyTavern is listening on',
   OPENWEBUI: 'Waiting for application startup.',
-  COMFYUI: 'Starting server',
 } as const;
 
 export const DEFAULT_CONTEXT_SIZE = 4096;
@@ -24,24 +23,17 @@ export const SILLYTAVERN = {
   PORT: 3000,
   PROXY_PORT: 3001,
   get URL() {
-    return `http://localhost:${this.PORT}`;
+    return `http://127.0.0.1:${this.PORT}`;
   },
   get PROXY_URL() {
-    return `http://localhost:${this.PROXY_PORT}`;
+    return `http://127.0.0.1:${this.PROXY_PORT}`;
   },
 } as const;
 
 export const OPENWEBUI = {
   PORT: 8080,
   get URL() {
-    return `http://localhost:${this.PORT}`;
-  },
-} as const;
-
-export const COMFYUI = {
-  PORT: 8188,
-  get URL() {
-    return `http://localhost:${this.PORT}`;
+    return `http://127.0.0.1:${this.PORT}`;
   },
 } as const;
 
@@ -51,7 +43,6 @@ export const GITHUB_API = {
   KOBOLDCPP_REPO: 'LostRuins/koboldcpp',
   KOBOLDCPP_ROCM_REPO: 'YellowRoseCx/koboldcpp-rocm',
   GERBIL_REPO: 'lone-cloud/gerbil',
-  COMFYUI_REPO: 'comfyanonymous/ComfyUI',
   get LATEST_RELEASE_URL() {
     return `${this.BASE_URL}/repos/${this.KOBOLDCPP_REPO}/releases/latest` as const;
   },
@@ -60,12 +51,6 @@ export const GITHUB_API = {
   },
   get ROCM_LATEST_RELEASE_URL() {
     return `${this.BASE_URL}/repos/${this.KOBOLDCPP_ROCM_REPO}/releases/latest` as const;
-  },
-  get COMFYUI_DOWNLOAD_URL() {
-    return `${this.GITHUB_BASE_URL}/${this.COMFYUI_REPO}/archive/refs/heads/master.zip` as const;
-  },
-  get COMFYUI_LATEST_COMMIT_URL() {
-    return `${this.BASE_URL}/repos/${this.COMFYUI_REPO}/commits/master` as const;
   },
   get GERBIL_GITHUB_URL() {
     return `${this.GITHUB_BASE_URL}/${this.GERBIL_REPO}` as const;
@@ -94,7 +79,6 @@ export const FRONTENDS = {
   STABLE_UI: 'Stable UI',
   SILLYTAVERN: 'SillyTavern',
   OPENWEBUI: 'Open WebUI',
-  COMFYUI: 'ComfyUI',
 } as const;
 
 export const ZOOM = {

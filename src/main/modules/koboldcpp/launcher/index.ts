@@ -1,90 +1,26 @@
 import { spawn, ChildProcess } from 'child_process';
-import { readFile, writeFile, copyFile } from 'fs/promises';
-import { join } from 'path';
 
 import { terminateProcess } from '@/utils/node/process';
-import { logError, tryExecute, safeExecute } from '@/utils/node/logging';
-import { sendKoboldOutput } from '../window';
+import { logError, safeExecute } from '@/utils/node/logging';
+import { sendKoboldOutput } from '@/main/modules/window';
 import { SERVER_READY_SIGNALS } from '@/constants';
-import { KLITE_CSS_OVERRIDE } from '@/constants/patches';
 import { pathExists } from '@/utils/node/fs';
 import { parseKoboldConfig } from '@/utils/node/kobold';
-import { getAssetPath } from '@/utils/node/path';
-import { getCurrentVersion } from './version';
-import { getCurrentKoboldBinary, get as getConfig } from '../config';
+import { getCurrentVersion } from '../version';
+import {
+  getCurrentKoboldBinary,
+  get as getConfig,
+} from '@/main/modules/config';
 import { startFrontend as startSillyTavernFrontend } from '@/main/modules/sillytavern';
 import { startFrontend as startOpenWebUIFrontend } from '@/main/modules/openwebui';
-import { startFrontend as startComfyUIFrontend } from '@/main/modules/comfyui';
+import { patchKliteEmbd, patchKcppSduiEmbd, filterSpam } from './patches';
+import { startProxy, stopProxy } from '../proxy';
 import type {
   FrontendPreference,
   ImageGenerationFrontendPreference,
 } from '@/types';
 
 let koboldProcess: ChildProcess | null = null;
-
-const patchKliteEmbd = (unpackedDir: string) =>
-  tryExecute(async () => {
-    const possiblePaths = [
-      join(unpackedDir, '_internal', 'embd_res', 'klite.embd'),
-      join(unpackedDir, 'klite.embd'),
-    ];
-
-    let kliteEmbdPath: string | null = null;
-    for (const path of possiblePaths) {
-      if (await pathExists(path)) {
-        kliteEmbdPath = path;
-        break;
-      }
-    }
-
-    if (!kliteEmbdPath) {
-      return;
-    }
-
-    const content = await readFile(kliteEmbdPath, 'utf8');
-
-    if (content.includes('</head>')) {
-      let patchedContent = content;
-
-      if (content.includes('gerbil-css-override')) {
-        patchedContent = patchedContent.replace(
-          /<style id="gerbil-css-override">[\s\S]*?<\/style>\s*/g,
-          ''
-        );
-      }
-
-      if (content.includes('gerbil-autoscroll-patches')) {
-        patchedContent = patchedContent.replace(
-          /<script id="gerbil-autoscroll-patches">[\s\S]*?<\/script>\s*/g,
-          ''
-        );
-      }
-
-      patchedContent = patchedContent.replace(
-        '</head>',
-        `${KLITE_CSS_OVERRIDE}\n</head>`
-      );
-
-      await writeFile(kliteEmbdPath, patchedContent, 'utf8');
-    }
-  }, 'Failed to patch klite.embd');
-
-const patchKcppSduiEmbd = (unpackedDir: string) =>
-  tryExecute(async () => {
-    const possiblePaths = [
-      join(unpackedDir, '_internal', 'embd_res', 'kcpp_sdui.embd'),
-      join(unpackedDir, 'kcpp_sdui.embd'),
-    ];
-
-    const sourceAssetPath = getAssetPath('kcpp_sdui.embd');
-
-    for (const targetPath of possiblePaths) {
-      if (await pathExists(targetPath)) {
-        await copyFile(sourceAssetPath, targetPath);
-        break;
-      }
-    }
-  }, 'Failed to patch kcpp_sdui.embd');
 
 export async function launchKoboldCpp(
   args: string[] = [],
@@ -129,6 +65,9 @@ export async function launchKoboldCpp(
     }
 
     const finalArgs = [...args];
+    const { host: koboldHost, port: koboldPort } = parseKoboldConfig(args);
+
+    await startProxy(koboldHost, koboldPort);
 
     const child = spawn(currentVersion.path, finalArgs, {
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -144,7 +83,7 @@ export async function launchKoboldCpp(
     let readyResolve:
       | ((value: { success: boolean; pid?: number; error?: string }) => void)
       | null = null;
-    let _readyReject: ((error: Error) => void) | null = null;
+    let readyReject: ((error: Error) => void) | null = null;
     let isReady = false;
 
     const readyPromise = new Promise<{
@@ -153,12 +92,15 @@ export async function launchKoboldCpp(
       error?: string;
     }>((resolve, reject) => {
       readyResolve = resolve;
-      _readyReject = reject;
+      readyReject = reject;
     });
 
     child.stdout?.on('data', (data) => {
       const output = data.toString();
-      sendKoboldOutput(output, true);
+      const filtered = filterSpam(output);
+      if (filtered.trim()) {
+        sendKoboldOutput(filtered, true);
+      }
 
       if (!isReady && output.includes(SERVER_READY_SIGNALS.KOBOLDCPP)) {
         isReady = true;
@@ -168,7 +110,10 @@ export async function launchKoboldCpp(
 
     child.stderr?.on('data', (data) => {
       const output = data.toString();
-      sendKoboldOutput(output, true);
+      const filtered = filterSpam(output);
+      if (filtered.trim()) {
+        sendKoboldOutput(filtered, true);
+      }
 
       if (!isReady && output.includes(SERVER_READY_SIGNALS.KOBOLDCPP)) {
         isReady = true;
@@ -188,7 +133,7 @@ export async function launchKoboldCpp(
       koboldProcess = null;
 
       if (!isReady) {
-        _readyReject?.(
+        readyReject?.(
           new Error(
             `Process exited before ready signal (code: ${code}, signal: ${signal})`
           )
@@ -203,7 +148,7 @@ export async function launchKoboldCpp(
       koboldProcess = null;
 
       if (!isReady) {
-        _readyReject?.(error);
+        readyReject?.(error);
       }
     });
 
@@ -215,25 +160,29 @@ export async function launchKoboldCpp(
   }
 }
 
-export const stopKoboldCpp = () => terminateProcess(koboldProcess);
+export async function stopKoboldCpp() {
+  await stopProxy();
+  return terminateProcess(koboldProcess);
+}
 
 export const launchKoboldCppWithCustomFrontends = async (args: string[] = []) =>
   safeExecute(async () => {
-    const frontendPreference = (await getConfig(
-      'frontendPreference'
-    )) as FrontendPreference;
+    const [frontendPreference, imageGenerationFrontendPreference] =
+      (await Promise.all([
+        getConfig('frontendPreference'),
+        getConfig('imageGenerationFrontendPreference'),
+      ])) as [
+        FrontendPreference,
+        ImageGenerationFrontendPreference | undefined,
+      ];
 
-    const imageGenerationFrontendPreference = (await getConfig(
-      'imageGenerationFrontendPreference'
-    )) as ImageGenerationFrontendPreference | undefined;
+    const { isTextMode } = parseKoboldConfig(args);
 
     const result = await launchKoboldCpp(
       args,
       frontendPreference,
       imageGenerationFrontendPreference
     );
-
-    const { isImageMode, isTextMode } = parseKoboldConfig(args);
 
     if (
       frontendPreference === 'koboldcpp' ||
@@ -246,8 +195,6 @@ export const launchKoboldCppWithCustomFrontends = async (args: string[] = []) =>
       startSillyTavernFrontend(args);
     } else if (frontendPreference === 'openwebui') {
       startOpenWebUIFrontend(args);
-    } else if (frontendPreference === 'comfyui' && isImageMode) {
-      startComfyUIFrontend(args);
     }
 
     return result;

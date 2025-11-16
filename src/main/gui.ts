@@ -16,7 +16,6 @@ import { safeExecute } from '@/utils/node/logging';
 import { stopKoboldCpp } from '@/main/modules/koboldcpp/launcher';
 import { stopFrontend as stopSillyTavern } from '@/main/modules/sillytavern';
 import { stopFrontend as stopOpenWebUI } from '@/main/modules/openwebui';
-import { stopFrontend as stopComfyUI } from '@/main/modules/comfyui';
 import { setupIPCHandlers } from '@/main/ipc';
 import { ensureDir } from '@/utils/node/fs';
 import { PRODUCT_NAME } from '@/constants';
@@ -75,7 +74,6 @@ export async function initializeApp(options?: { startMinimized?: boolean }) {
         stopKoboldCpp(),
         stopSillyTavern(),
         stopOpenWebUI(),
-        stopComfyUI(),
       ];
 
       const timeoutPromise = new Promise<void>((resolve) => {

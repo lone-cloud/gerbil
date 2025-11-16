@@ -35,7 +35,6 @@ import { getConfigDir, openPathHandler, openUrl } from '@/utils/node/path';
 import { logError } from '@/utils/node/logging';
 import { stopFrontend as stopSillyTavernFrontend } from '@/main/modules/sillytavern';
 import { stopFrontend as stopOpenWebUIFrontend } from '@/main/modules/openwebui';
-import { stopFrontend as stopComfyUIFrontend } from '@/main/modules/comfyui';
 import {
   isUvAvailable,
   isNpxAvailable,
@@ -147,7 +146,6 @@ export function setupIPCHandlers() {
     stopKoboldCpp();
     stopSillyTavernFrontend();
     stopOpenWebUIFrontend();
-    stopComfyUIFrontend();
   });
 
   ipcMain.handle('kobold:parseConfigFile', (_, filePath) =>
