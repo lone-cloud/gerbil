@@ -95,8 +95,6 @@ export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
                 signalToCheck = SERVER_READY_SIGNALS.SILLYTAVERN;
               } else if (effectiveFrontend === 'openwebui') {
                 signalToCheck = SERVER_READY_SIGNALS.OPENWEBUI;
-              } else if (effectiveFrontend === 'comfyui') {
-                signalToCheck = SERVER_READY_SIGNALS.COMFYUI;
               }
 
               if (newData.includes(signalToCheck)) {

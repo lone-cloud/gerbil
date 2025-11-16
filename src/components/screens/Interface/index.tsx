@@ -18,7 +18,6 @@ export const InterfaceScreen = ({
   activeTab,
   onTabChange,
 }: InterfaceScreenProps) => {
-  const [serverUrl, setServerUrl] = useState('');
   const [isServerReady, setIsServerReady] = useState(false);
   const terminalTabRef = useRef<TerminalTabRef>(null);
 
@@ -42,16 +41,13 @@ export const InterfaceScreen = ({
     ]
   );
 
-  const handleServerReady = useCallback(
-    (url: string) => {
-      setServerUrl(url);
-      setIsServerReady(true);
-      if (onTabChange) {
-        onTabChange(defaultInterfaceTab);
-      }
-    },
-    [onTabChange, defaultInterfaceTab]
-  );
+  const handleServerReady = useCallback(() => {
+    setIsServerReady(true);
+
+    if (onTabChange) {
+      onTabChange(defaultInterfaceTab);
+    }
+  }, [onTabChange, defaultInterfaceTab]);
 
   useEffect(() => {
     if (activeTab === 'terminal' && terminalTabRef.current) {
@@ -78,7 +74,6 @@ export const InterfaceScreen = ({
         }}
       >
         <ServerTab
-          serverUrl={serverUrl}
           isServerReady={isServerReady}
           activeTab={activeTab || undefined}
         />

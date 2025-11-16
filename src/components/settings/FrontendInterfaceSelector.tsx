@@ -18,7 +18,6 @@ interface FrontendRequirement {
 interface FrontendConfig {
   value: string;
   label: string;
-  badges: string[];
   requirements?: FrontendRequirement[];
   requirementCheck?: () => Promise<boolean>;
 }
@@ -46,12 +45,10 @@ export const FrontendInterfaceSelector = ({
       {
         value: 'koboldcpp',
         label: 'Built-in',
-        badges: ['Text', 'Image'],
       },
       {
         value: 'sillytavern',
         label: FRONTENDS.SILLYTAVERN,
-        badges: ['Text', 'Image'],
         requirements: [
           {
             id: 'nodejs',
@@ -65,20 +62,6 @@ export const FrontendInterfaceSelector = ({
       {
         value: 'openwebui',
         label: FRONTENDS.OPENWEBUI,
-        badges: ['Text', 'Image'],
-        requirements: [
-          {
-            id: 'uv',
-            name: 'uv',
-            url: 'https://docs.astral.sh/uv/getting-started/installation/',
-          },
-        ],
-        requirementCheck: () => window.electronAPI.dependencies.isUvAvailable(),
-      },
-      {
-        value: 'comfyui',
-        label: FRONTENDS.COMFYUI,
-        badges: ['Image'],
         requirements: [
           {
             id: 'uv',

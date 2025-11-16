@@ -3,7 +3,8 @@ import type {
   InterfaceTab,
   ImageGenerationFrontendPreference,
 } from '@/types';
-import { FRONTENDS, SILLYTAVERN, OPENWEBUI, COMFYUI } from '@/constants';
+import { FRONTENDS, SILLYTAVERN, OPENWEBUI } from '@/constants';
+import { PROXY } from '@/constants/proxy';
 
 export interface InterfaceOption {
   value: InterfaceTab | 'eject';
@@ -58,12 +59,7 @@ export function getAvailableInterfaceOptions({
   }
 
   if (isImageGenerationMode) {
-    if (effectiveImageFrontend === 'comfyui') {
-      chatItems.push({
-        value: 'chat-image',
-        label: FRONTENDS.COMFYUI,
-      });
-    } else if (effectiveImageFrontend === 'koboldcpp') {
+    if (effectiveImageFrontend === 'koboldcpp') {
       chatItems.push({
         value: 'chat-image',
         label: FRONTENDS.STABLE_UI,
@@ -102,10 +98,6 @@ export function getDefaultInterfaceTab({
     return 'chat-text';
   }
 
-  if (effectiveImageFrontend === 'comfyui' && isImageGenerationMode) {
-    return 'chat-image';
-  }
-
   if (isTextMode) {
     return 'chat-text';
   }
@@ -122,23 +114,25 @@ export interface ServerInterfaceInfo {
   title: string;
 }
 
+export interface ServerInterfaceParams {
+  frontendPreference: FrontendPreference;
+  imageGenerationFrontendPreference?: ImageGenerationFrontendPreference;
+  isImageGenerationMode: boolean;
+}
+
 export function getServerInterfaceInfo({
   frontendPreference,
   imageGenerationFrontendPreference = 'match',
   isImageGenerationMode,
-  serverUrl,
-}: {
-  frontendPreference: FrontendPreference;
-  imageGenerationFrontendPreference?: ImageGenerationFrontendPreference;
-  isImageGenerationMode: boolean;
-  serverUrl: string;
-}) {
+}: ServerInterfaceParams) {
+  const proxyUrl = PROXY.URL;
+
   if (
     isImageGenerationMode &&
     imageGenerationFrontendPreference === 'builtin'
   ) {
     return {
-      url: `${serverUrl}/sdui`,
+      url: `${proxyUrl}/sdui`,
       title: FRONTENDS.STABLE_UI,
     };
   }
@@ -157,15 +151,8 @@ export function getServerInterfaceInfo({
     };
   }
 
-  if (frontendPreference === 'comfyui' && isImageGenerationMode) {
-    return {
-      url: COMFYUI.URL,
-      title: FRONTENDS.COMFYUI,
-    };
-  }
-
   return {
-    url: isImageGenerationMode ? `${serverUrl}/sdui` : serverUrl,
+    url: isImageGenerationMode ? `${proxyUrl}/sdui` : proxyUrl,
     title: isImageGenerationMode
       ? FRONTENDS.STABLE_UI
       : FRONTENDS.KOBOLDAI_LITE,

@@ -1,7 +1,7 @@
 {
   "name": "gerbil",
   "productName": "Gerbil",
-  "version": "1.8.5",
+  "version": "1.9.0",
   "description": "Run Large Language Models locally",
   "main": "out/main/index.js",
   "homepage": "./",

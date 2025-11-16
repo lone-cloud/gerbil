@@ -8,6 +8,7 @@ import type { ChildProcess } from 'child_process';
 import { logError, tryExecute } from '@/utils/node/logging';
 import { sendKoboldOutput } from './window';
 import { SILLYTAVERN, SERVER_READY_SIGNALS } from '@/constants';
+import { PROXY } from '@/constants/proxy';
 import { terminateProcess } from '@/utils/node/process';
 import { pathExists, readJsonFile, writeJsonFile } from '@/utils/node/fs';
 import { parseKoboldConfig } from '@/utils/node/kobold';
@@ -97,26 +98,17 @@ async function ensureSillyTavernSettings() {
     let hasResolved = false;
 
     initProcess.on('exit', (code: number | null, signal: string | null) => {
-      sendKoboldOutput(
-        signal
-          ? `SillyTavern init process terminated with signal ${signal}`
-          : `SillyTavern init process exited with code ${code}`
-      );
-
       if (!hasResolved) {
         hasResolved = true;
 
         if (code !== 0) {
-          const errorMsg =
-            code === 4294963214
-              ? 'SillyTavern failed to install due to EBUSY error (resource busy or locked). This is a critical error.'
-              : `SillyTavern initialization failed with exit code ${code}`;
+          const errorMsg = signal
+            ? `SillyTavern init terminated with signal ${signal}`
+            : `SillyTavern initialization failed with exit code ${code}`;
 
-          logError('SillyTavern initialization failed:', new Error(errorMsg));
-          sendKoboldOutput(`CRITICAL ERROR: ${errorMsg}`);
+          logError(errorMsg, new Error(errorMsg));
           reject(new Error(errorMsg));
         } else {
-          sendKoboldOutput('SillyTavern settings should now be generated');
           resolve();
         }
       }
@@ -125,8 +117,7 @@ async function ensureSillyTavernSettings() {
     initProcess.on('error', (error) => {
       if (!hasResolved) {
         hasResolved = true;
-        logError('Failed to initialize SillyTavern settings:', error);
-        sendKoboldOutput(`SillyTavern initialization error: ${error.message}`);
+        logError('SillyTavern initialization error', error);
         reject(error);
       }
     });
@@ -159,11 +150,7 @@ async function ensureSillyTavernSettings() {
   });
 }
 
-async function setupSillyTavernConfig(
-  koboldHost: string,
-  koboldPort: number,
-  isImageMode: boolean
-) {
+async function setupSillyTavernConfig(isImageMode: boolean) {
   const success = await tryExecute(async () => {
     const configPath = getSillyTavernSettingsPath();
     let settings: Record<string, unknown> = {};
@@ -181,22 +168,11 @@ async function setupSillyTavernConfig(
       }
     }
 
-    const koboldUrl = `http://${koboldHost}:${koboldPort}`;
+    const proxyUrl = PROXY.URL;
 
     if (!settings.power_user) settings.power_user = {};
     const powerUser = settings.power_user as Record<string, unknown>;
     powerUser.auto_connect = true;
-
-    if (isImageMode) {
-      sendKoboldOutput(
-        `Image generation mode detected. Please configure SillyTavern manually:\n` +
-          `1. Open SillyTavern and navigate to Settings (top-right gear icon)\n` +
-          `2. Go to 'Extensions' tab and enable 'Image Generation'\n` +
-          `3. In Image Generation settings, set Source to 'Stable Diffusion WebUI (AUTOMATIC1111)'\n` +
-          `4. Set API URL to: ${koboldUrl}\n` +
-          `5. Click 'Connect' to test the connection`
-      );
-    }
 
     if (!settings.textgenerationwebui_settings)
       settings.textgenerationwebui_settings = {};
@@ -207,14 +183,25 @@ async function setupSillyTavernConfig(
 
     if (!textgenSettings.server_urls) textgenSettings.server_urls = {};
     const serverUrls = textgenSettings.server_urls as Record<string, unknown>;
-    serverUrls.koboldcpp = koboldUrl;
+    serverUrls.koboldcpp = proxyUrl;
 
     settings.main_api = 'textgenerationwebui';
     textgenSettings.type = 'koboldcpp';
 
     sendKoboldOutput(
-      `Configured SillyTavern for text generation at ${koboldUrl}`
+      `Configured SillyTavern for text generation at ${proxyUrl}`
     );
+
+    if (isImageMode) {
+      sendKoboldOutput(
+        `Image generation mode detected. Configure SillyTavern manually:\n` +
+          `1. Open SillyTavern Settings (top-right gear icon)\n` +
+          `2. Go to 'Extensions' tab and enable 'Image Generation'\n` +
+          `3. Set Source to 'Stable Diffusion WebUI (AUTOMATIC1111)'\n` +
+          `4. Set API URL to: ${proxyUrl}/sdui\n` +
+          `5. Click 'Connect' to test the connection`
+      );
+    }
 
     await writeJsonFile(configPath, settings);
 
@@ -251,7 +238,7 @@ async function waitForSillyTavernToStart(_port: number) {
   });
 }
 
-function createProxyServer(targetPort: number, proxyPort: number) {
+const createProxyServer = (targetPort: number, proxyPort: number) => {
   proxyServer = createServer((req, res) => {
     const options = {
       hostname: 'localhost',
@@ -278,15 +265,13 @@ function createProxyServer(targetPort: number, proxyPort: number) {
   });
 
   proxyServer.listen(proxyPort, () => {
-    sendKoboldOutput(
-      `Proxy server started on port ${proxyPort}, forwarding to SillyTavern on port ${targetPort}`
-    );
+    sendKoboldOutput(`SillyTavern CORS proxy started on port ${proxyPort}`);
   });
 
   proxyServer.on('error', (err) => {
-    logError('Proxy server error:', err);
+    logError('SillyTavern proxy error:', err);
   });
-}
+};
 
 export async function startFrontend(args: string[]) {
   try {
@@ -295,20 +280,14 @@ export async function startFrontend(args: string[]) {
       port: SILLYTAVERN.PORT,
       proxyPort: SILLYTAVERN.PROXY_PORT,
     };
-    const {
-      host: koboldHost,
-      port: koboldPort,
-      isImageMode,
-    } = parseKoboldConfig(args);
+    const { isImageMode } = parseKoboldConfig(args);
 
     await stopFrontend();
 
-    sendKoboldOutput(
-      `Preparing SillyTavern to connect at ${koboldHost}:${koboldPort}...`
-    );
+    sendKoboldOutput(`Preparing SillyTavern to connect via proxy...`);
 
     await ensureSillyTavernSettings();
-    await setupSillyTavernConfig(koboldHost, koboldPort, isImageMode);
+    await setupSillyTavernConfig(isImageMode);
 
     sendKoboldOutput(
       `Starting ${config.name} frontend on port ${config.port}...`
@@ -319,8 +298,6 @@ export async function startFrontend(args: string[]) {
       '--port',
       config.port.toString(),
     ];
-
-    sendKoboldOutput('Final port check before starting SillyTavern...');
 
     sillyTavernProcess = await createNpxProcess(sillyTavernArgs);
 
