@@ -15,7 +15,7 @@ import { startFrontend as startSillyTavernFrontend } from '@/main/modules/sillyt
 import { startFrontend as startOpenWebUIFrontend } from '@/main/modules/openwebui';
 import { patchKliteEmbd, patchKcppSduiEmbd, filterSpam } from './patches';
 import { startProxy, stopProxy } from '../proxy';
-import { resolveModelPath } from '../model-download';
+import { resolveModelPath, abortActiveDownloads } from '../model-download';
 import type {
   FrontendPreference,
   ImageGenerationFrontendPreference,
@@ -55,6 +55,11 @@ async function resolveModelPaths(args: string[]) {
         resolvedArgs.push(resolvedPath);
         i++;
       } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        if (errorMessage.includes('aborted')) {
+          throw error;
+        }
         logError(`Failed to resolve model path for ${arg}:`, error as Error);
         resolvedArgs.push(urlOrPath);
         i++;
@@ -207,6 +212,7 @@ export async function launchKoboldCpp(
 }
 
 export async function stopKoboldCpp() {
+  abortActiveDownloads();
   await stopProxy();
   return terminateProcess(koboldProcess);
 }

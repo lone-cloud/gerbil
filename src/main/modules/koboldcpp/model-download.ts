@@ -1,5 +1,5 @@
 import { join, basename, dirname } from 'path';
-import { mkdir, readdir, stat } from 'fs/promises';
+import { mkdir, readdir, stat, rename, unlink } from 'fs/promises';
 import { createWriteStream } from 'fs';
 import { get as httpGet } from 'http';
 import { get as httpsGet } from 'https';
@@ -8,6 +8,12 @@ import { pathExists } from '@/utils/node/fs';
 import { logError } from '@/utils/node/logging';
 import { sendToRenderer } from '@/main/modules/window';
 import type { ModelParamType, CachedModel } from '@/types';
+import type { IncomingMessage } from 'http';
+
+const activeDownloads = new Set<{
+  abort: () => void;
+  tempPath: string;
+}>();
 
 interface DownloadProgress {
   type: 'progress' | 'complete' | 'error';
@@ -61,19 +67,45 @@ async function downloadFile(
 ) {
   const normalizedUrl = normalizeUrl(url);
   const outputDir = dirname(outputPath);
+  const tempPath = `${outputPath}.tmp`;
 
   await mkdir(outputDir, { recursive: true });
 
   return new Promise<boolean>((resolve, reject) => {
     const httpModule = normalizedUrl.startsWith('https') ? httpsGet : httpGet;
+    let currentRequest: IncomingMessage | null = null;
+    let fileStream: ReturnType<typeof createWriteStream>;
+    let isAborted = false;
+
+    const cleanup = async () => {
+      fileStream?.close();
+      await unlink(tempPath).catch(() => void 0);
+    };
+
+    const abortController = {
+      abort: () => {
+        isAborted = true;
+        currentRequest?.destroy();
+        cleanup();
+        reject(new Error('Download aborted by user'));
+      },
+      tempPath,
+    };
+
+    activeDownloads.add(abortController);
 
     const handleRedirect = (requestUrl: string, redirectCount = 0): void => {
+      if (isAborted) return;
+
       if (redirectCount > 10) {
+        activeDownloads.delete(abortController);
         reject(new Error('Too many redirects'));
         return;
       }
 
       httpModule(requestUrl, (response) => {
+        if (isAborted) return;
+        currentRequest = response;
         if (
           response.statusCode === 301 ||
           response.statusCode === 302 ||
@@ -90,6 +122,7 @@ async function downloadFile(
         }
 
         if (response.statusCode !== 200) {
+          activeDownloads.delete(abortController);
           reject(
             new Error(`HTTP ${response.statusCode}: ${response.statusMessage}`)
           );
@@ -101,7 +134,7 @@ async function downloadFile(
         let lastReportTime = Date.now();
         let lastReportedBytes = 0;
 
-        const fileStream = createWriteStream(outputPath);
+        fileStream = createWriteStream(tempPath);
 
         response.on('data', (chunk: Buffer) => {
           downloadedBytes += chunk.length;
@@ -152,22 +185,37 @@ async function downloadFile(
         });
 
         response.on('end', () => {
+          if (isAborted) return;
           fileStream.end();
-          fileStream.on('finish', () => {
-            sendToRenderer('kobold-output', '\n');
-            resolve(true);
+          fileStream.on('finish', async () => {
+            try {
+              await rename(tempPath, outputPath);
+              sendToRenderer('kobold-output', '\n');
+              activeDownloads.delete(abortController);
+              resolve(true);
+            } catch (err) {
+              activeDownloads.delete(abortController);
+              reject(err instanceof Error ? err : new Error(String(err)));
+            }
           });
         });
 
-        response.on('error', (err) => {
-          fileStream.close();
+        response.on('error', async (err) => {
+          if (isAborted) return;
+          activeDownloads.delete(abortController);
+          await cleanup();
           reject(err);
         });
 
-        fileStream.on('error', (err) => {
+        fileStream.on('error', async (err) => {
+          if (isAborted) return;
+          activeDownloads.delete(abortController);
+          await cleanup();
           reject(err);
         });
       }).on('error', (err) => {
+        if (isAborted) return;
+        activeDownloads.delete(abortController);
         reject(err);
       });
     };
@@ -288,4 +336,10 @@ export async function getLocalModelsForType(paramType: ModelParamType) {
   }
 
   return models;
+}
+
+export function abortActiveDownloads() {
+  const downloads = Array.from(activeDownloads);
+  downloads.forEach((controller) => controller.abort());
+  activeDownloads.clear();
 }
