@@ -44,6 +44,7 @@ export const GeneralTab = ({ configLoaded = true }: GeneralTabProps) => {
             onSelectFile={handleSelectModelFile}
             searchUrl="https://huggingface.co/models?pipeline_tag=text-generation&library=gguf&sort=trending"
             showAnalyze
+            paramType="model"
           />
 
           <div>

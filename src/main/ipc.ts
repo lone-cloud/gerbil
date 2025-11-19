@@ -21,6 +21,7 @@ import {
   selectModelFile,
   selectInstallDirectory,
 } from '@/main/modules/koboldcpp/config';
+import { getLocalModelsForType } from '@/main/modules/koboldcpp/modelDownload';
 import { analyzeGGUFModel } from '@/main/modules/koboldcpp/analyze';
 import {
   get as getConfig,
@@ -154,6 +155,12 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('kobold:selectModelFile', (_, title) =>
     selectModelFile(title)
+  );
+
+  ipcMain.handle('kobold:getLocalModels', (_, paramType: string) =>
+    getLocalModelsForType(
+      paramType as Parameters<typeof getLocalModelsForType>[0]
+    )
   );
 
   ipcMain.handle('kobold:analyzeModel', async (_, filePath: string) =>

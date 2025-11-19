@@ -18,6 +18,28 @@ export type ImageGenerationFrontendPreference = 'match' | 'builtin';
 
 export type Screen = 'welcome' | 'download' | 'launch' | 'interface';
 
+export type ModelParamType =
+  | 'model'
+  | 'sdmodel'
+  | 'sdt5xxl'
+  | 'sdclipl'
+  | 'sdclipg'
+  | 'sdphotomaker'
+  | 'sdvae'
+  | 'sdlora'
+  | 'mmproj'
+  | 'whispermodel'
+  | 'draftmodel'
+  | 'ttsmodel'
+  | 'ttswavtokenizer'
+  | 'embeddingsmodel';
+
+export interface CachedModel {
+  path: string;
+  author: string;
+  model: string;
+}
+
 export interface GitHubAsset {
   name: string;
   browser_download_url: string;

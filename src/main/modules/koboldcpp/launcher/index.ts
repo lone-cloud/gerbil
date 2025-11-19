@@ -15,12 +15,57 @@ import { startFrontend as startSillyTavernFrontend } from '@/main/modules/sillyt
 import { startFrontend as startOpenWebUIFrontend } from '@/main/modules/openwebui';
 import { patchKliteEmbd, patchKcppSduiEmbd, filterSpam } from './patches';
 import { startProxy, stopProxy } from '../proxy';
+import { resolveModelPath } from '../modelDownload';
 import type {
   FrontendPreference,
   ImageGenerationFrontendPreference,
+  ModelParamType,
 } from '@/types';
 
 let koboldProcess: ChildProcess | null = null;
+
+async function resolveModelPaths(args: string[]) {
+  const resolvedArgs: string[] = [];
+  const modelParams = [
+    '--model',
+    '--sdmodel',
+    '--sdt5xxl',
+    '--sdclipl',
+    '--sdclipg',
+    '--sdphotomaker',
+    '--sdvae',
+    '--sdlora',
+    '--mmproj',
+    '--whispermodel',
+    '--draftmodel',
+    '--ttsmodel',
+    '--ttswavtokenizer',
+    '--embeddingsmodel',
+  ];
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+
+    if (modelParams.includes(arg) && i + 1 < args.length) {
+      resolvedArgs.push(arg);
+      const urlOrPath = args[i + 1];
+      try {
+        const paramType = arg.slice(2) as ModelParamType;
+        const resolvedPath = await resolveModelPath(urlOrPath, paramType);
+        resolvedArgs.push(resolvedPath);
+        i++;
+      } catch (error) {
+        logError(`Failed to resolve model path for ${arg}:`, error as Error);
+        resolvedArgs.push(urlOrPath);
+        i++;
+      }
+    } else {
+      resolvedArgs.push(arg);
+    }
+  }
+
+  return resolvedArgs;
+}
 
 export async function launchKoboldCpp(
   args: string[] = [],
@@ -64,7 +109,8 @@ export async function launchKoboldCpp(
       await patchKcppSduiEmbd(binaryDir);
     }
 
-    const finalArgs = [...args];
+    const resolvedArgs = await resolveModelPaths(args);
+    const finalArgs = [...resolvedArgs];
     const { host: koboldHost, port: koboldPort } = parseKoboldConfig(args);
 
     await startProxy(koboldHost, koboldPort);
