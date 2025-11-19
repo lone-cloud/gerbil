@@ -51,6 +51,8 @@ const koboldAPI: KoboldAPI = {
     ipcRenderer.invoke('kobold:parseConfigFile', filePath),
   selectModelFile: (title) =>
     ipcRenderer.invoke('kobold:selectModelFile', title),
+  getLocalModels: (paramType) =>
+    ipcRenderer.invoke('kobold:getLocalModels', paramType),
   analyzeModel: (filePath) =>
     ipcRenderer.invoke('kobold:analyzeModel', filePath),
   calculateOptimalLayers: (

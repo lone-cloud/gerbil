@@ -1,11 +1,19 @@
-import { Group, TextInput, ActionIcon, Tooltip, Button } from '@mantine/core';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import {
+  Group,
+  ActionIcon,
+  Tooltip,
+  Button,
+  Combobox,
+  useCombobox,
+  TextInput,
+} from '@mantine/core';
 import { File, Search, Info } from 'lucide-react';
 import { LabelWithTooltip } from '@/components/LabelWithTooltip';
 import { ModelAnalysisModal } from '@/components/screens/Launch/ModelAnalysisModal';
 import { getInputValidationState } from '@/utils/validation';
 import { logError } from '@/utils/logger';
-import type { ModelAnalysis } from '@/types';
+import type { ModelAnalysis, ModelParamType, CachedModel } from '@/types';
 
 interface ModelFileFieldProps {
   label: string;
@@ -16,6 +24,7 @@ interface ModelFileFieldProps {
   onSelectFile: () => void;
   searchUrl?: string;
   showAnalyze?: boolean;
+  paramType: ModelParamType;
 }
 
 export const ModelFileField = ({
@@ -27,6 +36,7 @@ export const ModelFileField = ({
   onSelectFile,
   searchUrl,
   showAnalyze = false,
+  paramType,
 }: ModelFileFieldProps) => {
   const validationState = getInputValidationState(value);
   const [analysisModalOpened, setAnalysisModalOpened] = useState(false);
@@ -35,6 +45,26 @@ export const ModelFileField = ({
   );
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [analysisError, setAnalysisError] = useState<string>();
+  const [cachedModels, setCachedModels] = useState<CachedModel[]>([]);
+  const combobox = useCombobox();
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const models =
+          await window.electronAPI.kobold.getLocalModels(paramType);
+        setCachedModels(models);
+      } catch (error) {
+        logError('Failed to load cached models:', error as Error);
+      }
+    })();
+  }, [paramType]);
+
+  const options = cachedModels.map((model) => (
+    <Combobox.Option value={model.path} key={model.path}>
+      {model.author}/{model.model}
+    </Combobox.Option>
+  ));
 
   const getHelperText = () => {
     if (validationState === 'neutral') return undefined;
@@ -72,12 +102,37 @@ export const ModelFileField = ({
       <LabelWithTooltip label={label} tooltip={tooltip} />
       <Group gap="xs" align="flex-start">
         <div style={{ flex: 1 }}>
-          <TextInput
-            placeholder={placeholder}
-            value={value}
-            onChange={(event) => onChange(event.currentTarget.value)}
-            error={validationState === 'invalid' ? getHelperText() : undefined}
-          />
+          <Combobox
+            store={combobox}
+            onOptionSubmit={(val) => {
+              onChange(val);
+              combobox.closeDropdown();
+            }}
+          >
+            <Combobox.Target>
+              <TextInput
+                placeholder={placeholder}
+                value={value}
+                onChange={(event) => {
+                  onChange(event.currentTarget.value);
+                  combobox.openDropdown();
+                }}
+                onFocus={() => combobox.openDropdown()}
+                onBlur={() => combobox.closeDropdown()}
+                error={
+                  validationState === 'invalid' ? getHelperText() : undefined
+                }
+                rightSection={<Combobox.Chevron />}
+                rightSectionPointerEvents="none"
+              />
+            </Combobox.Target>
+
+            {options.length > 0 && (
+              <Combobox.Dropdown>
+                <Combobox.Options>{options}</Combobox.Options>
+              </Combobox.Dropdown>
+            )}
+          </Combobox>
         </div>
         <Button
           onClick={onSelectFile}

@@ -10,6 +10,7 @@ import type {
   BackendSupport,
   Screen,
   ModelAnalysis,
+  CachedModel,
 } from '@/types';
 import type { MantineColorScheme } from '@mantine/core';
 import type {
@@ -156,6 +157,7 @@ export interface KoboldAPI {
   setSelectedConfig: (configName: string) => Promise<boolean>;
   parseConfigFile: (filePath: string) => Promise<KoboldConfig | null>;
   selectModelFile: (title?: string) => Promise<string | null>;
+  getLocalModels: (paramType: string) => Promise<CachedModel[]>;
   analyzeModel: (filePath: string) => Promise<ModelAnalysis>;
   calculateOptimalLayers: (
     modelPath: string,

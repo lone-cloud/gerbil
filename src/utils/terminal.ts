@@ -1,27 +1,8 @@
 export const handleTerminalOutput = (prevContent: string, newData: string) => {
-  if (newData.includes('\r')) {
-    const hasStandaloneCarriageReturns = /\r(?!\n)/g.test(newData);
-
-    if (hasStandaloneCarriageReturns) {
-      const combined = prevContent + newData;
-
-      const lines = combined.split(/(\r?\n)/);
-      const processedLines: string[] = [];
-
-      for (let i = 0; i < lines.length; i += 2) {
-        const line = lines[i] || '';
-        const lineBreak = lines[i + 1] || '';
-
-        if (line.includes('\r')) {
-          const parts = line.split('\r');
-          processedLines.push(parts[parts.length - 1] + lineBreak);
-        } else {
-          processedLines.push(line + lineBreak);
-        }
-      }
-
-      return processedLines.join('').replace(/\r?\n$/, '');
-    }
+  if (newData.startsWith('\r') && !newData.startsWith('\r\n')) {
+    const lines = prevContent.split('\n');
+    lines[lines.length - 1] = newData.slice(1);
+    return lines.join('\n');
   }
 
   return prevContent + newData;

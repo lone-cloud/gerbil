@@ -77,15 +77,17 @@ export const ImageGenerationTab = () => {
         onSelectFile={handleSelectSdmodelFile}
         searchUrl="https://huggingface.co/models?pipeline_tag=text-to-image&library=gguf&sort=trending"
         showAnalyze
+        paramType="sdmodel"
       />
 
       <ModelFileField
-        label="T5-XXL File"
+        label="T5XXL File"
         value={sdt5xxl}
-        placeholder="Select a T5-XXL file or enter a direct URL"
-        tooltip="T5-XXL text encoder model for enhanced text understanding."
+        placeholder="Select a T5-XXL encoder file or enter a direct URL"
+        tooltip="T5-XXL text encoder model for advanced text understanding."
         onChange={handleSdt5xxlChange}
         onSelectFile={handleSelectSdt5xxlFile}
+        paramType="sdt5xxl"
       />
 
       <ModelFileField
@@ -95,6 +97,7 @@ export const ImageGenerationTab = () => {
         tooltip="CLIP-L text encoder model for text-image understanding."
         onChange={handleSdcliplChange}
         onSelectFile={handleSelectSdcliplFile}
+        paramType="sdclipl"
       />
 
       <ModelFileField
@@ -104,6 +107,7 @@ export const ImageGenerationTab = () => {
         tooltip="CLIP-G text encoder model for enhanced text-image understanding."
         onChange={handleSdclipgChange}
         onSelectFile={handleSelectSdclipgFile}
+        paramType="sdclipg"
       />
 
       <ModelFileField
@@ -113,6 +117,7 @@ export const ImageGenerationTab = () => {
         tooltip="PhotoMaker is a model that allows face cloning. Select a .safetensors PhotoMaker file to be loaded (SDXL only)."
         onChange={handleSdphotomakerChange}
         onSelectFile={handleSelectSdphotomakerFile}
+        paramType="sdphotomaker"
       />
 
       <ModelFileField
@@ -122,6 +127,7 @@ export const ImageGenerationTab = () => {
         tooltip="Variational Autoencoder model for improved image quality."
         onChange={handleSdvaeChange}
         onSelectFile={handleSelectSdvaeFile}
+        paramType="sdvae"
       />
 
       <ModelFileField
@@ -131,6 +137,7 @@ export const ImageGenerationTab = () => {
         tooltip="LoRa (Low-Rank Adaptation) file for customizing image generation. Select a .safetensors or .gguf LoRa file to be loaded. Should be unquantized."
         onChange={handleSdloraChange}
         onSelectFile={handleSelectSdloraFile}
+        paramType="sdlora"
       />
 
       <SelectWithTooltip
