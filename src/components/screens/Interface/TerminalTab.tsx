@@ -17,7 +17,7 @@ import { useLaunchConfigStore } from '@/stores/launchConfig';
 import { usePreferencesStore } from '@/stores/preferences';
 
 interface TerminalTabProps {
-  onServerReady: (url: string) => void;
+  onServerReady: () => void;
 }
 
 export interface TerminalTabRef {
@@ -26,8 +26,7 @@ export interface TerminalTabRef {
 
 export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
   ({ onServerReady }, ref) => {
-    const { host, port, isImageGenerationMode, isTextMode } =
-      useLaunchConfigStore();
+    const { isImageGenerationMode, isTextMode } = useLaunchConfigStore();
     const {
       frontendPreference,
       imageGenerationFrontendPreference,
@@ -80,9 +79,6 @@ export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
             const newData = data.toString();
 
             if (onServerReady) {
-              const serverHost = host || 'localhost';
-              const serverPort = port || 5001;
-
               const effectiveFrontend = isTextMode
                 ? frontendPreference
                 : imageGenerationFrontendPreference === 'builtin'
@@ -98,10 +94,7 @@ export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
               }
 
               if (newData.includes(signalToCheck)) {
-                setTimeout(
-                  () => onServerReady(`http://${serverHost}:${serverPort}`),
-                  1500
-                );
+                setTimeout(() => onServerReady(), 3000);
               }
             }
 
@@ -113,8 +106,6 @@ export const TerminalTab = forwardRef<TerminalTabRef, TerminalTabProps>(
       return cleanup;
     }, [
       onServerReady,
-      host,
-      port,
       frontendPreference,
       imageGenerationFrontendPreference,
       isImageGenerationMode,

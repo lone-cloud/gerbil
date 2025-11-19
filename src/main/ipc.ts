@@ -21,7 +21,7 @@ import {
   selectModelFile,
   selectInstallDirectory,
 } from '@/main/modules/koboldcpp/config';
-import { getLocalModelsForType } from '@/main/modules/koboldcpp/modelDownload';
+import { getLocalModelsForType } from '@/main/modules/koboldcpp/model-download';
 import { analyzeGGUFModel } from '@/main/modules/koboldcpp/analyze';
 import {
   get as getConfig,
@@ -75,7 +75,7 @@ import {
   quitAndInstall,
   isUpdateDownloaded,
   canAutoUpdate,
-} from '@/main/modules/autoUpdater';
+} from '@/main/modules/auto-updater';
 import { calculateOptimalGpuLayers } from '@/utils/node/vram';
 
 export function setupIPCHandlers() {

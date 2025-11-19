@@ -15,7 +15,7 @@ import { startFrontend as startSillyTavernFrontend } from '@/main/modules/sillyt
 import { startFrontend as startOpenWebUIFrontend } from '@/main/modules/openwebui';
 import { patchKliteEmbd, patchKcppSduiEmbd, filterSpam } from './patches';
 import { startProxy, stopProxy } from '../proxy';
-import { resolveModelPath } from '../modelDownload';
+import { resolveModelPath } from '../model-download';
 import type {
   FrontendPreference,
   ImageGenerationFrontendPreference,
