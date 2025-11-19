@@ -87,6 +87,7 @@ export const ImageGenerationTab = () => {
         tooltip="T5-XXL text encoder model for advanced text understanding."
         onChange={handleSdt5xxlChange}
         onSelectFile={handleSelectSdt5xxlFile}
+        searchUrl="https://huggingface.co/models?search=t5-xxl&library=gguf&sort=trending"
         paramType="sdt5xxl"
       />
 
@@ -97,6 +98,7 @@ export const ImageGenerationTab = () => {
         tooltip="CLIP-L text encoder model for text-image understanding."
         onChange={handleSdcliplChange}
         onSelectFile={handleSelectSdcliplFile}
+        searchUrl="https://huggingface.co/models?search=clip-l&library=gguf&sort=trending"
         paramType="sdclipl"
       />
 
@@ -107,6 +109,7 @@ export const ImageGenerationTab = () => {
         tooltip="CLIP-G text encoder model for enhanced text-image understanding."
         onChange={handleSdclipgChange}
         onSelectFile={handleSelectSdclipgFile}
+        searchUrl="https://huggingface.co/models?search=clip-g&library=gguf&sort=trending"
         paramType="sdclipg"
       />
 
@@ -117,6 +120,7 @@ export const ImageGenerationTab = () => {
         tooltip="PhotoMaker is a model that allows face cloning. Select a .safetensors PhotoMaker file to be loaded (SDXL only)."
         onChange={handleSdphotomakerChange}
         onSelectFile={handleSelectSdphotomakerFile}
+        searchUrl="https://huggingface.co/models?search=photomaker&library=safetensors&sort=trending"
         paramType="sdphotomaker"
       />
 
@@ -127,6 +131,7 @@ export const ImageGenerationTab = () => {
         tooltip="Variational Autoencoder model for improved image quality."
         onChange={handleSdvaeChange}
         onSelectFile={handleSelectSdvaeFile}
+        searchUrl="https://huggingface.co/models?search=vae&library=safetensors&sort=trending"
         paramType="sdvae"
       />
 
@@ -137,6 +142,7 @@ export const ImageGenerationTab = () => {
         tooltip="LoRa (Low-Rank Adaptation) file for customizing image generation. Select a .safetensors or .gguf LoRa file to be loaded. Should be unquantized."
         onChange={handleSdloraChange}
         onSelectFile={handleSelectSdloraFile}
+        searchUrl="https://huggingface.co/models?search=lora&library=safetensors&sort=trending"
         paramType="sdlora"
       />
 
