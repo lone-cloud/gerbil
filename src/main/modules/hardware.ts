@@ -1,4 +1,3 @@
-/* eslint-disable no-comments/disallowComments */
 import {
   cpu as siCpu,
   mem as siMem,
@@ -82,8 +81,6 @@ export async function detectGPU() {
 }
 
 export async function detectGPUCapabilities() {
-  // WARNING: we're not worrying about the users that update their system
-  // during runtime and not restart. Should we be though?
   if (gpuCapabilitiesCache) {
     return gpuCapabilitiesCache;
   }
@@ -336,13 +333,11 @@ function parseRocmOutput(output: string, vulkanInfo: { allGPUs: GPUDevice[] }) {
     const line = lines[i];
     const trimmedLine = line.trim();
 
-    // Handle hipInfo format
     if (handleHipInfoLine(trimmedLine, currentDevice, devices)) {
       currentDevice = trimmedLine.startsWith('device#') ? {} : currentDevice;
       continue;
     }
 
-    // Handle rocminfo format
     if (line.includes('Marketing Name:')) {
       const device = parseRocmInfoDevice(line, lines, i, vulkanInfo);
       if (device) {
@@ -351,7 +346,6 @@ function parseRocmOutput(output: string, vulkanInfo: { allGPUs: GPUDevice[] }) {
     }
   }
 
-  // Add the last device for hipInfo format
   if (currentDevice?.name) {
     devices.push(
       createDevice(currentDevice.name, currentDevice.isIntegrated || false)
