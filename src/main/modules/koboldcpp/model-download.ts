@@ -32,10 +32,12 @@ function parseHuggingFaceUrl(url: string) {
   );
 
   if (hfMatch) {
+    const pathWithQuery = hfMatch[3];
+    const pathWithoutQuery = pathWithQuery.split('?')[0];
     return {
       author: hfMatch[1],
       model: hfMatch[2],
-      filename: basename(hfMatch[3]),
+      filename: basename(pathWithoutQuery),
     };
   }
 
