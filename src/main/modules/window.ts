@@ -3,6 +3,7 @@ import { join } from 'path';
 import { stripVTControlCharacters } from 'util';
 import { PRODUCT_NAME } from '@/constants';
 import { isDevelopment } from '@/utils/node/environment';
+import { startStaticServer } from './static-server';
 import {
   getBackgroundColor,
   getWindowBounds,
@@ -16,7 +17,7 @@ import type { BrowserWindowConstructorOptions } from 'electron';
 
 let mainWindow: BrowserWindow | null = null;
 
-export function createMainWindow(options?: { startHidden?: boolean }) {
+export async function createMainWindow(options?: { startHidden?: boolean }) {
   const { size } = screen.getPrimaryDisplay();
   const savedBounds = getWindowBounds();
 
@@ -116,7 +117,9 @@ export function createMainWindow(options?: { startHidden?: boolean }) {
   if (isDevelopment) {
     mainWindow.loadURL('http://localhost:5173');
   } else {
-    mainWindow.loadFile(join(__dirname, '../../dist/index.html'));
+    const distPath = join(__dirname, '../../dist');
+    const url = await startStaticServer(distPath);
+    mainWindow.loadURL(url);
     Menu.setApplicationMenu(null);
   }
 

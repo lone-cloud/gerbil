@@ -20,20 +20,22 @@ export const DEFAULT_MODEL_URL =
 export const DEFAULT_AUTO_GPU_LAYERS = true;
 
 export const SILLYTAVERN = {
+  HOST: 'localhost',
   PORT: 3000,
   PROXY_PORT: 3001,
   get URL() {
-    return `http://127.0.0.1:${this.PORT}`;
+    return `http://${this.HOST}:${this.PORT}` as const;
   },
   get PROXY_URL() {
-    return `http://127.0.0.1:${this.PROXY_PORT}`;
+    return `http://${this.HOST}:${this.PROXY_PORT}` as const;
   },
 } as const;
 
 export const OPENWEBUI = {
+  HOST: 'localhost',
   PORT: 8080,
   get URL() {
-    return `http://127.0.0.1:${this.PORT}`;
+    return `http://${this.HOST}:${this.PORT}` as const;
   },
 } as const;
 

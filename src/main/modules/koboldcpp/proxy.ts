@@ -85,7 +85,7 @@ export const startProxy = (targetHost: string, targetPort: number) =>
       reject(error);
     });
 
-    proxyServer.listen(PROXY.PORT, PROXY.HOST, () => {
+    proxyServer.listen(PROXY.PORT, PROXY.LISTEN_HOST, () => {
       sendKoboldOutput(`Proxy server started on port ${PROXY.PORT}`);
       resolve();
     });

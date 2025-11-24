@@ -1,7 +1,8 @@
 export const PROXY = {
-  HOST: '127.0.0.1',
+  HOST: 'localhost',
+  LISTEN_HOST: '0.0.0.0',
   PORT: 5002,
   get URL() {
-    return `http://${this.HOST}:${this.PORT}`;
+    return `http://${this.HOST}:${this.PORT}` as const;
   },
 } as const;

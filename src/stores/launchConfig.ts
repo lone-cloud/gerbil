@@ -512,6 +512,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
       sdclipl: preset.sdclipl,
       sdclipg: preset.sdclipg || '',
       sdvae: preset.sdvae,
+      model: '',
     });
   },
 }));
