@@ -132,7 +132,7 @@ export function filterSpam(output: string) {
     /^llama_kv_cache/,
     /^set_abort_callback:/,
     /^attach_threadpool:/,
-    /^ggml_vulkan:/,
+    /^ggml_/,
     /^Namespace\(/,
     /^==========$/,
     /^Loading Chat Completions Adapter:/,
