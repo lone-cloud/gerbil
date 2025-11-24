@@ -9,7 +9,7 @@ export interface ImageModelPreset {
   readonly sdvae: string;
 }
 
-export const IMAGE_MODEL_PRESETS = [
+export const IMAGE_MODEL_PRESETS: readonly ImageModelPreset[] = [
   {
     name: 'FLUX.1',
     description: 'FLUX.1 development model with default encoders',

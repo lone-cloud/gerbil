@@ -159,6 +159,7 @@ async function setupSillyTavernConfig(isImageMode: boolean) {
       try {
         const existingSettings =
           await readJsonFile<Record<string, unknown>>(configPath);
+
         if (existingSettings) {
           settings = existingSettings;
           sendKoboldOutput(`Loaded existing SillyTavern settings`);
@@ -215,7 +216,7 @@ async function setupSillyTavernConfig(isImageMode: boolean) {
   }
 }
 
-async function waitForSillyTavernToStart(_port: number) {
+async function waitForSillyTavernToStart() {
   sendKoboldOutput('Waiting for SillyTavern to start...');
 
   return new Promise<void>((resolve, reject) => {
@@ -331,7 +332,7 @@ export async function startFrontend(args: string[]) {
       sillyTavernProcess = null;
     });
 
-    await waitForSillyTavernToStart(config.port);
+    await waitForSillyTavernToStart();
     createProxyServer(config.port, config.proxyPort);
   } catch (error) {
     logError(
