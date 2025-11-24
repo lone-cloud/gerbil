@@ -1,26 +1,10 @@
 import { readFile, writeFile, access, mkdir } from 'fs/promises';
 import { constants } from 'fs';
-import { dirname, normalize } from 'path';
-
-// eslint-disable-next-line no-comments/disallowComments
-/**
- * This function normalizes a file path and checks for null
- * bytes to prevent security issues.
- * This is probably not relevant for our local desktop app,
- * but github does warn about it via "js/path-injection".
- */
-export const sanitizePath = (path: string) => {
-  const normalized = normalize(path);
-  if (normalized.includes('\0')) {
-    throw new Error('Invalid path: null byte detected');
-  }
-  return normalized;
-};
+import { dirname } from 'path';
 
 export const pathExists = async (path: string) => {
-  const sanitized = sanitizePath(path);
   try {
-    await access(sanitized, constants.F_OK);
+    await access(path, constants.F_OK);
     return true;
   } catch {
     return false;
