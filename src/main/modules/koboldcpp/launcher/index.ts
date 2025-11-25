@@ -101,7 +101,7 @@ export async function launchKoboldCpp(
 
     const binaryDir = currentVersion.path.split(/[/\\]/).slice(0, -1).join('/');
 
-    const { isImageMode, isTextMode } = parseKoboldConfig(args);
+    const { isImageMode, isTextMode, debugmode } = parseKoboldConfig(args);
 
     if (frontendPreference === 'koboldcpp') {
       if (isImageMode) {
@@ -148,7 +148,7 @@ export async function launchKoboldCpp(
 
     child.stdout?.on('data', (data) => {
       const output = data.toString();
-      const filtered = filterSpam(output);
+      const filtered = debugmode ? output : filterSpam(output);
       if (filtered.trim()) {
         sendKoboldOutput(filtered, true);
       }
@@ -161,7 +161,7 @@ export async function launchKoboldCpp(
 
     child.stderr?.on('data', (data) => {
       const output = data.toString();
-      const filtered = filterSpam(output);
+      const filtered = debugmode ? output : filterSpam(output);
       if (filtered.trim()) {
         sendKoboldOutput(filtered, true);
       }

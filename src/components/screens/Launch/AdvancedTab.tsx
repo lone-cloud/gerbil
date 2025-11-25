@@ -23,6 +23,7 @@ export const AdvancedTab = () => {
     lowvram,
     quantmatmul,
     usemmap,
+    debugmode,
     backend,
     moecpu,
     moeexperts,
@@ -34,6 +35,7 @@ export const AdvancedTab = () => {
     handleLowvramChange,
     handleQuantmatmulChange,
     handleUsemmapChange,
+    handleDebugmodeChange,
     handleMoecpuChange,
     handleMoeexpertsChange,
   } = useLaunchConfig();
@@ -151,6 +153,13 @@ export const AdvancedTab = () => {
                 : 'Avoid offloading KV Cache or scratch buffers to VRAM. Allows more layers to fit, but may result in a speed loss.'
             }
             disabled={!isGpuBackend}
+          />
+
+          <CheckboxWithTooltip
+            checked={debugmode}
+            onChange={handleDebugmodeChange}
+            label="Debug Mode"
+            tooltip="Shows additional debug info in the terminal."
           />
         </SimpleGrid>
       </div>
