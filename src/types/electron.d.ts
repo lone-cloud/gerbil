@@ -98,6 +98,7 @@ export interface KoboldConfig {
   lowvram?: boolean;
   quantmatmul?: boolean;
   usemmap?: boolean;
+  debugmode?: boolean;
   usecuda?: boolean;
   usevulkan?: boolean;
   useclblast?: boolean | [number, number];

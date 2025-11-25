@@ -3,11 +3,15 @@ export function parseKoboldConfig(args: string[]) {
   let port = 5001;
   let hasSdModel = false;
   let hasTextModel = false;
+  let debugmode = false;
 
-  for (let i = 0; i < args.length - 1; i++) {
-    if (args[i] === '--hostname' || args[i] === '--host') {
+  for (let i = 0; i < args.length; i++) {
+    if (
+      (args[i] === '--hostname' || args[i] === '--host') &&
+      i + 1 < args.length
+    ) {
       host = args[i + 1];
-    } else if (args[i] === '--port') {
+    } else if (args[i] === '--port' && i + 1 < args.length) {
       const parsedPort = parseInt(args[i + 1], 10);
       if (!isNaN(parsedPort)) {
         port = parsedPort;
@@ -16,11 +20,13 @@ export function parseKoboldConfig(args: string[]) {
       hasSdModel = true;
     } else if (args[i] === '--model') {
       hasTextModel = true;
+    } else if (args[i] === '--debugmode') {
+      debugmode = true;
     }
   }
 
   const isImageMode = hasSdModel;
   const isTextMode = hasTextModel;
 
-  return { host, port, isImageMode, isTextMode };
+  return { host, port, isImageMode, isTextMode, debugmode };
 }

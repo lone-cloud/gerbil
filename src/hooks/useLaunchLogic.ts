@@ -29,6 +29,7 @@ interface LaunchArgs {
   tensorSplit: string;
   quantmatmul: boolean;
   usemmap: boolean;
+  debugmode: boolean;
   additionalArguments: string;
   sdt5xxl: string;
   sdclipl: string;
@@ -128,6 +129,7 @@ const buildConfigArgs = (isImageMode: boolean, launchArgs: LaunchArgs) => {
     [launchArgs.noavx2, '--noavx2'],
     [launchArgs.failsafe, '--failsafe'],
     [launchArgs.usemmap, '--usemmap'],
+    [launchArgs.debugmode, '--debugmode', '1'],
   ];
 
   flagMappings.forEach(([condition, flag, value]) => {

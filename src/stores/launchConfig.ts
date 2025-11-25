@@ -23,6 +23,7 @@ interface LaunchConfigState {
   lowvram: boolean;
   quantmatmul: boolean;
   usemmap: boolean;
+  debugmode: boolean;
   backend: string;
   gpuDeviceSelection: string;
   tensorSplit: string;
@@ -61,6 +62,7 @@ interface LaunchConfigState {
   setLowvram: (lowvram: boolean) => void;
   setQuantmatmul: (quantmatmul: boolean) => void;
   setUsemmap: (usemmap: boolean) => void;
+  setDebugmode: (debugmode: boolean) => void;
   setBackend: (backend: string) => void;
   setGpuDeviceSelection: (selection: string) => void;
   setTensorSplit: (split: string) => void;
@@ -115,6 +117,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   lowvram: false,
   quantmatmul: true,
   usemmap: true,
+  debugmode: false,
   backend: '',
   gpuDeviceSelection: '0',
   tensorSplit: '',
@@ -158,6 +161,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   setLowvram: (lowvram) => set({ lowvram }),
   setQuantmatmul: (quantmatmul) => set({ quantmatmul }),
   setUsemmap: (usemmap) => set({ usemmap }),
+  setDebugmode: (debugmode) => set({ debugmode }),
   setBackend: (backend) =>
     set({
       backend,
@@ -299,6 +303,12 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
         updates.usemmap = configData.usemmap;
       } else {
         updates.usemmap = true;
+      }
+
+      if (typeof configData.debugmode === 'boolean') {
+        updates.debugmode = configData.debugmode;
+      } else {
+        updates.debugmode = false;
       }
 
       if (configData.usecuda === true) {

@@ -65,6 +65,7 @@ const UI_COVERED_ARGS = new Set([
   '--sdclipgpu',
   '--sdflashattention',
   '--tensor_split',
+  '--debugmode',
 ] as const) as ReadonlySet<string>;
 
 const IGNORED_ARGS = new Set([
@@ -193,13 +194,6 @@ const COMMAND_LINE_ARGUMENTS = [
     description:
       'Enables mlock, preventing the RAM used to load the model from being paged out. Not usually recommended.',
     type: 'boolean',
-    category: 'Advanced',
-  },
-  {
-    flag: '--debugmode',
-    description: 'Shows additional debug info in the terminal.',
-    type: 'int',
-    default: 0,
     category: 'Advanced',
   },
   {
