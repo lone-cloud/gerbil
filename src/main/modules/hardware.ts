@@ -359,7 +359,7 @@ function handleHipInfoLine(
   trimmedLine: string,
   currentDevice: Partial<GPUDevice> | null,
   devices: GPUDevice[]
-): boolean {
+) {
   if (trimmedLine.startsWith('device#')) {
     if (currentDevice?.name) {
       devices.push(
@@ -423,7 +423,7 @@ function findDeviceType(lines: string[], startIndex: number) {
 function determineIfIntegrated(
   name: string,
   vulkanInfo: { allGPUs: GPUDevice[] }
-): boolean {
+) {
   try {
     const matchingGPU = vulkanInfo.allGPUs.find(
       (gpu) => gpu.name.includes(name) || name.includes(gpu.name)

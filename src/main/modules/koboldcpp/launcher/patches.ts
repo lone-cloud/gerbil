@@ -24,10 +24,6 @@ const KLITE_CSS_OVERRIDE = `
   margin: 0 10px;
 }
 
-#inputrow {
-  padding: 0 10px;
-}
-
 #navbarNavDropdown {
   padding: 0;
 }
@@ -36,6 +32,9 @@ const KLITE_CSS_OVERRIDE = `
   margin-left: 10px;
 }
 
+#inputrow {
+  padding: 0 10px;
+}
 #inputrow > :nth-child(1) {
   padding-right: 0 !important;
 }
@@ -60,7 +59,7 @@ export const patchKliteEmbd = (unpackedDir: string) =>
   tryExecute(async () => {
     const possiblePaths = [
       join(unpackedDir, '_internal', 'embd_res', 'klite.embd'),
-      join(unpackedDir, 'klite.embd'),
+      join(unpackedDir, 'embd_res', 'klite.embd'),
     ];
 
     let kliteEmbdPath: string | null = null;
