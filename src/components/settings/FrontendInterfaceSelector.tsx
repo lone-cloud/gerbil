@@ -16,7 +16,7 @@ interface FrontendRequirement {
 }
 
 interface FrontendConfig {
-  value: string;
+  value: FrontendPreference;
   label: string;
   requirements?: FrontendRequirement[];
   requirementCheck?: () => Promise<boolean>;
@@ -43,8 +43,12 @@ export const FrontendInterfaceSelector = ({
   const frontendConfigs: FrontendConfig[] = useMemo(
     () => [
       {
+        value: 'llamacpp',
+        label: FRONTENDS.LLAMA_CPP,
+      },
+      {
         value: 'koboldcpp',
-        label: 'Built-in',
+        label: FRONTENDS.KOBOLDAI_LITE,
       },
       {
         value: 'sillytavern',
@@ -93,7 +97,7 @@ export const FrontendInterfaceSelector = ({
       (config) => config.value === frontendPreference
     );
     if (currentFrontendConfig && !requirementResults.get(frontendPreference)) {
-      setFrontendPreference('koboldcpp');
+      setFrontendPreference('llamacpp');
     }
   }, [frontendConfigs, frontendPreference, setFrontendPreference]);
 

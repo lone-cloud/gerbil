@@ -56,10 +56,20 @@ export function getAvailableInterfaceOptions({
         label: FRONTENDS.KOBOLDAI_LITE,
       });
     }
+  } else if (frontendPreference === 'llamacpp') {
+    if (isTextMode) {
+      chatItems.push({
+        value: 'chat-text',
+        label: FRONTENDS.LLAMA_CPP,
+      });
+    }
   }
 
   if (isImageGenerationMode) {
-    if (effectiveImageFrontend === 'koboldcpp') {
+    if (
+      effectiveImageFrontend === 'koboldcpp' ||
+      effectiveImageFrontend === 'llamacpp'
+    ) {
       chatItems.push({
         value: 'chat-image',
         label: FRONTENDS.STABLE_UI,
@@ -148,6 +158,13 @@ export function getServerInterfaceInfo({
     return {
       url: OPENWEBUI.URL,
       title: FRONTENDS.OPENWEBUI,
+    };
+  }
+
+  if (frontendPreference === 'llamacpp') {
+    return {
+      url: isImageGenerationMode ? `${proxyUrl}/sdui` : `${proxyUrl}/lcpp`,
+      title: isImageGenerationMode ? FRONTENDS.STABLE_UI : FRONTENDS.LLAMA_CPP,
     };
   }
 
