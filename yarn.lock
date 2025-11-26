@@ -2792,16 +2792,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:^38.7.1":
-  version: 38.7.1
-  resolution: "electron@npm:38.7.1"
+"electron@npm:^38.7.2":
+  version: 38.7.2
+  resolution: "electron@npm:38.7.2"
   dependencies:
     "@electron/get": "npm:^2.0.0"
     "@types/node": "npm:^22.7.7"
     extract-zip: "npm:^2.0.1"
   bin:
     electron: cli.js
-  checksum: 10c0/ef5471b046c34c24cddc97f3dab5d67ef06fef051cc61f1676a6b2e160dc84154cc59572931335bcbaae57d254989e671925eff32a34a11c781a058ccba6e2dd
+  checksum: 10c0/b79fc6bf44086649c8ff0ffd3572bb1e6ba65993a6a09a32c42f246cd69aaedd5864fac7d3ed4aacdedb03f2d6c21dee9b92d0982c20617e288c185d847b570b
   languageName: node
   linkType: hard
 
@@ -3720,7 +3720,7 @@ __metadata:
     "@uiw/react-codemirror": "npm:^4.25.3"
     "@vitejs/plugin-react": "npm:^5.1.1"
     cross-env: "npm:^10.1.0"
-    electron: "npm:^38.7.1"
+    electron: "npm:^38.7.2"
     electron-builder: "npm:^26.0.12"
     electron-updater: "npm:^6.6.2"
     electron-vite: "npm:^4.0.1"
@@ -3734,7 +3734,7 @@ __metadata:
     execa: "npm:^9.6.0"
     globals: "npm:^16.5.0"
     jiti: "npm:^2.6.1"
-    lucide-react: "npm:^0.554.0"
+    lucide-react: "npm:^0.555.0"
     mime-types: "npm:^3.0.2"
     prettier: "npm:^3.6.2"
     react: "npm:^19.2.0"
@@ -4794,12 +4794,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide-react@npm:^0.554.0":
-  version: 0.554.0
-  resolution: "lucide-react@npm:0.554.0"
+"lucide-react@npm:^0.555.0":
+  version: 0.555.0
+  resolution: "lucide-react@npm:0.555.0"
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10c0/35b11d6f11e4b00047175fcc52f531156be66e5ae7c1f689d0d18bc7bbf06d9e0bf33c767f449e25d99f105acf420399346787491aafe0b55dc68b8d45937e87
+  checksum: 10c0/18f0870307fe2a37cf62473de88845a78107295de1efcf599a8662be3af4239c0b661a57f8e29815e424773e4aad04d199ad4d94d7ae977b7ce7a61be7f64e04
   languageName: node
   linkType: hard
 

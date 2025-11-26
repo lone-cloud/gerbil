@@ -78,6 +78,7 @@ export const ROCM = {
 
 export const FRONTENDS = {
   KOBOLDAI_LITE: 'KoboldAI Lite',
+  LLAMA_CPP: 'llama.cpp',
   STABLE_UI: 'Stable UI',
   SILLYTAVERN: 'SillyTavern',
   OPENWEBUI: 'Open WebUI',

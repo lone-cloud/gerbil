@@ -66,6 +66,7 @@ const UI_COVERED_ARGS = new Set([
   '--sdflashattention',
   '--tensor_split',
   '--debugmode',
+  '--lowvram',
 ] as const) as ReadonlySet<string>;
 
 const IGNORED_ARGS = new Set([
@@ -80,6 +81,13 @@ const IGNORED_ARGS = new Set([
   '--exporttemplate',
   '--nomodel',
   '--singleinstance',
+  '--hordeconfig',
+  '--sdconfig',
+  '--noblas',
+  '--nommap',
+  '--no-mmap',
+  '--sdnotile',
+  '--testmemory',
 ] as const) as ReadonlySet<string>;
 
 const COMMAND_LINE_ARGUMENTS = [
@@ -365,14 +373,6 @@ const COMMAND_LINE_ARGUMENTS = [
     category: 'Performance',
   },
   {
-    flag: '--lowvram',
-    aliases: ['-nkvo', '--no-kv-offload'],
-    description:
-      'If supported by the backend, do not offload KV to GPU (lowvram mode). Not recommended, will be slow.',
-    type: 'boolean',
-    category: 'Performance',
-  },
-  {
     flag: '--defaultgenamt',
     description:
       'How many tokens to generate by default, if not specified. Must be smaller than context size. Usually, your frontend GUI will override this.',
@@ -416,6 +416,21 @@ const COMMAND_LINE_ARGUMENTS = [
       'Select an optional ChatCompletions Adapter JSON file to force custom instruct tags.',
     metavar: '[filename]',
     default: 'AutoGuess',
+    category: 'Advanced',
+  },
+  {
+    flag: '--jinja',
+    description:
+      'Enables using jinja chat template formatting for chat completions endpoint. Other endpoints are unaffected. Tool calls are done without jinja.',
+    type: 'boolean',
+    category: 'Advanced',
+  },
+  {
+    flag: '--jinja_tools',
+    aliases: ['--jinja-tools'],
+    description:
+      'Enables using jinja chat template formatting for chat completions endpoint. Other endpoints are unaffected. Tool calls are done with jinja.',
+    type: 'boolean',
     category: 'Advanced',
   },
   {
