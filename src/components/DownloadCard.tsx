@@ -48,8 +48,8 @@ export const DownloadCard = ({
     : 0;
   const hasVersionMismatch = Boolean(
     versionInfo.version &&
-      versionInfo.actualVersion &&
-      versionInfo.version !== versionInfo.actualVersion
+    versionInfo.actualVersion &&
+    versionInfo.version !== versionInfo.actualVersion
   );
 
   // eslint-disable-next-line sonarjs/cognitive-complexity

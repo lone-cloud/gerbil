@@ -269,6 +269,15 @@ export const openPerformanceManager = async () =>
           if (success) {
             return { success: true, app };
           }
+          cachedLinuxApp = null;
+          linuxAppSearchComplete = false;
+          const fallbackApp = await findLinuxPerformanceApp();
+          if (fallbackApp) {
+            const fallbackSuccess = await tryLaunchCommand(fallbackApp);
+            if (fallbackSuccess) {
+              return { success: true, app: fallbackApp };
+            }
+          }
         }
         return {
           success: false,
