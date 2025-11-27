@@ -80,7 +80,13 @@ async function downloadFile(
     let isAborted = false;
 
     const cleanup = async () => {
-      fileStream?.close();
+      await new Promise<void>((resolve) => {
+        if (fileStream) {
+          fileStream.close(() => resolve());
+        } else {
+          resolve();
+        }
+      });
       await unlink(tempPath).catch(() => void 0);
     };
 
@@ -188,6 +194,18 @@ async function downloadFile(
 
         response.on('end', () => {
           if (isAborted) return;
+
+          if (totalBytes > 0 && downloadedBytes !== totalBytes) {
+            activeDownloads.delete(abortController);
+            cleanup();
+            reject(
+              new Error(
+                `Incomplete download: received ${downloadedBytes} bytes, expected ${totalBytes} bytes`
+              )
+            );
+            return;
+          }
+
           fileStream.end();
           fileStream.on('finish', async () => {
             try {

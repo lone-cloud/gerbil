@@ -97,8 +97,8 @@ export const VersionsTab = () => {
 
       const isCurrent = Boolean(
         installedVersion &&
-          currentVersion &&
-          currentVersion.path === installedVersion.path
+        currentVersion &&
+        currentVersion.path === installedVersion.path
       );
 
       if (installedVersion) {
