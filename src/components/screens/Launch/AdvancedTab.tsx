@@ -6,8 +6,10 @@ import {
   NumberInput,
   Button,
   SimpleGrid,
+  ActionIcon,
 } from '@mantine/core';
 import { useState, useEffect } from 'react';
+import { Plus, Trash2 } from 'lucide-react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
 import { CommandLineArgumentsModal } from '@/components/screens/Launch/CommandLineArgumentsModal';
@@ -16,6 +18,7 @@ import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 export const AdvancedTab = () => {
   const {
     additionalArguments,
+    preLaunchCommands,
     noshift,
     flashattention,
     noavx2,
@@ -28,6 +31,7 @@ export const AdvancedTab = () => {
     moecpu,
     moeexperts,
     handleAdditionalArgumentsChange,
+    handlePreLaunchCommandsChange,
     handleNoshiftChange,
     handleFlashattentionChange,
     handleNoavx2Change,
@@ -208,7 +212,7 @@ export const AdvancedTab = () => {
         <Group mb="xs" justify="space-between">
           <Group>
             <Text size="sm" fw={500}>
-              Additional arguments
+              Additional Arguments
             </Text>
             <InfoTooltip label="Additional command line arguments to pass to the binary. Leave this empty if you don't know what they are." />
           </Group>
@@ -227,6 +231,57 @@ export const AdvancedTab = () => {
             handleAdditionalArgumentsChange(event.currentTarget.value)
           }
         />
+      </div>
+
+      <div>
+        <Group mb="xs">
+          <Text size="sm" fw={500}>
+            Pre-Launch Commands
+          </Text>
+          <InfoTooltip label="Shell commands to run before launching. Useful for starting local services or custom APIs." />
+        </Group>
+        <Stack gap="xs">
+          {preLaunchCommands.map((command, index) => (
+            <Group key={index} gap="xs">
+              <TextInput
+                placeholder="Enter a shell command"
+                value={command}
+                onChange={(event) => {
+                  const newCommands = [...preLaunchCommands];
+                  newCommands[index] = event.currentTarget.value;
+                  handlePreLaunchCommandsChange(newCommands);
+                }}
+                style={{ flex: 1 }}
+              />
+              <ActionIcon
+                variant="subtle"
+                color="red"
+                disabled={preLaunchCommands.length === 1}
+                onClick={() => {
+                  const newCommands = preLaunchCommands.filter(
+                    (_, i) => i !== index
+                  );
+                  handlePreLaunchCommandsChange(
+                    newCommands.length === 0 ? [''] : newCommands
+                  );
+                }}
+              >
+                <Trash2 size={16} />
+              </ActionIcon>
+            </Group>
+          ))}
+          <Button
+            variant="subtle"
+            size="xs"
+            leftSection={<Plus size={14} />}
+            onClick={() => {
+              handlePreLaunchCommandsChange([...preLaunchCommands, '']);
+            }}
+            style={{ alignSelf: 'flex-start' }}
+          >
+            Add Command
+          </Button>
+        </Stack>
       </div>
 
       <CommandLineArgumentsModal

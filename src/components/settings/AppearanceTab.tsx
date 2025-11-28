@@ -77,11 +77,9 @@ export const AppearanceTab = ({
 
   return (
     <Stack gap="lg" h="100%">
+      <FrontendInterfaceSelector isOnInterfaceScreen={isOnInterfaceScreen} />
       <div>
-        <FrontendInterfaceSelector isOnInterfaceScreen={isOnInterfaceScreen} />
-      </div>
-      <div>
-        <Text fw={500} mb="sm">
+        <Text fw={500} mb="xs">
           Theme
         </Text>
         <Text size="sm" c="dimmed" mb="md">
@@ -138,7 +136,7 @@ export const AppearanceTab = ({
         />
       </div>
       <div>
-        <Text fw={500} mb="sm">
+        <Text fw={500} mb="xs">
           Zoom Level
         </Text>
         <Group justify="space-between" align="center" mb="md">

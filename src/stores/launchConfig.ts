@@ -9,6 +9,7 @@ interface LaunchConfigState {
   contextSize: number;
   model: string;
   additionalArguments: string;
+  preLaunchCommands: string[];
   port?: number;
   host: string;
   multiuser: boolean;
@@ -63,6 +64,7 @@ interface LaunchConfigState {
   setQuantmatmul: (quantmatmul: boolean) => void;
   setUsemmap: (usemmap: boolean) => void;
   setDebugmode: (debugmode: boolean) => void;
+  setPreLaunchCommands: (commands: string[]) => void;
   setBackend: (backend: string) => void;
   setGpuDeviceSelection: (selection: string) => void;
   setTensorSplit: (split: string) => void;
@@ -103,6 +105,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   contextSize: DEFAULT_CONTEXT_SIZE,
   model: '',
   additionalArguments: '',
+  preLaunchCommands: [''],
   port: undefined,
   host: '',
   multiuser: false,
@@ -162,6 +165,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   setQuantmatmul: (quantmatmul) => set({ quantmatmul }),
   setUsemmap: (usemmap) => set({ usemmap }),
   setDebugmode: (debugmode) => set({ debugmode }),
+  setPreLaunchCommands: (commands) => set({ preLaunchCommands: commands }),
   setBackend: (backend) =>
     set({
       backend,
@@ -223,6 +227,16 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
         updates.additionalArguments = configData.additionalArguments;
       } else {
         updates.additionalArguments = '';
+      }
+
+      if (Array.isArray(configData.preLaunchCommands)) {
+        const filteredCommands = configData.preLaunchCommands.filter(
+          (cmd): cmd is string => typeof cmd === 'string'
+        );
+        updates.preLaunchCommands =
+          filteredCommands.length === 0 ? [''] : filteredCommands;
+      } else {
+        updates.preLaunchCommands = [''];
       }
 
       if (typeof configData.port === 'number') {

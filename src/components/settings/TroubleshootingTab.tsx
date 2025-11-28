@@ -33,7 +33,7 @@ export const TroubleshootingTab = () => {
   return (
     <Stack gap="lg" h="100%">
       <div>
-        <Text fw={500} mb="sm">
+        <Text fw={500} mb="xs">
           Installation Directory
         </Text>
         <Text size="sm" c="dimmed" mb="md">
@@ -70,7 +70,7 @@ export const TroubleshootingTab = () => {
       </div>
 
       <div>
-        <Text fw={500} mb="sm">
+        <Text fw={500} mb="xs">
           Diagnostics
         </Text>
         <Text size="sm" c="dimmed" mb="md">
