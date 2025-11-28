@@ -86,13 +86,6 @@ export const patchKliteEmbd = (unpackedDir: string) =>
         );
       }
 
-      if (content.includes('gerbil-autoscroll-patches')) {
-        patchedContent = patchedContent.replace(
-          /<script id="gerbil-autoscroll-patches">[\s\S]*?<\/script>\s*/g,
-          ''
-        );
-      }
-
       patchedContent = patchedContent.replace(
         '</head>',
         `${KLITE_CSS_OVERRIDE}\n</head>`
