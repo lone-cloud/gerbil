@@ -116,6 +116,7 @@ export interface KoboldConfig {
   sdvaecpu?: boolean;
   sdclipgpu?: boolean;
   additionalArguments?: string;
+  preLaunchCommands?: string[];
   moecpu?: number;
   moeexperts?: number;
   autoGpuLayers?: boolean;
@@ -146,7 +147,8 @@ export interface KoboldAPI {
     binaryPath: string
   ) => Promise<{ success: boolean; error?: string }>;
   launchKoboldCpp: (
-    args?: string[]
+    args?: string[],
+    preLaunchCommands?: string[]
   ) => Promise<{ success: boolean; pid?: number; error?: string }>;
   getConfigFiles: () => Promise<{ name: string; path: string; size: number }[]>;
   saveConfigFile: (

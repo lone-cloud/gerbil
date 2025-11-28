@@ -796,7 +796,7 @@ export const CommandLineArgumentsModal = ({
       <Stack gap="md">
         <Text size="sm" c="dimmed">
           These are additional command line arguments that can be added to the
-          &quot;Additional Arguments&quot; field.
+          &quot;Additional Arguments&quot; input field.
         </Text>
 
         <TextInput

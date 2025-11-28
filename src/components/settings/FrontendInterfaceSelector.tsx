@@ -223,69 +223,74 @@ export const FrontendInterfaceSelector = ({
 
   return (
     <>
-      <Text fw={500} mb="sm">
-        Frontend Interface
-      </Text>
+      <div>
+        <Text fw={500} mb="xs">
+          Frontend Interface
+        </Text>
 
-      {getUnmetRequirements().length === 0 && (
+        {getUnmetRequirements().length === 0 && (
+          <Text size="sm" c="dimmed" mb="md">
+            Choose which frontend interface to use for interacting with AI
+            models
+          </Text>
+        )}
+
+        {getUnmetRequirements().length > 0 && (
+          <Text size="sm" c="red" mb="md">
+            {getSelectedFrontendConfig()?.label} requires{' '}
+            {getUnmetRequirements().map((req, index) => (
+              <span key={req.id}>
+                <Anchor
+                  href={req.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  c="red"
+                  td="underline"
+                >
+                  {req.name}
+                </Anchor>
+                {index < getUnmetRequirements().length - 1 ? ', ' : ''}
+              </span>
+            ))}{' '}
+            to be installed on your system
+          </Text>
+        )}
+
+        <Select
+          value={frontendPreference}
+          onChange={handleFrontendPreferenceChange}
+          disabled={isOnInterfaceScreen}
+          data={frontendConfigs.map((config) => ({
+            value: config.value,
+            label: config.label,
+            disabled: !isFrontendAvailable(config.value),
+          }))}
+          leftSection={<Monitor style={{ width: rem(16), height: rem(16) }} />}
+        />
+
+        {renderDisabledFrontendWarnings()}
+      </div>
+
+      <div>
+        <Text fw={500} mb="xs">
+          Image Generation Frontend
+        </Text>
+
         <Text size="sm" c="dimmed" mb="md">
-          Choose which frontend interface to use for interacting with AI models
+          Choose which frontend to use for image generation specifically
         </Text>
-      )}
 
-      {getUnmetRequirements().length > 0 && (
-        <Text size="sm" c="red" mb="md">
-          {getSelectedFrontendConfig()?.label} requires{' '}
-          {getUnmetRequirements().map((req, index) => (
-            <span key={req.id}>
-              <Anchor
-                href={req.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                c="red"
-                td="underline"
-              >
-                {req.name}
-              </Anchor>
-              {index < getUnmetRequirements().length - 1 ? ', ' : ''}
-            </span>
-          ))}{' '}
-          to be installed on your system
-        </Text>
-      )}
-
-      <Select
-        value={frontendPreference}
-        onChange={handleFrontendPreferenceChange}
-        disabled={isOnInterfaceScreen}
-        data={frontendConfigs.map((config) => ({
-          value: config.value,
-          label: config.label,
-          disabled: !isFrontendAvailable(config.value),
-        }))}
-        leftSection={<Monitor style={{ width: rem(16), height: rem(16) }} />}
-      />
-
-      {renderDisabledFrontendWarnings()}
-
-      <Text fw={500} mb="sm" mt="xl">
-        Image Generation Frontend
-      </Text>
-
-      <Text size="sm" c="dimmed" mb="md">
-        Choose which frontend to use for image generation specifically
-      </Text>
-
-      <Select
-        value={imageGenerationFrontendPreference}
-        onChange={handleImageGenerationFrontendChange}
-        disabled={isOnInterfaceScreen}
-        data={[
-          { value: 'match', label: 'Match Frontend' },
-          { value: 'builtin', label: 'Built-in' },
-        ]}
-        leftSection={<Image style={{ width: rem(16), height: rem(16) }} />}
-      />
+        <Select
+          value={imageGenerationFrontendPreference}
+          onChange={handleImageGenerationFrontendChange}
+          disabled={isOnInterfaceScreen}
+          data={[
+            { value: 'match', label: 'Match Frontend' },
+            { value: 'builtin', label: 'Built-in' },
+          ]}
+          leftSection={<Image style={{ width: rem(16), height: rem(16) }} />}
+        />
+      </div>
     </>
   );
 };

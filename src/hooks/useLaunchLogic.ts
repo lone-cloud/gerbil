@@ -31,6 +31,7 @@ interface LaunchArgs {
   usemmap: boolean;
   debugmode: boolean;
   additionalArguments: string;
+  preLaunchCommands: string[];
   sdt5xxl: string;
   sdclipl: string;
   sdclipg: string;
@@ -283,7 +284,14 @@ export const useLaunchLogic = ({
         args.push(...additionalArgs);
       }
 
-      const result = await window.electronAPI.kobold.launchKoboldCpp(args);
+      const preLaunchCommands = launchArgs.preLaunchCommands.filter(
+        (cmd) => cmd.trim() !== ''
+      );
+
+      const result = await window.electronAPI.kobold.launchKoboldCpp(
+        args,
+        preLaunchCommands
+      );
 
       if (result.success) {
         onLaunch();

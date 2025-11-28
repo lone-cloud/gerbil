@@ -135,8 +135,8 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('kobold:getPlatform', () => platform);
 
-  ipcMain.handle('kobold:launchKoboldCpp', (_, args) =>
-    launchKoboldCppWithCustomFrontends(args)
+  ipcMain.handle('kobold:launchKoboldCpp', (_, args, preLaunchCommands) =>
+    launchKoboldCppWithCustomFrontends(args, preLaunchCommands)
   );
 
   ipcMain.handle('kobold:deleteRelease', (_, binaryPath) =>

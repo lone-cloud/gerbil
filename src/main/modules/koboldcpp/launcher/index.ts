@@ -1,4 +1,5 @@
 import { spawn, ChildProcess } from 'child_process';
+import { platform } from 'process';
 
 import { terminateProcess } from '@/utils/node/process';
 import { logError, safeExecute } from '@/utils/node/logging';
@@ -10,6 +11,7 @@ import { getCurrentVersion } from '../version';
 import {
   getCurrentKoboldBinary,
   get as getConfig,
+  getInstallDir,
 } from '@/main/modules/config';
 import { startFrontend as startSillyTavernFrontend } from '@/main/modules/sillytavern';
 import { startFrontend as startOpenWebUIFrontend } from '@/main/modules/openwebui';
@@ -23,6 +25,70 @@ import type {
 } from '@/types';
 
 let koboldProcess: ChildProcess | null = null;
+const preLaunchProcesses = new Set<ChildProcess>();
+
+function spawnPreLaunchCommands(commands: string[]) {
+  const installDir = getInstallDir();
+  const shell = platform === 'win32' ? 'cmd' : '/bin/sh';
+  const shellFlag = platform === 'win32' ? '/c' : '-c';
+
+  for (const command of commands) {
+    if (!command.trim()) continue;
+
+    sendKoboldOutput(`[PRE-LAUNCH] Running: ${command}\n`);
+
+    try {
+      const child = spawn(shell, [shellFlag, command], {
+        cwd: installDir,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        detached: false,
+      });
+
+      preLaunchProcesses.add(child);
+
+      child.stdout?.on('data', (data) => {
+        sendKoboldOutput(`[PRE-LAUNCH] ${data.toString()}`, true);
+      });
+
+      child.stderr?.on('data', (data) => {
+        sendKoboldOutput(`[PRE-LAUNCH] ${data.toString()}`, true);
+      });
+
+      child.on('error', (error) => {
+        sendKoboldOutput(
+          `[PRE-LAUNCH ERROR] Failed to run "${command}": ${error.message}\n`
+        );
+        preLaunchProcesses.delete(child);
+      });
+
+      child.on('exit', (code, signal) => {
+        preLaunchProcesses.delete(child);
+        if (code !== 0 && code !== null) {
+          sendKoboldOutput(
+            `[PRE-LAUNCH] Command "${command}" exited with code ${code}\n`
+          );
+        } else if (signal) {
+          sendKoboldOutput(
+            `[PRE-LAUNCH] Command "${command}" terminated with signal ${signal}\n`
+          );
+        }
+      });
+    } catch (error) {
+      sendKoboldOutput(
+        `[PRE-LAUNCH ERROR] Failed to start "${command}": ${error instanceof Error ? error.message : String(error)}\n`
+      );
+    }
+  }
+}
+
+async function stopPreLaunchProcesses() {
+  const terminations = Array.from(preLaunchProcesses).map((process) =>
+    terminateProcess(process)
+  );
+
+  await Promise.all(terminations);
+  preLaunchProcesses.clear();
+}
 
 async function resolveModelPaths(args: string[]) {
   const resolvedArgs: string[] = [];
@@ -75,11 +141,16 @@ async function resolveModelPaths(args: string[]) {
 export async function launchKoboldCpp(
   args: string[] = [],
   frontendPreference: FrontendPreference = 'koboldcpp',
-  imageGenerationFrontendPreference?: ImageGenerationFrontendPreference
+  imageGenerationFrontendPreference?: ImageGenerationFrontendPreference,
+  preLaunchCommands: string[] = []
 ) {
   try {
     if (koboldProcess) {
       await stopKoboldCpp();
+    }
+
+    if (preLaunchCommands.length > 0) {
+      spawnPreLaunchCommands(preLaunchCommands);
     }
 
     const currentVersion = await getCurrentVersion();
@@ -213,11 +284,15 @@ export async function launchKoboldCpp(
 
 export async function stopKoboldCpp() {
   abortActiveDownloads();
-  await stopProxy();
+  stopProxy();
+  stopPreLaunchProcesses();
   return terminateProcess(koboldProcess);
 }
 
-export const launchKoboldCppWithCustomFrontends = async (args: string[] = []) =>
+export const launchKoboldCppWithCustomFrontends = async (
+  args: string[] = [],
+  preLaunchCommands: string[] = []
+) =>
   safeExecute(async () => {
     const [frontendPreference, imageGenerationFrontendPreference] =
       (await Promise.all([
@@ -233,7 +308,8 @@ export const launchKoboldCppWithCustomFrontends = async (args: string[] = []) =>
     const result = await launchKoboldCpp(
       args,
       frontendPreference,
-      imageGenerationFrontendPreference
+      imageGenerationFrontendPreference,
+      preLaunchCommands
     );
 
     if (

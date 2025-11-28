@@ -38,7 +38,8 @@ const koboldAPI: KoboldAPI = {
     ipcRenderer.invoke('kobold:downloadRelease', asset, options),
   deleteRelease: (binaryPath) =>
     ipcRenderer.invoke('kobold:deleteRelease', binaryPath),
-  launchKoboldCpp: (args) => ipcRenderer.invoke('kobold:launchKoboldCpp', args),
+  launchKoboldCpp: (args, preLaunchCommands) =>
+    ipcRenderer.invoke('kobold:launchKoboldCpp', args, preLaunchCommands),
   getConfigFiles: () => ipcRenderer.invoke('kobold:getConfigFiles'),
   saveConfigFile: (configName, configData) =>
     ipcRenderer.invoke('kobold:saveConfigFile', configName, configData),

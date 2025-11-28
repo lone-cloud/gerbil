@@ -25,7 +25,7 @@ export const GeneralTab = () => {
   return (
     <Stack gap="lg" h="100%">
       <div>
-        <Text fw={500} mb="sm">
+        <Text fw={500} mb="xs">
           Status Bar
         </Text>
         <Text size="sm" c="dimmed" mb="md">
@@ -41,7 +41,7 @@ export const GeneralTab = () => {
       </div>
 
       <div>
-        <Text fw={500} mb="sm">
+        <Text fw={500} mb="xs">
           System Tray
         </Text>
         <Text size="sm" c="dimmed" mb="md">
