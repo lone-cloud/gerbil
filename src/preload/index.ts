@@ -16,10 +16,10 @@ import type {
 } from '@/main/modules/monitoring';
 
 const koboldAPI: KoboldAPI = {
-  getInstalledVersions: () => ipcRenderer.invoke('kobold:getInstalledVersions'),
-  getCurrentVersion: () => ipcRenderer.invoke('kobold:getCurrentVersion'),
-  setCurrentVersion: (version) =>
-    ipcRenderer.invoke('kobold:setCurrentVersion', version),
+  getInstalledBackends: () => ipcRenderer.invoke('kobold:getInstalledBackends'),
+  getCurrentBackend: () => ipcRenderer.invoke('kobold:getCurrentBackend'),
+  setCurrentBackend: (version) =>
+    ipcRenderer.invoke('kobold:setCurrentBackend', version),
   getPlatform: () => ipcRenderer.invoke('kobold:getPlatform'),
   detectGPU: () => ipcRenderer.invoke('kobold:detectGPU'),
   detectCPU: () => ipcRenderer.invoke('kobold:detectCPU'),
@@ -28,9 +28,10 @@ const koboldAPI: KoboldAPI = {
   detectGPUMemory: () => ipcRenderer.invoke('kobold:detectGPUMemory'),
   detectSystemMemory: () => ipcRenderer.invoke('kobold:detectSystemMemory'),
   detectROCm: () => ipcRenderer.invoke('kobold:detectROCm'),
-  detectBackendSupport: () => ipcRenderer.invoke('kobold:detectBackendSupport'),
-  getAvailableBackends: (includeDisabled) =>
-    ipcRenderer.invoke('kobold:getAvailableBackends', includeDisabled),
+  detectAccelerationSupport: () =>
+    ipcRenderer.invoke('kobold:detectAccelerationSupport'),
+  getAvailableAccelerations: (includeDisabled) =>
+    ipcRenderer.invoke('kobold:getAvailableAccelerations', includeDisabled),
   getCurrentInstallDir: () => ipcRenderer.invoke('kobold:getCurrentInstallDir'),
   selectInstallDirectory: () =>
     ipcRenderer.invoke('kobold:selectInstallDirectory'),

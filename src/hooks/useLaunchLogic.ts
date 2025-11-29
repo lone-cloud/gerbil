@@ -206,11 +206,11 @@ const addTensorSplitArgs = (args: string[], launchArgs: LaunchArgs) => {
   }
 };
 
-const buildBackendArgs = (launchArgs: LaunchArgs) => {
+const buildBackendArgs = (launchArgs: LaunchArgs, platform: string) => {
   const args: string[] = [];
 
   if (!launchArgs.backend || launchArgs.backend === 'cpu') {
-    if (launchArgs.backend === 'cpu') {
+    if (launchArgs.backend === 'cpu' && platform !== 'darwin') {
       args.push('--usecpu');
     }
     return args;
@@ -271,10 +271,12 @@ export const useLaunchLogic = ({
 
       onLaunch();
 
+      const platform = await window.electronAPI.kobold.getPlatform();
+
       const args: string[] = [
         ...buildModelArgs(model, sdmodel, launchArgs),
         ...buildConfigArgs(hasImageModel, launchArgs),
-        ...buildBackendArgs(launchArgs),
+        ...buildBackendArgs(launchArgs, platform),
       ];
 
       if (launchArgs.additionalArguments.trim()) {

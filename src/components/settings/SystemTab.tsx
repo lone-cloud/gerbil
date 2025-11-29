@@ -26,7 +26,7 @@ export const SystemTab = () => {
 
     const loadKoboldVersion = async () => {
       const currentVersion =
-        await window.electronAPI.kobold.getCurrentVersion();
+        await window.electronAPI.kobold.getCurrentBackend();
       if (currentVersion) {
         setKoboldVersion(currentVersion.version);
       }

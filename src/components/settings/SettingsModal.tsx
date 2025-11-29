@@ -10,7 +10,7 @@ import {
   Wrench,
 } from 'lucide-react';
 import { GeneralTab } from '@/components/settings/GeneralTab';
-import { VersionsTab } from '@/components/settings/VersionsTab';
+import { BackendsTab } from '@/components/settings/BackendsTab';
 import { AppearanceTab } from '@/components/settings/AppearanceTab';
 import { SystemTab } from '@/components/settings/SystemTab';
 import { TroubleshootingTab } from '@/components/settings/TroubleshootingTab';
@@ -33,11 +33,11 @@ export const SettingsModal = ({
 }: SettingsModalProps) => {
   const [activeTab, setActiveTab] = useState('general');
 
-  const showVersionsTab =
+  const showBackendsTab =
     currentScreen !== 'download' && currentScreen !== 'welcome';
 
   const effectiveActiveTab =
-    !showVersionsTab && activeTab === 'versions' ? 'general' : activeTab;
+    !showBackendsTab && activeTab === 'backends' ? 'general' : activeTab;
 
   useEffect(() => {
     if (opened) {
@@ -110,14 +110,14 @@ export const SettingsModal = ({
             >
               General
             </Tabs.Tab>
-            {showVersionsTab && (
+            {showBackendsTab && (
               <Tabs.Tab
-                value="versions"
+                value="backends"
                 leftSection={
                   <GitBranch style={{ width: rem(16), height: rem(16) }} />
                 }
               >
-                Versions
+                Backends
               </Tabs.Tab>
             )}
             <Tabs.Tab
@@ -156,9 +156,9 @@ export const SettingsModal = ({
             <GeneralTab />
           </Tabs.Panel>
 
-          {showVersionsTab && (
-            <Tabs.Panel value="versions">
-              <VersionsTab />
+          {showBackendsTab && (
+            <Tabs.Panel value="backends">
+              <BackendsTab />
             </Tabs.Panel>
           )}
 

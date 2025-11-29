@@ -1,178 +1,233 @@
-import { join, dirname } from 'path';
-import { platform } from 'process';
+import { readdir, stat, rm } from 'fs/promises';
+import { join } from 'path';
+import { execa } from 'execa';
+
+import {
+  getCurrentKoboldBinary,
+  setCurrentKoboldBinary,
+  getInstallDir,
+} from '../config';
+import { sendToRenderer } from '../window';
 import { pathExists } from '@/utils/node/fs';
-import { getCurrentBinaryInfo } from './version';
-import { detectGPUCapabilities, detectCPU } from '../hardware';
-import { tryExecute, safeExecute } from '@/utils/node/logging';
-import type { BackendOption, BackendSupport } from '@/types';
+import { logError } from '@/utils/node/logging';
+import { getLauncherPath } from '@/utils/node/path';
+import type { InstalledBackend } from '@/types/electron';
 
-const backendSupportCache = new Map<string, BackendSupport>();
-const availableBackendsCache = new Map<string, BackendOption[]>();
+const versionCache = new Map<
+  string,
+  { version: string; actualVersion?: string } | null
+>();
 
-async function detectBackendSupportFromPath(koboldBinaryPath: string) {
-  if (backendSupportCache.has(koboldBinaryPath)) {
-    return backendSupportCache.get(koboldBinaryPath)!;
+export function clearVersionCache(path?: string) {
+  if (path) {
+    versionCache.delete(path);
+  } else {
+    versionCache.clear();
   }
-
-  const support: BackendSupport = {
-    rocm: false,
-    vulkan: false,
-    clblast: false,
-    noavx2: false,
-    failsafe: false,
-    cuda: false,
-  };
-
-  await tryExecute(async () => {
-    const binaryDir = dirname(koboldBinaryPath);
-    const internalDir = join(binaryDir, '_internal');
-
-    const libExtension = platform === 'win32' ? '.dll' : '.so';
-
-    const hasKoboldCppLib = async (name: string): Promise<boolean> => {
-      const filename = `${name}${libExtension}`;
-
-      if (platform === 'win32') {
-        return (
-          (await pathExists(join(binaryDir, filename))) ||
-          (await pathExists(join(internalDir, filename)))
-        );
-      } else {
-        return (
-          (await pathExists(join(internalDir, filename))) ||
-          (await pathExists(join(binaryDir, filename)))
-        );
-      }
-    };
-
-    const [rocm, vulkan, clblast, noavx2, failsafe, cuda] = await Promise.all([
-      hasKoboldCppLib('koboldcpp_hipblas'),
-      hasKoboldCppLib('koboldcpp_vulkan'),
-      hasKoboldCppLib('koboldcpp_clblast'),
-      hasKoboldCppLib('koboldcpp_noavx2'),
-      hasKoboldCppLib('koboldcpp_failsafe'),
-      hasKoboldCppLib('koboldcpp_cublas'),
-    ]);
-
-    support.rocm = rocm;
-    support.vulkan = vulkan;
-    support.clblast = clblast;
-    support.noavx2 = noavx2;
-    support.failsafe = failsafe;
-    support.cuda = cuda;
-  }, 'Error detecting backend support');
-
-  backendSupportCache.set(koboldBinaryPath, support);
-  return support;
 }
 
-export const detectBackendSupport = async () =>
-  (await safeExecute(async () => {
-    const currentBinaryInfo = await getCurrentBinaryInfo();
-
-    if (!currentBinaryInfo?.path) {
-      return null;
-    }
-
-    return detectBackendSupportFromPath(currentBinaryInfo.path);
-  }, 'Error detecting current binary backend support')) || null;
-
-export async function getAvailableBackends(includeDisabled = false) {
-  // eslint-disable-next-line sonarjs/cognitive-complexity
-  const result = await safeExecute(async () => {
-    const [currentBinaryInfo, hardwareCapabilities, cpuCapabilities] =
-      await Promise.all([
-        getCurrentBinaryInfo(),
-        detectGPUCapabilities(),
-        includeDisabled ? detectCPU() : Promise.resolve(null),
-      ]);
-
-    if (!currentBinaryInfo?.path) {
-      return [{ value: 'cpu', label: 'CPU' }];
-    }
-
-    const cacheKey = `${currentBinaryInfo.path}:${includeDisabled}`;
-
-    if (availableBackendsCache.has(cacheKey)) {
-      return availableBackendsCache.get(cacheKey)!;
-    }
-
-    const backendSupport = await detectBackendSupport();
-
-    if (!backendSupport) {
+export async function getInstalledBackends() {
+  try {
+    const installDir = getInstallDir();
+    if (!(await pathExists(installDir))) {
       return [];
     }
 
-    const backends: BackendOption[] = [];
+    const items = await readdir(installDir);
+    const launchers: { path: string; filename: string; size: number }[] = [];
 
-    if (backendSupport.cuda) {
-      const isSupported = hardwareCapabilities.cuda.devices.length > 0;
-      if (isSupported || includeDisabled) {
-        backends.push({
-          value: 'cuda',
-          label: 'CUDA',
-          devices: hardwareCapabilities.cuda.devices,
-          disabled: includeDisabled ? !isSupported : undefined,
-        });
+    for (const item of items) {
+      const itemPath = join(installDir, item);
+      const stats = await stat(itemPath);
+
+      if (stats.isDirectory()) {
+        const launcherPath = await getLauncherPath(itemPath);
+        if (launcherPath && (await pathExists(launcherPath))) {
+          const launcherStats = await stat(launcherPath);
+          const launcherFilename = launcherPath.split(/[/\\]/).pop() || '';
+          launchers.push({
+            path: launcherPath,
+            filename: launcherFilename,
+            size: launcherStats.size,
+          });
+        }
       }
     }
 
-    if (backendSupport.rocm) {
-      const isSupported = hardwareCapabilities.rocm.devices.length > 0;
-      if (isSupported || includeDisabled) {
-        backends.push({
-          value: 'rocm',
-          label: 'ROCm',
-          devices: hardwareCapabilities.rocm.devices,
-          disabled: includeDisabled ? !isSupported : undefined,
-        });
-      }
-    }
+    const versionPromises = launchers.map(async (launcher) => {
+      try {
+        const versionInfo = await getVersionFromBinary(launcher.path);
 
-    if (backendSupport.vulkan) {
-      const isSupported = hardwareCapabilities.vulkan.devices.length > 0;
-      if (isSupported || includeDisabled) {
-        backends.push({
-          value: 'vulkan',
-          label: 'Vulkan',
-          devices: hardwareCapabilities.vulkan.devices,
-          disabled: includeDisabled ? !isSupported : undefined,
-        });
-      }
-    }
+        if (!versionInfo) {
+          return null;
+        }
 
-    if (backendSupport.clblast) {
-      const discreteDevices = hardwareCapabilities.clblast.devices.filter(
-        (device) => typeof device === 'string' || !device.isIntegrated
-      );
-      const isSupported = discreteDevices.length > 0;
-      if (isSupported || includeDisabled) {
-        backends.push({
-          value: 'clblast',
-          label: 'CLBlast',
-          devices: hardwareCapabilities.clblast.devices,
-          disabled: includeDisabled ? !isSupported : undefined,
-        });
+        return {
+          version: versionInfo.version,
+          path: launcher.path,
+          filename: launcher.filename,
+          size: launcher.size,
+          actualVersion: versionInfo.actualVersion,
+        } as InstalledBackend;
+      } catch (error) {
+        logError(
+          `Could not detect version for ${launcher.filename}:`,
+          error as Error
+        );
+        return null;
       }
-    }
-
-    backends.push({
-      value: 'cpu',
-      label: 'CPU',
-      devices: cpuCapabilities?.devices.map((device) => device.name) || [],
-      disabled: false,
     });
 
-    if (includeDisabled) {
-      backends.sort((a, b) => {
-        if (a.disabled === b.disabled) return 0;
-        return a.disabled ? 1 : -1;
-      });
+    const results = await Promise.all(versionPromises);
+    return results.filter(
+      (version): version is InstalledBackend => version !== null
+    );
+  } catch (error) {
+    logError('Error scanning install directory:', error as Error);
+    return [];
+  }
+}
+
+export async function getCurrentBackend() {
+  const currentBinaryPath = getCurrentKoboldBinary();
+  const backends = await getInstalledBackends();
+
+  if (currentBinaryPath && (await pathExists(currentBinaryPath))) {
+    const currentBackend = backends.find(
+      (b: InstalledBackend) => b.path === currentBinaryPath
+    );
+    if (currentBackend) {
+      return currentBackend;
+    }
+  }
+
+  const firstBackend = backends[0];
+  if (firstBackend) {
+    await setCurrentKoboldBinary(firstBackend.path);
+    return firstBackend;
+  }
+
+  if (currentBinaryPath) {
+    await setCurrentKoboldBinary('');
+  }
+
+  return null;
+}
+
+export async function getCurrentBinaryInfo() {
+  const currentBackend = await getCurrentBackend();
+
+  if (currentBackend) {
+    const pathParts = currentBackend.path.split(/[/\\]/);
+    const filename = pathParts[pathParts.length - 2] || currentBackend.filename;
+
+    return {
+      path: currentBackend.path,
+      filename,
+    };
+  }
+
+  return null;
+}
+
+export async function setCurrentBackend(binaryPath: string) {
+  if (await pathExists(binaryPath)) {
+    await setCurrentKoboldBinary(binaryPath);
+
+    sendToRenderer('versions-updated');
+
+    return true;
+  }
+
+  return false;
+}
+
+export async function deleteRelease(binaryPath: string) {
+  try {
+    if (!(await pathExists(binaryPath))) {
+      return { success: false, error: 'Release not found' };
     }
 
-    availableBackendsCache.set(cacheKey, backends);
-    return backends;
-  }, 'Failed to get available backends');
+    const currentBinaryPath = getCurrentKoboldBinary();
+    if (currentBinaryPath === binaryPath) {
+      return {
+        success: false,
+        error: 'Cannot delete the currently active release',
+      };
+    }
 
-  return result || [{ value: 'cpu', label: 'CPU' }];
+    const releaseDir = binaryPath.split(/[/\\]/).slice(0, -1).join('/');
+
+    if (await pathExists(releaseDir)) {
+      await rm(releaseDir, { recursive: true, force: true });
+
+      clearVersionCache(binaryPath);
+      sendToRenderer('versions-updated');
+
+      return { success: true };
+    }
+
+    return { success: false, error: 'Release directory not found' };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
+}
+
+export async function getVersionFromBinary(launcherPath: string) {
+  try {
+    if (!(await pathExists(launcherPath))) {
+      return null;
+    }
+
+    if (versionCache.has(launcherPath)) {
+      return versionCache.get(launcherPath);
+    }
+
+    let folderVersion: string | null = null;
+    let actualVersion: string | null = null;
+
+    const folderName = launcherPath.split(/[/\\]/).slice(-2, -1)[0];
+    if (folderName) {
+      const versionMatch = folderName.match(
+        /-(\d+\.\d+(?:\.\d+)?(?:\.[a-zA-Z0-9]+)*(?:-[a-zA-Z0-9]+)*)$/
+      );
+      if (versionMatch) {
+        folderVersion = versionMatch[1];
+      }
+    }
+
+    try {
+      const result = await execa(launcherPath, ['--version'], {
+        timeout: 30000,
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+
+      const allOutput = (result.stdout + result.stderr).trim();
+      const lines = allOutput.split('\n').filter((line) => line.trim());
+
+      if (lines.length > 0) {
+        const lastLine = lines[lines.length - 1].trim();
+        const versionMatch = lastLine.match(
+          /^(\d+\.\d+(?:\.\d+)?(?:\.[a-zA-Z0-9]+)*(?:-[a-zA-Z0-9]+)*)$/
+        );
+        if (versionMatch) {
+          actualVersion = versionMatch[1];
+        }
+      }
+    } catch {}
+
+    const result = {
+      version: folderVersion || actualVersion || 'unknown',
+      actualVersion:
+        folderVersion && actualVersion && folderVersion !== actualVersion
+          ? actualVersion
+          : undefined,
+    };
+
+    versionCache.set(launcherPath, result);
+    return result;
+  } catch {
+    versionCache.set(launcherPath, null);
+    return null;
+  }
 }

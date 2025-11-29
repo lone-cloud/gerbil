@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { CPUCapabilities, GPUDevice } from '@/types/hardware';
-import type { BackendOption, BackendSupport } from '@/types';
+import type { AccelerationOption, AccelerationSupport } from '@/types';
 
 export interface Warning {
   type: 'warning' | 'info';
@@ -58,14 +58,14 @@ interface GpuInfo {
 }
 
 const checkGpuWarnings = async (
-  backendSupport: BackendSupport,
+  accelerationSupport: AccelerationSupport,
   gpuCapabilities: GpuCapabilities,
   gpuInfo: GpuInfo
 ) => {
   const warnings: Warning[] = [];
 
   if (
-    backendSupport.cuda &&
+    accelerationSupport.cuda &&
     gpuCapabilities.cuda.devices.length === 0 &&
     gpuInfo.hasNVIDIA
   ) {
@@ -77,7 +77,7 @@ const checkGpuWarnings = async (
   }
 
   if (
-    backendSupport.rocm &&
+    accelerationSupport.rocm &&
     gpuCapabilities.rocm.devices.length === 0 &&
     gpuInfo.hasAMD
   ) {
@@ -134,7 +134,7 @@ const checkVramWarnings = async (backend: string): Promise<Warning[]> => {
 
 const checkCpuWarnings = (
   backend: string,
-  availableBackends: BackendOption[]
+  availableAccelerations: AccelerationOption[]
 ) => {
   const warnings: Warning[] = [];
 
@@ -143,8 +143,8 @@ const checkCpuWarnings = (
   }
 
   if (
-    availableBackends.length > 0 &&
-    availableBackends.some((b) => b.value === 'cpu')
+    availableAccelerations.length > 0 &&
+    availableAccelerations.some((a) => a.value === 'cpu')
   ) {
     warnings.push({
       type: 'info',
@@ -159,35 +159,35 @@ const checkCpuWarnings = (
 const checkBackendWarnings = async (params?: {
   backend: string;
   cpuCapabilities: CPUCapabilities | null;
-  availableBackends: BackendOption[];
+  availableAccelerations: AccelerationOption[];
 }) => {
   const warnings: Warning[] = [];
 
-  const [backendSupport, gpuCapabilities, gpuInfo] = await Promise.all([
-    window.electronAPI.kobold.detectBackendSupport(),
+  const [accelerationSupport, gpuCapabilities, gpuInfo] = await Promise.all([
+    window.electronAPI.kobold.detectAccelerationSupport(),
     window.electronAPI.kobold.detectGPUCapabilities(),
     window.electronAPI.kobold.detectGPU(),
   ]);
 
-  if (!backendSupport) {
+  if (!accelerationSupport) {
     return warnings;
   }
 
   const gpuWarnings = await checkGpuWarnings(
-    backendSupport,
+    accelerationSupport,
     gpuCapabilities,
     gpuInfo
   );
   warnings.push(...gpuWarnings);
 
   if (params) {
-    const { backend, cpuCapabilities, availableBackends } = params;
+    const { backend, cpuCapabilities, availableAccelerations } = params;
 
     const vramWarnings = await checkVramWarnings(backend);
     warnings.push(...vramWarnings);
 
     if (cpuCapabilities) {
-      const cpuWarnings = checkCpuWarnings(backend, availableBackends);
+      const cpuWarnings = checkCpuWarnings(backend, availableAccelerations);
       warnings.push(...cpuWarnings);
     }
   }
@@ -214,15 +214,15 @@ export const useWarnings = ({
       return;
     }
 
-    const [cpuCapabilitiesResult, availableBackends] = await Promise.all([
+    const [cpuCapabilitiesResult, availableAccelerations] = await Promise.all([
       window.electronAPI.kobold.detectCPU(),
-      window.electronAPI.kobold.getAvailableBackends(),
+      window.electronAPI.kobold.getAvailableAccelerations(),
     ]);
 
     const result = await checkBackendWarnings({
       backend,
       cpuCapabilities: cpuCapabilitiesResult,
-      availableBackends,
+      availableAccelerations,
     });
 
     setBackendWarnings(result);

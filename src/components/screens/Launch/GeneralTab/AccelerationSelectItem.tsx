@@ -1,14 +1,14 @@
 import { Text, Group, Badge, Box } from '@mantine/core';
-import type { BackendOption } from '@/types';
+import type { AccelerationOption } from '@/types';
 import { GPUDevice } from '@/types/hardware';
 
-type BackendSelectItemProps = Omit<BackendOption, 'value'>;
+type AccelerationSelectItemProps = Omit<AccelerationOption, 'value'>;
 
-export const BackendSelectItem = ({
+export const AccelerationSelectItem = ({
   label,
   devices,
   disabled = false,
-}: BackendSelectItemProps) => {
+}: AccelerationSelectItemProps) => {
   const renderDeviceName = (device: string | GPUDevice) => {
     const deviceName = typeof device === 'string' ? device : device.name;
     return deviceName.length > 25

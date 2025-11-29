@@ -2,14 +2,14 @@ import { Text, Group, TextInput } from '@mantine/core';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 import { Select } from '@/components/Select';
-import type { BackendOption } from '@/types';
+import type { AccelerationOption } from '@/types';
 
 interface GpuDeviceSelectorProps {
-  availableBackends: BackendOption[];
+  availableAccelerations: AccelerationOption[];
 }
 
 export const GpuDeviceSelector = ({
-  availableBackends,
+  availableAccelerations,
 }: GpuDeviceSelectorProps) => {
   const {
     backend,
@@ -19,21 +19,23 @@ export const GpuDeviceSelector = ({
     handleTensorSplitChange,
   } = useLaunchConfig();
 
-  const selectedBackend = availableBackends.find((b) => b.value === backend);
-  const isGpuBackend =
+  const selectedAcceleration = availableAccelerations.find(
+    (a) => a.value === backend
+  );
+  const isGpuAcceleration =
     backend === 'cuda' ||
     backend === 'rocm' ||
     backend === 'vulkan' ||
     backend === 'clblast';
 
   const getDiscreteDeviceCount = () => {
-    if (!selectedBackend?.devices) return 0;
+    if (!selectedAcceleration?.devices) return 0;
     if (backend === 'clblast' || backend === 'vulkan' || backend === 'rocm') {
-      return selectedBackend.devices.filter(
+      return selectedAcceleration.devices.filter(
         (device) => typeof device === 'string' || !device.isIntegrated
       ).length;
     }
-    return selectedBackend.devices.length;
+    return selectedAcceleration.devices.length;
   };
 
   const hasMultipleDevices = getDiscreteDeviceCount() > 1;
@@ -42,15 +44,15 @@ export const GpuDeviceSelector = ({
     hasMultipleDevices &&
     gpuDeviceSelection === 'all';
 
-  if (!isGpuBackend || !hasMultipleDevices) {
+  if (!isGpuAcceleration || !hasMultipleDevices) {
     return null;
   }
 
   const deviceOptions = (() => {
-    if (!selectedBackend?.devices) return [];
+    if (!selectedAcceleration?.devices) return [];
 
     if (backend === 'clblast') {
-      return selectedBackend.devices
+      return selectedAcceleration.devices
         .map((device, index) => {
           if (typeof device === 'object' && device.isIntegrated) {
             return null;
@@ -67,7 +69,7 @@ export const GpuDeviceSelector = ({
     }
 
     if (backend === 'vulkan' || backend === 'rocm') {
-      const discreteDeviceOptions = selectedBackend.devices
+      const discreteDeviceOptions = selectedAcceleration.devices
         .map((device, index) => {
           if (typeof device === 'object' && device.isIntegrated) {
             return null;
@@ -87,7 +89,7 @@ export const GpuDeviceSelector = ({
 
     return [
       { value: 'all', label: 'All GPUs' },
-      ...selectedBackend.devices.map((device, index) => {
+      ...selectedAcceleration.devices.map((device, index) => {
         const deviceName =
           typeof device === 'string'
             ? device

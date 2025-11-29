@@ -61,8 +61,9 @@ export const AdvancedTab = () => {
   const isGpuBackend = backend === 'cuda' || backend === 'rocm';
 
   useEffect(() => {
-    const detectBackendSupport = async () => {
-      const support = await window.electronAPI.kobold.detectBackendSupport();
+    const detectAccelerationSupport = async () => {
+      const support =
+        await window.electronAPI.kobold.detectAccelerationSupport();
 
       if (support) {
         setBackendSupport({
@@ -76,7 +77,7 @@ export const AdvancedTab = () => {
       setIsLoading(false);
     };
 
-    void detectBackendSupport();
+    void detectAccelerationSupport();
   }, []);
 
   return (

@@ -19,10 +19,10 @@ import {
 import { formatDownloadSize } from '@/utils/format';
 
 import { useKoboldVersionsStore } from '@/stores/koboldVersions';
-import type { InstalledVersion, ReleaseWithStatus } from '@/types/electron';
+import type { InstalledBackend, ReleaseWithStatus } from '@/types/electron';
 import type { VersionInfo } from '@/types';
 
-export const VersionsTab = () => {
+export const BackendsTab = () => {
   const {
     availableDownloads,
     loadingPlatform,
@@ -33,10 +33,10 @@ export const VersionsTab = () => {
     initialize,
   } = useKoboldVersionsStore();
 
-  const [installedVersions, setInstalledVersions] = useState<
-    InstalledVersion[]
+  const [installedBackends, setInstalledBackends] = useState<
+    InstalledBackend[]
   >([]);
-  const [currentVersion, setCurrentVersion] = useState<InstalledVersion | null>(
+  const [currentBackend, setCurrentBackend] = useState<InstalledBackend | null>(
     null
   );
   const [loadingInstalled, setLoadingInstalled] = useState(true);
@@ -45,16 +45,16 @@ export const VersionsTab = () => {
   );
   const downloadingItemRef = useRef<HTMLDivElement>(null);
 
-  const loadInstalledVersions = useCallback(async () => {
+  const loadInstalledBackends = useCallback(async () => {
     setLoadingInstalled(true);
 
-    const [versions, currentVersion] = await Promise.all([
-      window.electronAPI.kobold.getInstalledVersions(),
-      window.electronAPI.kobold.getCurrentVersion(),
+    const [backends, current] = await Promise.all([
+      window.electronAPI.kobold.getInstalledBackends(),
+      window.electronAPI.kobold.getCurrentBackend(),
     ]);
 
-    setInstalledVersions(versions);
-    setCurrentVersion(currentVersion);
+    setInstalledBackends(backends);
+    setCurrentBackend(current);
 
     setLoadingInstalled(false);
   }, []);
@@ -72,10 +72,10 @@ export const VersionsTab = () => {
     }
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadInstalledVersions();
+    loadInstalledBackends();
     loadLatestRelease();
   }, [
-    loadInstalledVersions,
+    loadInstalledBackends,
     loadLatestRelease,
     availableDownloads.length,
     loadingRemote,
@@ -83,47 +83,47 @@ export const VersionsTab = () => {
     initialize,
   ]);
 
-  const allVersions = useMemo((): VersionInfo[] => {
-    const versions: VersionInfo[] = [];
+  const allBackends = useMemo((): VersionInfo[] => {
+    const backends: VersionInfo[] = [];
     const processedInstalled = new Set<string>();
 
     availableDownloads.forEach((download) => {
       const downloadBaseName = stripAssetExtensions(download.name);
 
-      const installedVersion = installedVersions.find((v) => {
-        const displayName = getDisplayNameFromPath(v);
+      const installedBackend = installedBackends.find((b) => {
+        const displayName = getDisplayNameFromPath(b);
         return displayName === downloadBaseName;
       });
 
       const isCurrent = Boolean(
-        installedVersion &&
-        currentVersion &&
-        currentVersion.path === installedVersion.path
+        installedBackend &&
+        currentBackend &&
+        currentBackend.path === installedBackend.path
       );
 
-      if (installedVersion) {
-        processedInstalled.add(installedVersion.path);
+      if (installedBackend) {
+        processedInstalled.add(installedBackend.path);
 
         const hasUpdate =
           compareVersions(
             download.version || 'unknown',
-            installedVersion.version
+            installedBackend.version
           ) > 0;
 
-        versions.push({
+        backends.push({
           name: download.name,
-          version: installedVersion.version,
+          version: installedBackend.version,
           size: undefined,
           isInstalled: true,
           isCurrent,
           downloadUrl: download.url,
-          installedPath: installedVersion.path,
+          installedPath: installedBackend.path,
           hasUpdate,
           newerVersion: hasUpdate ? download.version : undefined,
-          actualVersion: installedVersion.actualVersion,
+          actualVersion: installedBackend.actualVersion,
         });
       } else {
-        versions.push({
+        backends.push({
           name: download.name,
           version: download.version || 'unknown',
           size: download.size,
@@ -134,14 +134,14 @@ export const VersionsTab = () => {
       }
     });
 
-    installedVersions.forEach((installed) => {
+    installedBackends.forEach((installed) => {
       if (!processedInstalled.has(installed.path)) {
         const displayName = getDisplayNameFromPath(installed);
         const isCurrent = Boolean(
-          currentVersion && currentVersion.path === installed.path
+          currentBackend && currentBackend.path === installed.path
         );
 
-        versions.push({
+        backends.push({
           name: displayName,
           version: installed.version,
           size: undefined,
@@ -153,13 +153,13 @@ export const VersionsTab = () => {
       }
     });
 
-    return versions.sort((a, b) => {
+    return backends.sort((a, b) => {
       if (a.isInstalled && !b.isInstalled) return -1;
       if (!a.isInstalled && b.isInstalled) return 1;
 
       return 0;
     });
-  }, [availableDownloads, installedVersions, currentVersion]);
+  }, [availableDownloads, installedBackends, currentBackend]);
 
   useEffect(() => {
     if (downloading && downloadingItemRef.current) {
@@ -170,8 +170,8 @@ export const VersionsTab = () => {
     }
   }, [downloading]);
 
-  const handleDownload = async (version: VersionInfo) => {
-    const download = availableDownloads.find((d) => d.name === version.name);
+  const handleDownload = async (backend: VersionInfo) => {
+    const download = availableDownloads.find((d) => d.name === backend.name);
     if (!download) return;
 
     await handleDownloadFromStore({
@@ -180,59 +180,59 @@ export const VersionsTab = () => {
       wasCurrentBinary: false,
     });
 
-    await loadInstalledVersions();
+    await loadInstalledBackends();
   };
 
-  const handleUpdate = async (version: VersionInfo) => {
-    const download = availableDownloads.find((d) => d.name === version.name);
+  const handleUpdate = async (backend: VersionInfo) => {
+    const download = availableDownloads.find((d) => d.name === backend.name);
     if (!download) return;
 
     await handleDownloadFromStore({
       item: download,
       isUpdate: true,
-      wasCurrentBinary: version.isCurrent,
-      oldVersionPath: version.installedPath,
+      wasCurrentBinary: backend.isCurrent,
+      oldVersionPath: backend.installedPath,
     });
 
-    await loadInstalledVersions();
+    await loadInstalledBackends();
   };
 
-  const handleRedownload = async (version: VersionInfo) => {
-    const download = availableDownloads.find((d) => d.name === version.name);
+  const handleRedownload = async (backend: VersionInfo) => {
+    const download = availableDownloads.find((d) => d.name === backend.name);
     if (!download) return;
 
     await handleDownloadFromStore({
       item: download,
       isUpdate: true,
-      wasCurrentBinary: version.isCurrent,
-      oldVersionPath: version.installedPath,
+      wasCurrentBinary: backend.isCurrent,
+      oldVersionPath: backend.installedPath,
     });
 
-    await loadInstalledVersions();
+    await loadInstalledBackends();
   };
 
-  const handleDelete = async (version: VersionInfo) => {
-    if (!version.installedPath || version.isCurrent) return;
+  const handleDelete = async (backend: VersionInfo) => {
+    if (!backend.installedPath || backend.isCurrent) return;
 
     const result = await window.electronAPI.kobold.deleteRelease(
-      version.installedPath
+      backend.installedPath
     );
     if (result.success) {
-      await loadInstalledVersions();
+      await loadInstalledBackends();
     }
   };
 
-  const makeCurrent = (version: VersionInfo) => {
-    if (!version.installedPath) return;
+  const makeCurrent = (backend: VersionInfo) => {
+    if (!backend.installedPath) return;
 
-    const targetInstalledVersion = installedVersions.find(
-      (v) => v.path === version.installedPath
+    const targetBackend = installedBackends.find(
+      (b) => b.path === backend.installedPath
     );
-    if (targetInstalledVersion) {
-      setCurrentVersion(targetInstalledVersion);
+    if (targetBackend) {
+      setCurrentBackend(targetBackend);
     }
 
-    window.electronAPI.kobold.setCurrentVersion(version.installedPath);
+    window.electronAPI.kobold.setCurrentBackend(backend.installedPath);
   };
 
   if (loadingInstalled || loadingPlatform || loadingRemote) {
@@ -242,9 +242,9 @@ export const VersionsTab = () => {
           <Loader size="lg" />
           <Text c="dimmed">
             {loadingInstalled && (loadingPlatform || loadingRemote)
-              ? 'Loading versions...'
+              ? 'Loading backends...'
               : loadingInstalled
-                ? 'Scanning installed versions...'
+                ? 'Scanning installed backends...'
                 : 'Checking for updates...'}
           </Text>
         </Stack>
@@ -276,50 +276,50 @@ export const VersionsTab = () => {
         )}
       </Group>
 
-      {allVersions.map((version, index) => {
-        const isDownloading = downloading === version.name;
+      {allBackends.map((backend, index) => {
+        const isDownloading = downloading === backend.name;
 
         return (
           <div
-            key={`${version.name}-${version.version}-${index}`}
+            key={`${backend.name}-${backend.version}-${index}`}
             style={{ paddingBottom: '0.5rem' }}
             ref={isDownloading ? downloadingItemRef : null}
           >
             <DownloadCard
-              version={version}
+              version={backend}
               size={
-                version.size
-                  ? formatDownloadSize(version.size, version.downloadUrl)
+                backend.size
+                  ? formatDownloadSize(backend.size, backend.downloadUrl)
                   : ''
               }
-              description={getAssetDescription(version.name)}
+              description={getAssetDescription(backend.name)}
               disabled={downloading !== null}
               onDownload={(e) => {
                 e.stopPropagation();
-                handleDownload(version);
+                handleDownload(backend);
               }}
               onUpdate={(e) => {
                 e.stopPropagation();
-                handleUpdate(version);
+                handleUpdate(backend);
               }}
               onRedownload={(e) => {
                 e.stopPropagation();
-                handleRedownload(version);
+                handleRedownload(backend);
               }}
               onDelete={(e) => {
                 e.stopPropagation();
-                handleDelete(version);
+                handleDelete(backend);
               }}
-              onMakeCurrent={() => makeCurrent(version)}
+              onMakeCurrent={() => makeCurrent(backend)}
             />
           </div>
         );
       })}
 
-      {allVersions.length === 0 && (
+      {allBackends.length === 0 && (
         <Card withBorder radius="md" padding="md">
           <Text size="sm" c="dimmed" ta="center">
-            No versions found
+            No backends found
           </Text>
         </Card>
       )}

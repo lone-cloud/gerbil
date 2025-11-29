@@ -35,7 +35,7 @@ export const UpdateAvailableModal = ({
   onUpdate,
 }: UpdateAvailableModalProps) => {
   const { downloading, downloadProgress } = useKoboldVersionsStore();
-  const currentVersion = updateInfo?.currentVersion;
+  const currentBackend = updateInfo?.currentBackend;
   const availableUpdate = updateInfo?.availableUpdate;
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -73,7 +73,7 @@ export const UpdateAvailableModal = ({
                   Current Version
                 </Text>
                 <Text fw={500} size="sm">
-                  {currentVersion?.version}
+                  {currentBackend?.version}
                 </Text>
               </div>
 

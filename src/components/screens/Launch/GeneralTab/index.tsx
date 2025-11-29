@@ -7,7 +7,7 @@ import {
   Transition,
 } from '@mantine/core';
 import { InfoTooltip } from '@/components/InfoTooltip';
-import { BackendSelector } from '@/components/screens/Launch/GeneralTab/BackendSelector';
+import { AccelerationSelector } from '@/components/screens/Launch/GeneralTab/AccelerationSelector';
 import { ModelFileField } from '@/components/screens/Launch/ModelFileField';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
 
@@ -33,7 +33,7 @@ export const GeneralTab = ({ configLoaded = true }: GeneralTabProps) => {
     >
       {(styles) => (
         <Stack gap="md" style={styles}>
-          <BackendSelector />
+          <AccelerationSelector />
 
           <ModelFileField
             label="Text Model File"

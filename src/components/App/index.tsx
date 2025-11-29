@@ -98,12 +98,12 @@ export const App = () => {
 
   useEffect(() => {
     const checkInstallation = async () => {
-      const [currentVersion, hasSeenWelcome] = await Promise.all([
-        window.electronAPI.kobold.getCurrentVersion(),
+      const [currentBackend, hasSeenWelcome] = await Promise.all([
+        window.electronAPI.kobold.getCurrentBackend(),
         window.electronAPI.config.get('hasSeenWelcome') as Promise<boolean>,
       ]);
 
-      determineScreen(currentVersion, hasSeenWelcome);
+      determineScreen(currentBackend, hasSeenWelcome);
       setHasInitialized(true);
     };
 
@@ -114,9 +114,9 @@ export const App = () => {
     const runUpdateCheck = async () => {
       if (loadingRemote || !hasInitialized) return;
 
-      const currentVersion =
-        await window.electronAPI.kobold.getCurrentVersion();
-      if (currentVersion) {
+      const currentBackend =
+        await window.electronAPI.kobold.getCurrentBackend();
+      if (currentBackend) {
         setTimeout(() => {
           checkForUpdates();
         }, 5000);
@@ -136,13 +136,13 @@ export const App = () => {
   }, [loadingRemote, hasInitialized, checkForUpdates]);
 
   const handleBinaryUpdate = async (download: DownloadItem) => {
-    const currentVersion = await window.electronAPI.kobold.getCurrentVersion();
+    const currentBackend = await window.electronAPI.kobold.getCurrentBackend();
 
     await handleDownload({
       item: download,
       isUpdate: true,
       wasCurrentBinary: true,
-      oldVersionPath: currentVersion?.path,
+      oldVersionPath: currentBackend?.path,
     });
 
     closeModal();
@@ -170,8 +170,8 @@ export const App = () => {
   const handleWelcomeComplete = async () => {
     window.electronAPI.config.set('hasSeenWelcome', true);
 
-    const currentVersion = await window.electronAPI.kobold.getCurrentVersion();
-    determineScreen(currentVersion, true);
+    const currentBackend = await window.electronAPI.kobold.getCurrentBackend();
+    determineScreen(currentBackend, true);
   };
 
   const handleDownloadComplete = () => setCurrentScreen('launch');

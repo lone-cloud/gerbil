@@ -6,8 +6,8 @@ import type {
   SystemMemoryInfo,
 } from '@/types/hardware';
 import type {
-  BackendOption,
-  BackendSupport,
+  AccelerationOption,
+  AccelerationSupport,
   Screen,
   ModelAnalysis,
   CachedModel,
@@ -57,7 +57,7 @@ export interface ReleaseWithStatus {
   }[];
 }
 
-export interface InstalledVersion {
+export interface InstalledBackend {
   version: string;
   path: string;
   filename: string;
@@ -125,9 +125,9 @@ export interface KoboldConfig {
 }
 
 export interface KoboldAPI {
-  getInstalledVersions: () => Promise<InstalledVersion[]>;
-  getCurrentVersion: () => Promise<InstalledVersion | null>;
-  setCurrentVersion: (version: string) => Promise<boolean>;
+  getInstalledBackends: () => Promise<InstalledBackend[]>;
+  getCurrentBackend: () => Promise<InstalledBackend | null>;
+  setCurrentBackend: (version: string) => Promise<boolean>;
   getPlatform: () => Promise<string>;
   detectGPU: () => Promise<BasicGPUInfo>;
   detectCPU: () => Promise<CPUCapabilities>;
@@ -135,8 +135,10 @@ export interface KoboldAPI {
   detectGPUMemory: () => Promise<GPUMemoryInfo[]>;
   detectSystemMemory: () => Promise<SystemMemoryInfo>;
   detectROCm: () => Promise<{ supported: boolean; devices: string[] }>;
-  detectBackendSupport: () => Promise<BackendSupport | null>;
-  getAvailableBackends: (includeDisabled?: boolean) => Promise<BackendOption[]>;
+  detectAccelerationSupport: () => Promise<AccelerationSupport | null>;
+  getAvailableAccelerations: (
+    includeDisabled?: boolean
+  ) => Promise<AccelerationOption[]>;
   getCurrentInstallDir: () => Promise<string>;
   selectInstallDirectory: () => Promise<string | null>;
   downloadRelease: (

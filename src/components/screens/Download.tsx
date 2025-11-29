@@ -59,7 +59,7 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
       <Stack gap="xl">
         <Card withBorder radius="md" shadow="sm">
           <Stack gap="lg">
-            <Title order={3}>Available Binaries for Your Platform</Title>
+            <Title order={3}>Select a Backend</Title>
 
             {loading ? (
               <Stack align="center" gap="md" py="xl">

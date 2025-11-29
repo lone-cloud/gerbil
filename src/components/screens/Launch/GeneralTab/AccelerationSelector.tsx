@@ -1,13 +1,13 @@
 import { Text, Group, Checkbox, TextInput } from '@mantine/core';
 import { useState, useEffect, useRef } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
-import { BackendSelectItem } from '@/components/screens/Launch/GeneralTab/BackendSelectItem';
+import { AccelerationSelectItem } from '@/components/screens/Launch/GeneralTab/AccelerationSelectItem';
 import { GpuDeviceSelector } from '@/components/screens/Launch/GeneralTab/GpuDeviceSelector';
 import { useLaunchConfig } from '@/hooks/useLaunchConfig';
-import type { BackendOption } from '@/types';
+import type { AccelerationOption } from '@/types';
 import { Select } from '@/components/Select';
 
-export const BackendSelector = () => {
+export const AccelerationSelector = () => {
   const {
     backend,
     gpuLayers,
@@ -21,60 +21,67 @@ export const BackendSelector = () => {
     handleAutoGpuLayersChange,
   } = useLaunchConfig();
 
-  const [availableBackends, setAvailableBackends] = useState<BackendOption[]>(
-    []
-  );
-  const [isLoadingBackends, setIsLoadingBackends] = useState(false);
+  const [availableAccelerations, setAvailableAccelerations] = useState<
+    AccelerationOption[]
+  >([]);
+  const [isLoadingAccelerations, setIsLoadingAccelerations] = useState(false);
   const [isCalculatingLayers, setIsCalculatingLayers] = useState(false);
+  const [isMac, setIsMac] = useState(false);
   const hasInitialized = useRef(false);
 
   useEffect(() => {
-    const loadBackends = async () => {
-      setIsLoadingBackends(true);
+    const loadAccelerations = async () => {
+      setIsLoadingAccelerations(true);
 
-      const backends =
-        await window.electronAPI.kobold.getAvailableBackends(true);
+      const [accelerations, platform] = await Promise.all([
+        window.electronAPI.kobold.getAvailableAccelerations(true),
+        window.electronAPI.kobold.getPlatform(),
+      ]);
 
-      setAvailableBackends(backends || []);
-      setIsLoadingBackends(false);
+      setAvailableAccelerations(accelerations || []);
+      setIsMac(platform === 'darwin');
+      setIsLoadingAccelerations(false);
       hasInitialized.current = true;
     };
 
     if (!hasInitialized.current) {
-      loadBackends();
+      loadAccelerations();
     }
 
     const cleanup = window.electronAPI.kobold.onVersionsUpdated(() => {
       hasInitialized.current = false;
-      loadBackends();
+      loadAccelerations();
     });
 
     return cleanup;
   }, []);
 
   useEffect(() => {
-    if (availableBackends.length > 0 && backend) {
-      const isBackendAvailable = availableBackends.some(
-        (b) => b.value === backend && !b.disabled
+    if (availableAccelerations.length > 0 && backend) {
+      const isAccelerationAvailable = availableAccelerations.some(
+        (a) => a.value === backend && !a.disabled
       );
 
-      if (!isBackendAvailable) {
-        const fallbackBackend = availableBackends.find((b) => !b.disabled);
-        if (fallbackBackend) {
-          handleBackendChange(fallbackBackend.value);
+      if (!isAccelerationAvailable) {
+        const fallbackAcceleration = availableAccelerations.find(
+          (a) => !a.disabled
+        );
+        if (fallbackAcceleration) {
+          handleBackendChange(fallbackAcceleration.value);
         }
       }
     }
-  }, [availableBackends, backend, handleBackendChange]);
+  }, [availableAccelerations, backend, handleBackendChange]);
 
   useEffect(() => {
     const calculateLayers = async () => {
+      const isCpuOnly = backend === 'cpu' && !isMac;
       if (
         !autoGpuLayers ||
         !model ||
         !contextSize ||
-        backend === 'cpu' ||
-        isLoadingBackends
+        isCpuOnly ||
+        isLoadingAccelerations
       ) {
         return;
       }
@@ -133,7 +140,8 @@ export const BackendSelector = () => {
     backend,
     gpuDeviceSelection,
     flashattention,
-    isLoadingBackends,
+    isLoadingAccelerations,
+    isMac,
     handleGpuLayersChange,
   ]);
 
@@ -143,16 +151,20 @@ export const BackendSelector = () => {
         <div style={{ flex: 1, marginRight: '1rem' }}>
           <Group gap="xs" align="center" mb="xs">
             <Text size="sm" fw={500}>
-              Backend
+              Acceleration
             </Text>
-            <InfoTooltip label="Select a backend to use to run LLMs. CUDA runs on NVIDIA GPUs and is much faster. ROCm is the AMD equivalent. Vulkan and CLBlast work on all GPUs." />
+            <InfoTooltip label="Select an acceleration mode to run LLMs. CUDA runs on NVIDIA GPUs and is much faster. ROCm is the AMD equivalent. Vulkan and CLBlast work on all GPUs." />
           </Group>
           <Select
             placeholder={
-              isLoadingBackends ? 'Loading backends...' : 'Select backend'
+              isLoadingAccelerations
+                ? 'Loading accelerations...'
+                : 'Select acceleration'
             }
             value={
-              availableBackends.some((b) => b.value === backend && !b.disabled)
+              availableAccelerations.some(
+                (a) => a.value === backend && !a.disabled
+              )
                 ? backend
                 : null
             }
@@ -161,22 +173,24 @@ export const BackendSelector = () => {
                 handleBackendChange(value);
               }
             }}
-            data={availableBackends.map((b) => ({
-              value: b.value,
-              label: b.label,
-              disabled: b.disabled,
+            data={availableAccelerations.map((a) => ({
+              value: a.value,
+              label: a.label,
+              disabled: a.disabled,
             }))}
-            disabled={isLoadingBackends || availableBackends.length === 0}
+            disabled={
+              isLoadingAccelerations || availableAccelerations.length === 0
+            }
             renderOption={({ option }) => {
-              const backendData = availableBackends.find(
-                (b) => b.value === option.value
+              const accelerationData = availableAccelerations.find(
+                (a) => a.value === option.value
               );
 
               return (
-                <BackendSelectItem
-                  label={backendData?.label || option.label.split(' (')[0]}
-                  devices={backendData?.devices}
-                  disabled={backendData?.disabled}
+                <AccelerationSelectItem
+                  label={accelerationData?.label || option.label.split(' (')[0]}
+                  devices={accelerationData?.devices}
+                  disabled={accelerationData?.disabled}
                 />
               );
             }}
@@ -209,7 +223,7 @@ export const BackendSelector = () => {
               step={1}
               size="sm"
               w={80}
-              disabled={autoGpuLayers || backend === 'cpu'}
+              disabled={autoGpuLayers || (backend === 'cpu' && !isMac)}
             />
             <Group gap="xs" align="center">
               <Checkbox
@@ -219,7 +233,7 @@ export const BackendSelector = () => {
                   handleAutoGpuLayersChange(event.currentTarget.checked)
                 }
                 size="sm"
-                disabled={backend === 'cpu'}
+                disabled={backend === 'cpu' && !isMac}
               />
               <InfoTooltip label="Automatically calculate optimal GPU layers based on available VRAM. The calculation accounts for model size, context size and flash attention." />
             </Group>
@@ -227,7 +241,7 @@ export const BackendSelector = () => {
         </div>
       </Group>
 
-      <GpuDeviceSelector availableBackends={availableBackends} />
+      <GpuDeviceSelector availableAccelerations={availableAccelerations} />
     </div>
   );
 };
