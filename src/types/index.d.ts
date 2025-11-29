@@ -66,14 +66,6 @@ export interface UpdateInfo {
   hasUpdate: boolean;
 }
 
-export interface InstalledVersion {
-  version: string;
-  path: string;
-  filename: string;
-  size?: number;
-  actualVersion?: string;
-}
-
 export interface VersionInfo {
   name: string;
   version: string;
@@ -97,12 +89,12 @@ export interface SelectOption {
   label: string;
 }
 
-export interface BackendOption extends SelectOption {
+export interface AccelerationOption extends SelectOption {
   readonly devices?: readonly (string | GPUDevice)[];
   readonly disabled?: boolean;
 }
 
-export interface BackendSupport {
+export interface AccelerationSupport {
   rocm: boolean;
   vulkan: boolean;
   clblast: boolean;

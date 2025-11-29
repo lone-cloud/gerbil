@@ -1,16 +1,17 @@
-import type { InstalledVersion } from '@/types';
+import type { InstalledBackend } from '@/types/electron';
 
-export const getDisplayNameFromPath = (installedVersion: InstalledVersion) => {
-  const pathParts = installedVersion.path.split(/[/\\]/);
+export const getDisplayNameFromPath = (installedBackend: InstalledBackend) => {
+  const pathParts = installedBackend.path.split(/[/\\]/);
   const launcherIndex = pathParts.findIndex(
-    (part) => part === 'koboldcpp-launcher' || part === 'koboldcpp-launcher.exe'
+    (part: string) =>
+      part === 'koboldcpp-launcher' || part === 'koboldcpp-launcher.exe'
   );
 
   if (launcherIndex > 0) {
     return stripVersionSuffix(pathParts[launcherIndex - 1]);
   }
 
-  return installedVersion.filename;
+  return installedBackend.filename;
 };
 
 export const stripAssetExtensions = (assetName: string) =>

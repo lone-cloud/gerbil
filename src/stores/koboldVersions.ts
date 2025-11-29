@@ -8,7 +8,7 @@ import type {
   GitHubRelease,
   ReleaseWithStatus,
   GitHubAsset,
-  InstalledVersion,
+  InstalledBackend,
 } from '@/types/electron';
 import { sortDownloadsByType } from '@/utils/assets';
 
@@ -137,7 +137,7 @@ export const useKoboldVersionsStore = create<KoboldVersionsState>(
       safeExecute(async () => {
         const [response, installedVersions] = await Promise.all([
           fetch(GITHUB_API.LATEST_RELEASE_URL),
-          window.electronAPI.kobold.getInstalledVersions(),
+          window.electronAPI.kobold.getInstalledBackends(),
         ]);
 
         if (!response.ok) return null;
@@ -147,11 +147,11 @@ export const useKoboldVersionsStore = create<KoboldVersionsState>(
 
         const availableAssets = latestRelease.assets.map(
           (asset: GitHubAsset) => {
-            const installedVersion = installedVersions.find(
-              (v: InstalledVersion) => {
+            const installedBackend = installedVersions.find(
+              (v: InstalledBackend) => {
                 const pathParts = v.path.split(/[/\\]/);
                 const launcherIndex = pathParts.findIndex(
-                  (part) =>
+                  (part: string) =>
                     part === 'koboldcpp-launcher' ||
                     part === 'koboldcpp-launcher.exe'
                 );
@@ -167,8 +167,8 @@ export const useKoboldVersionsStore = create<KoboldVersionsState>(
 
             return {
               asset,
-              isDownloaded: !!installedVersion,
-              installedVersion: installedVersion?.version,
+              isDownloaded: !!installedBackend,
+              installedVersion: installedBackend?.version,
             };
           }
         );

@@ -7,7 +7,7 @@ import { sendKoboldOutput } from '@/main/modules/window';
 import { SERVER_READY_SIGNALS } from '@/constants';
 import { pathExists } from '@/utils/node/fs';
 import { parseKoboldConfig } from '@/utils/node/kobold';
-import { getCurrentVersion } from '../version';
+import { getCurrentBackend } from '../backend';
 import {
   getCurrentKoboldBinary,
   get as getConfig,
@@ -153,15 +153,15 @@ export async function launchKoboldCpp(
       spawnPreLaunchCommands(preLaunchCommands);
     }
 
-    const currentVersion = await getCurrentVersion();
-    if (!currentVersion || !(await pathExists(currentVersion.path))) {
+    const currentBackend = await getCurrentBackend();
+    if (!currentBackend || !(await pathExists(currentBackend.path))) {
       const rawPath = getCurrentKoboldBinary();
-      const error = currentVersion
-        ? `Binary file does not exist at path: ${currentVersion.path}`
-        : 'No version configured';
+      const error = currentBackend
+        ? `Binary file does not exist at path: ${currentBackend.path}`
+        : 'No backend configured';
 
       logError(
-        `Launch failed: ${error}. Raw config path: "${rawPath}", Current version: ${JSON.stringify(currentVersion)}`
+        `Launch failed: ${error}. Raw config path: "${rawPath}", Current backend: ${JSON.stringify(currentBackend)}`
       );
 
       return {
@@ -170,7 +170,7 @@ export async function launchKoboldCpp(
       };
     }
 
-    const binaryDir = currentVersion.path.split(/[/\\]/).slice(0, -1).join('/');
+    const binaryDir = currentBackend.path.split(/[/\\]/).slice(0, -1).join('/');
 
     const { isImageMode, isTextMode, debugmode } = parseKoboldConfig(args);
 
@@ -191,14 +191,14 @@ export async function launchKoboldCpp(
 
     await startProxy(koboldHost, koboldPort);
 
-    const child = spawn(currentVersion.path, finalArgs, {
+    const child = spawn(currentBackend.path, finalArgs, {
       stdio: ['pipe', 'pipe', 'pipe'],
       detached: false,
     });
 
     koboldProcess = child;
 
-    const commandLine = `${currentVersion.path} ${finalArgs.join(' ')}`;
+    const commandLine = `${currentBackend.path} ${finalArgs.join(' ')}`;
 
     sendKoboldOutput(commandLine);
 

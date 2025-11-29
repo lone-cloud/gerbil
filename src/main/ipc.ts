@@ -8,11 +8,11 @@ import {
 } from '@/main/modules/koboldcpp/launcher';
 import { downloadRelease } from '@/main/modules/koboldcpp/download';
 import {
-  getInstalledVersions,
-  getCurrentVersion,
-  setCurrentVersion,
+  getInstalledBackends,
+  getCurrentBackend,
+  setCurrentBackend,
   deleteRelease,
-} from '@/main/modules/koboldcpp/version';
+} from '@/main/modules/koboldcpp/backend';
 import {
   getConfigFiles,
   saveConfigFile,
@@ -61,9 +61,9 @@ import {
   detectSystemMemory,
 } from '@/main/modules/hardware';
 import {
-  detectBackendSupport,
-  getAvailableBackends,
-} from '@/main/modules/koboldcpp/backend';
+  detectAccelerationSupport,
+  getAvailableAccelerations,
+} from '@/main/modules/koboldcpp/acceleration';
 import {
   openPerformanceManager,
   startMonitoring,
@@ -85,9 +85,9 @@ export function setupIPCHandlers() {
     downloadRelease(asset, options)
   );
 
-  ipcMain.handle('kobold:getInstalledVersions', () => getInstalledVersions());
+  ipcMain.handle('kobold:getInstalledBackends', () => getInstalledBackends());
 
-  ipcMain.handle('kobold:getCurrentVersion', () => getCurrentVersion());
+  ipcMain.handle('kobold:getCurrentBackend', () => getCurrentBackend());
 
   ipcMain.handle('kobold:getConfigFiles', () => getConfigFiles());
 
@@ -105,8 +105,8 @@ export function setupIPCHandlers() {
     setConfig('selectedConfig', configName)
   );
 
-  ipcMain.handle('kobold:setCurrentVersion', (_, version) =>
-    setCurrentVersion(version)
+  ipcMain.handle('kobold:setCurrentBackend', (_, version) =>
+    setCurrentBackend(version)
   );
 
   ipcMain.handle('kobold:getCurrentInstallDir', () => getInstallDir());
@@ -127,10 +127,13 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('kobold:detectROCm', () => detectROCm());
 
-  ipcMain.handle('kobold:detectBackendSupport', () => detectBackendSupport());
+  ipcMain.handle('kobold:detectAccelerationSupport', () =>
+    detectAccelerationSupport()
+  );
 
-  ipcMain.handle('kobold:getAvailableBackends', (_, includeDisabled = false) =>
-    getAvailableBackends(includeDisabled)
+  ipcMain.handle(
+    'kobold:getAvailableAccelerations',
+    (_, includeDisabled = false) => getAvailableAccelerations(includeDisabled)
   );
 
   ipcMain.handle('kobold:getPlatform', () => platform);

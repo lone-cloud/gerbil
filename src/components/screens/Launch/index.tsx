@@ -83,10 +83,11 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
   });
 
   const setHappyDefaults = useCallback(async () => {
-    const backends = await window.electronAPI.kobold.getAvailableBackends();
+    const accelerations =
+      await window.electronAPI.kobold.getAvailableAccelerations();
 
-    if (!backend && backends && backends.length > 0) {
-      handleBackendChange(backends[0].value);
+    if (!backend && accelerations && accelerations.length > 0) {
+      handleBackendChange(accelerations[0].value);
     }
   }, [backend, handleBackendChange]);
 

@@ -15,7 +15,7 @@ import { pathExists } from '@/utils/node/fs';
 import { stripAssetExtensions } from '@/utils/version';
 import { getLauncherPath } from '@/utils/node/path';
 import type { DownloadReleaseOptions, GitHubAsset } from '@/types/electron';
-import { clearVersionCache } from './version';
+import { clearVersionCache } from './backend';
 
 async function removeDirectoryWithRetry(
   dirPath: string,

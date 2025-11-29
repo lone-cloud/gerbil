@@ -6,11 +6,11 @@ import {
 } from '@/utils/version';
 import { useKoboldVersionsStore } from '@/stores/koboldVersions';
 import { getROCmDownload } from '@/utils/rocm';
-import type { InstalledVersion, DownloadItem } from '@/types/electron';
+import type { InstalledBackend, DownloadItem } from '@/types/electron';
 import type { DismissedUpdate } from '@/types';
 
 export interface BinaryUpdateInfo {
-  currentVersion: InstalledVersion;
+  currentBackend: InstalledBackend;
   availableUpdate: DownloadItem;
 }
 
@@ -44,12 +44,12 @@ export const useUpdateChecker = () => {
     }
 
     setIsChecking(true);
-    const [currentVersion, rocmDownload] = await Promise.all([
-      window.electronAPI.kobold.getCurrentVersion(),
+    const [currentBackend, rocmDownload] = await Promise.all([
+      window.electronAPI.kobold.getCurrentBackend(),
       getROCmDownload(),
     ]);
 
-    if (!currentVersion) {
+    if (!currentBackend) {
       setIsChecking(false);
       return;
     }
@@ -59,7 +59,7 @@ export const useUpdateChecker = () => {
       availableDownloads.push(rocmDownload);
     }
 
-    const currentDisplayName = getDisplayNameFromPath(currentVersion);
+    const currentDisplayName = getDisplayNameFromPath(currentBackend);
 
     const matchingDownload = availableDownloads.find(
       (download: DownloadItem) => {
@@ -70,18 +70,18 @@ export const useUpdateChecker = () => {
 
     if (matchingDownload && matchingDownload.version) {
       const hasUpdate =
-        compareVersions(matchingDownload.version, currentVersion.version) > 0;
+        compareVersions(matchingDownload.version, currentBackend.version) > 0;
 
       if (hasUpdate) {
         const isUpdateDismissed = dismissedUpdates.some(
           (dismissedUpdate) =>
-            dismissedUpdate.currentVersionPath === currentVersion.path &&
+            dismissedUpdate.currentVersionPath === currentBackend.path &&
             dismissedUpdate.targetVersion === matchingDownload.version
         );
 
         if (!isUpdateDismissed) {
           setUpdateInfo({
-            currentVersion,
+            currentBackend,
             availableUpdate: matchingDownload,
           });
           setShowUpdateModal(true);
@@ -95,7 +95,7 @@ export const useUpdateChecker = () => {
   const skipUpdate = useCallback(() => {
     if (updateInfo && updateInfo.availableUpdate.version) {
       const newDismissedUpdate: DismissedUpdate = {
-        currentVersionPath: updateInfo.currentVersion.path,
+        currentVersionPath: updateInfo.currentBackend.path,
         targetVersion: updateInfo.availableUpdate.version,
       };
 
