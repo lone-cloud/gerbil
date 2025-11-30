@@ -209,10 +209,15 @@ const addTensorSplitArgs = (args: string[], launchArgs: LaunchArgs) => {
 const buildBackendArgs = (launchArgs: LaunchArgs, platform: string) => {
   const args: string[] = [];
 
+  if (platform === 'darwin') {
+    return args;
+  }
+
   if (!launchArgs.backend || launchArgs.backend === 'cpu') {
-    if (launchArgs.backend === 'cpu' && platform !== 'darwin') {
+    if (launchArgs.backend === 'cpu') {
       args.push('--usecpu');
     }
+
     return args;
   }
 
