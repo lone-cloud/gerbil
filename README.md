@@ -10,9 +10,11 @@ A desktop app to easily run Large Language Models locally.
 
 - **Run LLMs locally** powered by [KoboldCpp](https://github.com/LostRuins/koboldcpp) which itself is a highly modified fork of [llama.cpp](https://github.com/ggml-org/llama.cpp)
 - **Cross-platform desktop app** - Native support for Windows, macOS, and Linux (including Wayland)
+- **Offline capable** - Import pre-downloaded backends and run entirely without an internet connection
 - **Automatic updates** - Download and keep your KoboldCpp binary up-to-date effortlessly
 - **Smart process management** - Prevents runaway background processes and system resource waste
 - **Optimized performance** - Automatically unpacks binaries for faster operation and reduced memory usage
+- **Flexible hardware support** - Works on CPU-only systems while also supporting GPU acceleration (CUDA, ROCm, Vulkan, Metal)
 - **Image generation support** - Built-in presets for Flux and Chroma image generation workflows
 - **SillyTavern integration** - Seamlessly launch SillyTavern for advanced character interactions (requires [Node.js](https://nodejs.org/))
 - **OpenWebUI integration** - Launch OpenWebUI for a modern web-based chat interface (requires [uv](https://docs.astral.sh/uv/getting-started/installation/))
