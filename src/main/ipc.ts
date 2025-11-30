@@ -6,7 +6,10 @@ import {
   stopKoboldCpp,
   launchKoboldCppWithCustomFrontends,
 } from '@/main/modules/koboldcpp/launcher';
-import { downloadRelease } from '@/main/modules/koboldcpp/download';
+import {
+  downloadRelease,
+  importLocalBackend,
+} from '@/main/modules/koboldcpp/download';
 import {
   getInstalledBackends,
   getCurrentBackend,
@@ -159,6 +162,8 @@ export function setupIPCHandlers() {
   ipcMain.handle('kobold:selectModelFile', (_, title) =>
     selectModelFile(title)
   );
+
+  ipcMain.handle('kobold:importLocalBackend', () => importLocalBackend());
 
   ipcMain.handle('kobold:getLocalModels', (_, paramType: string) =>
     getLocalModelsForType(

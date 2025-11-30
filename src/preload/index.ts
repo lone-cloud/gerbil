@@ -18,8 +18,8 @@ import type {
 const koboldAPI: KoboldAPI = {
   getInstalledBackends: () => ipcRenderer.invoke('kobold:getInstalledBackends'),
   getCurrentBackend: () => ipcRenderer.invoke('kobold:getCurrentBackend'),
-  setCurrentBackend: (version) =>
-    ipcRenderer.invoke('kobold:setCurrentBackend', version),
+  setCurrentBackend: (backend) =>
+    ipcRenderer.invoke('kobold:setCurrentBackend', backend),
   getPlatform: () => ipcRenderer.invoke('kobold:getPlatform'),
   detectGPU: () => ipcRenderer.invoke('kobold:detectGPU'),
   detectCPU: () => ipcRenderer.invoke('kobold:detectCPU'),
@@ -53,6 +53,7 @@ const koboldAPI: KoboldAPI = {
     ipcRenderer.invoke('kobold:parseConfigFile', filePath),
   selectModelFile: (title) =>
     ipcRenderer.invoke('kobold:selectModelFile', title),
+  importLocalBackend: () => ipcRenderer.invoke('kobold:importLocalBackend'),
   getLocalModels: (paramType) =>
     ipcRenderer.invoke('kobold:getLocalModels', paramType),
   analyzeModel: (filePath) =>

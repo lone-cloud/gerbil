@@ -15,7 +15,7 @@ import { ErrorBoundary } from '@/components/App/ErrorBoundary';
 import { AppRouter } from '@/components/App/Router';
 import { NotepadContainer } from '@/components/Notepad/Container';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
-import { useKoboldVersionsStore } from '@/stores/koboldVersions';
+import { useKoboldBackendsStore } from '@/stores/koboldBackends';
 import { usePreferencesStore } from '@/stores/preferences';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
@@ -81,7 +81,7 @@ export const App = () => {
     closeModal,
   } = useUpdateChecker();
 
-  const { handleDownload, loadingRemote } = useKoboldVersionsStore();
+  const { handleDownload, loadingRemote } = useKoboldBackendsStore();
 
   const determineScreen = (
     currentVersion: unknown,
@@ -142,7 +142,7 @@ export const App = () => {
       item: download,
       isUpdate: true,
       wasCurrentBinary: true,
-      oldVersionPath: currentBackend?.path,
+      oldBackendPath: currentBackend?.path,
     });
 
     closeModal();

@@ -4,7 +4,7 @@ import {
   compareVersions,
   stripAssetExtensions,
 } from '@/utils/version';
-import { useKoboldVersionsStore } from '@/stores/koboldVersions';
+import { useKoboldBackendsStore } from '@/stores/koboldBackends';
 import { getROCmDownload } from '@/utils/rocm';
 import type { InstalledBackend, DownloadItem } from '@/types/electron';
 import type { DismissedUpdate } from '@/types';
@@ -23,7 +23,7 @@ export const useUpdateChecker = () => {
   );
 
   const { availableDownloads: releases, loadingRemote } =
-    useKoboldVersionsStore();
+    useKoboldBackendsStore();
   useEffect(() => {
     const loadDismissedUpdates = async () => {
       const dismissed = (await window.electronAPI.config.get(
@@ -75,7 +75,7 @@ export const useUpdateChecker = () => {
       if (hasUpdate) {
         const isUpdateDismissed = dismissedUpdates.some(
           (dismissedUpdate) =>
-            dismissedUpdate.currentVersionPath === currentBackend.path &&
+            dismissedUpdate.currentBackendPath === currentBackend.path &&
             dismissedUpdate.targetVersion === matchingDownload.version
         );
 
@@ -95,7 +95,7 @@ export const useUpdateChecker = () => {
   const skipUpdate = useCallback(() => {
     if (updateInfo && updateInfo.availableUpdate.version) {
       const newDismissedUpdate: DismissedUpdate = {
-        currentVersionPath: updateInfo.currentBackend.path,
+        currentBackendPath: updateInfo.currentBackend.path,
         targetVersion: updateInfo.availableUpdate.version,
       };
 

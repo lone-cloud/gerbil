@@ -13,11 +13,11 @@ import { Download, Trash2 } from 'lucide-react';
 import { MouseEvent } from 'react';
 import { pretifyBinName, isWindowsROCmBuild } from '@/utils/assets';
 import { usePreferencesStore } from '@/stores/preferences';
-import { useKoboldVersionsStore } from '@/stores/koboldVersions';
-import type { VersionInfo } from '@/types';
+import { useKoboldBackendsStore } from '@/stores/koboldBackends';
+import type { BackendInfo } from '@/types';
 
 interface DownloadCardProps {
-  version: VersionInfo;
+  backend: BackendInfo;
   size: string;
   description?: string;
   disabled?: boolean;
@@ -29,7 +29,7 @@ interface DownloadCardProps {
 }
 
 export const DownloadCard = ({
-  version: versionInfo,
+  backend,
   size,
   description,
   disabled = false,
@@ -40,23 +40,23 @@ export const DownloadCard = ({
   onDelete,
 }: DownloadCardProps) => {
   const { resolvedColorScheme: colorScheme } = usePreferencesStore();
-  const { downloading, downloadProgress } = useKoboldVersionsStore();
+  const { downloading, downloadProgress } = useKoboldBackendsStore();
 
-  const isLoading = downloading === versionInfo.name;
+  const isLoading = downloading === backend.name;
   const currentProgress = isLoading
-    ? Math.min(downloadProgress[versionInfo.name], 100) || 0
+    ? Math.min(downloadProgress[backend.name], 100) || 0
     : 0;
   const hasVersionMismatch = Boolean(
-    versionInfo.version &&
-    versionInfo.actualVersion &&
-    versionInfo.version !== versionInfo.actualVersion
+    backend.version &&
+    backend.actualVersion &&
+    backend.version !== backend.actualVersion
   );
 
   // eslint-disable-next-line sonarjs/cognitive-complexity
   const renderActionButtons = () => {
     const buttons = [];
 
-    if (!versionInfo.isInstalled) {
+    if (!backend.isInstalled) {
       return (
         <Button
           key="download"
@@ -78,7 +78,7 @@ export const DownloadCard = ({
       );
     }
 
-    if (!versionInfo.isCurrent && onMakeCurrent) {
+    if (!backend.isCurrent && onMakeCurrent) {
       buttons.push(
         <Button
           key="makeCurrent"
@@ -92,7 +92,7 @@ export const DownloadCard = ({
       );
     }
 
-    if (versionInfo.hasUpdate && onUpdate) {
+    if (backend.hasUpdate && onUpdate) {
       buttons.push(
         <Button
           key="update"
@@ -110,7 +110,7 @@ export const DownloadCard = ({
             )
           }
         >
-          {isLoading ? 'Updating...' : `Update to ${versionInfo.newerVersion}`}
+          {isLoading ? 'Updating...' : `Update to ${backend.newerVersion}`}
         </Button>
       );
     }
@@ -138,7 +138,7 @@ export const DownloadCard = ({
       );
     }
 
-    if (onDelete && versionInfo.isInstalled && !versionInfo.isCurrent) {
+    if (onDelete && backend.isInstalled && !backend.isCurrent) {
       buttons.push(
         <Button
           key="delete"
@@ -169,7 +169,7 @@ export const DownloadCard = ({
       withBorder
       radius="sm"
       padding="sm"
-      {...(versionInfo.isCurrent && {
+      {...(backend.isCurrent && {
         bg: colorScheme === 'dark' ? 'dark.6' : 'gray.0',
         bd: `2px solid var(--mantine-color-${colorScheme === 'dark' ? 'blue-4' : 'blue-6'})`,
       })}
@@ -178,19 +178,19 @@ export const DownloadCard = ({
         <div style={{ flex: 1 }}>
           <Group gap="xs" align="center" mb="xs">
             <Text fw={500} size="sm">
-              {pretifyBinName(versionInfo.name)}
+              {pretifyBinName(backend.name)}
             </Text>
-            {versionInfo.isCurrent && (
+            {backend.isCurrent && (
               <Badge variant="light" color="blue" size="sm">
                 Current
               </Badge>
             )}
-            {versionInfo.hasUpdate && (
+            {backend.hasUpdate && (
               <Badge variant="light" color="orange" size="sm">
                 Update Available
               </Badge>
             )}
-            {isWindowsROCmBuild(versionInfo.name) && (
+            {isWindowsROCmBuild(backend.name) && (
               <Badge variant="light" color="yellow" size="sm">
                 Experimental
               </Badge>
@@ -202,13 +202,13 @@ export const DownloadCard = ({
             </Text>
           )}
           <Group gap="xs" align="center">
-            {versionInfo.version && (
+            {backend.version && (
               <Text size="xs" c="dimmed">
-                Version {versionInfo.version}
-                {hasVersionMismatch && versionInfo.actualVersion && (
+                Version {backend.version}
+                {hasVersionMismatch && backend.actualVersion && (
                   <span style={{ color: 'var(--mantine-color-red-6)' }}>
                     {' '}
-                    (actual: {versionInfo.actualVersion})
+                    (actual: {backend.actualVersion})
                   </span>
                 )}
               </Text>
