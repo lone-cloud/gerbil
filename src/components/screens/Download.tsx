@@ -1,10 +1,18 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Card, Text, Title, Loader, Stack, Container } from '@mantine/core';
+import {
+  Card,
+  Text,
+  Title,
+  Loader,
+  Stack,
+  Container,
+  Anchor,
+} from '@mantine/core';
 import { DownloadCard } from '@/components/DownloadCard';
 import { getPlatformDisplayName } from '@/utils/platform';
 import { formatDownloadSize } from '@/utils/format';
 import { getAssetDescription } from '@/utils/assets';
-import { useKoboldVersionsStore } from '@/stores/koboldVersions';
+import { useKoboldBackendsStore } from '@/stores/koboldBackends';
 import type { DownloadItem } from '@/types/electron';
 
 interface DownloadScreenProps {
@@ -19,9 +27,11 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
     loadingRemote,
     downloading,
     handleDownload: handleDownloadFromStore,
-  } = useKoboldVersionsStore();
+  } = useKoboldBackendsStore();
 
   const [downloadingAsset, setDownloadingAsset] = useState<string | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
   const downloadingItemRef = useRef<HTMLDivElement>(null);
 
   const loading = loadingPlatform || loadingRemote;
@@ -56,75 +66,101 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
 
   return (
     <Container size="sm" mt="md">
-      <Stack gap="xl">
-        <Card withBorder radius="md" shadow="sm">
-          <Stack gap="lg">
-            <Title order={3}>Select a Backend</Title>
+      <Card withBorder radius="md" shadow="sm">
+        <Stack gap="lg">
+          <Title order={3}>Select a Backend</Title>
 
-            {loading ? (
-              <Stack align="center" gap="md" py="xl">
-                <Loader color="blue" />
-                <Text c="dimmed">Preparing download options...</Text>
-              </Stack>
-            ) : (
-              <>
-                {availableDownloads.length > 0 ? (
-                  <Stack gap="sm">
-                    {availableDownloads.map((download) => {
-                      const isDownloading =
-                        Boolean(downloading) &&
-                        downloadingAsset === download.name;
+          {loading ? (
+            <Stack align="center" gap="md" py="xl">
+              <Loader color="blue" />
+              <Text c="dimmed">Preparing download options...</Text>
+            </Stack>
+          ) : (
+            <>
+              {availableDownloads.length > 0 ? (
+                <Stack gap="sm">
+                  {availableDownloads.map((download) => {
+                    const isDownloading =
+                      Boolean(downloading) &&
+                      downloadingAsset === download.name;
 
-                      return (
-                        <div
-                          key={download.name}
-                          ref={isDownloading ? downloadingItemRef : null}
-                        >
-                          <DownloadCard
-                            version={{
-                              name: download.name,
-                              version: download.version || '',
-                              size: download.size,
-                              isInstalled: false,
-                              isCurrent: false,
-                              downloadUrl: download.url,
-                              hasUpdate: false,
-                            }}
-                            size={formatDownloadSize(
-                              download.size,
-                              download.url
-                            )}
-                            description={getAssetDescription(download.name)}
-                            disabled={
-                              Boolean(downloading) &&
-                              downloadingAsset !== download.name
-                            }
-                            onDownload={(e) => {
-                              e.stopPropagation();
-                              handleDownload(download);
-                            }}
-                          />
-                        </div>
-                      );
-                    })}
-                  </Stack>
-                ) : (
-                  <Card withBorder p="md" bg="red.0" c="red.9">
-                    <Stack gap="xs">
-                      <Text fw={500}>No downloads available</Text>
-                      <Text size="sm">
-                        Unable to fetch downloads for your platform (
-                        {getPlatformDisplayName(platform)}). Please check your
-                        internet connection and try again.
-                      </Text>
-                    </Stack>
-                  </Card>
-                )}
-              </>
-            )}
-          </Stack>
-        </Card>
-      </Stack>
+                    return (
+                      <div
+                        key={download.name}
+                        ref={isDownloading ? downloadingItemRef : null}
+                      >
+                        <DownloadCard
+                          backend={{
+                            name: download.name,
+                            version: download.version || '',
+                            size: download.size,
+                            isInstalled: false,
+                            isCurrent: false,
+                            downloadUrl: download.url,
+                            hasUpdate: false,
+                          }}
+                          size={formatDownloadSize(download.size, download.url)}
+                          description={getAssetDescription(download.name)}
+                          disabled={
+                            importing ||
+                            (Boolean(downloading) &&
+                              downloadingAsset !== download.name)
+                          }
+                          onDownload={(e) => {
+                            e.stopPropagation();
+                            handleDownload(download);
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
+                </Stack>
+              ) : (
+                <Text size="sm" c="dimmed" ta="center">
+                  Unable to fetch downloads for your platform (
+                  {getPlatformDisplayName(platform)}). Check your internet
+                  connection and try again.
+                </Text>
+              )}
+
+              {importError && (
+                <Text size="sm" c="red" ta="center">
+                  {importError}
+                </Text>
+              )}
+
+              <Text size="sm" c="dimmed" ta="center">
+                Already have a backend downloaded?{' '}
+                <Anchor
+                  component="button"
+                  type="button"
+                  size="sm"
+                  disabled={importing || Boolean(downloading)}
+                  onClick={async () => {
+                    setImportError(null);
+                    setImporting(true);
+
+                    try {
+                      const result =
+                        await window.electronAPI.kobold.importLocalBackend();
+
+                      if (result.success) {
+                        onDownloadComplete();
+                      } else if (result.error) {
+                        setImportError(result.error);
+                      }
+                    } finally {
+                      setImporting(false);
+                    }
+                  }}
+                >
+                  {importing ? 'Importing...' : 'Select a local file'}
+                </Anchor>
+              </Text>
+            </>
+          )}
+        </Stack>
+      </Card>
     </Container>
   );
 };

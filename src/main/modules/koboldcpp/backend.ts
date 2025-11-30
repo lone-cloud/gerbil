@@ -13,16 +13,16 @@ import { logError } from '@/utils/node/logging';
 import { getLauncherPath } from '@/utils/node/path';
 import type { InstalledBackend } from '@/types/electron';
 
-const versionCache = new Map<
+const backendVersionCache = new Map<
   string,
   { version: string; actualVersion?: string } | null
 >();
 
-export function clearVersionCache(path?: string) {
+export function clearBackendVersionCache(path?: string) {
   if (path) {
-    versionCache.delete(path);
+    backendVersionCache.delete(path);
   } else {
-    versionCache.clear();
+    backendVersionCache.clear();
   }
 }
 
@@ -161,7 +161,7 @@ export async function deleteRelease(binaryPath: string) {
     if (await pathExists(releaseDir)) {
       await rm(releaseDir, { recursive: true, force: true });
 
-      clearVersionCache(binaryPath);
+      clearBackendVersionCache(binaryPath);
       sendToRenderer('versions-updated');
 
       return { success: true };
@@ -179,8 +179,8 @@ export async function getVersionFromBinary(launcherPath: string) {
       return null;
     }
 
-    if (versionCache.has(launcherPath)) {
-      return versionCache.get(launcherPath);
+    if (backendVersionCache.has(launcherPath)) {
+      return backendVersionCache.get(launcherPath);
     }
 
     let folderVersion: string | null = null;
@@ -224,10 +224,10 @@ export async function getVersionFromBinary(launcherPath: string) {
           : undefined,
     };
 
-    versionCache.set(launcherPath, result);
+    backendVersionCache.set(launcherPath, result);
     return result;
   } catch {
-    versionCache.set(launcherPath, null);
+    backendVersionCache.set(launcherPath, null);
     return null;
   }
 }

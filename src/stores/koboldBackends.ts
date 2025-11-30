@@ -16,7 +16,7 @@ interface HandleDownloadParams {
   item: DownloadItem;
   isUpdate?: boolean;
   wasCurrentBinary?: boolean;
-  oldVersionPath?: string;
+  oldBackendPath?: string;
 }
 
 const transformReleaseToDownloadItems = (
@@ -48,7 +48,7 @@ const fetchLatestReleaseFromAPI = async (platform: string) => {
   return transformReleaseToDownloadItems(release, platform);
 };
 
-interface KoboldVersionsState {
+interface KoboldBackendsState {
   platform: string;
   availableDownloads: DownloadItem[];
   loadingPlatform: boolean;
@@ -61,7 +61,7 @@ interface KoboldVersionsState {
   getLatestReleaseWithDownloadStatus: () => Promise<ReleaseWithStatus | null>;
 }
 
-export const useKoboldVersionsStore = create<KoboldVersionsState>(
+export const useKoboldBackendsStore = create<KoboldBackendsState>(
   (set, get) => ({
     platform: '',
     availableDownloads: [],
@@ -101,7 +101,7 @@ export const useKoboldVersionsStore = create<KoboldVersionsState>(
         item,
         isUpdate = false,
         wasCurrentBinary = false,
-        oldVersionPath,
+        oldBackendPath,
       } = params;
       const { downloading } = get();
 
@@ -127,15 +127,16 @@ export const useKoboldVersionsStore = create<KoboldVersionsState>(
       await window.electronAPI.kobold.downloadRelease(asset, {
         isUpdate,
         wasCurrentBinary,
-        oldVersionPath,
+        oldBackendPath,
       });
 
       progressCleanup();
       set({ downloading: null, downloadProgress: {} });
     },
+
     getLatestReleaseWithDownloadStatus: async () =>
       safeExecute(async () => {
-        const [response, installedVersions] = await Promise.all([
+        const [response, installedBackends] = await Promise.all([
           fetch(GITHUB_API.LATEST_RELEASE_URL),
           window.electronAPI.kobold.getInstalledBackends(),
         ]);
@@ -147,9 +148,9 @@ export const useKoboldVersionsStore = create<KoboldVersionsState>(
 
         const availableAssets = latestRelease.assets.map(
           (asset: GitHubAsset) => {
-            const installedBackend = installedVersions.find(
-              (v: InstalledBackend) => {
-                const pathParts = v.path.split(/[/\\]/);
+            const installedBackend = installedBackends.find(
+              (b: InstalledBackend) => {
+                const pathParts = b.path.split(/[/\\]/);
                 const launcherIndex = pathParts.findIndex(
                   (part: string) =>
                     part === 'koboldcpp-launcher' ||
@@ -168,7 +169,7 @@ export const useKoboldVersionsStore = create<KoboldVersionsState>(
             return {
               asset,
               isDownloaded: !!installedBackend,
-              installedVersion: installedBackend?.version,
+              installedBackendVersion: installedBackend?.version,
             };
           }
         );
@@ -181,4 +182,4 @@ export const useKoboldVersionsStore = create<KoboldVersionsState>(
   })
 );
 
-useKoboldVersionsStore.getState().initialize();
+useKoboldBackendsStore.getState().initialize();

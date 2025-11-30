@@ -66,7 +66,7 @@ export interface UpdateInfo {
   hasUpdate: boolean;
 }
 
-export interface VersionInfo {
+export interface BackendInfo {
   name: string;
   version: string;
   size?: number;
@@ -80,7 +80,7 @@ export interface VersionInfo {
 }
 
 export interface DismissedUpdate {
-  currentVersionPath: string;
+  currentBackendPath: string;
   targetVersion: string;
 }
 

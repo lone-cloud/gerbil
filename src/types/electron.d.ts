@@ -29,7 +29,7 @@ export interface GitHubAsset {
 export interface DownloadReleaseOptions {
   isUpdate?: boolean;
   wasCurrentBinary?: boolean;
-  oldVersionPath?: string;
+  oldBackendPath?: string;
 }
 
 export interface GitHubRelease {
@@ -53,7 +53,7 @@ export interface ReleaseWithStatus {
   availableAssets: {
     asset: GitHubAsset;
     isDownloaded: boolean;
-    installedVersion?: string;
+    installedBackendVersion?: string;
   }[];
 }
 
@@ -162,6 +162,7 @@ export interface KoboldAPI {
   setSelectedConfig: (configName: string) => Promise<boolean>;
   parseConfigFile: (filePath: string) => Promise<KoboldConfig | null>;
   selectModelFile: (title?: string) => Promise<string | null>;
+  importLocalBackend: () => Promise<{ success: boolean; error?: string }>;
   getLocalModels: (paramType: string) => Promise<CachedModel[]>;
   analyzeModel: (filePath: string) => Promise<ModelAnalysis>;
   calculateOptimalLayers: (

@@ -12,7 +12,7 @@ import { Download, X, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 import type { DownloadItem } from '@/types/electron';
 import type { BinaryUpdateInfo } from '@/hooks/useUpdateChecker';
-import { useKoboldVersionsStore } from '@/stores/koboldVersions';
+import { useKoboldBackendsStore } from '@/stores/koboldBackends';
 import { pretifyBinName } from '@/utils/assets';
 import { formatDownloadSize } from '@/utils/format';
 import { GITHUB_API } from '@/constants';
@@ -34,7 +34,7 @@ export const UpdateAvailableModal = ({
   updateInfo,
   onUpdate,
 }: UpdateAvailableModalProps) => {
-  const { downloading, downloadProgress } = useKoboldVersionsStore();
+  const { downloading, downloadProgress } = useKoboldBackendsStore();
   const currentBackend = updateInfo?.currentBackend;
   const availableUpdate = updateInfo?.availableUpdate;
   const [isUpdating, setIsUpdating] = useState(false);

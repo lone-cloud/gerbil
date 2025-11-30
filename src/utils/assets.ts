@@ -9,14 +9,22 @@ export const getAssetDescription = (assetName: string) => {
   }
 
   if (name.endsWith(ASSET_SUFFIXES.OLDPC)) {
-    return 'Meant for old PCs with outdated CPUs that may not work with the standard build. Does not support modern AVX2 CPU architectures or modern CUDA.';
+    return 'Meant for old PCs with outdated CPUs that may not work with the standard backend. Does not support modern AVX2 CPU architectures or modern CUDA.';
   }
 
   if (name.endsWith(ASSET_SUFFIXES.NOCUDA)) {
-    return 'Standard build with NVIDIA CUDA support removed for minimal file size.';
+    return 'Standard backend with NVIDIA CUDA support removed for minimal file size.';
   }
 
-  return "Standard build that's ideal for most cases.";
+  if (
+    name === 'koboldcpp-linux-x64' ||
+    name === 'koboldcpp-mac-arm64' ||
+    name === 'koboldcpp'
+  ) {
+    return "Standard backend that's ideal for most cases.";
+  }
+
+  return 'Custom backend.';
 };
 
 export const isWindowsROCmBuild = (assetName: string) => {
@@ -78,5 +86,13 @@ export const pretifyBinName = (binName: string) => {
     return 'No CUDA';
   }
 
-  return 'Standard';
+  if (
+    cleanName === 'koboldcpp-linux-x64' ||
+    cleanName === 'koboldcpp-mac-arm64' ||
+    cleanName === 'koboldcpp'
+  ) {
+    return 'Standard';
+  }
+
+  return cleanName;
 };

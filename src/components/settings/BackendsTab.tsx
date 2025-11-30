@@ -18,9 +18,9 @@ import {
 } from '@/utils/version';
 import { formatDownloadSize } from '@/utils/format';
 
-import { useKoboldVersionsStore } from '@/stores/koboldVersions';
+import { useKoboldBackendsStore } from '@/stores/koboldBackends';
 import type { InstalledBackend, ReleaseWithStatus } from '@/types/electron';
-import type { VersionInfo } from '@/types';
+import type { BackendInfo } from '@/types';
 
 export const BackendsTab = () => {
   const {
@@ -31,7 +31,7 @@ export const BackendsTab = () => {
     handleDownload: handleDownloadFromStore,
     getLatestReleaseWithDownloadStatus,
     initialize,
-  } = useKoboldVersionsStore();
+  } = useKoboldBackendsStore();
 
   const [installedBackends, setInstalledBackends] = useState<
     InstalledBackend[]
@@ -83,8 +83,8 @@ export const BackendsTab = () => {
     initialize,
   ]);
 
-  const allBackends = useMemo((): VersionInfo[] => {
-    const backends: VersionInfo[] = [];
+  const allBackends = useMemo((): BackendInfo[] => {
+    const backends: BackendInfo[] = [];
     const processedInstalled = new Set<string>();
 
     availableDownloads.forEach((download) => {
@@ -170,7 +170,7 @@ export const BackendsTab = () => {
     }
   }, [downloading]);
 
-  const handleDownload = async (backend: VersionInfo) => {
+  const handleDownload = async (backend: BackendInfo) => {
     const download = availableDownloads.find((d) => d.name === backend.name);
     if (!download) return;
 
@@ -183,7 +183,7 @@ export const BackendsTab = () => {
     await loadInstalledBackends();
   };
 
-  const handleUpdate = async (backend: VersionInfo) => {
+  const handleUpdate = async (backend: BackendInfo) => {
     const download = availableDownloads.find((d) => d.name === backend.name);
     if (!download) return;
 
@@ -191,13 +191,13 @@ export const BackendsTab = () => {
       item: download,
       isUpdate: true,
       wasCurrentBinary: backend.isCurrent,
-      oldVersionPath: backend.installedPath,
+      oldBackendPath: backend.installedPath,
     });
 
     await loadInstalledBackends();
   };
 
-  const handleRedownload = async (backend: VersionInfo) => {
+  const handleRedownload = async (backend: BackendInfo) => {
     const download = availableDownloads.find((d) => d.name === backend.name);
     if (!download) return;
 
@@ -205,13 +205,13 @@ export const BackendsTab = () => {
       item: download,
       isUpdate: true,
       wasCurrentBinary: backend.isCurrent,
-      oldVersionPath: backend.installedPath,
+      oldBackendPath: backend.installedPath,
     });
 
     await loadInstalledBackends();
   };
 
-  const handleDelete = async (backend: VersionInfo) => {
+  const handleDelete = async (backend: BackendInfo) => {
     if (!backend.installedPath || backend.isCurrent) return;
 
     const result = await window.electronAPI.kobold.deleteRelease(
@@ -222,7 +222,7 @@ export const BackendsTab = () => {
     }
   };
 
-  const makeCurrent = (backend: VersionInfo) => {
+  const makeCurrent = (backend: BackendInfo) => {
     if (!backend.installedPath) return;
 
     const targetBackend = installedBackends.find(
@@ -286,7 +286,7 @@ export const BackendsTab = () => {
             ref={isDownloading ? downloadingItemRef : null}
           >
             <DownloadCard
-              version={backend}
+              backend={backend}
               size={
                 backend.size
                   ? formatDownloadSize(backend.size, backend.downloadUrl)
