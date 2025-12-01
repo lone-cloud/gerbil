@@ -61,7 +61,7 @@ export const UpdateAvailableModal = ({
       opened={opened}
       onClose={onClose}
       size="sm"
-      title="An Update is Available"
+      title="A Backend Update is Available"
       closeOnEscape={!isDownloading && !isUpdating}
     >
       <Stack gap="md">
@@ -93,7 +93,7 @@ export const UpdateAvailableModal = ({
 
             {availableUpdate?.name && (
               <Text size="xs" c="dimmed">
-                Binary Type: {pretifyBinName(availableUpdate?.name)}
+                Backend Type: {pretifyBinName(availableUpdate?.name)}
               </Text>
             )}
 
