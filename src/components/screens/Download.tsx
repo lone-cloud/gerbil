@@ -1,14 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import {
-  Card,
-  Text,
-  Title,
-  Loader,
-  Stack,
-  Container,
-  Anchor,
-} from '@mantine/core';
+import { Card, Text, Title, Loader, Stack, Container } from '@mantine/core';
 import { DownloadCard } from '@/components/DownloadCard';
+import { ImportBackendLink } from '@/components/ImportBackendLink';
 import { getPlatformDisplayName } from '@/utils/platform';
 import { formatDownloadSize } from '@/utils/format';
 import { getAssetDescription } from '@/utils/assets';
@@ -30,7 +23,6 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
   } = useKoboldBackendsStore();
 
   const [downloadingAsset, setDownloadingAsset] = useState<string | null>(null);
-  const [importError, setImportError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const downloadingItemRef = useRef<HTMLDivElement>(null);
 
@@ -123,40 +115,11 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
                 </Text>
               )}
 
-              {importError && (
-                <Text size="sm" c="red" ta="center">
-                  {importError}
-                </Text>
-              )}
-
-              <Text size="sm" c="dimmed" ta="center">
-                Already have a backend downloaded?{' '}
-                <Anchor
-                  component="button"
-                  type="button"
-                  size="sm"
-                  disabled={importing || Boolean(downloading)}
-                  onClick={async () => {
-                    setImportError(null);
-                    setImporting(true);
-
-                    try {
-                      const result =
-                        await window.electronAPI.kobold.importLocalBackend();
-
-                      if (result.success) {
-                        onDownloadComplete();
-                      } else if (result.error) {
-                        setImportError(result.error);
-                      }
-                    } finally {
-                      setImporting(false);
-                    }
-                  }}
-                >
-                  {importing ? 'Importing...' : 'Select a local file'}
-                </Anchor>
-              </Text>
+              <ImportBackendLink
+                disabled={Boolean(downloading)}
+                onSuccess={onDownloadComplete}
+                onImportingChange={setImporting}
+              />
             </>
           )}
         </Stack>

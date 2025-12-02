@@ -7,9 +7,11 @@ import {
   Loader,
   Center,
   Anchor,
+  Divider,
 } from '@mantine/core';
 import { ExternalLink } from 'lucide-react';
 import { DownloadCard } from '@/components/DownloadCard';
+import { ImportBackendLink } from '@/components/ImportBackendLink';
 import { getAssetDescription } from '@/utils/assets';
 import {
   getDisplayNameFromPath,
@@ -30,7 +32,6 @@ export const BackendsTab = () => {
     downloading,
     handleDownload: handleDownloadFromStore,
     getLatestReleaseWithDownloadStatus,
-    initialize,
   } = useKoboldBackendsStore();
 
   const [installedBackends, setInstalledBackends] = useState<
@@ -43,11 +44,32 @@ export const BackendsTab = () => {
   const [latestRelease, setLatestRelease] = useState<ReleaseWithStatus | null>(
     null
   );
+  const [importing, setImporting] = useState(false);
   const downloadingItemRef = useRef<HTMLDivElement>(null);
 
-  const loadInstalledBackends = useCallback(async () => {
-    setLoadingInstalled(true);
+  useEffect(() => {
+    const init = async () => {
+      setLoadingInstalled(true);
 
+      const [backends, current] = await Promise.all([
+        window.electronAPI.kobold.getInstalledBackends(),
+        window.electronAPI.kobold.getCurrentBackend(),
+      ]);
+
+      setInstalledBackends(backends);
+      setCurrentBackend(current);
+      setLoadingInstalled(false);
+
+      const release = await getLatestReleaseWithDownloadStatus();
+      if (release) {
+        setLatestRelease(release);
+      }
+    };
+
+    init();
+  }, [getLatestReleaseWithDownloadStatus]);
+
+  const loadInstalledBackends = useCallback(async () => {
     const [backends, current] = await Promise.all([
       window.electronAPI.kobold.getInstalledBackends(),
       window.electronAPI.kobold.getCurrentBackend(),
@@ -55,33 +77,7 @@ export const BackendsTab = () => {
 
     setInstalledBackends(backends);
     setCurrentBackend(current);
-
-    setLoadingInstalled(false);
   }, []);
-
-  const loadLatestRelease = useCallback(async () => {
-    const release = await getLatestReleaseWithDownloadStatus();
-    if (release) {
-      setLatestRelease(release);
-    }
-  }, [getLatestReleaseWithDownloadStatus]);
-
-  useEffect(() => {
-    if (availableDownloads.length === 0 && !loadingRemote && !loadingPlatform) {
-      initialize();
-    }
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadInstalledBackends();
-    loadLatestRelease();
-  }, [
-    loadInstalledBackends,
-    loadLatestRelease,
-    availableDownloads.length,
-    loadingRemote,
-    loadingPlatform,
-    initialize,
-  ]);
 
   const allBackends = useMemo((): BackendInfo[] => {
     const backends: BackendInfo[] = [];
@@ -235,22 +231,18 @@ export const BackendsTab = () => {
     window.electronAPI.kobold.setCurrentBackend(backend.installedPath);
   };
 
-  if (loadingInstalled || loadingPlatform || loadingRemote) {
+  if (loadingInstalled) {
     return (
       <Center h="100%">
         <Stack align="center" gap="md">
           <Loader size="lg" />
-          <Text c="dimmed">
-            {loadingInstalled && (loadingPlatform || loadingRemote)
-              ? 'Loading backends...'
-              : loadingInstalled
-                ? 'Scanning installed backends...'
-                : 'Checking for updates...'}
-          </Text>
+          <Text c="dimmed">Scanning installed backends...</Text>
         </Stack>
       </Center>
     );
   }
+
+  const isDisabled = downloading !== null || importing;
 
   return (
     <>
@@ -276,6 +268,17 @@ export const BackendsTab = () => {
         )}
       </Group>
 
+      {(loadingPlatform || loadingRemote) && (
+        <Card withBorder radius="md" padding="md" mb="sm">
+          <Group gap="sm" justify="center">
+            <Loader size="sm" />
+            <Text size="sm" c="dimmed">
+              Checking for available downloads...
+            </Text>
+          </Group>
+        </Card>
+      )}
+
       {allBackends.map((backend, index) => {
         const isDownloading = downloading === backend.name;
 
@@ -293,7 +296,7 @@ export const BackendsTab = () => {
                   : ''
               }
               description={getAssetDescription(backend.name)}
-              disabled={downloading !== null}
+              disabled={isDisabled}
               onDownload={(e) => {
                 e.stopPropagation();
                 handleDownload(backend);
@@ -323,6 +326,14 @@ export const BackendsTab = () => {
           </Text>
         </Card>
       )}
+
+      <Divider my="md" />
+
+      <ImportBackendLink
+        disabled={isDisabled}
+        onSuccess={loadInstalledBackends}
+        onImportingChange={setImporting}
+      />
     </>
   );
 };
