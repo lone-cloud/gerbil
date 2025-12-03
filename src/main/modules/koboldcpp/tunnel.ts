@@ -50,7 +50,7 @@ export const startTunnel = async () => {
 
     tunnel.on('error', (error) => {
       logError(`Tunnel error: ${error.message}`, error);
-      sendKoboldOutput(`[TUNNEL ERROR] ${error.message}`);
+      sendKoboldOutput(`Tunnel error: ${error.message}`);
     });
 
     tunnel.on('exit', (code, signal) => {
@@ -66,7 +66,7 @@ export const startTunnel = async () => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logError(`Failed to start tunnel: ${errorMessage}`, error as Error);
-    sendKoboldOutput(`[TUNNEL ERROR] ${errorMessage}`);
+    sendKoboldOutput(`Failed to start tunnel: ${errorMessage}`);
     activeTunnel = null;
     return null;
   }
