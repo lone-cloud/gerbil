@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ConfigFile, SdConvDirectMode } from '@/types';
+import type { Acceleration, ConfigFile, SdConvDirectMode } from '@/types';
 import { IMAGE_MODEL_PRESETS } from '@/constants/imageModelPresets';
 import { DEFAULT_AUTO_GPU_LAYERS, DEFAULT_CONTEXT_SIZE } from '@/constants';
 
@@ -25,7 +25,7 @@ interface LaunchConfigState {
   quantmatmul: boolean;
   usemmap: boolean;
   debugmode: boolean;
-  backend: string;
+  acceleration: Acceleration;
   gpuDeviceSelection: string;
   tensorSplit: string;
   gpuPlatform: number;
@@ -65,7 +65,7 @@ interface LaunchConfigState {
   setUsemmap: (usemmap: boolean) => void;
   setDebugmode: (debugmode: boolean) => void;
   setPreLaunchCommands: (commands: string[]) => void;
-  setBackend: (backend: string) => void;
+  setAcceleration: (acceleration: Acceleration) => void;
   setGpuDeviceSelection: (selection: string) => void;
   setTensorSplit: (split: string) => void;
   setGpuPlatform: (platform: number) => void;
@@ -125,7 +125,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   quantmatmul: true,
   usemmap: true,
   debugmode: false,
-  backend: '',
+  acceleration: '' as Acceleration,
   gpuDeviceSelection: '0',
   tensorSplit: '',
   gpuPlatform: 0,
@@ -170,9 +170,9 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   setUsemmap: (usemmap) => set({ usemmap }),
   setDebugmode: (debugmode) => set({ debugmode }),
   setPreLaunchCommands: (commands) => set({ preLaunchCommands: commands }),
-  setBackend: (backend) =>
+  setAcceleration: (acceleration) =>
     set({
-      backend,
+      acceleration,
       gpuDeviceSelection: '0',
       tensorSplit: '',
     }),
@@ -331,7 +331,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
 
       if (configData.usecuda === true) {
         const gpuInfo = await window.electronAPI.kobold.detectGPU();
-        updates.backend = gpuInfo.hasNVIDIA ? 'cuda' : 'rocm';
+        updates.acceleration = gpuInfo.hasNVIDIA ? 'cuda' : 'rocm';
 
         if (
           Array.isArray(configData.usecuda) &&
@@ -343,17 +343,17 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
           updates.quantmatmul = mmqMode === 'mmq';
         }
       } else if (configData.usevulkan === true) {
-        updates.backend = 'vulkan';
+        updates.acceleration = 'vulkan';
       } else if (
         Array.isArray(configData.useclblast) &&
         configData.useclblast.length === 2
       ) {
-        updates.backend = 'clblast';
+        updates.acceleration = 'clblast';
         const [deviceIndex, platformIndex] = configData.useclblast;
         updates.gpuDeviceSelection = deviceIndex.toString();
         updates.gpuPlatform = platformIndex;
       } else {
-        updates.backend = 'cpu';
+        updates.acceleration = 'cpu';
       }
 
       if (typeof configData.gpuDeviceSelection === 'string') {

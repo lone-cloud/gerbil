@@ -7,7 +7,6 @@ import {
   Loader,
   Center,
   Anchor,
-  Divider,
 } from '@mantine/core';
 import { ExternalLink } from 'lucide-react';
 import { DownloadCard } from '@/components/DownloadCard';
@@ -326,8 +325,6 @@ export const BackendsTab = () => {
           </Text>
         </Card>
       )}
-
-      <Divider my="md" />
 
       <ImportBackendLink
         disabled={isDisabled}

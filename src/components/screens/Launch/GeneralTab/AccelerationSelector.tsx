@@ -4,19 +4,19 @@ import { InfoTooltip } from '@/components/InfoTooltip';
 import { AccelerationSelectItem } from '@/components/screens/Launch/GeneralTab/AccelerationSelectItem';
 import { GpuDeviceSelector } from '@/components/screens/Launch/GeneralTab/GpuDeviceSelector';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
-import type { AccelerationOption } from '@/types';
+import type { Acceleration, AccelerationOption } from '@/types';
 import { Select } from '@/components/Select';
 
 export const AccelerationSelector = () => {
   const {
-    backend,
+    acceleration,
     gpuLayers,
     autoGpuLayers,
     model,
     contextSize,
     gpuDeviceSelection,
     flashattention,
-    setBackend,
+    setAcceleration,
     setGpuLayers,
     setAutoGpuLayers,
   } = useLaunchConfigStore();
@@ -57,9 +57,9 @@ export const AccelerationSelector = () => {
   }, []);
 
   useEffect(() => {
-    if (availableAccelerations.length > 0 && backend) {
+    if (availableAccelerations.length > 0 && acceleration) {
       const isAccelerationAvailable = availableAccelerations.some(
-        (a) => a.value === backend && !a.disabled
+        (a) => a.value === acceleration && !a.disabled
       );
 
       if (!isAccelerationAvailable) {
@@ -67,15 +67,15 @@ export const AccelerationSelector = () => {
           (a) => !a.disabled
         );
         if (fallbackAcceleration) {
-          setBackend(fallbackAcceleration.value);
+          setAcceleration(fallbackAcceleration.value as Acceleration);
         }
       }
     }
-  }, [availableAccelerations, backend, setBackend]);
+  }, [availableAccelerations, acceleration, setAcceleration]);
 
   useEffect(() => {
     const calculateLayers = async () => {
-      const isCpuOnly = backend === 'cpu' && !isMac;
+      const isCpuOnly = acceleration === 'cpu' && !isMac;
       if (
         !autoGpuLayers ||
         !model ||
@@ -118,7 +118,8 @@ export const AccelerationSelector = () => {
           model,
           contextSize,
           availableVramGB,
-          flashattention
+          flashattention,
+          acceleration
         );
 
         setGpuLayers(result.recommendedLayers);
@@ -137,7 +138,7 @@ export const AccelerationSelector = () => {
     autoGpuLayers,
     model,
     contextSize,
-    backend,
+    acceleration,
     gpuDeviceSelection,
     flashattention,
     isLoadingAccelerations,
@@ -163,14 +164,14 @@ export const AccelerationSelector = () => {
             }
             value={
               availableAccelerations.some(
-                (a) => a.value === backend && !a.disabled
+                (a) => a.value === acceleration && !a.disabled
               )
-                ? backend
+                ? acceleration
                 : null
             }
             onChange={(value) => {
               if (value) {
-                setBackend(value);
+                setAcceleration(value as Acceleration);
               }
             }}
             data={availableAccelerations.map((a) => ({
@@ -223,7 +224,7 @@ export const AccelerationSelector = () => {
               step={1}
               size="sm"
               w={80}
-              disabled={autoGpuLayers || (backend === 'cpu' && !isMac)}
+              disabled={autoGpuLayers || (acceleration === 'cpu' && !isMac)}
             />
             <Group gap="xs" align="center">
               <Checkbox
@@ -233,7 +234,7 @@ export const AccelerationSelector = () => {
                   setAutoGpuLayers(event.currentTarget.checked)
                 }
                 size="sm"
-                disabled={backend === 'cpu' && !isMac}
+                disabled={acceleration === 'cpu' && !isMac}
               />
               <InfoTooltip label="Automatically calculate optimal GPU layers based on available VRAM. The calculation accounts for model size, context size and flash attention." />
             </Group>

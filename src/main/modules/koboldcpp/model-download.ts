@@ -270,7 +270,7 @@ export async function resolveModelPath(
   const localPath = getModelLocalPath(urlOrPath, paramType);
 
   if (await pathExists(localPath)) {
-    sendKoboldOutput(`Using cached model at: ${localPath}\n`);
+    sendKoboldOutput(`Using cached model at: ${localPath}`);
     onProgress?.({
       type: 'complete',
       localPath,
@@ -278,14 +278,14 @@ export async function resolveModelPath(
     return localPath;
   }
 
-  sendKoboldOutput(`Downloading model from ${urlOrPath} to ${localPath}...\n`);
+  sendKoboldOutput(`Downloading model from ${urlOrPath} to ${localPath}...`);
 
   const progressCallback = onProgress || ((p: DownloadProgress) => p);
 
   try {
     await downloadFile(urlOrPath, localPath, progressCallback);
 
-    sendKoboldOutput(`Model downloaded successfully to: ${localPath}\n\n`);
+    sendKoboldOutput(`Model downloaded successfully to: ${localPath}\n`);
     progressCallback({
       type: 'complete',
       localPath,

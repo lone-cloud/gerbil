@@ -22,7 +22,7 @@ interface LaunchArgs {
   flashattention: boolean;
   noavx2: boolean;
   failsafe: boolean;
-  backend: string;
+  acceleration: string;
   lowvram: boolean;
   gpuDeviceSelection: string;
   gpuPlatform: number;
@@ -97,9 +97,10 @@ const buildModelArgs = (
 const buildConfigArgs = (isImageMode: boolean, launchArgs: LaunchArgs) => {
   const args: string[] = [];
 
-  const isGpuBackend = launchArgs.backend && launchArgs.backend !== 'cpu';
+  const isGpuAcceleration =
+    launchArgs.acceleration && launchArgs.acceleration !== 'cpu';
 
-  if (isGpuBackend) {
+  if (isGpuAcceleration) {
     if (launchArgs.autoGpuLayers && launchArgs.gpuLayers > 0) {
       args.push('--gpulayers', launchArgs.gpuLayers.toString());
     } else if (!launchArgs.autoGpuLayers && launchArgs.gpuLayers > 0) {
@@ -213,8 +214,8 @@ const buildBackendArgs = (launchArgs: LaunchArgs, platform: string) => {
     return args;
   }
 
-  if (!launchArgs.backend || launchArgs.backend === 'cpu') {
-    if (launchArgs.backend === 'cpu') {
+  if (!launchArgs.acceleration || launchArgs.acceleration === 'cpu') {
+    if (launchArgs.acceleration === 'cpu') {
       args.push('--usecpu');
     }
 
@@ -222,23 +223,26 @@ const buildBackendArgs = (launchArgs: LaunchArgs, platform: string) => {
   }
 
   const isTensorSplitSupported =
-    launchArgs.backend === 'cuda' ||
-    launchArgs.backend === 'rocm' ||
-    launchArgs.backend === 'vulkan';
+    launchArgs.acceleration === 'cuda' ||
+    launchArgs.acceleration === 'rocm' ||
+    launchArgs.acceleration === 'vulkan';
 
-  if (launchArgs.backend === 'cuda' || launchArgs.backend === 'rocm') {
+  if (
+    launchArgs.acceleration === 'cuda' ||
+    launchArgs.acceleration === 'rocm'
+  ) {
     args.push(...buildCudaArgs(launchArgs));
 
     if (launchArgs.gpuDeviceSelection === 'all' && isTensorSplitSupported) {
       addTensorSplitArgs(args, launchArgs);
     }
-  } else if (launchArgs.backend === 'vulkan') {
+  } else if (launchArgs.acceleration === 'vulkan') {
     args.push(...buildVulkanArgs());
 
     if (launchArgs.gpuDeviceSelection === 'all' && isTensorSplitSupported) {
       addTensorSplitArgs(args, launchArgs);
     }
-  } else if (launchArgs.backend === 'clblast') {
+  } else if (launchArgs.acceleration === 'clblast') {
     args.push(...buildClblastArgs(launchArgs));
   }
 

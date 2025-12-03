@@ -10,7 +10,7 @@ export interface Warning {
 interface UseWarningsProps {
   model: string;
   sdmodel: string;
-  backend?: string;
+  acceleration?: string;
   configLoaded?: boolean;
 }
 
@@ -92,7 +92,7 @@ const checkGpuWarnings = async (
     }
 
     warnings.push({
-      type: 'warning',
+      type: 'info',
       message,
     });
   }
@@ -100,11 +100,13 @@ const checkGpuWarnings = async (
   return warnings;
 };
 
-const checkVramWarnings = async (backend: string): Promise<Warning[]> => {
+const checkVramWarnings = async (acceleration: string): Promise<Warning[]> => {
   const warnings: Warning[] = [];
-  const isGpuBackend = ['cuda', 'rocm', 'vulkan', 'clblast'].includes(backend);
+  const isGpuAcceleration = ['cuda', 'rocm', 'vulkan', 'clblast'].includes(
+    acceleration
+  );
 
-  if (isGpuBackend) {
+  if (isGpuAcceleration) {
     const gpuMemoryInfo = await window.electronAPI.kobold.detectGPUMemory();
 
     if (gpuMemoryInfo) {
@@ -133,12 +135,12 @@ const checkVramWarnings = async (backend: string): Promise<Warning[]> => {
 };
 
 const checkCpuWarnings = (
-  backend: string,
+  acceleration: string,
   availableAccelerations: AccelerationOption[]
 ) => {
   const warnings: Warning[] = [];
 
-  if (backend !== 'cpu') {
+  if (acceleration !== 'cpu') {
     return warnings;
   }
 
@@ -157,7 +159,7 @@ const checkCpuWarnings = (
 };
 
 const checkBackendWarnings = async (params?: {
-  backend: string;
+  acceleration: string;
   cpuCapabilities: CPUCapabilities | null;
   availableAccelerations: AccelerationOption[];
 }) => {
@@ -181,13 +183,16 @@ const checkBackendWarnings = async (params?: {
   warnings.push(...gpuWarnings);
 
   if (params) {
-    const { backend, cpuCapabilities, availableAccelerations } = params;
+    const { acceleration, cpuCapabilities, availableAccelerations } = params;
 
-    const vramWarnings = await checkVramWarnings(backend);
+    const vramWarnings = await checkVramWarnings(acceleration);
     warnings.push(...vramWarnings);
 
     if (cpuCapabilities) {
-      const cpuWarnings = checkCpuWarnings(backend, availableAccelerations);
+      const cpuWarnings = checkCpuWarnings(
+        acceleration,
+        availableAccelerations
+      );
       warnings.push(...cpuWarnings);
     }
   }
@@ -198,7 +203,7 @@ const checkBackendWarnings = async (params?: {
 export const useWarnings = ({
   model,
   sdmodel,
-  backend,
+  acceleration,
   configLoaded = false,
 }: UseWarningsProps) => {
   const [backendWarnings, setBackendWarnings] = useState<Warning[]>([]);
@@ -209,7 +214,7 @@ export const useWarnings = ({
   );
 
   const updateBackendWarnings = useCallback(async () => {
-    if (!backend) {
+    if (!acceleration) {
       setBackendWarnings([]);
       return;
     }
@@ -220,13 +225,13 @@ export const useWarnings = ({
     ]);
 
     const result = await checkBackendWarnings({
-      backend,
+      acceleration,
       cpuCapabilities: cpuCapabilitiesResult,
       availableAccelerations,
     });
 
     setBackendWarnings(result);
-  }, [backend]);
+  }, [acceleration]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

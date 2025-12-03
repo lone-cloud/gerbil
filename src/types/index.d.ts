@@ -103,6 +103,8 @@ export interface AccelerationSupport {
   cuda: boolean;
 }
 
+export type Acceleration = keyof AccelerationSupport | 'cpu';
+
 export interface ModelAnalysis {
   general: {
     architecture: string;

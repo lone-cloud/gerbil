@@ -11,7 +11,7 @@ import { ImageGenerationTab } from '@/components/screens/Launch/ImageGenerationT
 import { WarningDisplay } from '@/components/WarningDisplay';
 import { ConfigFileManager } from '@/components/screens/Launch/ConfigFileManager';
 import { DEFAULT_MODEL_URL } from '@/constants';
-import type { ConfigFile } from '@/types';
+import type { Acceleration, ConfigFile } from '@/types';
 
 interface LaunchScreenProps {
   onLaunch: () => void;
@@ -47,7 +47,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     quantmatmul,
     usemmap,
     debugmode,
-    backend,
+    acceleration,
     gpuDeviceSelection,
     gpuPlatform,
     tensorSplit,
@@ -66,7 +66,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     parseAndApplyConfigFile,
     loadConfigFromFile,
     setModel,
-    setBackend,
+    setAcceleration,
   } = useLaunchConfigStore();
 
   const { isLaunching, handleLaunch } = useLaunchLogic({
@@ -78,7 +78,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
   const { warnings: combinedWarnings } = useWarnings({
     model,
     sdmodel,
-    backend,
+    acceleration,
     configLoaded,
   });
 
@@ -86,10 +86,10 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     const accelerations =
       await window.electronAPI.kobold.getAvailableAccelerations();
 
-    if (!backend && accelerations && accelerations.length > 0) {
-      setBackend(accelerations[0].value);
+    if (!acceleration && accelerations && accelerations.length > 0) {
+      setAcceleration(accelerations[0].value as Acceleration);
     }
-  }, [backend, setBackend]);
+  }, [acceleration, setAcceleration]);
 
   const setInitialDefaults = useCallback(
     (currentModel: string, currentSdModel: string) => {
@@ -177,9 +177,9 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     debugmode,
     moecpu,
     moeexperts,
-    usecuda: backend === 'cuda' || backend === 'rocm',
-    usevulkan: backend === 'vulkan',
-    useclblast: backend === 'clblast',
+    usecuda: acceleration === 'cuda' || acceleration === 'rocm',
+    usevulkan: acceleration === 'vulkan',
+    useclblast: acceleration === 'clblast',
     gpuDeviceSelection,
     tensorSplit,
     sdmodel,
@@ -295,7 +295,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
       flashattention,
       noavx2,
       failsafe,
-      backend,
+      acceleration,
       lowvram,
       gpuDeviceSelection,
       gpuPlatform,
@@ -333,7 +333,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     flashattention,
     noavx2,
     failsafe,
-    backend,
+    acceleration,
     lowvram,
     gpuDeviceSelection,
     gpuPlatform,

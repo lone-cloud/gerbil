@@ -6,6 +6,7 @@ import type {
   SystemMemoryInfo,
 } from '@/types/hardware';
 import type {
+  Acceleration,
   AccelerationOption,
   AccelerationSupport,
   Screen,
@@ -170,7 +171,8 @@ export interface KoboldAPI {
     modelPath: string,
     contextSize: number,
     availableVramGB: number,
-    flashAttention: boolean
+    flashAttention: boolean,
+    acceleration: Acceleration
   ) => Promise<OptimalLayersResult>;
   stopKoboldCpp: () => void;
   onDownloadProgress: (callback: (progress: number) => void) => () => void;

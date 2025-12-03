@@ -27,7 +27,7 @@ export const AdvancedTab = () => {
     quantmatmul,
     usemmap,
     debugmode,
-    backend,
+    acceleration,
     moecpu,
     moeexperts,
     setAdditionalArguments,
@@ -58,7 +58,7 @@ export const AdvancedTab = () => {
     setAdditionalArguments(updatedArgs);
   };
 
-  const isGpuBackend = backend === 'cuda' || backend === 'rocm';
+  const isGpuAcceleration = acceleration === 'cuda' || acceleration === 'rocm';
 
   useEffect(() => {
     const detectAccelerationSupport = async () => {
@@ -118,15 +118,15 @@ export const AdvancedTab = () => {
           />
 
           <CheckboxWithTooltip
-            checked={quantmatmul && isGpuBackend}
+            checked={quantmatmul && isGpuAcceleration}
             onChange={setQuantmatmul}
             label="QuantMatMul"
             tooltip={
-              !isGpuBackend
-                ? 'QuantMatMul is only available for CUDA and ROCm backends.'
+              !isGpuAcceleration
+                ? 'QuantMatMul is only available for CUDA and ROCm accelerations.'
                 : 'Enable MMQ mode to use finetuned kernels instead of default CuBLAS/HipBLAS for prompt processing.'
             }
-            disabled={!isGpuBackend}
+            disabled={!isGpuAcceleration}
           />
 
           <CheckboxWithTooltip
@@ -149,15 +149,15 @@ export const AdvancedTab = () => {
           />
 
           <CheckboxWithTooltip
-            checked={lowvram && isGpuBackend}
+            checked={lowvram && isGpuAcceleration}
             onChange={setLowvram}
             label="Low VRAM"
             tooltip={
-              !isGpuBackend
-                ? 'Low VRAM mode is only available for CUDA and ROCm backends.'
+              !isGpuAcceleration
+                ? 'Low VRAM mode is only available for CUDA and ROCm accelerations.'
                 : 'Avoid offloading KV Cache or scratch buffers to VRAM. Allows more layers to fit, but may result in a speed loss.'
             }
-            disabled={!isGpuBackend}
+            disabled={!isGpuAcceleration}
           />
 
           <CheckboxWithTooltip

@@ -1,7 +1,7 @@
 import { ipcMain, app } from 'electron';
 import { join } from 'path';
 import { platform } from 'process';
-import type { Screen } from '@/types';
+import type { Screen, Acceleration } from '@/types';
 import {
   stopKoboldCpp,
   launchKoboldCppWithCustomFrontends,
@@ -182,13 +182,15 @@ export function setupIPCHandlers() {
       modelPath: string,
       contextSize: number,
       availableVramGB: number,
-      flashAttention: boolean
+      flashAttention: boolean,
+      acceleration: Acceleration
     ) =>
       calculateOptimalGpuLayers({
         modelPath,
         contextSize,
         availableVramGB,
         flashAttention,
+        acceleration,
       })
   );
 

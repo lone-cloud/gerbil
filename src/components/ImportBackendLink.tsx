@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Text, Anchor } from '@mantine/core';
+import { Text, Anchor, Box } from '@mantine/core';
 
 interface ImportBackendLinkProps {
   disabled?: boolean;
@@ -40,7 +40,7 @@ export const ImportBackendLink = ({
   };
 
   return (
-    <>
+    <Box mt="xs">
       {importError && (
         <Text size="sm" c="red" ta="center" mb="xs">
           {importError}
@@ -58,6 +58,6 @@ export const ImportBackendLink = ({
           {importing ? 'Importing...' : 'Select a local file'}
         </Anchor>
       </Text>
-    </>
+    </Box>
   );
 };

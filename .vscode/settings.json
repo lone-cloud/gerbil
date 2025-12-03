@@ -10,11 +10,8 @@
     "typescriptreact"
   ],
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "[typescript]": {
+  "editor.defaultFormatter": "prettier.prettier-vscode",
+  "[typescriptreact]": {
     "editor.defaultFormatter": "prettier.prettier-vscode"
   },
-  "[typescriptreact]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
 }

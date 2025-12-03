@@ -4,8 +4,8 @@ import { useLaunchConfigStore } from '@/stores/launchConfig';
 import { Select } from '@/components/Select';
 import type { AccelerationOption } from '@/types';
 
-const GPU_BACKENDS = ['cuda', 'rocm', 'vulkan', 'clblast'];
-const TENSOR_SPLIT_BACKENDS = ['cuda', 'rocm', 'vulkan'];
+const GPU_ACCELERATIONS = ['cuda', 'rocm', 'vulkan', 'clblast'];
+const TENSOR_SPLIT_ACCELERATIONS = ['cuda', 'rocm', 'vulkan'];
 
 interface GpuDeviceSelectorProps {
   availableAccelerations: AccelerationOption[];
@@ -15,7 +15,7 @@ export const GpuDeviceSelector = ({
   availableAccelerations,
 }: GpuDeviceSelectorProps) => {
   const {
-    backend,
+    acceleration,
     gpuDeviceSelection,
     tensorSplit,
     setGpuDeviceSelection,
@@ -23,13 +23,17 @@ export const GpuDeviceSelector = ({
   } = useLaunchConfigStore();
 
   const selectedAcceleration = availableAccelerations.find(
-    (a) => a.value === backend
+    (a) => a.value === acceleration
   );
-  const isGpu = GPU_BACKENDS.includes(backend);
+  const isGpuAcceleration = GPU_ACCELERATIONS.includes(acceleration);
 
   const getDiscreteDeviceCount = () => {
     if (!selectedAcceleration?.devices) return 0;
-    if (backend === 'clblast' || backend === 'vulkan' || backend === 'rocm') {
+    if (
+      acceleration === 'clblast' ||
+      acceleration === 'vulkan' ||
+      acceleration === 'rocm'
+    ) {
       return selectedAcceleration.devices.filter(
         (device) => typeof device === 'string' || !device.isIntegrated
       ).length;
@@ -39,24 +43,26 @@ export const GpuDeviceSelector = ({
 
   const hasMultipleDevices = getDiscreteDeviceCount() > 1;
   const showTensorSplit =
-    TENSOR_SPLIT_BACKENDS.includes(backend) &&
+    TENSOR_SPLIT_ACCELERATIONS.includes(acceleration) &&
     hasMultipleDevices &&
     gpuDeviceSelection === 'all';
 
-  if (!isGpu || !hasMultipleDevices) {
+  if (!isGpuAcceleration || !hasMultipleDevices) {
     return null;
   }
 
   const deviceOptions = (() => {
     if (!selectedAcceleration?.devices) return [];
 
-    if (backend === 'clblast') {
+    if (acceleration === 'clblast') {
       return selectedAcceleration.devices
         .map((device, index) => {
           if (typeof device === 'object' && device.isIntegrated) {
             return null;
           }
+
           const deviceName = typeof device === 'string' ? device : device.name;
+
           return {
             value: index.toString(),
             label: `GPU ${index}: ${deviceName}`,
@@ -67,7 +73,7 @@ export const GpuDeviceSelector = ({
         );
     }
 
-    if (backend === 'vulkan' || backend === 'rocm') {
+    if (acceleration === 'vulkan' || acceleration === 'rocm') {
       const discreteDeviceOptions = selectedAcceleration.devices
         .map((device, index) => {
           if (typeof device === 'object' && device.isIntegrated) {
