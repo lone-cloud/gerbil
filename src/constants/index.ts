@@ -9,7 +9,7 @@ export const STATUSBAR_HEIGHT = '1.5rem';
 export const SERVER_READY_SIGNALS = {
   KOBOLDCPP: 'Please connect to custom endpoint at',
   SILLYTAVERN: 'SillyTavern is listening on',
-  OPENWEBUI: 'Waiting for application startup.',
+  OPENWEBUI: 'Started server process',
 } as const;
 
 export const DEFAULT_CONTEXT_SIZE = 4096;

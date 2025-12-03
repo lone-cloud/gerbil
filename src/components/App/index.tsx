@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   AppShell,
   Loader,
@@ -19,6 +19,7 @@ import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { useKoboldBackendsStore } from '@/stores/koboldBackends';
 import { usePreferencesStore } from '@/stores/preferences';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
+import { getDefaultInterfaceTab } from '@/utils/interface';
 import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
 import type { DownloadItem } from '@/types/electron';
 import type { InterfaceTab, Screen } from '@/types';
@@ -29,14 +30,45 @@ export const App = () => {
   const [hasInitialized, setHasInitialized] = useState(false);
   const [activeInterfaceTab, setActiveInterfaceTab] =
     useState<InterfaceTab>('terminal');
+  const [isServerReady, setIsServerReady] = useState(false);
   const [ejectConfirmModalOpen, setEjectConfirmModalOpen] = useState(false);
   const [crashInfo, setCrashInfo] = useState<KoboldCrashInfo | null>(null);
   const isInterfaceScreen = currentScreen === 'interface';
 
-  const { resolvedColorScheme: appColorScheme, systemMonitoringEnabled } =
-    usePreferencesStore();
+  const {
+    resolvedColorScheme: appColorScheme,
+    systemMonitoringEnabled,
+    frontendPreference,
+    imageGenerationFrontendPreference,
+  } = usePreferencesStore();
   const { setColorScheme } = useMantineColorScheme();
-  const { model, sdmodel } = useLaunchConfigStore();
+  const { model, sdmodel, isTextMode, isImageGenerationMode } =
+    useLaunchConfigStore();
+
+  const defaultInterfaceTab = useMemo(
+    () =>
+      getDefaultInterfaceTab({
+        frontendPreference,
+        imageGenerationFrontendPreference,
+        isTextMode,
+        isImageGenerationMode,
+      }),
+    [
+      frontendPreference,
+      imageGenerationFrontendPreference,
+      isTextMode,
+      isImageGenerationMode,
+    ]
+  );
+
+  useEffect(() => {
+    const cleanup = window.electronAPI.kobold.onServerReady(() => {
+      setIsServerReady(true);
+      setActiveInterfaceTab(defaultInterfaceTab);
+    });
+
+    return cleanup;
+  }, [defaultInterfaceTab]);
 
   useEffect(() => {
     setColorScheme(appColorScheme);
@@ -63,6 +95,8 @@ export const App = () => {
 
   const performEject = () => {
     window.electronAPI.kobold.stopKoboldCpp();
+    setIsServerReady(false);
+    setActiveInterfaceTab('terminal');
     setCurrentScreen('launch');
   };
 
@@ -235,10 +269,10 @@ export const App = () => {
               currentScreen={currentScreen}
               hasInitialized={hasInitialized}
               activeInterfaceTab={activeInterfaceTab}
+              isServerReady={isServerReady}
               onWelcomeComplete={handleWelcomeComplete}
               onDownloadComplete={handleDownloadComplete}
               onLaunch={handleLaunch}
-              onTabChange={setActiveInterfaceTab}
             />
           )}
         </ErrorBoundary>

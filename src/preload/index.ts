@@ -115,6 +115,14 @@ const koboldAPI: KoboldAPI = {
       ipcRenderer.removeListener('kobold-crashed', handler);
     };
   },
+  onServerReady: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on('server-ready', handler);
+
+    return () => {
+      ipcRenderer.removeListener('server-ready', handler);
+    };
+  },
   onTunnelUrlChanged: (callback) => {
     const handler = (_: IpcRendererEvent, url: string | null) => callback(url);
     ipcRenderer.on('tunnel-url-changed', handler);

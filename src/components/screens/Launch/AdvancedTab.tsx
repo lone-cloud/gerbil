@@ -13,7 +13,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
 import { CommandLineArgumentsModal } from '@/components/screens/Launch/CommandLineArgumentsModal';
-import { useLaunchConfig } from '@/hooks/useLaunchConfig';
+import { useLaunchConfigStore } from '@/stores/launchConfig';
 
 export const AdvancedTab = () => {
   const {
@@ -30,19 +30,19 @@ export const AdvancedTab = () => {
     backend,
     moecpu,
     moeexperts,
-    handleAdditionalArgumentsChange,
-    handlePreLaunchCommandsChange,
-    handleNoshiftChange,
-    handleFlashattentionChange,
-    handleNoavx2Change,
-    handleFailsafeChange,
-    handleLowvramChange,
-    handleQuantmatmulChange,
-    handleUsemmapChange,
-    handleDebugmodeChange,
-    handleMoecpuChange,
-    handleMoeexpertsChange,
-  } = useLaunchConfig();
+    setAdditionalArguments,
+    setPreLaunchCommands,
+    setNoshift,
+    setFlashattention,
+    setNoavx2,
+    setFailsafe,
+    setLowvram,
+    setQuantmatmul,
+    setUsemmap,
+    setDebugmode,
+    setMoecpu,
+    setMoeexperts,
+  } = useLaunchConfigStore();
   const [commandLineModalOpen, setCommandLineModalOpen] = useState(false);
   const [backendSupport, setBackendSupport] = useState<{
     noavx2: boolean;
@@ -55,7 +55,7 @@ export const AdvancedTab = () => {
     const updatedArgs = currentArgs
       ? `${currentArgs} ${newArgument}`
       : newArgument;
-    handleAdditionalArgumentsChange(updatedArgs);
+    setAdditionalArguments(updatedArgs);
   };
 
   const isGpuBackend = backend === 'cuda' || backend === 'rocm';
@@ -86,21 +86,21 @@ export const AdvancedTab = () => {
         <SimpleGrid cols={3} spacing="lg" verticalSpacing="md">
           <CheckboxWithTooltip
             checked={!noshift}
-            onChange={(checked) => handleNoshiftChange(!checked)}
+            onChange={(checked) => setNoshift(!checked)}
             label="Context Shift"
             tooltip="Use Context Shifting to reduce reprocessing."
           />
 
           <CheckboxWithTooltip
             checked={noshift}
-            onChange={handleNoshiftChange}
+            onChange={setNoshift}
             label="No Shift"
             tooltip="Don't use GPU layer shifting for incomplete offloads, which may reduce model performance."
           />
 
           <CheckboxWithTooltip
             checked={noavx2}
-            onChange={handleNoavx2Change}
+            onChange={setNoavx2}
             label="Disable AVX2"
             tooltip={
               !backendSupport?.noavx2 && !isLoading
@@ -112,14 +112,14 @@ export const AdvancedTab = () => {
 
           <CheckboxWithTooltip
             checked={usemmap}
-            onChange={handleUsemmapChange}
+            onChange={setUsemmap}
             label="MMAP"
             tooltip="Use MMAP to load models when enabled."
           />
 
           <CheckboxWithTooltip
             checked={quantmatmul && isGpuBackend}
-            onChange={handleQuantmatmulChange}
+            onChange={setQuantmatmul}
             label="QuantMatMul"
             tooltip={
               !isGpuBackend
@@ -131,7 +131,7 @@ export const AdvancedTab = () => {
 
           <CheckboxWithTooltip
             checked={failsafe}
-            onChange={handleFailsafeChange}
+            onChange={setFailsafe}
             label="Failsafe"
             tooltip={
               !backendSupport?.failsafe && !isLoading
@@ -143,14 +143,14 @@ export const AdvancedTab = () => {
 
           <CheckboxWithTooltip
             checked={flashattention}
-            onChange={handleFlashattentionChange}
+            onChange={setFlashattention}
             label="Flash Attention"
             tooltip="Enable flash attention to reduce memory usage. May produce incorrect answers for some prompts, but improves performance."
           />
 
           <CheckboxWithTooltip
             checked={lowvram && isGpuBackend}
-            onChange={handleLowvramChange}
+            onChange={setLowvram}
             label="Low VRAM"
             tooltip={
               !isGpuBackend
@@ -162,7 +162,7 @@ export const AdvancedTab = () => {
 
           <CheckboxWithTooltip
             checked={debugmode}
-            onChange={handleDebugmodeChange}
+            onChange={setDebugmode}
             label="Debug Mode"
             tooltip="Shows additional debug info in the terminal."
           />
@@ -181,7 +181,7 @@ export const AdvancedTab = () => {
               </Group>
               <NumberInput
                 value={moeexperts}
-                onChange={(value) => handleMoeexpertsChange(Number(value))}
+                onChange={(value) => setMoeexperts(Number(value))}
                 min={-1}
                 max={128}
                 step={1}
@@ -198,7 +198,7 @@ export const AdvancedTab = () => {
               </Group>
               <NumberInput
                 value={moecpu}
-                onChange={(value) => handleMoecpuChange(Number(value) || 0)}
+                onChange={(value) => setMoecpu(Number(value) || 0)}
                 min={0}
                 max={999}
                 step={1}
@@ -229,7 +229,7 @@ export const AdvancedTab = () => {
           placeholder="Additional command line arguments"
           value={additionalArguments}
           onChange={(event) =>
-            handleAdditionalArgumentsChange(event.currentTarget.value)
+            setAdditionalArguments(event.currentTarget.value)
           }
         />
       </div>
@@ -250,7 +250,7 @@ export const AdvancedTab = () => {
                 onChange={(event) => {
                   const newCommands = [...preLaunchCommands];
                   newCommands[index] = event.currentTarget.value;
-                  handlePreLaunchCommandsChange(newCommands);
+                  setPreLaunchCommands(newCommands);
                 }}
                 style={{ flex: 1 }}
               />
@@ -262,7 +262,7 @@ export const AdvancedTab = () => {
                   const newCommands = preLaunchCommands.filter(
                     (_, i) => i !== index
                   );
-                  handlePreLaunchCommandsChange(
+                  setPreLaunchCommands(
                     newCommands.length === 0 ? [''] : newCommands
                   );
                 }}
@@ -276,7 +276,7 @@ export const AdvancedTab = () => {
             size="xs"
             leftSection={<Plus size={14} />}
             onClick={() => {
-              handlePreLaunchCommandsChange([...preLaunchCommands, '']);
+              setPreLaunchCommands([...preLaunchCommands, '']);
             }}
             style={{ alignSelf: 'flex-start' }}
           >

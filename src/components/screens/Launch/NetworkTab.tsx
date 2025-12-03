@@ -2,7 +2,7 @@ import { Stack, Text, TextInput, Group } from '@mantine/core';
 import { useState } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
-import { useLaunchConfig } from '@/hooks/useLaunchConfig';
+import { useLaunchConfigStore } from '@/stores/launchConfig';
 
 export const NetworkTab = () => {
   const {
@@ -13,14 +13,14 @@ export const NetworkTab = () => {
     remotetunnel,
     nocertify,
     websearch,
-    handlePortChange,
-    handleHostChange,
-    handleMultiuserChange,
-    handleMultiplayerChange,
-    handleRemotetunnelChange,
-    handleNocertifyChange,
-    handleWebsearchChange,
-  } = useLaunchConfig();
+    setPort,
+    setHost,
+    setMultiuser,
+    setMultiplayer,
+    setRemotetunnel,
+    setNocertify,
+    setWebsearch,
+  } = useLaunchConfigStore();
   const [portInput, setPortInput] = useState('');
 
   return (
@@ -36,7 +36,7 @@ export const NetworkTab = () => {
           <TextInput
             placeholder="localhost"
             value={host}
-            onChange={(event) => handleHostChange(event.currentTarget.value)}
+            onChange={(event) => setHost(event.currentTarget.value)}
           />
         </div>
 
@@ -60,13 +60,13 @@ export const NetworkTab = () => {
 
               const numValue = Number(value);
               if (!isNaN(numValue) && numValue >= 1 && numValue <= 65535) {
-                handlePortChange(numValue);
+                setPort(numValue);
               }
             }}
             onBlur={(event) => {
               const value = event.currentTarget.value;
               if (value === '') {
-                handlePortChange(undefined);
+                setPort(undefined);
                 setPortInput('');
               }
             }}
@@ -83,14 +83,14 @@ export const NetworkTab = () => {
           <Group gap="lg" align="flex-start" wrap="nowrap">
             <CheckboxWithTooltip
               checked={multiuser}
-              onChange={handleMultiuserChange}
+              onChange={setMultiuser}
               label="Multiuser Mode"
               tooltip="Allows requests by multiple different clients to be queued and handled in sequence."
             />
 
             <CheckboxWithTooltip
               checked={multiplayer}
-              onChange={handleMultiplayerChange}
+              onChange={setMultiplayer}
               label="Shared Multiplayer"
               tooltip="Hosts a shared multiplayer session"
             />
@@ -99,14 +99,14 @@ export const NetworkTab = () => {
           <Group gap="lg" align="flex-start" wrap="nowrap">
             <CheckboxWithTooltip
               checked={remotetunnel}
-              onChange={handleRemotetunnelChange}
+              onChange={setRemotetunnel}
               label="Remote Tunnel"
               tooltip="Creates a trycloudflare tunnel. Allows you to access your server from other devices over an internet URL."
             />
 
             <CheckboxWithTooltip
               checked={nocertify}
-              onChange={handleNocertifyChange}
+              onChange={setNocertify}
               label="No Certify Mode (Insecure)"
               tooltip="Allows insecure SSL connections. Use this if you have SSL cert errors and need to bypass certificate restrictions."
             />
@@ -114,7 +114,7 @@ export const NetworkTab = () => {
 
           <CheckboxWithTooltip
             checked={websearch}
-            onChange={handleWebsearchChange}
+            onChange={setWebsearch}
             label="Enable WebSearch"
             tooltip="Enable the local search engine proxy so Web Searches can be done."
           />

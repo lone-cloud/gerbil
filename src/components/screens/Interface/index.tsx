@@ -1,53 +1,21 @@
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { useRef, useEffect } from 'react';
 import { ServerTab } from '@/components/screens/Interface/ServerTab';
 import {
   TerminalTab,
   type TerminalTabRef,
 } from '@/components/screens/Interface/TerminalTab';
-import { useLaunchConfigStore } from '@/stores/launchConfig';
-import { usePreferencesStore } from '@/stores/preferences';
-import { getDefaultInterfaceTab } from '@/utils/interface';
 import type { InterfaceTab } from '@/types';
 
 interface InterfaceScreenProps {
   activeTab?: InterfaceTab | null;
-  onTabChange?: (tab: InterfaceTab) => void;
+  isServerReady: boolean;
 }
 
 export const InterfaceScreen = ({
   activeTab,
-  onTabChange,
+  isServerReady,
 }: InterfaceScreenProps) => {
-  const [isServerReady, setIsServerReady] = useState(false);
   const terminalTabRef = useRef<TerminalTabRef>(null);
-
-  const { isTextMode, isImageGenerationMode } = useLaunchConfigStore();
-  const { frontendPreference, imageGenerationFrontendPreference } =
-    usePreferencesStore();
-
-  const defaultInterfaceTab = useMemo(
-    () =>
-      getDefaultInterfaceTab({
-        frontendPreference,
-        imageGenerationFrontendPreference,
-        isTextMode,
-        isImageGenerationMode,
-      }),
-    [
-      frontendPreference,
-      imageGenerationFrontendPreference,
-      isTextMode,
-      isImageGenerationMode,
-    ]
-  );
-
-  const handleServerReady = useCallback(() => {
-    setIsServerReady(true);
-
-    if (onTabChange) {
-      onTabChange(defaultInterfaceTab);
-    }
-  }, [onTabChange, defaultInterfaceTab]);
 
   useEffect(() => {
     if (activeTab === 'terminal' && terminalTabRef.current) {
@@ -84,7 +52,7 @@ export const InterfaceScreen = ({
           display: activeTab === 'terminal' ? 'block' : 'none',
         }}
       >
-        <TerminalTab ref={terminalTabRef} onServerReady={handleServerReady} />
+        <TerminalTab ref={terminalTabRef} />
       </div>
     </div>
   );

@@ -9,20 +9,20 @@ interface AppRouterProps {
   currentScreen: Screen | null;
   hasInitialized: boolean;
   activeInterfaceTab: InterfaceTab;
+  isServerReady: boolean;
   onWelcomeComplete: () => void;
   onDownloadComplete: () => void;
   onLaunch: () => void;
-  onTabChange: (tab: InterfaceTab) => void;
 }
 
 export const AppRouter = ({
   currentScreen,
   hasInitialized,
   activeInterfaceTab,
+  isServerReady,
   onWelcomeComplete,
   onDownloadComplete,
   onLaunch,
-  onTabChange,
 }: AppRouterProps) => {
   const isInterfaceScreen = currentScreen === 'interface';
 
@@ -55,7 +55,7 @@ export const AppRouter = ({
       >
         <InterfaceScreen
           activeTab={activeInterfaceTab}
-          onTabChange={onTabChange}
+          isServerReady={isServerReady}
         />
       </ScreenTransition>
     </>

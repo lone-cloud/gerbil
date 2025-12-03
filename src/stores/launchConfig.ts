@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { ConfigFile, SdConvDirectMode } from '@/types';
-import type { ImageModelPreset } from '@/constants/imageModelPresets';
+import { IMAGE_MODEL_PRESETS } from '@/constants/imageModelPresets';
 import { DEFAULT_AUTO_GPU_LAYERS, DEFAULT_CONTEXT_SIZE } from '@/constants';
 
 interface LaunchConfigState {
@@ -87,16 +87,20 @@ interface LaunchConfigState {
     configFiles: ConfigFile[],
     savedConfig: string | null
   ) => Promise<string | null>;
-  selectModelFile: () => Promise<void>;
-  selectSdmodelFile: () => Promise<void>;
-  selectSdt5xxlFile: () => Promise<void>;
-  selectSdcliplFile: () => Promise<void>;
-  selectSdclipgFile: () => Promise<void>;
-  selectSdphotomakerFile: () => Promise<void>;
-  selectSdvaeFile: () => Promise<void>;
-  selectSdloraFile: () => Promise<void>;
-  contextSizeChangeWithStep: (size: number) => void;
-  applyImageModelPreset: (preset: ImageModelPreset) => void;
+  selectFile: (
+    field:
+      | 'model'
+      | 'sdmodel'
+      | 'sdt5xxl'
+      | 'sdclipl'
+      | 'sdclipg'
+      | 'sdphotomaker'
+      | 'sdvae'
+      | 'sdlora',
+    title: string
+  ) => Promise<void>;
+  setContextSizeWithStep: (size: number) => void;
+  applyPreset: (presetName: string) => void;
 }
 
 export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
@@ -445,98 +449,32 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
     return null;
   },
 
-  selectModelFile: async () => {
-    const result = await window.electronAPI.kobold.selectModelFile(
-      'Select a Text Model File'
-    );
-    if (result) {
+  selectFile: async (field, title) => {
+    const result = await window.electronAPI.kobold.selectModelFile(title);
+    if (!result) return;
+    if (field === 'model') set({ model: result, isTextMode: true });
+    else if (field === 'sdmodel')
+      set({ sdmodel: result, isImageGenerationMode: true });
+    else set({ [field]: result });
+  },
+
+  setContextSizeWithStep: (size: number) => {
+    const rounded = Math.round(size / 256) * 256;
+    set({ contextSize: Math.max(256, Math.min(131072, rounded)) });
+  },
+
+  applyPreset: (presetName: string) => {
+    const preset = IMAGE_MODEL_PRESETS.find((p) => p.name === presetName);
+    if (preset) {
       set({
-        model: result,
-        isTextMode: Boolean(result?.trim()),
+        sdmodel: preset.sdmodel,
+        isImageGenerationMode: Boolean(preset.sdmodel?.trim()),
+        sdt5xxl: preset.sdt5xxl,
+        sdclipl: preset.sdclipl,
+        sdclipg: preset.sdclipg || '',
+        sdvae: preset.sdvae,
+        model: '',
       });
     }
-  },
-
-  selectSdmodelFile: async () => {
-    const result = await window.electronAPI.kobold.selectModelFile(
-      'Select a Image Gen. Model File'
-    );
-    if (result) {
-      set({
-        sdmodel: result,
-        isImageGenerationMode: Boolean(result?.trim()),
-      });
-    }
-  },
-
-  selectSdt5xxlFile: async () => {
-    const result = await window.electronAPI.kobold.selectModelFile(
-      'Select a T5XXL Model File'
-    );
-    if (result) {
-      set({ sdt5xxl: result });
-    }
-  },
-
-  selectSdcliplFile: async () => {
-    const result = await window.electronAPI.kobold.selectModelFile(
-      'Select a CLIP-L Model File'
-    );
-    if (result) {
-      set({ sdclipl: result });
-    }
-  },
-
-  selectSdclipgFile: async () => {
-    const result = await window.electronAPI.kobold.selectModelFile(
-      'Select a CLIP-G Model File'
-    );
-    if (result) {
-      set({ sdclipg: result });
-    }
-  },
-
-  selectSdphotomakerFile: async () => {
-    const result = await window.electronAPI.kobold.selectModelFile(
-      'Select a PhotoMaker Model File'
-    );
-    if (result) {
-      set({ sdphotomaker: result });
-    }
-  },
-
-  selectSdvaeFile: async () => {
-    const result = await window.electronAPI.kobold.selectModelFile(
-      'Select a VAE Model File'
-    );
-    if (result) {
-      set({ sdvae: result });
-    }
-  },
-
-  selectSdloraFile: async () => {
-    const result = await window.electronAPI.kobold.selectModelFile(
-      'Select a LORA Model File'
-    );
-    if (result) {
-      set({ sdlora: result });
-    }
-  },
-
-  contextSizeChangeWithStep: (size: number) => {
-    const roundedSize = Math.round(size / 256) * 256;
-    set({ contextSize: Math.max(256, Math.min(131072, roundedSize)) });
-  },
-
-  applyImageModelPreset: (preset: ImageModelPreset) => {
-    set({
-      sdmodel: preset.sdmodel,
-      isImageGenerationMode: Boolean(preset.sdmodel?.trim()),
-      sdt5xxl: preset.sdt5xxl,
-      sdclipl: preset.sdclipl,
-      sdclipg: preset.sdclipg || '',
-      sdvae: preset.sdvae,
-      model: '',
-    });
   },
 }));

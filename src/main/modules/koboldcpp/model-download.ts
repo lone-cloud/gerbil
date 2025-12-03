@@ -6,7 +6,7 @@ import { get as httpsGet } from 'https';
 import { getInstallDir } from '@/main/modules/config';
 import { pathExists } from '@/utils/node/fs';
 import { logError } from '@/utils/node/logging';
-import { sendToRenderer } from '@/main/modules/window';
+import { sendKoboldOutput } from '@/main/modules/window';
 import type { ModelParamType, CachedModel } from '@/types';
 import type { IncomingMessage } from 'http';
 
@@ -176,7 +176,7 @@ async function downloadFile(
               ? `Downloaded ${downloadedMB}MB / ${totalMB}MB (${percent}%) - ${speedMBPerSec}MB/s - ETA: ${etaStr}`
               : `Downloaded ${downloadedMB}MB - ${speedMBPerSec}MB/s`;
 
-            sendToRenderer('kobold-output', `\r${progressMsg}`);
+            sendKoboldOutput(`\r${progressMsg}`);
 
             onProgress({
               type: 'progress',
@@ -210,7 +210,7 @@ async function downloadFile(
           fileStream.on('finish', async () => {
             try {
               await rename(tempPath, outputPath);
-              sendToRenderer('kobold-output', '\n');
+              sendKoboldOutput('\n');
               activeDownloads.delete(abortController);
               resolve(true);
             } catch (err) {
@@ -270,7 +270,7 @@ export async function resolveModelPath(
   const localPath = getModelLocalPath(urlOrPath, paramType);
 
   if (await pathExists(localPath)) {
-    sendToRenderer('kobold-output', `Using cached model at: ${localPath}\n`);
+    sendKoboldOutput(`Using cached model at: ${localPath}\n`);
     onProgress?.({
       type: 'complete',
       localPath,
@@ -278,20 +278,14 @@ export async function resolveModelPath(
     return localPath;
   }
 
-  sendToRenderer(
-    'kobold-output',
-    `Downloading model from ${urlOrPath} to ${localPath}...\n`
-  );
+  sendKoboldOutput(`Downloading model from ${urlOrPath} to ${localPath}...\n`);
 
   const progressCallback = onProgress || ((p: DownloadProgress) => p);
 
   try {
     await downloadFile(urlOrPath, localPath, progressCallback);
 
-    sendToRenderer(
-      'kobold-output',
-      `Model downloaded successfully to: ${localPath}\n\n`
-    );
+    sendKoboldOutput(`Model downloaded successfully to: ${localPath}\n\n`);
     progressCallback({
       type: 'complete',
       localPath,
