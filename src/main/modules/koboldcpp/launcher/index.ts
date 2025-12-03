@@ -3,8 +3,9 @@ import { platform } from 'process';
 
 import { terminateProcess } from '@/utils/node/process';
 import { logError, safeExecute } from '@/utils/node/logging';
-import { sendKoboldOutput } from '@/main/modules/window';
+import { sendKoboldOutput, sendToRenderer } from '@/main/modules/window';
 import { SERVER_READY_SIGNALS } from '@/constants';
+import type { KoboldCrashInfo } from '@/types/ipc';
 import { pathExists } from '@/utils/node/fs';
 import { parseKoboldConfig } from '@/utils/node/kobold';
 import { getCurrentBackend } from '../backend';
@@ -17,6 +18,7 @@ import { startFrontend as startSillyTavernFrontend } from '@/main/modules/sillyt
 import { startFrontend as startOpenWebUIFrontend } from '@/main/modules/openwebui';
 import { patchKliteEmbd, patchKcppSduiEmbd, filterSpam } from './patches';
 import { startProxy, stopProxy } from '../proxy';
+import { startTunnel, stopTunnel } from '../tunnel';
 import { resolveModelPath, abortActiveDownloads } from '../model-download';
 import type {
   FrontendPreference,
@@ -25,6 +27,8 @@ import type {
 } from '@/types';
 
 let koboldProcess: ChildProcess | null = null;
+let isIntentionalStop = false;
+let hasProcessStartedSuccessfully = false;
 const preLaunchProcesses = new Set<ChildProcess>();
 
 function spawnPreLaunchCommands(commands: string[]) {
@@ -149,6 +153,9 @@ export async function launchKoboldCpp(
       await stopKoboldCpp();
     }
 
+    isIntentionalStop = false;
+    hasProcessStartedSuccessfully = false;
+
     if (preLaunchCommands.length > 0) {
       spawnPreLaunchCommands(preLaunchCommands);
     }
@@ -172,7 +179,14 @@ export async function launchKoboldCpp(
 
     const binaryDir = currentBackend.path.split(/[/\\]/).slice(0, -1).join('/');
 
-    const { isImageMode, isTextMode, debugmode } = parseKoboldConfig(args);
+    const {
+      isImageMode,
+      isTextMode,
+      debugmode,
+      remotetunnel,
+      host: koboldHost,
+      port: koboldPort,
+    } = parseKoboldConfig(args);
 
     if (frontendPreference === 'koboldcpp') {
       if (isImageMode) {
@@ -186,12 +200,12 @@ export async function launchKoboldCpp(
     }
 
     const resolvedArgs = await resolveModelPaths(args);
-    const finalArgs = [...resolvedArgs];
-    const { host: koboldHost, port: koboldPort } = parseKoboldConfig(args);
+    const finalArgs = resolvedArgs.filter((arg) => arg !== '--remotetunnel');
 
     await startProxy(koboldHost, koboldPort);
 
     const child = spawn(currentBackend.path, finalArgs, {
+      cwd: binaryDir,
       stdio: ['pipe', 'pipe', 'pipe'],
       detached: false,
     });
@@ -201,6 +215,10 @@ export async function launchKoboldCpp(
     const commandLine = `${currentBackend.path} ${finalArgs.join(' ')}`;
 
     sendKoboldOutput(commandLine);
+
+    if (remotetunnel) {
+      startTunnel();
+    }
 
     let readyResolve:
       | ((value: { success: boolean; pid?: number; error?: string }) => void)
@@ -217,6 +235,10 @@ export async function launchKoboldCpp(
       readyReject = reject;
     });
 
+    const handleServerReady = () => {
+      readyResolve?.({ success: true, pid: child.pid });
+    };
+
     child.stdout?.on('data', (data) => {
       const output = data.toString();
       const filtered = debugmode ? output : filterSpam(output);
@@ -226,7 +248,8 @@ export async function launchKoboldCpp(
 
       if (!isReady && output.includes(SERVER_READY_SIGNALS.KOBOLDCPP)) {
         isReady = true;
-        readyResolve?.({ success: true, pid: child.pid });
+        hasProcessStartedSuccessfully = true;
+        handleServerReady();
       }
     });
 
@@ -239,20 +262,35 @@ export async function launchKoboldCpp(
 
       if (!isReady && output.includes(SERVER_READY_SIGNALS.KOBOLDCPP)) {
         isReady = true;
-        readyResolve?.({ success: true, pid: child.pid });
+        hasProcessStartedSuccessfully = true;
+        handleServerReady();
       }
     });
 
     child.on('exit', (code, signal) => {
+      const isCrash = signal !== null || (code !== null && code !== 0);
       const displayMessage = signal
-        ? `\n[INFO] Process terminated with signal ${signal}`
+        ? `\nProcess terminated with signal ${signal}`
         : code === 0
-          ? `\n[INFO] Process exited successfully`
+          ? `\nProcess exited successfully`
           : code && (code > 1 || code < 0)
-            ? `\n[ERROR] Process exited with code ${code}`
-            : `\n[INFO] Process exited with code ${code}`;
+            ? `\nProcess exited with code ${code}`
+            : `\nProcess exited with code ${code}`;
       sendKoboldOutput(displayMessage);
+
+      const wasIntentionalStop = isIntentionalStop;
+      const hadStartedSuccessfully = hasProcessStartedSuccessfully;
       koboldProcess = null;
+      isIntentionalStop = false;
+      hasProcessStartedSuccessfully = false;
+
+      if (isCrash && hadStartedSuccessfully && !wasIntentionalStop) {
+        const crashInfo: KoboldCrashInfo = {
+          exitCode: code,
+          signal,
+        };
+        sendToRenderer('kobold-crashed', crashInfo);
+      }
 
       if (!isReady) {
         readyReject?.(
@@ -266,8 +304,17 @@ export async function launchKoboldCpp(
     child.on('error', (error) => {
       logError(`Process error: ${error.message}`, error);
 
-      sendKoboldOutput(`\n[ERROR] Process error: ${error.message}\n`);
+      sendKoboldOutput(`\nProcess error: ${error.message}\n`);
       koboldProcess = null;
+
+      if (isReady) {
+        const crashInfo: KoboldCrashInfo = {
+          exitCode: null,
+          signal: null,
+          errorMessage: error.message,
+        };
+        sendToRenderer('kobold-crashed', crashInfo);
+      }
 
       if (!isReady) {
         readyReject?.(error);
@@ -285,7 +332,9 @@ export async function launchKoboldCpp(
 export async function stopKoboldCpp() {
   abortActiveDownloads();
   stopProxy();
+  stopTunnel();
   stopPreLaunchProcesses();
+  isIntentionalStop = true;
   return terminateProcess(koboldProcess);
 }
 

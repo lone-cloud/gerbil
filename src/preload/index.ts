@@ -14,6 +14,7 @@ import type {
   MemoryMetrics,
   GpuMetrics,
 } from '@/main/modules/monitoring';
+import type { KoboldCrashInfo } from '@/types/ipc';
 
 const koboldAPI: KoboldAPI = {
   getInstalledBackends: () => ipcRenderer.invoke('kobold:getInstalledBackends'),
@@ -103,6 +104,23 @@ const koboldAPI: KoboldAPI = {
 
     return () => {
       ipcRenderer.removeListener('kobold-output', handler);
+    };
+  },
+  onKoboldCrashed: (callback) => {
+    const handler = (_: IpcRendererEvent, crashInfo: KoboldCrashInfo) =>
+      callback(crashInfo);
+    ipcRenderer.on('kobold-crashed', handler);
+
+    return () => {
+      ipcRenderer.removeListener('kobold-crashed', handler);
+    };
+  },
+  onTunnelUrlChanged: (callback) => {
+    const handler = (_: IpcRendererEvent, url: string | null) => callback(url);
+    ipcRenderer.on('tunnel-url-changed', handler);
+
+    return () => {
+      ipcRenderer.removeListener('tunnel-url-changed', handler);
     };
   },
 };

@@ -18,6 +18,7 @@ import type {
   MemoryMetrics,
   GpuMetrics,
 } from '@/main/modules/monitoring';
+import type { KoboldCrashInfo } from '@/types/ipc';
 
 export interface GitHubAsset {
   name: string;
@@ -176,6 +177,10 @@ export interface KoboldAPI {
   onInstallDirChanged: (callback: (newPath: string) => void) => () => void;
   onVersionsUpdated: (callback: () => void) => () => void;
   onKoboldOutput: (callback: (data: string) => void) => () => void;
+  onKoboldCrashed: (
+    callback: (crashInfo: KoboldCrashInfo) => void
+  ) => () => void;
+  onTunnelUrlChanged: (callback: (url: string | null) => void) => () => void;
 }
 
 export interface SystemVersionInfo {
