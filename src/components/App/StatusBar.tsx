@@ -40,7 +40,10 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
 
   const tunnelUrl = useMemo(() => {
     if (!tunnelBaseUrl) return null;
-    if (frontendPreference === 'sillytavern' || frontendPreference === 'openwebui') {
+    if (
+      frontendPreference === 'sillytavern' ||
+      frontendPreference === 'openwebui'
+    ) {
       return tunnelBaseUrl;
     }
     return getTunnelInterfaceUrl(tunnelBaseUrl, {
@@ -48,7 +51,12 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
       imageGenerationFrontendPreference,
       isImageGenerationMode,
     });
-  }, [tunnelBaseUrl, frontendPreference, imageGenerationFrontendPreference, isImageGenerationMode]);
+  }, [
+    tunnelBaseUrl,
+    frontendPreference,
+    imageGenerationFrontendPreference,
+    isImageGenerationMode,
+  ]);
 
   useEffect(() => {
     if (!systemMonitoringEnabled) {
@@ -90,7 +98,8 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
   }, [maxDataPoints, systemMonitoringEnabled]);
 
   useEffect(() => {
-    const cleanup = window.electronAPI.kobold.onTunnelUrlChanged(setTunnelBaseUrl);
+    const cleanup =
+      window.electronAPI.kobold.onTunnelUrlChanged(setTunnelBaseUrl);
     return cleanup;
   }, []);
 
@@ -134,7 +143,11 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
                     color={copied ? 'teal' : undefined}
                     onClick={copy}
                   >
-                    {copied ? <Check size="1.25rem" /> : <Globe size="1.25rem" />}
+                    {copied ? (
+                      <Check size="1.25rem" />
+                    ) : (
+                      <Globe size="1.25rem" />
+                    )}
                   </ActionIcon>
                 </Tooltip>
               )}

@@ -39,7 +39,7 @@ function spawnPreLaunchCommands(commands: string[]) {
   for (const command of commands) {
     if (!command.trim()) continue;
 
-    sendKoboldOutput(`[PRE-LAUNCH] Running: ${command}\n`);
+    sendKoboldOutput(`Running: ${command}\n`);
 
     try {
       const child = spawn(shell, [shellFlag, command], {
@@ -51,35 +51,31 @@ function spawnPreLaunchCommands(commands: string[]) {
       preLaunchProcesses.add(child);
 
       child.stdout?.on('data', (data) => {
-        sendKoboldOutput(`[PRE-LAUNCH] ${data.toString()}`, true);
+        sendKoboldOutput(data.toString(), true);
       });
 
       child.stderr?.on('data', (data) => {
-        sendKoboldOutput(`[PRE-LAUNCH] ${data.toString()}`, true);
+        sendKoboldOutput(data.toString(), true);
       });
 
       child.on('error', (error) => {
-        sendKoboldOutput(
-          `[PRE-LAUNCH ERROR] Failed to run "${command}": ${error.message}\n`
-        );
+        sendKoboldOutput(`Failed to run "${command}": ${error.message}\n`);
         preLaunchProcesses.delete(child);
       });
 
       child.on('exit', (code, signal) => {
         preLaunchProcesses.delete(child);
         if (code !== 0 && code !== null) {
-          sendKoboldOutput(
-            `[PRE-LAUNCH] Command "${command}" exited with code ${code}\n`
-          );
+          sendKoboldOutput(`Command "${command}" exited with code ${code}\n`);
         } else if (signal) {
           sendKoboldOutput(
-            `[PRE-LAUNCH] Command "${command}" terminated with signal ${signal}\n`
+            `Command "${command}" terminated with signal ${signal}\n`
           );
         }
       });
     } catch (error) {
       sendKoboldOutput(
-        `[PRE-LAUNCH ERROR] Failed to start "${command}": ${error instanceof Error ? error.message : String(error)}\n`
+        `Failed to start "${command}": ${error instanceof Error ? error.message : String(error)}\n`
       );
     }
   }
