@@ -180,6 +180,7 @@ export interface KoboldAPI {
   onKoboldCrashed: (
     callback: (crashInfo: KoboldCrashInfo) => void
   ) => () => void;
+  onServerReady: (callback: () => void) => () => void;
   onTunnelUrlChanged: (callback: (url: string | null) => void) => () => void;
 }
 

@@ -1,7 +1,7 @@
 import { Card, Container, Stack, Tabs, Group, Button } from '@mantine/core';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { logError } from '@/utils/logger';
-import { useLaunchConfig } from '@/hooks/useLaunchConfig';
+import { useLaunchConfigStore } from '@/stores/launchConfig';
 import { useLaunchLogic } from '@/hooks/useLaunchLogic';
 import { useWarnings } from '@/hooks/useWarnings';
 import { GeneralTab } from '@/components/screens/Launch/GeneralTab/index';
@@ -65,9 +65,9 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     moeexperts,
     parseAndApplyConfigFile,
     loadConfigFromFile,
-    handleModelChange,
-    handleBackendChange,
-  } = useLaunchConfig();
+    setModel,
+    setBackend,
+  } = useLaunchConfigStore();
 
   const { isLaunching, handleLaunch } = useLaunchLogic({
     model,
@@ -87,9 +87,9 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
       await window.electronAPI.kobold.getAvailableAccelerations();
 
     if (!backend && accelerations && accelerations.length > 0) {
-      handleBackendChange(accelerations[0].value);
+      setBackend(accelerations[0].value);
     }
-  }, [backend, handleBackendChange]);
+  }, [backend, setBackend]);
 
   const setInitialDefaults = useCallback(
     (currentModel: string, currentSdModel: string) => {
@@ -98,11 +98,11 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
         !currentModel.trim() &&
         !currentSdModel.trim()
       ) {
-        handleModelChange(DEFAULT_MODEL_URL);
+        setModel(DEFAULT_MODEL_URL);
         defaultsSetRef.current = true;
       }
     },
-    [handleModelChange]
+    [setModel]
   );
 
   useEffect(() => {

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { AccelerationSelectItem } from '@/components/screens/Launch/GeneralTab/AccelerationSelectItem';
 import { GpuDeviceSelector } from '@/components/screens/Launch/GeneralTab/GpuDeviceSelector';
-import { useLaunchConfig } from '@/hooks/useLaunchConfig';
+import { useLaunchConfigStore } from '@/stores/launchConfig';
 import type { AccelerationOption } from '@/types';
 import { Select } from '@/components/Select';
 
@@ -16,10 +16,10 @@ export const AccelerationSelector = () => {
     contextSize,
     gpuDeviceSelection,
     flashattention,
-    handleBackendChange,
-    handleGpuLayersChange,
-    handleAutoGpuLayersChange,
-  } = useLaunchConfig();
+    setBackend,
+    setGpuLayers,
+    setAutoGpuLayers,
+  } = useLaunchConfigStore();
 
   const [availableAccelerations, setAvailableAccelerations] = useState<
     AccelerationOption[]
@@ -67,11 +67,11 @@ export const AccelerationSelector = () => {
           (a) => !a.disabled
         );
         if (fallbackAcceleration) {
-          handleBackendChange(fallbackAcceleration.value);
+          setBackend(fallbackAcceleration.value);
         }
       }
     }
-  }, [availableAccelerations, backend, handleBackendChange]);
+  }, [availableAccelerations, backend, setBackend]);
 
   useEffect(() => {
     const calculateLayers = async () => {
@@ -121,7 +121,7 @@ export const AccelerationSelector = () => {
           flashattention
         );
 
-        handleGpuLayersChange(result.recommendedLayers);
+        setGpuLayers(result.recommendedLayers);
       } catch (error) {
         window.electronAPI.logs.logError(
           'Failed to calculate optimal GPU layers',
@@ -142,7 +142,7 @@ export const AccelerationSelector = () => {
     flashattention,
     isLoadingAccelerations,
     isMac,
-    handleGpuLayersChange,
+    setGpuLayers,
   ]);
 
   return (
@@ -170,7 +170,7 @@ export const AccelerationSelector = () => {
             }
             onChange={(value) => {
               if (value) {
-                handleBackendChange(value);
+                setBackend(value);
               }
             }}
             data={availableAccelerations.map((a) => ({
@@ -215,7 +215,7 @@ export const AccelerationSelector = () => {
                   : undefined
               }
               onChange={(event) =>
-                handleGpuLayersChange(Number(event.target.value) || 0)
+                setGpuLayers(Number(event.target.value) || 0)
               }
               type="number"
               min={0}
@@ -230,7 +230,7 @@ export const AccelerationSelector = () => {
                 label="Auto"
                 checked={autoGpuLayers}
                 onChange={(event) =>
-                  handleAutoGpuLayersChange(event.currentTarget.checked)
+                  setAutoGpuLayers(event.currentTarget.checked)
                 }
                 size="sm"
                 disabled={backend === 'cpu' && !isMac}

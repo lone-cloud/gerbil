@@ -4,11 +4,26 @@ import { Tunnel, bin, install } from 'cloudflared';
 import { logError } from '@/utils/node/logging';
 import { sendKoboldOutput, sendToRenderer } from '../window';
 import { PROXY } from '@/constants/proxy';
+import { SILLYTAVERN, OPENWEBUI } from '@/constants';
+import type { FrontendPreference } from '@/types';
 
 let activeTunnel: Tunnel | null = null;
 let tunnelUrl: string | null = null;
 
-export const startTunnel = async () => {
+const getTunnelTarget = (frontendPreference: FrontendPreference) => {
+  switch (frontendPreference) {
+    case 'sillytavern':
+      return `http://${SILLYTAVERN.HOST}:${SILLYTAVERN.PROXY_PORT}`;
+    case 'openwebui':
+      return `http://${OPENWEBUI.HOST}:${OPENWEBUI.PORT}`;
+    default:
+      return `http://${PROXY.HOST}:${PROXY.PORT}`;
+  }
+};
+
+export const startTunnel = async (
+  frontendPreference: FrontendPreference = 'koboldcpp'
+) => {
   if (activeTunnel) {
     return tunnelUrl;
   }
@@ -22,7 +37,8 @@ export const startTunnel = async () => {
       sendKoboldOutput('cloudflared binary installed');
     }
 
-    const tunnel = Tunnel.quick(`http://${PROXY.HOST}:${PROXY.PORT}`, {
+    const tunnelTarget = getTunnelTarget(frontendPreference);
+    const tunnel = Tunnel.quick(tunnelTarget, {
       '--no-autoupdate': true,
     });
 

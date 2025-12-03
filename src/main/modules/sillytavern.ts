@@ -6,7 +6,7 @@ import { platform, on } from 'process';
 import type { ChildProcess } from 'child_process';
 
 import { logError, tryExecute } from '@/utils/node/logging';
-import { sendKoboldOutput } from './window';
+import { sendKoboldOutput, sendToRenderer } from './window';
 import { SILLYTAVERN, SERVER_READY_SIGNALS } from '@/constants';
 import { PROXY } from '@/constants/proxy';
 import { terminateProcess } from '@/utils/node/process';
@@ -223,6 +223,7 @@ async function waitForSillyTavernToStart() {
     const checkForOutput = (data: Buffer) => {
       if (data.toString().includes(SERVER_READY_SIGNALS.SILLYTAVERN)) {
         sendKoboldOutput('SillyTavern is now running!');
+        sendToRenderer('server-ready');
         resolve();
 
         if (sillyTavernProcess?.stdout) {

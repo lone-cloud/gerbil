@@ -1,8 +1,11 @@
 import { Text, Group, TextInput } from '@mantine/core';
 import { InfoTooltip } from '@/components/InfoTooltip';
-import { useLaunchConfig } from '@/hooks/useLaunchConfig';
+import { useLaunchConfigStore } from '@/stores/launchConfig';
 import { Select } from '@/components/Select';
 import type { AccelerationOption } from '@/types';
+
+const GPU_BACKENDS = ['cuda', 'rocm', 'vulkan', 'clblast'];
+const TENSOR_SPLIT_BACKENDS = ['cuda', 'rocm', 'vulkan'];
 
 interface GpuDeviceSelectorProps {
   availableAccelerations: AccelerationOption[];
@@ -15,18 +18,14 @@ export const GpuDeviceSelector = ({
     backend,
     gpuDeviceSelection,
     tensorSplit,
-    handleGpuDeviceSelectionChange,
-    handleTensorSplitChange,
-  } = useLaunchConfig();
+    setGpuDeviceSelection,
+    setTensorSplit,
+  } = useLaunchConfigStore();
 
   const selectedAcceleration = availableAccelerations.find(
     (a) => a.value === backend
   );
-  const isGpuAcceleration =
-    backend === 'cuda' ||
-    backend === 'rocm' ||
-    backend === 'vulkan' ||
-    backend === 'clblast';
+  const isGpu = GPU_BACKENDS.includes(backend);
 
   const getDiscreteDeviceCount = () => {
     if (!selectedAcceleration?.devices) return 0;
@@ -40,11 +39,11 @@ export const GpuDeviceSelector = ({
 
   const hasMultipleDevices = getDiscreteDeviceCount() > 1;
   const showTensorSplit =
-    (backend === 'cuda' || backend === 'rocm' || backend === 'vulkan') &&
+    TENSOR_SPLIT_BACKENDS.includes(backend) &&
     hasMultipleDevices &&
     gpuDeviceSelection === 'all';
 
-  if (!isGpuAcceleration || !hasMultipleDevices) {
+  if (!isGpu || !hasMultipleDevices) {
     return null;
   }
 
@@ -119,7 +118,7 @@ export const GpuDeviceSelector = ({
             value={gpuDeviceSelection}
             onChange={(value) => {
               if (value) {
-                handleGpuDeviceSelectionChange(value);
+                setGpuDeviceSelection(value);
               }
             }}
             data={deviceOptions}
@@ -138,9 +137,7 @@ export const GpuDeviceSelector = ({
               <TextInput
                 placeholder="e.g., 3,2 or 1,1,1"
                 value={tensorSplit}
-                onChange={(event) =>
-                  handleTensorSplitChange(event.target.value)
-                }
+                onChange={(event) => setTensorSplit(event.target.value)}
                 size="sm"
               />
             </>

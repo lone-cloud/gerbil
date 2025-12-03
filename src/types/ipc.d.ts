@@ -4,6 +4,7 @@ export type IPCChannel =
   | 'versions-updated'
   | 'kobold-output'
   | 'kobold-crashed'
+  | 'server-ready'
   | 'tunnel-url-changed'
   | 'window-maximized'
   | 'window-unmaximized'
@@ -21,6 +22,7 @@ export interface IPCChannelPayloads {
   'versions-updated': [];
   'kobold-output': [message: string];
   'kobold-crashed': [crashInfo: KoboldCrashInfo];
+  'server-ready': [];
   'tunnel-url-changed': [url: string | null];
   'window-maximized': [];
   'window-unmaximized': [];

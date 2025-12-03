@@ -5,7 +5,7 @@ import { app } from 'electron';
 import type { ChildProcess } from 'child_process';
 
 import { logError } from '@/utils/node/logging';
-import { sendKoboldOutput } from './window';
+import { sendKoboldOutput, sendToRenderer } from './window';
 import { getInstallDir } from './config';
 import { OPENWEBUI, SERVER_READY_SIGNALS } from '@/constants';
 import { terminateProcess } from '@/utils/node/process';
@@ -38,22 +38,28 @@ async function createUvProcess(args: string[], env?: Record<string, string>) {
 
 async function waitForOpenWebUIToStart() {
   return new Promise<void>((resolve, reject) => {
+    let resolved = false;
+
     const checkForOutput = (data: Buffer) => {
+      if (resolved) return;
       const output = data.toString();
       if (output.includes(SERVER_READY_SIGNALS.OPENWEBUI)) {
+        resolved = true;
         sendKoboldOutput('Open WebUI is now running!');
+        sendToRenderer('server-ready');
         resolve();
-
-        if (openWebUIProcess?.stdout) {
-          openWebUIProcess.stdout.removeListener('data', checkForOutput);
-        }
       }
     };
 
     if (openWebUIProcess?.stdout) {
       openWebUIProcess.stdout.on('data', checkForOutput);
-    } else {
-      reject(new Error('Open WebUI process stdout not available'));
+    }
+    if (openWebUIProcess?.stderr) {
+      openWebUIProcess.stderr.on('data', checkForOutput);
+    }
+
+    if (!openWebUIProcess?.stdout && !openWebUIProcess?.stderr) {
+      reject(new Error('Open WebUI process streams not available'));
     }
   });
 }

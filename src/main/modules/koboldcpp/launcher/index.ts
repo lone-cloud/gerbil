@@ -213,7 +213,7 @@ export async function launchKoboldCpp(
     sendKoboldOutput(commandLine);
 
     if (remotetunnel) {
-      startTunnel();
+      startTunnel(frontendPreference);
     }
 
     let readyResolve:
@@ -232,6 +232,13 @@ export async function launchKoboldCpp(
     });
 
     const handleServerReady = () => {
+      const isKoboldFrontend =
+        frontendPreference === 'koboldcpp' ||
+        (!isTextMode && imageGenerationFrontendPreference === 'builtin');
+
+      if (isKoboldFrontend) {
+        sendToRenderer('server-ready');
+      }
       readyResolve?.({ success: true, pid: child.pid });
     };
 

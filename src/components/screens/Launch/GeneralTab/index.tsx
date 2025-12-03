@@ -9,20 +9,15 @@ import {
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { AccelerationSelector } from '@/components/screens/Launch/GeneralTab/AccelerationSelector';
 import { ModelFileField } from '@/components/screens/Launch/ModelFileField';
-import { useLaunchConfig } from '@/hooks/useLaunchConfig';
+import { useLaunchConfigStore } from '@/stores/launchConfig';
 
 interface GeneralTabProps {
   configLoaded?: boolean;
 }
 
 export const GeneralTab = ({ configLoaded = true }: GeneralTabProps) => {
-  const {
-    model,
-    contextSize,
-    handleModelChange,
-    handleSelectModelFile,
-    handleContextSizeChangeWithStep,
-  } = useLaunchConfig();
+  const { model, contextSize, setModel, selectFile, setContextSizeWithStep } =
+    useLaunchConfigStore();
 
   return (
     <Transition
@@ -40,8 +35,8 @@ export const GeneralTab = ({ configLoaded = true }: GeneralTabProps) => {
             value={model}
             placeholder="Select a .gguf model file or enter a direct URL to file"
             tooltip="Select a GGUF text generation model file for chat and completion tasks."
-            onChange={handleModelChange}
-            onSelectFile={handleSelectModelFile}
+            onChange={setModel}
+            onSelectFile={() => selectFile('model', 'Select Text Model')}
             searchUrl="https://huggingface.co/models?pipeline_tag=text-generation&library=gguf&sort=trending"
             showAnalyze
             paramType="model"
@@ -58,9 +53,7 @@ export const GeneralTab = ({ configLoaded = true }: GeneralTabProps) => {
               <TextInput
                 value={contextSize?.toString() || ''}
                 onChange={(event) =>
-                  handleContextSizeChangeWithStep(
-                    Number(event.target.value) || 256
-                  )
+                  setContextSizeWithStep(Number(event.target.value) || 256)
                 }
                 type="number"
                 min={256}
@@ -75,7 +68,7 @@ export const GeneralTab = ({ configLoaded = true }: GeneralTabProps) => {
               min={256}
               max={131072}
               step={1}
-              onChange={handleContextSizeChangeWithStep}
+              onChange={setContextSizeWithStep}
               style={{ marginBottom: '0.5rem' }}
             />
           </div>
