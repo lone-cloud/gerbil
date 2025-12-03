@@ -4,6 +4,7 @@ export function parseKoboldConfig(args: string[]) {
   let hasSdModel = false;
   let hasTextModel = false;
   let debugmode = false;
+  let remotetunnel = false;
 
   for (let i = 0; i < args.length; i++) {
     if (
@@ -22,11 +23,13 @@ export function parseKoboldConfig(args: string[]) {
       hasTextModel = true;
     } else if (args[i] === '--debugmode') {
       debugmode = true;
+    } else if (args[i] === '--remotetunnel') {
+      remotetunnel = true;
     }
   }
 
   const isImageMode = hasSdModel;
   const isTextMode = hasTextModel;
 
-  return { host, port, isImageMode, isTextMode, debugmode };
+  return { host, port, isImageMode, isTextMode, debugmode, remotetunnel };
 }

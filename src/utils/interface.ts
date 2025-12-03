@@ -175,3 +175,34 @@ export function getServerInterfaceInfo({
       : FRONTENDS.KOBOLDAI_LITE,
   };
 }
+
+export function getTunnelInterfaceUrl(
+  tunnelBaseUrl: string,
+  params: Omit<ServerInterfaceParams, 'frontendPreference'> & {
+    frontendPreference: Exclude<
+      FrontendPreference,
+      'sillytavern' | 'openwebui'
+    >;
+  }
+) {
+  const {
+    frontendPreference,
+    imageGenerationFrontendPreference,
+    isImageGenerationMode,
+  } = params;
+
+  if (
+    isImageGenerationMode &&
+    imageGenerationFrontendPreference === 'builtin'
+  ) {
+    return `${tunnelBaseUrl}/sdui`;
+  }
+
+  if (frontendPreference === 'llamacpp') {
+    return isImageGenerationMode
+      ? `${tunnelBaseUrl}/sdui`
+      : `${tunnelBaseUrl}/lcpp`;
+  }
+
+  return isImageGenerationMode ? `${tunnelBaseUrl}/sdui` : tunnelBaseUrl;
+}

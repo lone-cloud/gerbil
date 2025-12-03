@@ -9,6 +9,7 @@ import {
 } from '@mantine/core';
 import { UpdateAvailableModal } from '@/components/App/UpdateAvailableModal';
 import { EjectConfirmModal } from '@/components/App/EjectConfirmModal';
+import { BackendCrashModal } from '@/components/App/BackendCrashModal';
 import { TitleBar } from '@/components/App/TitleBar';
 import { StatusBar } from '@/components/App/StatusBar';
 import { ErrorBoundary } from '@/components/App/ErrorBoundary';
@@ -21,6 +22,7 @@ import { useLaunchConfigStore } from '@/stores/launchConfig';
 import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
 import type { DownloadItem } from '@/types/electron';
 import type { InterfaceTab, Screen } from '@/types';
+import type { KoboldCrashInfo } from '@/types/ipc';
 
 export const App = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen | null>(null);
@@ -28,6 +30,7 @@ export const App = () => {
   const [activeInterfaceTab, setActiveInterfaceTab] =
     useState<InterfaceTab>('terminal');
   const [ejectConfirmModalOpen, setEjectConfirmModalOpen] = useState(false);
+  const [crashInfo, setCrashInfo] = useState<KoboldCrashInfo | null>(null);
   const isInterfaceScreen = currentScreen === 'interface';
 
   const { resolvedColorScheme: appColorScheme, systemMonitoringEnabled } =
@@ -70,6 +73,18 @@ export const App = () => {
 
     return () => {
       ejectCleanup();
+    };
+  }, []);
+
+  useEffect(() => {
+    const crashCleanup = window.electronAPI.kobold.onKoboldCrashed(
+      (crashData) => {
+        setCrashInfo(crashData);
+      }
+    );
+
+    return () => {
+      crashCleanup();
     };
   }, []);
 
@@ -243,6 +258,12 @@ export const App = () => {
         opened={ejectConfirmModalOpen}
         onClose={() => setEjectConfirmModalOpen(false)}
         onConfirm={handleEjectConfirm}
+      />
+
+      <BackendCrashModal
+        opened={crashInfo !== null}
+        onClose={() => setCrashInfo(null)}
+        crashInfo={crashInfo}
       />
 
       <NotepadContainer />

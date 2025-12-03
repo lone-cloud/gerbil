@@ -1,8 +1,16 @@
-import { useEffect, useState } from 'react';
-import { Group, AppShell, ActionIcon, Tooltip } from '@mantine/core';
-import { NotepadText } from 'lucide-react';
+import { useEffect, useState, useMemo } from 'react';
+import {
+  Group,
+  AppShell,
+  ActionIcon,
+  Tooltip,
+  CopyButton,
+} from '@mantine/core';
+import { NotepadText, Globe, Check } from 'lucide-react';
 import { usePreferencesStore } from '@/stores/preferences';
 import { useNotepadStore } from '@/stores/notepad';
+import { useLaunchConfigStore } from '@/stores/launchConfig';
+import { getTunnelInterfaceUrl } from '@/utils/interface';
 import type {
   CpuMetrics,
   MemoryMetrics,
@@ -20,9 +28,27 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
     null
   );
   const [gpuMetrics, setGpuMetrics] = useState<GpuMetrics | null>(null);
-  const { resolvedColorScheme: colorScheme, systemMonitoringEnabled } =
-    usePreferencesStore();
+  const [tunnelBaseUrl, setTunnelBaseUrl] = useState<string | null>(null);
+  const {
+    resolvedColorScheme: colorScheme,
+    systemMonitoringEnabled,
+    frontendPreference,
+    imageGenerationFrontendPreference,
+  } = usePreferencesStore();
   const { isVisible, setVisible } = useNotepadStore();
+  const { isImageGenerationMode } = useLaunchConfigStore();
+
+  const tunnelUrl = useMemo(() => {
+    if (!tunnelBaseUrl) return null;
+    if (frontendPreference === 'sillytavern' || frontendPreference === 'openwebui') {
+      return tunnelBaseUrl;
+    }
+    return getTunnelInterfaceUrl(tunnelBaseUrl, {
+      frontendPreference,
+      imageGenerationFrontendPreference,
+      isImageGenerationMode,
+    });
+  }, [tunnelBaseUrl, frontendPreference, imageGenerationFrontendPreference, isImageGenerationMode]);
 
   useEffect(() => {
     if (!systemMonitoringEnabled) {
@@ -63,6 +89,11 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
     };
   }, [maxDataPoints, systemMonitoringEnabled]);
 
+  useEffect(() => {
+    const cleanup = window.electronAPI.kobold.onTunnelUrlChanged(setTunnelBaseUrl);
+    return cleanup;
+  }, []);
+
   const displayCpuMetrics = systemMonitoringEnabled ? cpuMetrics : null;
   const displayMemoryMetrics = systemMonitoringEnabled ? memoryMetrics : null;
   const displayGpuMetrics = systemMonitoringEnabled ? gpuMetrics : null;
@@ -90,6 +121,25 @@ export const StatusBar = ({ maxDataPoints = 60 }: StatusBarProps) => {
               <NotepadText size="1.25rem" />
             </ActionIcon>
           </Tooltip>
+          {tunnelUrl && (
+            <CopyButton value={tunnelUrl}>
+              {({ copied, copy }) => (
+                <Tooltip
+                  label={copied ? 'Copied!' : 'Copy Tunnel URL'}
+                  position="top"
+                >
+                  <ActionIcon
+                    variant="subtle"
+                    size="sm"
+                    color={copied ? 'teal' : undefined}
+                    onClick={copy}
+                  >
+                    {copied ? <Check size="1.25rem" /> : <Globe size="1.25rem" />}
+                  </ActionIcon>
+                </Tooltip>
+              )}
+            </CopyButton>
+          )}
         </Group>
 
         <Group gap="xs">
