@@ -1,30 +1,48 @@
 import { gguf } from '@huggingface/gguf';
 import { stat } from 'fs/promises';
+import type { Acceleration } from '@/types';
 
 interface VramCalculationParams {
   modelPath: string;
   contextSize: number;
   availableVramGB: number;
   flashAttention?: boolean;
+  acceleration: Acceleration;
+}
+
+function getAccelerationOverhead(acceleration: Acceleration) {
+  switch (acceleration) {
+    case 'cuda':
+      return { multiplier: 1.05, computeBufferGB: 0.2, headroomGB: 0.1 };
+    case 'vulkan':
+      return { multiplier: 1.05, computeBufferGB: 0.2, headroomGB: 0.1 };
+    case 'rocm':
+      return { multiplier: 1.15, computeBufferGB: 0.4, headroomGB: 0.2 };
+    case 'clblast':
+      return { multiplier: 1.2, computeBufferGB: 0.5, headroomGB: 0.3 };
+    // eslint-disable-next-line no-comments/disallowComments
+    // assuming metal on macOS which we refer to as "cpu" acceleration
+    case 'cpu':
+      return { multiplier: 1.05, computeBufferGB: 0.2, headroomGB: 0.1 };
+    default:
+      return { multiplier: 1.1, computeBufferGB: 0.3, headroomGB: 0.15 };
+  }
 }
 
 function estimateContextVram(
   contextSize: number,
   layers: number,
-  embeddingLength: number,
+  kvDim: number,
   flashAttention: boolean
 ) {
   const bytesPerElement = 2;
-  let kvCacheSizeBytes =
-    2 * contextSize * layers * embeddingLength * bytesPerElement;
+  let kvCacheSizeBytes = 2 * contextSize * layers * kvDim * bytesPerElement;
 
   if (flashAttention) {
     kvCacheSizeBytes *= 0.5;
   }
 
-  const kvCacheSizeGB = kvCacheSizeBytes / 1024 ** 3;
-
-  return kvCacheSizeGB;
+  return kvCacheSizeBytes / 1024 ** 3;
 }
 
 export async function calculateOptimalGpuLayers({
@@ -32,6 +50,7 @@ export async function calculateOptimalGpuLayers({
   contextSize,
   availableVramGB,
   flashAttention = false,
+  acceleration,
 }: VramCalculationParams) {
   const isUrl =
     modelPath.startsWith('http://') || modelPath.startsWith('https://');
@@ -75,25 +94,26 @@ export async function calculateOptimalGpuLayers({
   const headDim = embeddingLength / headCount;
   const kvDim = headCountKv * headDim;
 
-  const modelSizeGB = fileSize / 1024 ** 3;
-  const vramPerLayerGB = modelSizeGB / totalLayers;
+  const { multiplier, computeBufferGB, headroomGB } =
+    getAccelerationOverhead(acceleration);
 
-  const headroomGB = 0.1;
-  const availableForModel = availableVramGB - headroomGB;
+  const modelSizeGB = fileSize / 1024 ** 3;
+  const effectiveModelSizeGB = modelSizeGB * multiplier;
+  const vramPerLayerGB = effectiveModelSizeGB / totalLayers;
+
+  const availableForModel = availableVramGB - computeBufferGB - headroomGB;
 
   let recommendedLayers = 0;
-  let modelVramGB = 0;
-  let contextVramGB = 0;
 
   for (let layers = 1; layers <= totalLayers; layers++) {
-    modelVramGB = layers * vramPerLayerGB;
-    contextVramGB = estimateContextVram(
+    const modelVram = layers * vramPerLayerGB;
+    const contextVram = estimateContextVram(
       contextSize,
       layers,
       kvDim,
       flashAttention
     );
-    const totalVram = modelVramGB + contextVramGB;
+    const totalVram = modelVram + contextVram;
 
     if (totalVram <= availableForModel) {
       recommendedLayers = layers;
@@ -102,21 +122,20 @@ export async function calculateOptimalGpuLayers({
     }
   }
 
-  const finalContextVram = estimateContextVram(
+  const modelVramGB = recommendedLayers * vramPerLayerGB;
+  const contextVramGB = estimateContextVram(
     contextSize,
     recommendedLayers,
     kvDim,
     flashAttention
   );
-  const estimatedVramUsageGB =
-    recommendedLayers * vramPerLayerGB + finalContextVram;
 
   return {
     recommendedLayers,
     totalLayers,
-    estimatedVramUsageGB,
-    modelVramGB: recommendedLayers * vramPerLayerGB,
-    contextVramGB: finalContextVram,
+    estimatedVramUsageGB: modelVramGB + contextVramGB + computeBufferGB,
+    modelVramGB,
+    contextVramGB,
     headroomGB,
   };
 }

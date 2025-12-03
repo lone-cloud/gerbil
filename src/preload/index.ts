@@ -63,14 +63,16 @@ const koboldAPI: KoboldAPI = {
     modelPath,
     contextSize,
     availableVramGB,
-    flashAttention
+    flashAttention,
+    acceleration
   ) =>
     ipcRenderer.invoke(
       'kobold:calculateOptimalLayers',
       modelPath,
       contextSize,
       availableVramGB,
-      flashAttention
+      flashAttention,
+      acceleration
     ),
   stopKoboldCpp: () => ipcRenderer.invoke('kobold:stopKoboldCpp'),
   onDownloadProgress: (callback) => {

@@ -63,8 +63,10 @@ export const App = () => {
 
   useEffect(() => {
     const cleanup = window.electronAPI.kobold.onServerReady(() => {
-      setIsServerReady(true);
-      setActiveInterfaceTab(defaultInterfaceTab);
+      setTimeout(() => {
+        setIsServerReady(true);
+        setActiveInterfaceTab(defaultInterfaceTab);
+      }, 1000);
     });
 
     return cleanup;

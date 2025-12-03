@@ -234,15 +234,17 @@ export async function launchKoboldCpp(
     const handleServerReady = () => {
       const isKoboldFrontend =
         frontendPreference === 'koboldcpp' ||
+        frontendPreference === 'llamacpp' ||
         (!isTextMode && imageGenerationFrontendPreference === 'builtin');
 
       if (isKoboldFrontend) {
         sendToRenderer('server-ready');
       }
+
       readyResolve?.({ success: true, pid: child.pid });
     };
 
-    child.stdout?.on('data', (data) => {
+    const handleOutput = (data: Buffer) => {
       const output = data.toString();
       const filtered = debugmode ? output : filterSpam(output);
       if (filtered.trim()) {
@@ -254,21 +256,10 @@ export async function launchKoboldCpp(
         hasProcessStartedSuccessfully = true;
         handleServerReady();
       }
-    });
+    };
 
-    child.stderr?.on('data', (data) => {
-      const output = data.toString();
-      const filtered = debugmode ? output : filterSpam(output);
-      if (filtered.trim()) {
-        sendKoboldOutput(filtered, true);
-      }
-
-      if (!isReady && output.includes(SERVER_READY_SIGNALS.KOBOLDCPP)) {
-        isReady = true;
-        hasProcessStartedSuccessfully = true;
-        handleServerReady();
-      }
-    });
+    child.stdout?.on('data', handleOutput);
+    child.stderr?.on('data', handleOutput);
 
     child.on('exit', (code, signal) => {
       const isCrash = signal !== null || (code !== null && code !== 0);
