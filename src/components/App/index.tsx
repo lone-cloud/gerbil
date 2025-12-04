@@ -66,7 +66,7 @@ export const App = () => {
       setTimeout(() => {
         setIsServerReady(true);
         setActiveInterfaceTab(defaultInterfaceTab);
-      }, 1000);
+      }, 3000);
     });
 
     return cleanup;
