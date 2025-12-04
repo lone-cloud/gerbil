@@ -38,15 +38,23 @@ export const startTunnel = async (
     }
 
     const tunnelTarget = getTunnelTarget(frontendPreference);
-    const tunnel = Tunnel.quick(tunnelTarget, {
-      '--no-autoupdate': true,
-    });
-
+    const tunnel = Tunnel.quick(tunnelTarget, { '--no-autoupdate': true });
     activeTunnel = tunnel;
+
+    let rateLimited = false;
+
+    tunnel.on('stderr', (data: string) => {
+      if (data.includes('429') || data.includes('Too Many Requests')) {
+        rateLimited = true;
+      }
+    });
 
     const url = await new Promise<string>((resolve, reject) => {
       const timeout = setTimeout(() => {
-        reject(new Error('Tunnel connection timed out'));
+        const message = rateLimited
+          ? 'Cloudflare rate limit exceeded. Please wait a few minutes and try again.'
+          : 'Tunnel connection timed out';
+        reject(new Error(message));
       }, 30000);
 
       tunnel.once('url', (url) => {
@@ -64,7 +72,7 @@ export const startTunnel = async (
     sendKoboldOutput(`Tunnel ready at ${tunnelUrl}`);
     sendToRenderer('tunnel-url-changed', tunnelUrl);
 
-    tunnel.on('error', (error) => {
+    tunnel.on('error', (error: Error) => {
       logError(`Tunnel error: ${error.message}`, error);
       sendKoboldOutput(`Tunnel error: ${error.message}`);
     });
