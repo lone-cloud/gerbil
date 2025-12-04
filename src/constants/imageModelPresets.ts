@@ -1,6 +1,5 @@
 export interface ImageModelPreset {
   readonly name: string;
-  readonly description?: string;
   readonly sdmodel: string;
   readonly sdt5xxl: string;
   readonly sdclipl: string;
@@ -11,8 +10,19 @@ export interface ImageModelPreset {
 
 export const IMAGE_MODEL_PRESETS: readonly ImageModelPreset[] = [
   {
+    name: 'Z-Image',
+    sdmodel:
+      'https://huggingface.co/leejet/Z-Image-Turbo-GGUF/resolve/main/z_image_turbo-Q4_0.gguf',
+    sdt5xxl: '',
+    sdclipl:
+      'https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/resolve/main/Qwen3-4B-Instruct-2507-Q4_K_S.gguf',
+    sdclipg: '',
+    sdphotomaker: '',
+    sdvae:
+      'https://huggingface.co/koboldcpp/GGUFDumps/resolve/main/flux1vae.safetensors',
+  },
+  {
     name: 'FLUX.1',
-    description: 'FLUX.1 development model with default encoders',
     sdmodel:
       'https://huggingface.co/bullerwins/FLUX.1-Kontext-dev-GGUF/resolve/main/flux1-kontext-dev-Q4_K_S.gguf',
     sdt5xxl:
@@ -26,7 +36,6 @@ export const IMAGE_MODEL_PRESETS: readonly ImageModelPreset[] = [
   },
   {
     name: 'Chroma',
-    description: 'Chroma with optimized VAE and shared encoders',
     sdmodel:
       'https://huggingface.co/silveroxides/Chroma-GGUF/resolve/main/chroma-unlocked-v45/chroma-unlocked-v45-Q4_0.gguf',
     sdt5xxl:
@@ -40,7 +49,6 @@ export const IMAGE_MODEL_PRESETS: readonly ImageModelPreset[] = [
   },
   {
     name: 'Qwen Image Edit 2509',
-    description: 'Qwen Image Edit model with vision encoder and VAE',
     sdmodel:
       'https://huggingface.co/QuantStack/Qwen-Image-Edit-2509-GGUF/resolve/main/Qwen-Image-Edit-2509-Q4_K_S.gguf',
     sdt5xxl: '',
