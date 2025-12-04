@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Tunnel, install } from 'cloudflared';
+import { Tunnel, install, use as setCloudflaredBin } from 'cloudflared';
 import { platform } from 'process';
 
 import { logError } from '@/utils/node/logging';
@@ -42,15 +42,14 @@ export const startTunnel = async (
     const bin = getCloudflaredBin();
 
     if (!fs.existsSync(bin)) {
-      sendKoboldOutput('Installing cloudflared binary...');
+      sendKoboldOutput(`Installing cloudflared binary to ${bin}...`);
       await install(bin);
     }
 
+    setCloudflaredBin(bin);
+
     const tunnelTarget = getTunnelTarget(frontendPreference);
-    const tunnel = Tunnel.quick(tunnelTarget, {
-      '--no-autoupdate': true,
-      bin,
-    });
+    const tunnel = Tunnel.quick(tunnelTarget, { '--no-autoupdate': true });
     activeTunnel = tunnel;
 
     let rateLimited = false;
