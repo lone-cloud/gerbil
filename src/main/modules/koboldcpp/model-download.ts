@@ -6,7 +6,7 @@ import { get as httpsGet } from 'https';
 import { getInstallDir } from '@/main/modules/config';
 import { pathExists } from '@/utils/node/fs';
 import { logError } from '@/utils/node/logging';
-import { sendKoboldOutput } from '@/main/modules/window';
+import { sendKoboldOutput, sendToRenderer } from '@/main/modules/window';
 import type { ModelParamType, CachedModel } from '@/types';
 import type { IncomingMessage } from 'http';
 
@@ -176,7 +176,7 @@ async function downloadFile(
               ? `Downloaded ${downloadedMB}MB / ${totalMB}MB (${percent}%) - ${speedMBPerSec}MB/s - ETA: ${etaStr}`
               : `Downloaded ${downloadedMB}MB - ${speedMBPerSec}MB/s`;
 
-            sendKoboldOutput(`\r${progressMsg}`);
+            sendToRenderer('kobold-output', `\r${progressMsg}`);
 
             onProgress({
               type: 'progress',

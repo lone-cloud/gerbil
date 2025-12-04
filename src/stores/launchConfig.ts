@@ -225,6 +225,9 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
       if (typeof configData.model === 'string') {
         updates.model = configData.model;
         updates.isTextMode = Boolean(configData.model?.trim());
+      } else {
+        updates.model = '';
+        updates.isTextMode = false;
       }
 
       if (typeof configData.additionalArguments === 'string') {
@@ -474,6 +477,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
         sdclipg: preset.sdclipg || '',
         sdvae: preset.sdvae,
         model: '',
+        isTextMode: false,
       });
     }
   },

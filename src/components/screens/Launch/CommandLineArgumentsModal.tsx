@@ -427,7 +427,7 @@ const COMMAND_LINE_ARGUMENTS = [
   },
   {
     flag: '--jinja_tools',
-    aliases: ['--jinja-tools'],
+    aliases: ['--jinja-tools', '--jinjatools'],
     description:
       'Enables using jinja chat template formatting for chat completions endpoint. Other endpoints are unaffected. Tool calls are done with jinja.',
     type: 'boolean',
@@ -512,7 +512,7 @@ const COMMAND_LINE_ARGUMENTS = [
     flag: '--overridetensors',
     aliases: ['--override-tensor', '-ot'],
     description:
-      'Advanced option to override tensor backend selection, same as in llama.cpp.',
+      'Override selected backend for specific tensors matching tensor_name_regex_pattern=buffer_type, same as in llama.cpp.',
     metavar: '[tensor name pattern=buffer type]',
     default: '',
     category: 'Advanced',
