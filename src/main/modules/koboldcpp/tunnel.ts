@@ -1,14 +1,22 @@
 import fs from 'fs';
-import { Tunnel, bin, install } from 'cloudflared';
+import path from 'path';
+import { Tunnel, install } from 'cloudflared';
+import { platform } from 'process';
 
 import { logError } from '@/utils/node/logging';
 import { sendKoboldOutput, sendToRenderer } from '../window';
 import { PROXY } from '@/constants/proxy';
 import { SILLYTAVERN, OPENWEBUI } from '@/constants';
+import { getInstallDir } from '@/main/modules/config';
 import type { FrontendPreference } from '@/types';
 
 let activeTunnel: Tunnel | null = null;
 let tunnelUrl: string | null = null;
+
+const getCloudflaredBin = () => {
+  const binName = platform === 'win32' ? 'cloudflared.exe' : 'cloudflared';
+  return path.join(getInstallDir(), binName);
+};
 
 const getTunnelTarget = (frontendPreference: FrontendPreference) => {
   switch (frontendPreference) {
@@ -31,14 +39,18 @@ export const startTunnel = async (
   try {
     sendKoboldOutput('Starting Cloudflare tunnel...');
 
+    const bin = getCloudflaredBin();
+
     if (!fs.existsSync(bin)) {
       sendKoboldOutput('Installing cloudflared binary...');
       await install(bin);
-      sendKoboldOutput('cloudflared binary installed');
     }
 
     const tunnelTarget = getTunnelTarget(frontendPreference);
-    const tunnel = Tunnel.quick(tunnelTarget, { '--no-autoupdate': true });
+    const tunnel = Tunnel.quick(tunnelTarget, {
+      '--no-autoupdate': true,
+      bin,
+    });
     activeTunnel = tunnel;
 
     let rateLimited = false;
