@@ -37,7 +37,9 @@ if (argv[1] === '--version') {
       try {
         const guiModule = await import('./gui');
         const startMinimized = argv.includes('--minimized');
-        await guiModule.initializeApp({ startMinimized });
+        await guiModule.initializeApp(
+          startMinimized ? { startMinimized } : undefined
+        );
       } catch (error: unknown) {
         // eslint-disable-next-line no-console
         console.error('Failed to initialize Gerbil:', error);

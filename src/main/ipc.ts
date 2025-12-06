@@ -250,6 +250,14 @@ export function setupIPCHandlers() {
     }
   });
 
+  ipcMain.handle('app:getStartMinimizedToTray', () =>
+    getConfig('startMinimizedToTray')
+  );
+
+  ipcMain.handle('app:setStartMinimizedToTray', async (_, enabled: boolean) => {
+    await setConfig('startMinimizedToTray', enabled);
+  });
+
   ipcMain.handle(
     'app:updateTrayState',
     (

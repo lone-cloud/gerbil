@@ -10,6 +10,7 @@ import {
   initialize as initializeConfig,
   getInstallDir,
   getEnableSystemTray,
+  getStartMinimizedToTray,
 } from '@/main/modules/config';
 import { createTray } from '@/main/modules/tray';
 import { safeExecute } from '@/utils/node/logging';
@@ -50,7 +51,7 @@ export async function initializeApp(options?: { startMinimized?: boolean }) {
   await initializeConfig();
   await ensureDir(installDir);
 
-  const startMinimized = options?.startMinimized ?? false;
+  const startMinimized = options?.startMinimized ?? getStartMinimizedToTray();
   const trayEnabled = getEnableSystemTray();
 
   await createMainWindow({ startHidden: startMinimized && trayEnabled });
