@@ -36,6 +36,7 @@ interface AppConfig {
   zoomLevel?: number;
   notepad?: SavedNotepadState;
   enableSystemTray?: boolean;
+  startMinimizedToTray?: boolean;
 }
 
 let config: AppConfig = {};
@@ -121,3 +122,6 @@ export function getBackgroundColor() {
 export const getWindowBounds = () => config.windowBounds;
 
 export const getEnableSystemTray = () => config.enableSystemTray ?? false;
+
+export const getStartMinimizedToTray = () =>
+  config.startMinimizedToTray ?? false;

@@ -216,6 +216,8 @@ export interface AppAPI {
   setColorScheme: (colorScheme: MantineColorScheme) => Promise<void>;
   getEnableSystemTray: () => Promise<boolean>;
   setEnableSystemTray: (enabled: boolean) => Promise<void>;
+  getStartMinimizedToTray: () => Promise<boolean>;
+  setStartMinimizedToTray: (enabled: boolean) => Promise<void>;
   updateTrayState: (state: {
     screen?: Screen | null;
     model?: string | null;

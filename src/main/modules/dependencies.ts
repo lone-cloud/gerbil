@@ -1,10 +1,31 @@
-import { access, readdir } from 'fs/promises';
+import { access, readdir, readlink } from 'fs/promises';
 import { homedir, release } from 'os';
 import { join } from 'path';
 import { platform, env as processEnv, versions, arch } from 'process';
 import { execa } from 'execa';
 import { app } from 'electron';
 import { PRODUCT_NAME } from '@/constants';
+
+const PATH_SEPARATOR = platform === 'win32' ? ';' : ':';
+const BIN_SUBDIRS = ['bin', join('installation', 'bin')];
+
+async function pathExists(path: string) {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function resolveSymlink(path: string) {
+  try {
+    const target = await readlink(path);
+    return target.startsWith('/') ? target : join(path, '..', target);
+  } catch {
+    return null;
+  }
+}
 
 async function executeCommand(
   command: string,
@@ -61,15 +82,13 @@ export async function getUvEnvironment() {
 
   const existingPaths: string[] = [];
   for (const path of uvPaths) {
-    try {
-      await access(path);
+    if (await pathExists(path)) {
       existingPaths.push(path);
-    } catch {}
+    }
   }
 
   if (existingPaths.length > 0) {
-    const pathSeparator = platform === 'win32' ? ';' : ':';
-    env.PATH = `${existingPaths.join(pathSeparator)}${pathSeparator}${env.PATH}`;
+    env.PATH = `${existingPaths.join(PATH_SEPARATOR)}${PATH_SEPARATOR}${env.PATH}`;
   }
 
   if (platform === 'win32') {
@@ -102,18 +121,12 @@ export async function getNodeEnvironment() {
     join(homedir(), '.asdf', 'installs', 'nodejs'),
   ];
 
-  const systemPaths: string[] = [];
   if (platform === 'darwin') {
-    systemPaths.push('/opt/homebrew/bin', '/usr/local/bin');
-  }
-
-  for (const systemPath of systemPaths) {
-    try {
-      await access(systemPath);
-      await tryAddPathToEnv(env, systemPath);
-      return env;
-    } catch {
-      continue;
+    for (const systemPath of ['/opt/homebrew/bin', '/usr/local/bin']) {
+      if (await pathExists(systemPath)) {
+        tryAddPathToEnv(env, systemPath);
+        return env;
+      }
     }
   }
 
@@ -126,32 +139,53 @@ export async function getNodeEnvironment() {
   return env;
 }
 
+async function findNodeBinPath(baseDir: string) {
+  for (const binSubPath of BIN_SUBDIRS) {
+    const nodeBinPath = join(baseDir, binSubPath);
+    if (await pathExists(nodeBinPath)) {
+      return nodeBinPath;
+    }
+  }
+  return null;
+}
+
 async function tryVersionManagerPath(
   basePath: string,
   env: Record<string, string | undefined>
 ) {
-  try {
-    await access(basePath);
-    const versions = await readdir(basePath);
-    if (versions.length > 0) {
-      const latestVersion = versions.sort().pop();
-      if (latestVersion) {
-        const binSubPath = basePath.includes('fnm')
-          ? join('installation', 'bin')
-          : 'bin';
-        const nodeBinPath = join(basePath, latestVersion, binSubPath);
-
-        try {
-          await access(nodeBinPath);
-          return tryAddPathToEnv(env, nodeBinPath);
-        } catch {
-          return false;
-        }
-      }
-    }
-  } catch {
+  if (!(await pathExists(basePath))) {
     return false;
   }
+
+  const aliasPatterns = [
+    join(basePath, '..', 'aliases', 'default'),
+    join(basePath, '..', 'alias', 'default'),
+    join(basePath, 'default'),
+  ];
+
+  for (const aliasPath of aliasPatterns) {
+    const resolvedPath = await resolveSymlink(aliasPath);
+    if (resolvedPath) {
+      const binPath = await findNodeBinPath(resolvedPath);
+      if (binPath) {
+        return tryAddPathToEnv(env, binPath);
+      }
+    }
+  }
+
+  try {
+    const entries = await readdir(basePath);
+    const nodeVersions = entries.filter((v) => v.startsWith('v')).sort();
+    const latestVersion = nodeVersions.pop();
+
+    if (latestVersion) {
+      const binPath = await findNodeBinPath(join(basePath, latestVersion));
+      if (binPath) {
+        return tryAddPathToEnv(env, binPath);
+      }
+    }
+  } catch {}
+
   return false;
 }
 
@@ -213,9 +247,8 @@ function tryAddPathToEnv(
   env: Record<string, string | undefined>,
   path: string
 ) {
-  const pathSeparator = platform === 'win32' ? ';' : ':';
   if (!env.PATH?.includes(path)) {
-    env.PATH = `${path}${pathSeparator}${env.PATH}`;
+    env.PATH = `${path}${PATH_SEPARATOR}${env.PATH}`;
     return true;
   }
   return false;

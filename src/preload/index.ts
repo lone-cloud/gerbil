@@ -153,6 +153,10 @@ const appAPI: AppAPI = {
   getEnableSystemTray: () => ipcRenderer.invoke('app:getEnableSystemTray'),
   setEnableSystemTray: (enabled) =>
     ipcRenderer.invoke('app:setEnableSystemTray', enabled),
+  getStartMinimizedToTray: () =>
+    ipcRenderer.invoke('app:getStartMinimizedToTray'),
+  setStartMinimizedToTray: (enabled) =>
+    ipcRenderer.invoke('app:setStartMinimizedToTray', enabled),
   updateTrayState: (state) => ipcRenderer.invoke('app:updateTrayState', state),
   onTrayEject: (callback) => {
     const handler = () => callback();
