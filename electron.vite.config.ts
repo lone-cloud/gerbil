@@ -1,11 +1,13 @@
-import { defineConfig, externalizeDepsPlugin } from 'electron-vite';
+import { defineConfig } from 'electron-vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()],
+    build: {
+      externalizeDeps: true,
+    },
     resolve: {
       alias: {
         '@': resolve(__dirname, './src'),
@@ -13,7 +15,9 @@ export default defineConfig({
     },
   },
   preload: {
-    plugins: [externalizeDepsPlugin()],
+    build: {
+      externalizeDeps: true,
+    },
     resolve: {
       alias: {
         '@': resolve(__dirname, './src'),

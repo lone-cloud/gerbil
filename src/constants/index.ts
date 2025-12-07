@@ -45,6 +45,7 @@ export const GITHUB_API = {
   KOBOLDCPP_REPO: 'LostRuins/koboldcpp',
   KOBOLDCPP_ROCM_REPO: 'YellowRoseCx/koboldcpp-rocm',
   GERBIL_REPO: 'lone-cloud/gerbil',
+  CLOUDFLARED_REPO: 'cloudflare/cloudflared',
   get LATEST_RELEASE_URL() {
     return `${this.BASE_URL}/repos/${this.KOBOLDCPP_REPO}/releases/latest` as const;
   },
@@ -59,6 +60,12 @@ export const GITHUB_API = {
   },
   get GERBIL_LATEST_RELEASE_URL() {
     return `${this.BASE_URL}/repos/${this.GERBIL_REPO}/releases/latest` as const;
+  },
+  get CLOUDFLARED_LATEST_RELEASE_URL() {
+    return `${this.BASE_URL}/repos/${this.CLOUDFLARED_REPO}/releases/latest` as const;
+  },
+  getCloudflaredDownloadUrl(version: string, filename: string) {
+    return `${this.GITHUB_BASE_URL}/${this.CLOUDFLARED_REPO}/releases/download/${version}/${filename}` as const;
   },
 } as const;
 

@@ -13,5 +13,8 @@
   "editor.defaultFormatter": "prettier.prettier-vscode",
   "[typescriptreact]": {
     "editor.defaultFormatter": "prettier.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "prettier.prettier-vscode"
   }
 }
