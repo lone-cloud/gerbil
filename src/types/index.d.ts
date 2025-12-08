@@ -125,3 +125,32 @@ export interface ModelAnalysis {
     vramPerLayer?: string;
   };
 }
+
+export interface HuggingFaceModelInfo {
+  id: string;
+  name: string;
+  author: string;
+  downloads: number;
+  likes: number;
+  updatedAt: Date;
+  gated: boolean | 'auto' | 'manual';
+  paramSize?: string;
+}
+
+export interface HuggingFaceFileInfo {
+  path: string;
+  size: number;
+}
+
+export interface HuggingFaceSearchParams {
+  search?: string;
+  pipelineTag?: string;
+  filter?: string;
+  sort: HuggingFaceSortOption;
+}
+
+export type HuggingFaceSortOption =
+  | 'trendingScore'
+  | 'downloads'
+  | 'likes'
+  | 'lastModified';

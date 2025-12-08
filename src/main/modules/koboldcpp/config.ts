@@ -3,7 +3,7 @@ import { readdir, stat, unlink } from 'fs/promises';
 import { dialog } from 'electron';
 
 import { getInstallDir, setInstallDir } from '../config';
-import { logError } from '@/utils/node/logging';
+import { logError, safeExecute, tryExecute } from '@/utils/node/logging';
 import { pathExists, readJsonFile, writeJsonFile } from '@/utils/node/fs';
 import { getMainWindow, sendToRenderer } from '../window';
 import { PRODUCT_NAME } from '@/constants';
@@ -43,48 +43,37 @@ export async function getConfigFiles() {
 }
 
 export async function parseConfigFile(filePath: string) {
-  try {
+  return safeExecute(async () => {
     if (!(await pathExists(filePath))) {
       return null;
     }
 
     const config = await readJsonFile(filePath);
     return config as KoboldConfig;
-  } catch (error) {
-    logError('Error parsing config file:', error as Error);
-    return null;
-  }
+  }, 'Error parsing config file');
 }
 
 export async function saveConfigFile(
   configFileName: string,
   configData: KoboldConfig
 ) {
-  try {
+  return tryExecute(async () => {
     const installDir = getInstallDir();
     const configPath = join(installDir, configFileName);
     await writeJsonFile(configPath, configData);
-    return true;
-  } catch (error) {
-    logError('Error saving config file:', error as Error);
-    return false;
-  }
+  }, 'Error saving config file');
 }
 
 export async function deleteConfigFile(configFileName: string) {
-  try {
+  return tryExecute(async () => {
     const installDir = getInstallDir();
     const configPath = join(installDir, configFileName);
     await unlink(configPath);
-    return true;
-  } catch (error) {
-    logError('Error deleting config file:', error as Error);
-    return false;
-  }
+  }, 'Error deleting config file');
 }
 
 export async function selectModelFile(title = 'Select Model File') {
-  try {
+  return safeExecute(async () => {
     const mainWindow = getMainWindow();
     if (!mainWindow) {
       return null;
@@ -107,10 +96,7 @@ export async function selectModelFile(title = 'Select Model File') {
     }
 
     return result.filePaths[0];
-  } catch (error) {
-    logError('Error selecting model file:', error as Error);
-    return null;
-  }
+  }, 'Error selecting model file');
 }
 
 export async function selectInstallDirectory() {

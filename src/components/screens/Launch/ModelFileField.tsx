@@ -11,9 +11,15 @@ import {
 import { File, Search, Info } from 'lucide-react';
 import { LabelWithTooltip } from '@/components/LabelWithTooltip';
 import { ModelAnalysisModal } from '@/components/screens/Launch/ModelAnalysisModal';
+import { HuggingFaceSearchModal } from '@/components/screens/Launch/HuggingFaceSearchModal';
 import { getInputValidationState } from '@/utils/validation';
 import { logError } from '@/utils/logger';
-import type { ModelAnalysis, ModelParamType, CachedModel } from '@/types';
+import type {
+  ModelAnalysis,
+  ModelParamType,
+  CachedModel,
+  HuggingFaceSearchParams,
+} from '@/types';
 
 interface ModelFileFieldProps {
   label: string;
@@ -22,7 +28,7 @@ interface ModelFileFieldProps {
   tooltip?: string;
   onChange: (value: string) => void;
   onSelectFile: () => void;
-  searchUrl?: string;
+  searchParams?: HuggingFaceSearchParams;
   showAnalyze?: boolean;
   paramType: ModelParamType;
 }
@@ -34,7 +40,7 @@ export const ModelFileField = ({
   tooltip,
   onChange,
   onSelectFile,
-  searchUrl,
+  searchParams,
   showAnalyze = false,
   paramType,
 }: ModelFileFieldProps) => {
@@ -46,6 +52,7 @@ export const ModelFileField = ({
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [analysisError, setAnalysisError] = useState<string>();
   const [cachedModels, setCachedModels] = useState<CachedModel[]>([]);
+  const [searchModalOpened, setSearchModalOpened] = useState(false);
   const combobox = useCombobox();
 
   useEffect(() => {
@@ -141,10 +148,10 @@ export const ModelFileField = ({
         >
           Browse
         </Button>
-        {searchUrl && (
+        {searchParams && (
           <Tooltip label="Search Hugging Face">
             <ActionIcon
-              onClick={() => window.electronAPI.app.openExternal(searchUrl)}
+              onClick={() => setSearchModalOpened(true)}
               variant="outline"
               size="lg"
             >
@@ -182,6 +189,15 @@ export const ModelFileField = ({
         loading={analysisLoading}
         error={analysisError}
       />
+
+      {searchParams && (
+        <HuggingFaceSearchModal
+          opened={searchModalOpened}
+          onClose={() => setSearchModalOpened(false)}
+          onSelect={onChange}
+          searchParams={searchParams}
+        />
+      )}
     </div>
   );
 };

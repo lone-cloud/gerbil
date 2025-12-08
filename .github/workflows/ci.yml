@@ -36,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: yarn
 
-      - name: Run checks (lint, type check, spell check)
+      - name: Run checks (format, lint, type check)
         run: yarn test
 
       - name: Test build

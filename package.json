@@ -16,10 +16,11 @@
     "package": "electron-vite build && electron-builder --publish=never",
     "analyze": "cross-env ANALYZE=true electron-vite build && yarn dlx open-cli dist/stats.html",
     "format": "prettier --write . --ignore-path .gitignore | grep -v '(unchanged)' || true",
+    "format:check": "prettier --check . --ignore-path .gitignore",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "compile": "tsc --noEmit",
-    "test": "yarn lint && yarn compile",
+    "test": "yarn format:check && yarn lint && yarn compile",
     "release": "yarn dlx tsx scripts/release.ts"
   },
   "keywords": [
@@ -53,6 +54,10 @@
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "react-error-boundary": "^6.0.0",
+    "react-markdown": "^10.1.0",
+    "rehype-raw": "^7.0.0",
+    "rehype-sanitize": "^6.0.0",
+    "remark-gfm": "^4.0.1",
     "systeminformation": "^5.27.11",
     "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0",
@@ -85,7 +90,7 @@
     "prettier": "^3.7.4",
     "rollup-plugin-visualizer": "^6.0.5",
     "typescript": "^5.9.3",
-    "vite": "^7.2.6"
+    "vite": "^7.2.7"
   },
   "build": {
     "appId": "com.gerbil.app",
