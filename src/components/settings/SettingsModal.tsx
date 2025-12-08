@@ -67,118 +67,105 @@ export const SettingsModal = ({
       }
       size="xl"
       showCloseButton
+      tallContent
     >
-      <div
-        style={{
-          height: '66vh',
-          padding: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'relative',
+      <Tabs
+        value={effectiveActiveTab}
+        onChange={(value) => value && setActiveTab(value)}
+        orientation="vertical"
+        variant="pills"
+        styles={{
+          root: {
+            flex: 1,
+            minHeight: 0,
+          },
+          panel: {
+            height: '100%',
+            overflow: 'auto',
+            paddingLeft: '1.5rem',
+            paddingRight: '1.5rem',
+          },
+          tabLabel: {
+            textAlign: 'left',
+            justifyContent: 'flex-start',
+          },
         }}
       >
-        <Tabs
-          value={effectiveActiveTab}
-          onChange={(value) => value && setActiveTab(value)}
-          orientation="vertical"
-          variant="pills"
-          styles={{
-            root: {
-              flex: 1,
-              minHeight: 0,
-            },
-            panel: {
-              height: '100%',
-              overflow: 'auto',
-              paddingLeft: '1.5rem',
-              paddingRight: '1.5rem',
-            },
-            tabLabel: {
-              textAlign: 'left',
-              justifyContent: 'flex-start',
-            },
-          }}
-        >
-          <Tabs.List>
-            <Tabs.Tab
-              value="general"
-              leftSection={
-                <SlidersHorizontal
-                  style={{ width: rem(16), height: rem(16) }}
-                />
-              }
-            >
-              General
-            </Tabs.Tab>
-            {showBackendsTab && (
-              <Tabs.Tab
-                value="backends"
-                leftSection={
-                  <GitBranch style={{ width: rem(16), height: rem(16) }} />
-                }
-              >
-                Backends
-              </Tabs.Tab>
-            )}
-            <Tabs.Tab
-              value="appearance"
-              leftSection={
-                <Palette style={{ width: rem(16), height: rem(16) }} />
-              }
-            >
-              Appearance
-            </Tabs.Tab>
-            <Tabs.Tab
-              value="system"
-              leftSection={
-                <Monitor style={{ width: rem(16), height: rem(16) }} />
-              }
-            >
-              System
-            </Tabs.Tab>
-            <Tabs.Tab
-              value="troubleshooting"
-              leftSection={
-                <Wrench style={{ width: rem(16), height: rem(16) }} />
-              }
-            >
-              Troubleshooting
-            </Tabs.Tab>
-            <Tabs.Tab
-              value="about"
-              leftSection={<Info style={{ width: rem(16), height: rem(16) }} />}
-            >
-              About
-            </Tabs.Tab>
-          </Tabs.List>
-
-          <Tabs.Panel value="general">
-            <GeneralTab />
-          </Tabs.Panel>
-
+        <Tabs.List>
+          <Tabs.Tab
+            value="general"
+            leftSection={
+              <SlidersHorizontal style={{ width: rem(16), height: rem(16) }} />
+            }
+          >
+            General
+          </Tabs.Tab>
           {showBackendsTab && (
-            <Tabs.Panel value="backends">
-              <BackendsTab />
-            </Tabs.Panel>
+            <Tabs.Tab
+              value="backends"
+              leftSection={
+                <GitBranch style={{ width: rem(16), height: rem(16) }} />
+              }
+            >
+              Backends
+            </Tabs.Tab>
           )}
+          <Tabs.Tab
+            value="appearance"
+            leftSection={
+              <Palette style={{ width: rem(16), height: rem(16) }} />
+            }
+          >
+            Appearance
+          </Tabs.Tab>
+          <Tabs.Tab
+            value="system"
+            leftSection={
+              <Monitor style={{ width: rem(16), height: rem(16) }} />
+            }
+          >
+            System
+          </Tabs.Tab>
+          <Tabs.Tab
+            value="troubleshooting"
+            leftSection={<Wrench style={{ width: rem(16), height: rem(16) }} />}
+          >
+            Troubleshooting
+          </Tabs.Tab>
+          <Tabs.Tab
+            value="about"
+            leftSection={<Info style={{ width: rem(16), height: rem(16) }} />}
+          >
+            About
+          </Tabs.Tab>
+        </Tabs.List>
 
-          <Tabs.Panel value="appearance">
-            <AppearanceTab isOnInterfaceScreen={isOnInterfaceScreen} />
-          </Tabs.Panel>
+        <Tabs.Panel value="general">
+          <GeneralTab />
+        </Tabs.Panel>
 
-          <Tabs.Panel value="system">
-            <SystemTab />
+        {showBackendsTab && (
+          <Tabs.Panel value="backends">
+            <BackendsTab />
           </Tabs.Panel>
+        )}
 
-          <Tabs.Panel value="troubleshooting">
-            <TroubleshootingTab />
-          </Tabs.Panel>
+        <Tabs.Panel value="appearance">
+          <AppearanceTab isOnInterfaceScreen={isOnInterfaceScreen} />
+        </Tabs.Panel>
 
-          <Tabs.Panel value="about">
-            <AboutTab />
-          </Tabs.Panel>
-        </Tabs>
-      </div>
+        <Tabs.Panel value="system">
+          <SystemTab />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="troubleshooting">
+          <TroubleshootingTab />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="about">
+          <AboutTab />
+        </Tabs.Panel>
+      </Tabs>
     </Modal>
   );
 };

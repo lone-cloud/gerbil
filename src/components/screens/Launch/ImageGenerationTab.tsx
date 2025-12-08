@@ -69,7 +69,11 @@ export const ImageGenerationTab = () => {
         tooltip="The primary image generation model. This is the main model that will generate images."
         onChange={setSdmodel}
         onSelectFile={() => selectFile('sdmodel', 'Select Image Model')}
-        searchUrl="https://huggingface.co/models?pipeline_tag=text-to-image&library=gguf&sort=trending"
+        searchParams={{
+          pipelineTag: 'text-to-image',
+          filter: 'gguf',
+          sort: 'trendingScore',
+        }}
         showAnalyze
         paramType="sdmodel"
       />
@@ -81,7 +85,11 @@ export const ImageGenerationTab = () => {
         tooltip="T5-XXL text encoder model for advanced text understanding."
         onChange={setSdt5xxl}
         onSelectFile={() => selectFile('sdt5xxl', 'Select T5XXL Model')}
-        searchUrl="https://huggingface.co/models?search=t5-xxl&library=gguf&sort=trending"
+        searchParams={{
+          search: 't5xxl',
+          filter: 'safetensors',
+          sort: 'trendingScore',
+        }}
         paramType="sdt5xxl"
       />
 
@@ -92,7 +100,11 @@ export const ImageGenerationTab = () => {
         tooltip="CLIP-L text encoder model for text-image understanding."
         onChange={setSdclipl}
         onSelectFile={() => selectFile('sdclipl', 'Select CLIP-L Model')}
-        searchUrl="https://huggingface.co/models?search=clip-l&library=gguf&sort=trending"
+        searchParams={{
+          search: 'clip',
+          filter: 'safetensors',
+          sort: 'trendingScore',
+        }}
         paramType="sdclipl"
       />
 
@@ -100,10 +112,14 @@ export const ImageGenerationTab = () => {
         label="Clip-G File"
         value={sdclipg}
         placeholder="Select a Clip-G file or enter a direct URL"
-        tooltip="CLIP-G text encoder model for enhanced text-image understanding."
+        tooltip="CLIP-G text encoder model for enhanced text-image understanding, or mmproj files for vision-language models."
         onChange={setSdclipg}
         onSelectFile={() => selectFile('sdclipg', 'Select CLIP-G Model')}
-        searchUrl="https://huggingface.co/models?search=clip-g&library=gguf&sort=trending"
+        searchParams={{
+          search: 'clip',
+          filter: 'gguf',
+          sort: 'trendingScore',
+        }}
         paramType="sdclipg"
       />
 
@@ -116,7 +132,11 @@ export const ImageGenerationTab = () => {
         onSelectFile={() =>
           selectFile('sdphotomaker', 'Select PhotoMaker Model')
         }
-        searchUrl="https://huggingface.co/models?search=photomaker&library=safetensors&sort=trending"
+        searchParams={{
+          search: 'photomaker',
+          filter: 'safetensors',
+          sort: 'trendingScore',
+        }}
         paramType="sdphotomaker"
       />
 
@@ -127,7 +147,11 @@ export const ImageGenerationTab = () => {
         tooltip="Variational Autoencoder model for improved image quality."
         onChange={setSdvae}
         onSelectFile={() => selectFile('sdvae', 'Select VAE Model')}
-        searchUrl="https://huggingface.co/models?search=vae&library=safetensors&sort=trending"
+        searchParams={{
+          search: 'vae',
+          filter: 'safetensors',
+          sort: 'trendingScore',
+        }}
         paramType="sdvae"
       />
 
@@ -138,7 +162,11 @@ export const ImageGenerationTab = () => {
         tooltip="LoRa (Low-Rank Adaptation) file for customizing image generation. Select a .safetensors or .gguf LoRa file to be loaded. Should be unquantized."
         onChange={setSdlora}
         onSelectFile={() => selectFile('sdlora', 'Select LoRA Model')}
-        searchUrl="https://huggingface.co/models?search=lora&library=safetensors&sort=trending"
+        searchParams={{
+          search: 'lora',
+          filter: 'safetensors',
+          sort: 'trendingScore',
+        }}
         paramType="sdlora"
       />
 

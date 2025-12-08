@@ -6,6 +6,8 @@ export const TITLEBAR_HEIGHT = '2.5rem';
 
 export const STATUSBAR_HEIGHT = '1.5rem';
 
+export const HUGGINGFACE_BASE_URL = 'https://huggingface.co';
+
 export const SERVER_READY_SIGNALS = {
   KOBOLDCPP: 'Please connect to custom endpoint at',
   SILLYTAVERN: 'SillyTavern is listening on',
@@ -14,8 +16,7 @@ export const SERVER_READY_SIGNALS = {
 
 export const DEFAULT_CONTEXT_SIZE = 4096;
 
-export const DEFAULT_MODEL_URL =
-  'https://huggingface.co/MaziyarPanahi/gemma-3-4b-it-GGUF/resolve/main/gemma-3-4b-it.Q8_0.gguf';
+export const DEFAULT_MODEL_URL = `${HUGGINGFACE_BASE_URL}/MaziyarPanahi/gemma-3-4b-it-GGUF/resolve/main/gemma-3-4b-it.Q8_0.gguf`;
 
 export const DEFAULT_AUTO_GPU_LAYERS = true;
 
