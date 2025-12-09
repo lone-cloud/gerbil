@@ -1,24 +1,21 @@
-# Gerbil
+# Gerbil <img src="src/assets/icon.png" alt="Gerbil Icon" width="32" height="32" />
 
 A desktop app to easily run Large Language Models locally.
-
-<img src="src/assets/icon.png" alt="Gerbil Icon" width="32" height="32" />
 
 <!-- markdownlint-enable MD033 -->
 
 ## Core Features
 
-- **Run LLMs locally** powered by [KoboldCpp](https://github.com/LostRuins/koboldcpp) which itself is a highly modified fork of [llama.cpp](https://github.com/ggml-org/llama.cpp)
-- **Cross-platform desktop app** - Native support for Windows, macOS, and Linux (including Wayland)
-- **Offline capable** - Import pre-downloaded backends and run entirely without an internet connection
-- **Automatic updates** - Download and keep your KoboldCpp binary up-to-date effortlessly
-- **Smart process management** - Prevents runaway background processes and system resource waste
-- **Optimized performance** - Automatically unpacks binaries for faster operation and reduced memory usage
-- **Flexible hardware support** - Works on CPU-only systems while also supporting GPU acceleration (CUDA, ROCm, Vulkan, Metal)
-- **Image generation support** - Built-in presets for Flux and Chroma image generation workflows
-- **SillyTavern integration** - Seamlessly launch SillyTavern for advanced character interactions (requires [Node.js](https://nodejs.org/))
+- **Run LLMs locally** - Powered by [KoboldCpp](https://github.com/LostRuins/koboldcpp), a feature-rich fork of [llama.cpp](https://github.com/ggml-org/llama.cpp)
+- **Cross-platform** - Native support for Windows, macOS, and Linux (including Wayland)
+- **Offline capable** - Import pre-downloaded KoboldCpp binaries and run entirely without an internet connection
+- **Automatic backend updates** - Download and keep your KoboldCpp binary up-to-date effortlessly
+- **Flexible hardware support** - Works on CPU-only systems while also supporting GPU acceleration (CUDA, ROCm, Vulkan, CLBlast, Metal)
+- **Image generation** - Built-in presets for Flux, Chroma, Qwen Image, and Z-Image workflows
+- **Integrated HuggingFace search** - Browse models, view model cards, and download GGUF files directly from the app
+- **SillyTavern integration** - Launch SillyTavern for advanced character interactions (requires [Node.js](https://nodejs.org/))
 - **OpenWebUI integration** - Launch OpenWebUI for a modern web-based chat interface (requires [uv](https://docs.astral.sh/uv/getting-started/installation/))
-- **Privacy-focused** - Everything runs locally on your machine, no data sent to external servers
+- **Privacy-focused** - Everything runs locally with no external data transmission or telemetry
 
 ## Installation
 
