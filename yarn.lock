@@ -315,15 +315,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@codemirror/view@npm:^6.0.0, @codemirror/view@npm:^6.17.0, @codemirror/view@npm:^6.23.0, @codemirror/view@npm:^6.27.0, @codemirror/view@npm:^6.35.0, @codemirror/view@npm:^6.39.0":
-  version: 6.39.0
-  resolution: "@codemirror/view@npm:6.39.0"
+"@codemirror/view@npm:^6.0.0, @codemirror/view@npm:^6.17.0, @codemirror/view@npm:^6.23.0, @codemirror/view@npm:^6.27.0, @codemirror/view@npm:^6.35.0, @codemirror/view@npm:^6.39.2":
+  version: 6.39.2
+  resolution: "@codemirror/view@npm:6.39.2"
   dependencies:
     "@codemirror/state": "npm:^6.5.0"
     crelt: "npm:^1.0.6"
     style-mod: "npm:^4.1.0"
     w3c-keyname: "npm:^2.2.4"
-  checksum: 10c0/04d4392d3d8a9cd8ab6855f18e7ad2a8f84f69102fbea1fb6dbba7e1d1447a7cb9907012cc84adcd2dc34bd1f11220fd48c07593083d9d5efd13b943cec53b2b
+  checksum: 10c0/e223f9b9cdadeb522cd49b425b069dba5533bae6512f40fc26e418ec7e3c1eb9d0fcbb400ddfff0bed953b23deab3420066c2e527bfe23f0750557351479e2dd
   languageName: node
   linkType: hard
 
@@ -981,9 +981,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/core@npm:^8.3.9":
-  version: 8.3.9
-  resolution: "@mantine/core@npm:8.3.9"
+"@mantine/core@npm:^8.3.10":
+  version: 8.3.10
+  resolution: "@mantine/core@npm:8.3.10"
   dependencies:
     "@floating-ui/react": "npm:^0.27.16"
     clsx: "npm:^2.1.1"
@@ -992,19 +992,19 @@ __metadata:
     react-textarea-autosize: "npm:8.5.9"
     type-fest: "npm:^4.41.0"
   peerDependencies:
-    "@mantine/hooks": 8.3.9
+    "@mantine/hooks": 8.3.10
     react: ^18.x || ^19.x
     react-dom: ^18.x || ^19.x
-  checksum: 10c0/552e114b41738149b432dbf721155b8ea433106568185cd0bf8eddae791166de42e575d999e13f86ad78d34a8290620feaed6c86ddda3becd517923654a0e70b
+  checksum: 10c0/d629088471dafb19c2a61e6e8ff47eff6c818f8cf8a1f795110126d86f8bc93c670039127c108f21b02c8bb8ee6e65fbd57d51f52fe86da816fc83c8468ac4c3
   languageName: node
   linkType: hard
 
-"@mantine/hooks@npm:^8.3.9":
-  version: 8.3.9
-  resolution: "@mantine/hooks@npm:8.3.9"
+"@mantine/hooks@npm:^8.3.10":
+  version: 8.3.10
+  resolution: "@mantine/hooks@npm:8.3.10"
   peerDependencies:
     react: ^18.x || ^19.x
-  checksum: 10c0/c414ea2b8b725a40a3115cbd1346d43f68b350a1b6472295a72e346c19bc06b524b13915dbeda73a0f29c391868413ff77bc2afeb8b28a1c950945bc725ad50c
+  checksum: 10c0/4957483d4ebefcc0e745a0aebf22f74d96a9fb0472cde373e9e37adf866a8ba3deb1665fe4ccd5831eb32bac0560cf1d70ef821b448c0cfd44bceab09f219056
   languageName: node
   linkType: hard
 
@@ -3853,12 +3853,12 @@ __metadata:
   dependencies:
     "@codemirror/search": "npm:^6.5.11"
     "@codemirror/theme-one-dark": "npm:^6.1.3"
-    "@codemirror/view": "npm:^6.39.0"
+    "@codemirror/view": "npm:^6.39.2"
     "@eslint/js": "npm:^9.39.1"
     "@fontsource/inter": "npm:^5.2.8"
     "@huggingface/gguf": "npm:^0.3.2"
-    "@mantine/core": "npm:^8.3.9"
-    "@mantine/hooks": "npm:^8.3.9"
+    "@mantine/core": "npm:^8.3.10"
+    "@mantine/hooks": "npm:^8.3.10"
     "@types/mime-types": "npm:^3.0.1"
     "@types/node": "npm:^24.10.2"
     "@types/react": "npm:^19.2.7"
@@ -3894,7 +3894,7 @@ __metadata:
     rehype-sanitize: "npm:^6.0.0"
     remark-gfm: "npm:^4.0.1"
     rollup-plugin-visualizer: "npm:^6.0.5"
-    systeminformation: "npm:^5.27.12"
+    systeminformation: "npm:^5.27.13"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.2.7"
     winston: "npm:^3.19.0"
@@ -7569,12 +7569,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"systeminformation@npm:^5.27.12":
-  version: 5.27.12
-  resolution: "systeminformation@npm:5.27.12"
+"systeminformation@npm:^5.27.13":
+  version: 5.27.13
+  resolution: "systeminformation@npm:5.27.13"
   bin:
     systeminformation: lib/cli.js
-  checksum: 10c0/322d45ad8ea323b4d85a50fb8dff16a3c3db7af9cd6685394b68c371c69b07fd83652f6bd5af29deb7bfe1ff32ef6de1d1f66e96e65c2a97fdcf8d72b67bc9d7
+  checksum: 10c0/173ef2f175e6bcb875e46bfcc76afef222e2efec80212b5e7d07ad3ba4c111bf402ed649fe96d3e1f13178e42542d25c77f5d433d20065af357ea07dbebe9c3d
   conditions: (os=darwin | os=linux | os=win32 | os=freebsd | os=openbsd | os=netbsd | os=sunos | os=android)
   languageName: node
   linkType: hard

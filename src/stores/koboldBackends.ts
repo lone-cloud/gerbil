@@ -57,9 +57,24 @@ interface KoboldBackendsState {
   downloadProgress: Record<string, number>;
 
   initialize: () => Promise<void>;
+  refreshDownloads: () => Promise<void>;
   handleDownload: (params: HandleDownloadParams) => Promise<void>;
   getLatestReleaseWithDownloadStatus: () => Promise<ReleaseWithStatus | null>;
 }
+
+const fetchDownloads = async (platform: string) => {
+  const [releases, rocm] = await Promise.all([
+    fetchLatestReleaseFromAPI(platform),
+    getROCmDownload(),
+  ]);
+
+  const allDownloads: DownloadItem[] = [...releases];
+  if (rocm) {
+    allDownloads.push(rocm);
+  }
+
+  return sortDownloadsByType(allDownloads);
+};
 
 export const useKoboldBackendsStore = create<KoboldBackendsState>(
   (set, get) => ({
@@ -77,20 +92,26 @@ export const useKoboldBackendsStore = create<KoboldBackendsState>(
         const platform = await window.electronAPI.kobold.getPlatform();
         set({ platform, loadingPlatform: false });
 
-        const [releases, rocm] = await Promise.all([
-          fetchLatestReleaseFromAPI(platform),
-          getROCmDownload(),
-        ]);
-
-        const allDownloads: DownloadItem[] = [...releases];
-        if (rocm) {
-          allDownloads.push(rocm);
-        }
-
-        set({ availableDownloads: sortDownloadsByType(allDownloads) });
+        const downloads = await fetchDownloads(platform);
+        set({ availableDownloads: downloads });
       } catch (err) {
         logError('Failed to initialize store:', err as Error);
         set({ availableDownloads: [] });
+      } finally {
+        set({ loadingRemote: false });
+      }
+    },
+
+    refreshDownloads: async () => {
+      const { platform } = get();
+
+      set({ loadingRemote: true });
+
+      try {
+        const downloads = await fetchDownloads(platform);
+        set({ availableDownloads: downloads });
+      } catch (err) {
+        logError('Failed to refresh downloads:', err as Error);
       } finally {
         set({ loadingRemote: false });
       }

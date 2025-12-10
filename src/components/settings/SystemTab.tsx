@@ -15,25 +15,21 @@ export const SystemTab = () => {
   );
   const [hardwareInfo, setHardwareInfo] = useState<HardwareInfo | null>(null);
   const [koboldVersion, setKoboldVersion] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadVersionInfo = async () => {
-      const info = await window.electronAPI.app.getVersionInfo();
-      if (info) {
-        setVersionInfo(info);
-      }
-    };
+    const loadAll = async () => {
+      setLoading(true);
 
-    const loadKoboldVersion = async () => {
-      const currentVersion =
-        await window.electronAPI.kobold.getCurrentBackend();
-      if (currentVersion) {
-        setKoboldVersion(currentVersion.version);
-      }
-    };
-
-    const loadHardwareInfo = async () => {
       try {
+        const [info, currentBackend] = await Promise.all([
+          window.electronAPI.app.getVersionInfo(),
+          window.electronAPI.kobold.getCurrentBackend(),
+        ]);
+
+        setVersionInfo(info);
+        setKoboldVersion(currentBackend?.version || null);
+
         const [cpu, gpu, gpuCapabilities, gpuMemory, systemMemory] =
           await Promise.all([
             window.electronAPI.kobold.detectCPU(),
@@ -52,18 +48,18 @@ export const SystemTab = () => {
         });
       } catch (error) {
         window.electronAPI.logs.logError(
-          'Failed to load hardware info',
+          'Failed to load system info',
           error as Error
         );
+      } finally {
+        setLoading(false);
       }
     };
 
-    loadVersionInfo();
-    loadKoboldVersion();
-    loadHardwareInfo();
+    loadAll();
   }, []);
 
-  if (!versionInfo) {
+  if (loading || !versionInfo) {
     return (
       <Center h="100%">
         <Text c="dimmed">Loading system information...</Text>
