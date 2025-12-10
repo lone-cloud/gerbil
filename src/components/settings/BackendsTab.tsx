@@ -31,6 +31,7 @@ export const BackendsTab = () => {
     downloading,
     handleDownload: handleDownloadFromStore,
     getLatestReleaseWithDownloadStatus,
+    refreshDownloads,
   } = useKoboldBackendsStore();
 
   const [installedBackends, setInstalledBackends] = useState<
@@ -50,6 +51,8 @@ export const BackendsTab = () => {
     const init = async () => {
       setLoadingInstalled(true);
 
+      await refreshDownloads();
+
       const [backends, current] = await Promise.all([
         window.electronAPI.kobold.getInstalledBackends(),
         window.electronAPI.kobold.getCurrentBackend(),
@@ -66,7 +69,7 @@ export const BackendsTab = () => {
     };
 
     init();
-  }, [getLatestReleaseWithDownloadStatus]);
+  }, [getLatestReleaseWithDownloadStatus, refreshDownloads]);
 
   const loadInstalledBackends = useCallback(async () => {
     const [backends, current] = await Promise.all([
