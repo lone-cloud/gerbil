@@ -1401,12 +1401,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^24.10.2":
-  version: 24.10.2
-  resolution: "@types/node@npm:24.10.2"
+"@types/node@npm:*, @types/node@npm:^25.0.0":
+  version: 25.0.0
+  resolution: "@types/node@npm:25.0.0"
   dependencies:
     undici-types: "npm:~7.16.0"
-  checksum: 10c0/560c894e1a9bf7468718ceca8cd520361fd0d3fcc0b020c2f028fc722b28b5b56aecd16736a9b753d52a14837c066cf23480a8582ead59adc63a7e4333bc976c
+  checksum: 10c0/5a10d6f873ad326e46fac923ea4305b7fea3de0cf7e11c835d1fdc99d4b4d0f3f108035432ec1732f505c97d367b9abf618ecbdfb02a75a5306665ecce2a81a6
   languageName: node
   linkType: hard
 
@@ -2039,11 +2039,11 @@ __metadata:
   linkType: hard
 
 "baseline-browser-mapping@npm:^2.8.9":
-  version: 2.8.16
-  resolution: "baseline-browser-mapping@npm:2.8.16"
+  version: 2.9.6
+  resolution: "baseline-browser-mapping@npm:2.9.6"
   bin:
     baseline-browser-mapping: dist/cli.js
-  checksum: 10c0/e38a861f44236cfc5ba8bf9d4a024d37682e73efc3df3377e170a8a44303f466c0fce7fdc641029df27e47adb270b2f7cf29550b9be7dcdbeec18bc62858c9e9
+  checksum: 10c0/9d9bae544342c02200e0a489d4caf3611a2a517d0d7a8c97e1dd7d640ac18d2784710bf08375b5951fb9034bd18d902b50797d90218a33b88e6244ae917f881f
   languageName: node
   linkType: hard
 
@@ -3860,7 +3860,7 @@ __metadata:
     "@mantine/core": "npm:^8.3.10"
     "@mantine/hooks": "npm:^8.3.10"
     "@types/mime-types": "npm:^3.0.1"
-    "@types/node": "npm:^24.10.2"
+    "@types/node": "npm:^25.0.0"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     "@types/yauzl": "npm:^2.10.3"
@@ -3883,7 +3883,7 @@ __metadata:
     execa: "npm:^9.6.1"
     globals: "npm:^16.5.0"
     jiti: "npm:^2.6.1"
-    lucide-react: "npm:^0.556.0"
+    lucide-react: "npm:^0.559.0"
     mime-types: "npm:^3.0.2"
     prettier: "npm:^3.7.4"
     react: "npm:^19.2.1"
@@ -5116,12 +5116,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide-react@npm:^0.556.0":
-  version: 0.556.0
-  resolution: "lucide-react@npm:0.556.0"
+"lucide-react@npm:^0.559.0":
+  version: 0.559.0
+  resolution: "lucide-react@npm:0.559.0"
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10c0/5c73bd317b2cd7d220082d1cc6f78c864819652be87a84c976f2b08aae0bf257b0f066f86f5d84c2cb838ba8fbd2fb1d2b9d84fbe025d9c6cb97dbf1cdbf6bbc
+  checksum: 10c0/0fcab0197949cda2873770c29a8374ca237133555b9ae8cb3987892681b10511728f2ee558eeb09a05cfbe9bef824e2382be7c7d68facacb243e082ad2d6643d
   languageName: node
   linkType: hard
 
