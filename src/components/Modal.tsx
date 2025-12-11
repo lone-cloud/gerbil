@@ -30,7 +30,7 @@ export const Modal = ({
   title,
   children,
   size,
-  closeOnClickOutside = false,
+  closeOnClickOutside = true,
   closeOnEscape = true,
   showCloseButton = false,
   tallContent = false,

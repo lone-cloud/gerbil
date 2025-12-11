@@ -315,15 +315,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@codemirror/view@npm:^6.0.0, @codemirror/view@npm:^6.17.0, @codemirror/view@npm:^6.23.0, @codemirror/view@npm:^6.27.0, @codemirror/view@npm:^6.35.0, @codemirror/view@npm:^6.39.2":
-  version: 6.39.2
-  resolution: "@codemirror/view@npm:6.39.2"
+"@codemirror/view@npm:^6.0.0, @codemirror/view@npm:^6.17.0, @codemirror/view@npm:^6.23.0, @codemirror/view@npm:^6.27.0, @codemirror/view@npm:^6.35.0, @codemirror/view@npm:^6.39.3":
+  version: 6.39.3
+  resolution: "@codemirror/view@npm:6.39.3"
   dependencies:
     "@codemirror/state": "npm:^6.5.0"
     crelt: "npm:^1.0.6"
     style-mod: "npm:^4.1.0"
     w3c-keyname: "npm:^2.2.4"
-  checksum: 10c0/e223f9b9cdadeb522cd49b425b069dba5533bae6512f40fc26e418ec7e3c1eb9d0fcbb400ddfff0bed953b23deab3420066c2e527bfe23f0750557351479e2dd
+  checksum: 10c0/9a97df0fac66f94f26aa514f3ff628eb0c6764ed28cc9b4e35c392b2673147c62e2acf9bfabc88c5db8f4e79d33c89e3066475e2bd75dbfeefce47c8bc645b6c
   languageName: node
   linkType: hard
 
@@ -1401,12 +1401,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^25.0.0":
-  version: 25.0.0
-  resolution: "@types/node@npm:25.0.0"
+"@types/node@npm:*, @types/node@npm:^25.0.1":
+  version: 25.0.1
+  resolution: "@types/node@npm:25.0.1"
   dependencies:
     undici-types: "npm:~7.16.0"
-  checksum: 10c0/5a10d6f873ad326e46fac923ea4305b7fea3de0cf7e11c835d1fdc99d4b4d0f3f108035432ec1732f505c97d367b9abf618ecbdfb02a75a5306665ecce2a81a6
+  checksum: 10c0/1d5ca9f240d0cf8e43d5281c0e6ee96fb22d37dc2e5ef52c6ca71de47957a6128e124990cedf5b14c03d0250737bd78ad370d93bcf1729a75ca4e54384fdd51a
   languageName: node
   linkType: hard
 
@@ -3853,14 +3853,14 @@ __metadata:
   dependencies:
     "@codemirror/search": "npm:^6.5.11"
     "@codemirror/theme-one-dark": "npm:^6.1.3"
-    "@codemirror/view": "npm:^6.39.2"
+    "@codemirror/view": "npm:^6.39.3"
     "@eslint/js": "npm:^9.39.1"
     "@fontsource/inter": "npm:^5.2.8"
     "@huggingface/gguf": "npm:^0.3.2"
     "@mantine/core": "npm:^8.3.10"
     "@mantine/hooks": "npm:^8.3.10"
     "@types/mime-types": "npm:^3.0.1"
-    "@types/node": "npm:^25.0.0"
+    "@types/node": "npm:^25.0.1"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     "@types/yauzl": "npm:^2.10.3"
@@ -3883,11 +3883,11 @@ __metadata:
     execa: "npm:^9.6.1"
     globals: "npm:^16.5.0"
     jiti: "npm:^2.6.1"
-    lucide-react: "npm:^0.559.0"
+    lucide-react: "npm:^0.560.0"
     mime-types: "npm:^3.0.2"
     prettier: "npm:^3.7.4"
-    react: "npm:^19.2.1"
-    react-dom: "npm:^19.2.1"
+    react: "npm:^19.2.3"
+    react-dom: "npm:^19.2.3"
     react-error-boundary: "npm:^6.0.0"
     react-markdown: "npm:^10.1.0"
     rehype-raw: "npm:^7.0.0"
@@ -5116,12 +5116,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide-react@npm:^0.559.0":
-  version: 0.559.0
-  resolution: "lucide-react@npm:0.559.0"
+"lucide-react@npm:^0.560.0":
+  version: 0.560.0
+  resolution: "lucide-react@npm:0.560.0"
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10c0/0fcab0197949cda2873770c29a8374ca237133555b9ae8cb3987892681b10511728f2ee558eeb09a05cfbe9bef824e2382be7c7d68facacb243e082ad2d6643d
+  checksum: 10c0/1dc1fb09a91816ed4211a6f000903c18763ebf8c1cede0aac00433f068e50e548e9c36e56e99fec68f40df4c808ff7ae0f5c375a9c8d312e2bace6157128136e
   languageName: node
   linkType: hard
 
@@ -6482,14 +6482,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^19.2.1":
-  version: 19.2.1
-  resolution: "react-dom@npm:19.2.1"
+"react-dom@npm:^19.2.3":
+  version: 19.2.3
+  resolution: "react-dom@npm:19.2.3"
   dependencies:
     scheduler: "npm:^0.27.0"
   peerDependencies:
-    react: ^19.2.1
-  checksum: 10c0/e56b6b3d72314df580ca800b70a69a21c6372703c8f45d9b5451ca6519faefb2496d76ffa9c5adb94136d2bbf2fd303d0dfc208a2cd77ede3132877471af9470
+    react: ^19.2.3
+  checksum: 10c0/dc43f7ede06f46f3acc16ee83107c925530de9b91d1d0b3824583814746ff4c498ea64fd65cd83aba363205268adff52e2827c582634ae7b15069deaeabc4892
   languageName: node
   linkType: hard
 
@@ -6614,10 +6614,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^19.2.1":
-  version: 19.2.1
-  resolution: "react@npm:19.2.1"
-  checksum: 10c0/2b5eaf407abb3db84090434c20d6c5a8e447ab7abcd8fe9eaf1ddc299babcf31284ee9db7ea5671d21c85ac5298bd632fa1a7da1ed78d5b368a537f5e1cd5d62
+"react@npm:^19.2.3":
+  version: 19.2.3
+  resolution: "react@npm:19.2.3"
+  checksum: 10c0/094220b3ba3a76c1b668f972ace1dd15509b157aead1b40391d1c8e657e720c201d9719537375eff08f5e0514748c0319063392a6f000e31303aafc4471f1436
   languageName: node
   linkType: hard
 
