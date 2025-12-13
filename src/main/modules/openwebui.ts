@@ -108,6 +108,7 @@ export async function startFrontend(args: string[]) {
       WEBUI_SECRET_KEY: 'gerbil',
       ENABLE_OLLAMA_API: 'false',
       USER_AGENT: `Gerbil/${appVersion}`,
+      GLOBAL_LOG_LEVEL: 'warning',
     };
 
     if (isImageMode) {
