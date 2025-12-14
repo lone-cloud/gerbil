@@ -92,7 +92,7 @@ export const NetworkTab = () => {
               checked={remotetunnel}
               onChange={setRemotetunnel}
               label="Remote Tunnel"
-              tooltip="Creates a trycloudflare tunnel. Allows you to access your server from other devices over an internet URL."
+              tooltip="Creates a cloudflare tunnel. Allows you to access your server from other devices over an internet URL."
             />
 
             <CheckboxWithTooltip

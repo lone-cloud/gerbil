@@ -81,6 +81,25 @@ const getTunnelTarget = (frontendPreference: FrontendPreference) => {
   }
 };
 
+const waitForBackend = async (url: string, timeoutMs = 30000) => {
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < timeoutMs) {
+    try {
+      const response = await fetch(url, {
+        method: 'HEAD',
+        signal: AbortSignal.timeout(2000),
+      });
+      if (response.ok) {
+        return true;
+      }
+    } catch {}
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  return false;
+};
+
 export const startTunnel = async (
   frontendPreference: FrontendPreference = 'koboldcpp'
 ) => {
@@ -89,6 +108,17 @@ export const startTunnel = async (
   }
 
   try {
+    const tunnelTarget = getTunnelTarget(frontendPreference);
+
+    sendKoboldOutput('Waiting for backend to be ready...');
+    const backendReady = await waitForBackend(tunnelTarget);
+
+    if (!backendReady) {
+      throw new Error(
+        'Backend not ready after 30 seconds. Start your backend first before enabling tunnel.'
+      );
+    }
+
     sendKoboldOutput('Starting Cloudflare tunnel...');
 
     const bin = getCloudflaredBin();
@@ -101,7 +131,6 @@ export const startTunnel = async (
       await downloadCloudflared(bin);
     }
 
-    const tunnelTarget = getTunnelTarget(frontendPreference);
     const tunnel = execa(bin, [
       'tunnel',
       '--url',
@@ -162,6 +191,8 @@ export const startTunnel = async (
         }
       });
     });
+
+    await new Promise((resolve) => setTimeout(resolve, 3000));
 
     tunnelUrl = url;
     sendKoboldOutput(`Tunnel ready at ${tunnelUrl}`);
