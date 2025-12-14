@@ -39,7 +39,7 @@ export const Modal = ({
   const content = tallContent ? (
     <div
       style={{
-        height: '80vh',
+        height: '75vh',
         padding: 0,
         display: 'flex',
         flexDirection: 'column',
