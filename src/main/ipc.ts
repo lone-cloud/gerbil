@@ -290,6 +290,18 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('dependencies:isUvAvailable', () => isUvAvailable());
 
+  ipcMain.handle('dependencies:clearOpenWebUIData', async () => {
+    const { rm } = await import('fs/promises');
+    const openWebUIDataDir = join(getInstallDir(), 'openwebui-data');
+    try {
+      await rm(openWebUIDataDir, { recursive: true, force: true });
+      return { success: true };
+    } catch (error) {
+      logError('Failed to clear Open WebUI data:', error as Error);
+      return { success: false, error: (error as Error).message };
+    }
+  });
+
   ipcMain.on('monitoring:start', () => startMonitoring(mainWindow));
 
   ipcMain.on('monitoring:stop', () => stopMonitoring());

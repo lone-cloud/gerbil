@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Text, Box, Anchor, rem } from '@mantine/core';
+import { Text, Box, Anchor, rem, Button, Group, Stack } from '@mantine/core';
 import { Monitor, Image } from 'lucide-react';
 import { usePreferencesStore } from '@/stores/preferences';
 import type {
@@ -8,6 +8,7 @@ import type {
 } from '@/types';
 import { FRONTENDS } from '@/constants';
 import { Select } from '@/components/Select';
+import { Modal } from '@/components/Modal';
 
 interface FrontendRequirement {
   id: string;
@@ -39,6 +40,8 @@ export const FrontendInterfaceSelector = ({
   const [frontendRequirements, setFrontendRequirements] = useState<
     Map<string, boolean>
   >(new Map());
+
+  const [showClearDataModal, setShowClearDataModal] = useState(false);
 
   const frontendConfigs: FrontendConfig[] = useMemo(
     () => [
@@ -131,6 +134,11 @@ export const FrontendInterfaceSelector = ({
     setImageGenerationFrontendPreference(
       value as ImageGenerationFrontendPreference
     );
+  };
+
+  const handleClearOpenWebUIData = async () => {
+    await window.electronAPI.dependencies.clearOpenWebUIData();
+    setShowClearDataModal(false);
   };
 
   const renderDisabledFrontendWarnings = () => {
@@ -256,20 +264,71 @@ export const FrontendInterfaceSelector = ({
           </Text>
         )}
 
-        <Select
-          value={frontendPreference}
-          onChange={handleFrontendPreferenceChange}
-          disabled={isOnInterfaceScreen}
-          data={frontendConfigs.map((config) => ({
-            value: config.value,
-            label: config.label,
-            disabled: !isFrontendAvailable(config.value),
-          }))}
-          leftSection={<Monitor style={{ width: rem(16), height: rem(16) }} />}
-        />
+        <Group gap="xs" align="flex-end">
+          <Select
+            value={frontendPreference}
+            onChange={handleFrontendPreferenceChange}
+            disabled={isOnInterfaceScreen}
+            data={frontendConfigs.map((config) => ({
+              value: config.value,
+              label: config.label,
+              disabled: !isFrontendAvailable(config.value),
+            }))}
+            leftSection={
+              <Monitor style={{ width: rem(16), height: rem(16) }} />
+            }
+            style={{ flex: 1 }}
+          />
+
+          {frontendPreference === 'openwebui' && (
+            <Button
+              variant="light"
+              color="orange"
+              onClick={() => setShowClearDataModal(true)}
+              disabled={isOnInterfaceScreen}
+            >
+              Clear Data
+            </Button>
+          )}
+        </Group>
 
         {renderDisabledFrontendWarnings()}
       </div>
+
+      <Modal
+        opened={showClearDataModal}
+        onClose={() => setShowClearDataModal(false)}
+        title="Clear Open WebUI Data?"
+      >
+        <Stack gap="md">
+          <Text size="sm" c="dimmed">
+            This will permanently delete all Open WebUI data including:
+          </Text>
+          <Box component="ul" pl="md">
+            <Text component="li" size="sm" c="dimmed">
+              Chat history
+            </Text>
+            <Text component="li" size="sm" c="dimmed">
+              User settings
+            </Text>
+            <Text component="li" size="sm" c="dimmed">
+              Database
+            </Text>
+          </Box>
+
+          <Group justify="flex-end" gap="sm">
+            <Button
+              variant="subtle"
+              onClick={() => setShowClearDataModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button color="red" onClick={handleClearOpenWebUIData}>
+              Clear Data
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
 
       <div>
         <Text fw={500} mb="xs">

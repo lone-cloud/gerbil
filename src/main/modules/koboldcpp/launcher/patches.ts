@@ -112,6 +112,23 @@ export const patchKcppSduiEmbd = (unpackedDir: string) =>
     }
   }, 'Failed to patch kcpp_sdui.embd');
 
+export const patchLcppGzEmbd = (unpackedDir: string) =>
+  tryExecute(async () => {
+    const possiblePaths = [
+      join(unpackedDir, '_internal', 'embd_res', 'lcpp.gz.embd'),
+      join(unpackedDir, 'lcpp.gz.embd'),
+    ];
+
+    const sourceAssetPath = getAssetPath('lcpp.gz.embd');
+
+    for (const targetPath of possiblePaths) {
+      if (await pathExists(targetPath)) {
+        await copyFile(sourceAssetPath, targetPath);
+        break;
+      }
+    }
+  }, 'Failed to patch lcpp.gz.embd');
+
 export function filterSpam(output: string) {
   const spamPatterns = [
     /^print_info:/,
