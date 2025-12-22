@@ -67,6 +67,8 @@ const UI_COVERED_ARGS = new Set([
   '--tensor_split',
   '--debugmode',
   '--lowvram',
+  '--smartcache',
+  '--pipelineparallel',
 ] as const) as ReadonlySet<string>;
 
 const IGNORED_ARGS = new Set([
@@ -88,6 +90,7 @@ const IGNORED_ARGS = new Set([
   '--no-mmap',
   '--sdnotile',
   '--testmemory',
+  '--forceversion',
 ] as const) as ReadonlySet<string>;
 
 const COMMAND_LINE_ARGUMENTS = [
@@ -377,7 +380,21 @@ const COMMAND_LINE_ARGUMENTS = [
     description:
       'How many tokens to generate by default, if not specified. Must be smaller than context size. Usually, your frontend GUI will override this.',
     type: 'int',
-    default: 768,
+    default: 896,
+    category: 'Performance',
+  },
+  {
+    flag: '--smartcache',
+    description:
+      'Enables intelligent context switching by saving KV cache snapshots to RAM. Requires fast forwarding.',
+    type: 'boolean',
+    category: 'Performance',
+  },
+  {
+    flag: '--pipelineparallel',
+    description:
+      'Enable Pipeline Parallelism for faster multigpu speeds but using more memory, only active for multigpu.',
+    type: 'boolean',
     category: 'Performance',
   },
   {
@@ -431,15 +448,6 @@ const COMMAND_LINE_ARGUMENTS = [
     description:
       'Enables using jinja chat template formatting for chat completions endpoint. Other endpoints are unaffected. Tool calls are done with jinja.',
     type: 'boolean',
-    category: 'Advanced',
-  },
-  {
-    flag: '--forceversion',
-    description:
-      'If the model file format detection fails (e.g. rogue modified model) you can set this to override the detected format (enter desired version, e.g. 401 for GPTNeoX-Type2).',
-    metavar: '[version]',
-    type: 'int',
-    default: 0,
     category: 'Advanced',
   },
   {

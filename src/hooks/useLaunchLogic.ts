@@ -43,6 +43,8 @@ interface LaunchArgs {
   sdclipgpu: boolean;
   moecpu: number;
   moeexperts: number;
+  smartcache: boolean;
+  pipelineparallel: boolean;
 }
 
 const buildModelArgs = (
@@ -147,6 +149,14 @@ const buildConfigArgs = (isImageMode: boolean, launchArgs: LaunchArgs) => {
 
   if (launchArgs.moecpu > 0) {
     args.push('--moecpu', launchArgs.moecpu.toString());
+  }
+
+  if (launchArgs.smartcache) {
+    args.push('--smartcache');
+  }
+
+  if (launchArgs.pipelineparallel) {
+    args.push('--pipelineparallel');
   }
 
   return args;

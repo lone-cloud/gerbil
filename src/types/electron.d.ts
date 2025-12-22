@@ -121,6 +121,8 @@ export interface KoboldConfig {
   preLaunchCommands?: string[];
   moecpu?: number;
   moeexperts?: number;
+  smartcache?: boolean;
+  pipelineparallel?: boolean;
   autoGpuLayers?: boolean;
   model?: string;
   backend?: string;
@@ -252,6 +254,7 @@ export interface LogsAPI {
 export interface DependenciesAPI {
   isNpxAvailable: () => Promise<boolean>;
   isUvAvailable: () => Promise<boolean>;
+  clearOpenWebUIData: () => Promise<{ success: boolean; error?: string }>;
 }
 
 export interface MonitoringAPI {

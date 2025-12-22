@@ -15,7 +15,13 @@ import { PROXY } from '@/constants/proxy';
 
 let openWebUIProcess: ChildProcess | null = null;
 
-const OPENWEBUI_BASE_ARGS = ['--python', '3.11', 'open-webui@latest', 'serve'];
+const OPENWEBUI_VERSION = '0.6.41';
+const OPENWEBUI_BASE_ARGS = [
+  '--python',
+  '3.11',
+  `open-webui@${OPENWEBUI_VERSION}`,
+  'serve',
+];
 
 on('SIGINT', () => {
   void stopFrontend();

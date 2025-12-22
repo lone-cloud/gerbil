@@ -6,6 +6,7 @@ import { useLaunchLogic } from '@/hooks/useLaunchLogic';
 import { useWarnings } from '@/hooks/useWarnings';
 import { GeneralTab } from '@/components/screens/Launch/GeneralTab/index';
 import { AdvancedTab } from '@/components/screens/Launch/AdvancedTab';
+import { PerformanceTab } from '@/components/screens/Launch/PerformanceTab';
 import { NetworkTab } from '@/components/screens/Launch/NetworkTab';
 import { ImageGenerationTab } from '@/components/screens/Launch/ImageGenerationTab';
 import { WarningDisplay } from '@/components/WarningDisplay';
@@ -63,6 +64,8 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     sdclipgpu,
     moecpu,
     moeexperts,
+    smartcache,
+    pipelineparallel,
     parseAndApplyConfigFile,
     loadConfigFromFile,
     setModel,
@@ -177,6 +180,8 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     debugmode,
     moecpu,
     moeexperts,
+    smartcache,
+    pipelineparallel,
     usecuda: acceleration === 'cuda' || acceleration === 'rocm',
     usevulkan: acceleration === 'vulkan',
     useclblast: acceleration === 'clblast',
@@ -316,6 +321,8 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
       sdclipgpu,
       moecpu,
       moeexperts,
+      smartcache,
+      pipelineparallel,
     });
   }, [
     handleLaunch,
@@ -354,6 +361,8 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     sdclipgpu,
     moecpu,
     moeexperts,
+    smartcache,
+    pipelineparallel,
   ]);
 
   return (
@@ -397,6 +406,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
               <Tabs.List>
                 <Tabs.Tab value="general">General</Tabs.Tab>
                 <Tabs.Tab value="image">Image Generation</Tabs.Tab>
+                <Tabs.Tab value="performance">Performance</Tabs.Tab>
                 <Tabs.Tab value="network">Network</Tabs.Tab>
                 <Tabs.Tab value="advanced">Advanced</Tabs.Tab>
               </Tabs.List>
@@ -405,16 +415,20 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
                 <GeneralTab configLoaded={configLoaded} />
               </Tabs.Panel>
 
-              <Tabs.Panel value="advanced">
-                <AdvancedTab />
+              <Tabs.Panel value="image">
+                <ImageGenerationTab />
+              </Tabs.Panel>
+
+              <Tabs.Panel value="performance">
+                <PerformanceTab />
               </Tabs.Panel>
 
               <Tabs.Panel value="network">
                 <NetworkTab />
               </Tabs.Panel>
 
-              <Tabs.Panel value="image">
-                <ImageGenerationTab />
+              <Tabs.Panel value="advanced">
+                <AdvancedTab />
               </Tabs.Panel>
             </Tabs>
 

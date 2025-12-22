@@ -41,6 +41,8 @@ interface LaunchConfigState {
   sdclipgpu: boolean;
   moecpu: number;
   moeexperts: number;
+  smartcache: boolean;
+  pipelineparallel: boolean;
   isImageGenerationMode: boolean;
   isTextMode: boolean;
 
@@ -81,6 +83,8 @@ interface LaunchConfigState {
   setSdclipgpu: (enabled: boolean) => void;
   setMoecpu: (moecpu: number) => void;
   setMoeexperts: (moeexperts: number) => void;
+  setSmartcache: (smartcache: boolean) => void;
+  setPipelineparallel: (pipelineparallel: boolean) => void;
 
   parseAndApplyConfigFile: (configPath: string) => Promise<void>;
   loadConfigFromFile: (
@@ -141,6 +145,8 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   sdclipgpu: false,
   moecpu: 0,
   moeexperts: -1,
+  smartcache: false,
+  pipelineparallel: false,
 
   isImageGenerationMode: false,
   isTextMode: false,
@@ -195,6 +201,8 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   setSdclipgpu: (enabled) => set({ sdclipgpu: enabled }),
   setMoecpu: (moeCpu) => set({ moecpu: moeCpu }),
   setMoeexperts: (moeExperts) => set({ moeexperts: moeExperts }),
+  setSmartcache: (smartcache) => set({ smartcache }),
+  setPipelineparallel: (pipelineparallel) => set({ pipelineparallel }),
 
   // eslint-disable-next-line sonarjs/cognitive-complexity
   parseAndApplyConfigFile: async (configPath: string) => {
@@ -424,6 +432,18 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
         updates.moeexperts = configData.moeexperts;
       } else {
         updates.moeexperts = -1;
+      }
+
+      if (typeof configData.smartcache === 'boolean') {
+        updates.smartcache = configData.smartcache;
+      } else {
+        updates.smartcache = false;
+      }
+
+      if (typeof configData.pipelineparallel === 'boolean') {
+        updates.pipelineparallel = configData.pipelineparallel;
+      } else {
+        updates.pipelineparallel = false;
       }
 
       set(updates);

@@ -16,7 +16,12 @@ import {
 } from '@/main/modules/config';
 import { startFrontend as startSillyTavernFrontend } from '@/main/modules/sillytavern';
 import { startFrontend as startOpenWebUIFrontend } from '@/main/modules/openwebui';
-import { patchKliteEmbd, patchKcppSduiEmbd, filterSpam } from './patches';
+import {
+  patchKliteEmbd,
+  patchKcppSduiEmbd,
+  patchLcppGzEmbd,
+  filterSpam,
+} from './patches';
 import { startProxy, stopProxy } from '../proxy';
 import { startTunnel, stopTunnel } from '../tunnel';
 import { resolveModelPath, abortActiveDownloads } from '../model-download';
@@ -191,7 +196,11 @@ export async function launchKoboldCpp(
       if (isTextMode) {
         await patchKliteEmbd(binaryDir);
       }
-    } else if (isImageMode && imageGenerationFrontendPreference === 'builtin') {
+    } else if (frontendPreference === 'llamacpp') {
+      await patchLcppGzEmbd(binaryDir);
+    }
+
+    if (isImageMode && imageGenerationFrontendPreference === 'builtin') {
       await patchKcppSduiEmbd(binaryDir);
     }
 

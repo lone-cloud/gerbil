@@ -208,6 +208,8 @@ const logsAPI: LogsAPI = {
 const dependenciesAPI: DependenciesAPI = {
   isUvAvailable: () => ipcRenderer.invoke('dependencies:isUvAvailable'),
   isNpxAvailable: () => ipcRenderer.invoke('dependencies:isNpxAvailable'),
+  clearOpenWebUIData: () =>
+    ipcRenderer.invoke('dependencies:clearOpenWebUIData'),
 };
 
 const monitoringAPI: MonitoringAPI = {
