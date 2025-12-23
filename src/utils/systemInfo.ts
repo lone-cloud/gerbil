@@ -105,11 +105,6 @@ export const createDriverItems = (hardwareInfo: HardwareInfo) => {
         ? gpuCapabilities.clblast.version
         : 'Available',
     });
-  } else {
-    items.push({
-      label: 'CLBlast',
-      value: 'Not available',
-    });
   }
 
   return items;

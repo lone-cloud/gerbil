@@ -115,6 +115,7 @@ export async function startFrontend(args: string[]) {
       ENABLE_OLLAMA_API: 'false',
       USER_AGENT: `Gerbil/${appVersion}`,
       GLOBAL_LOG_LEVEL: 'warning',
+      ENABLE_VERSION_UPDATE_CHECK: 'false',
     };
 
     if (isImageMode) {
