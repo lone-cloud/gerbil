@@ -315,15 +315,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@codemirror/view@npm:^6.0.0, @codemirror/view@npm:^6.17.0, @codemirror/view@npm:^6.23.0, @codemirror/view@npm:^6.27.0, @codemirror/view@npm:^6.35.0, @codemirror/view@npm:^6.39.5":
-  version: 6.39.5
-  resolution: "@codemirror/view@npm:6.39.5"
+"@codemirror/view@npm:^6.0.0, @codemirror/view@npm:^6.17.0, @codemirror/view@npm:^6.23.0, @codemirror/view@npm:^6.27.0, @codemirror/view@npm:^6.35.0, @codemirror/view@npm:^6.39.6":
+  version: 6.39.6
+  resolution: "@codemirror/view@npm:6.39.6"
   dependencies:
     "@codemirror/state": "npm:^6.5.0"
     crelt: "npm:^1.0.6"
     style-mod: "npm:^4.1.0"
     w3c-keyname: "npm:^2.2.4"
-  checksum: 10c0/54fc600b54c336283e8c73b6a0a99156880682121d73c2d4b74fc5a93f956e33b54ba16cd7debbf5fc28a48b18aeb643217e5200e3af0588909ca90cb275e957
+  checksum: 10c0/2c858a22c871f1865e09a4eb50b2398fc2ac945d217645c79692904bd0b48688ca2ba186fdfd5ed07fce671e22ae4424935efabcbc4d947c9559f801a4e94053
   languageName: node
   linkType: hard
 
@@ -4124,7 +4124,7 @@ __metadata:
   dependencies:
     "@codemirror/search": "npm:^6.5.11"
     "@codemirror/theme-one-dark": "npm:^6.1.3"
-    "@codemirror/view": "npm:^6.39.5"
+    "@codemirror/view": "npm:^6.39.6"
     "@eslint/js": "npm:^9.39.2"
     "@fontsource/inter": "npm:^5.2.8"
     "@huggingface/gguf": "npm:^0.3.2"
@@ -4165,7 +4165,7 @@ __metadata:
     rehype-sanitize: "npm:^6.0.0"
     remark-gfm: "npm:^4.0.1"
     rollup-plugin-visualizer: "npm:^6.0.5"
-    systeminformation: "npm:^5.27.15"
+    systeminformation: "npm:^5.27.16"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.3.0"
     winston: "npm:^3.19.0"
@@ -7840,12 +7840,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"systeminformation@npm:^5.27.15":
-  version: 5.27.15
-  resolution: "systeminformation@npm:5.27.15"
+"systeminformation@npm:^5.27.16":
+  version: 5.27.16
+  resolution: "systeminformation@npm:5.27.16"
   bin:
     systeminformation: lib/cli.js
-  checksum: 10c0/839d629eb9200ed9bc726a73d8b3a8cce0d77bd7796a983944099bd7a3ee48b93b27397a94eab3a5cc04a5fe61e46dcf3732691d33d70bdd0c638afca984990a
+  checksum: 10c0/2fc5fe3d081aeafff02ab89fa516df47559f15d017790f018208f75926e402df7f6e383c1a1716429093558545d4c8d57dd8fc2cf9aa568c4edc2f8e2dd0423f
   conditions: (os=darwin | os=linux | os=win32 | os=freebsd | os=openbsd | os=netbsd | os=sunos | os=android)
   languageName: node
   linkType: hard

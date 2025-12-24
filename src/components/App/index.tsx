@@ -252,8 +252,10 @@ export const App = () => {
           position: 'relative',
           overflow: 'auto',
           paddingTop: 0,
+          paddingBottom: 0,
+          paddingLeft: isInterfaceScreen ? 0 : '.5rem',
+          paddingRight: isInterfaceScreen ? 0 : '.5rem',
           top: TITLEBAR_HEIGHT,
-          paddingBottom: isInterfaceScreen ? 0 : '1rem',
         }}
       >
         <ErrorBoundary>
