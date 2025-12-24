@@ -32,26 +32,16 @@ on('SIGTERM', () => {
   void stopFrontend();
 });
 
-function getSillyTavernDataDir() {
-  return join(getInstallDir(), 'sillytavern-data');
-}
+const getSillyTavernDataDir = () => join(getInstallDir(), 'sillytavern-data');
 
-function getSillyTavernInstallDir() {
-  return join(getInstallDir(), 'sillytavern-server');
-}
+const getSillyTavernInstallDir = () =>
+  join(getInstallDir(), 'sillytavern-server');
 
-function getSillyTavernServerPath() {
-  return join(
-    getSillyTavernInstallDir(),
-    'node_modules',
-    'sillytavern',
-    'server.js'
-  );
-}
+const getSillyTavernServerPath = () =>
+  join(getSillyTavernInstallDir(), 'node_modules', 'sillytavern', 'server.js');
 
-function getSillyTavernSettingsPath() {
-  return join(getSillyTavernDataDir(), 'default-user', 'settings.json');
-}
+const getSillyTavernSettingsPath = () =>
+  join(getSillyTavernDataDir(), 'default-user', 'settings.json');
 
 async function ensureSillyTavernInstalled() {
   const serverPath = getSillyTavernServerPath();
@@ -101,6 +91,7 @@ async function ensureSillyTavernInstalled() {
         installDir,
         '--no-save',
         '--install-strategy=nested',
+        '--silent',
       ],
       {
         stdio: ['pipe', 'pipe', 'pipe'],
@@ -109,15 +100,11 @@ async function ensureSillyTavernInstalled() {
       }
     );
 
-    if (npmProcess.stdout) {
-      npmProcess.stdout.on('data', (data: Buffer) => {
-        sendKoboldOutput(data.toString().trim());
-      });
-    }
+    let errorOutput = '';
 
     if (npmProcess.stderr) {
       npmProcess.stderr.on('data', (data: Buffer) => {
-        sendKoboldOutput(data.toString().trim());
+        errorOutput += data.toString();
       });
     }
 
@@ -126,6 +113,9 @@ async function ensureSillyTavernInstalled() {
         sendKoboldOutput('SillyTavern is ready');
         resolve();
       } else {
+        if (errorOutput) {
+          sendKoboldOutput(`npm install error: ${errorOutput.trim()}`);
+        }
         reject(new Error(`npm install failed with code ${code}`));
       }
     });
