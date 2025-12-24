@@ -1,6 +1,5 @@
 import { spawn } from 'child_process';
 import { createServer, request, type Server } from 'http';
-import { homedir } from 'os';
 import { join } from 'path';
 import { platform, on } from 'process';
 import type { ChildProcess } from 'child_process';
@@ -13,14 +12,12 @@ import { terminateProcess } from '@/utils/node/process';
 import { pathExists, readJsonFile, writeJsonFile } from '@/utils/node/fs';
 import { parseKoboldConfig } from '@/utils/node/kobold';
 import { getNodeEnvironment } from './dependencies';
+import { getInstallDir } from './config';
 
 let sillyTavernProcess: ChildProcess | null = null;
 let proxyServer: Server | null = null;
-let detectedDataRoot: string | null = null;
 
 const SILLYTAVERN_BASE_ARGS = [
-  'sillytavern',
-  '--global',
   '--listen',
   '--browserLaunchEnabled',
   'false',
@@ -35,47 +32,120 @@ on('SIGTERM', () => {
   void stopFrontend();
 });
 
-function getFallbackDataRoot() {
-  const home = homedir();
-
-  switch (platform) {
-    case 'win32':
-      return join(home, 'AppData', 'Local', 'SillyTavern', 'Data', 'data');
-    case 'darwin':
-      return join(
-        home,
-        'Library',
-        'Application Support',
-        'SillyTavern',
-        'data'
-      );
-    case 'linux':
-    default:
-      return join(home, '.local', 'share', 'SillyTavern', 'data');
-  }
+function getSillyTavernDataDir() {
+  return join(getInstallDir(), 'sillytavern-data');
 }
 
-function getSillyTavernDataRoot() {
-  if (detectedDataRoot) {
-    return detectedDataRoot;
-  }
+function getSillyTavernInstallDir() {
+  return join(getInstallDir(), 'sillytavern-server');
+}
 
-  const fallback = getFallbackDataRoot();
-  detectedDataRoot = fallback;
-  return fallback;
+function getSillyTavernServerPath() {
+  return join(
+    getSillyTavernInstallDir(),
+    'node_modules',
+    'sillytavern',
+    'server.js'
+  );
 }
 
 function getSillyTavernSettingsPath() {
-  const dataRoot = getSillyTavernDataRoot();
-  return join(dataRoot, 'default-user', 'settings.json');
+  return join(getSillyTavernDataDir(), 'default-user', 'settings.json');
+}
+
+async function ensureSillyTavernInstalled() {
+  const serverPath = getSillyTavernServerPath();
+  const installDir = getSillyTavernInstallDir();
+  const env = await getNodeEnvironment();
+
+  const nodeModulesPath = join(installDir, 'node_modules');
+  const jsquashFlatPath = join(nodeModulesPath, '@jsquash');
+
+  if (await pathExists(jsquashFlatPath)) {
+    sendKoboldOutput('Detected old flat installation, cleaning up...');
+    await tryExecute(async () => {
+      await new Promise<void>((resolve, reject) => {
+        const rmCmd = platform === 'win32' ? 'rmdir' : 'rm';
+        const rmArgs =
+          platform === 'win32'
+            ? ['/s', '/q', nodeModulesPath]
+            : ['-rf', nodeModulesPath];
+
+        spawn(rmCmd, rmArgs, {
+          stdio: 'inherit',
+          shell: true,
+        })
+          .on('exit', (code) =>
+            code === 0
+              ? resolve()
+              : reject(new Error(`Failed with code ${code}`))
+          )
+          .on('error', reject);
+      });
+    }, 'Failed to clean old installation');
+  }
+
+  if (await pathExists(serverPath)) {
+    sendKoboldOutput('Checking for SillyTavern updates...');
+  } else {
+    sendKoboldOutput('Installing SillyTavern via npm...');
+  }
+
+  return new Promise<void>((resolve, reject) => {
+    const npmProcess = spawn(
+      'npm',
+      [
+        'install',
+        'sillytavern@latest',
+        '--prefix',
+        installDir,
+        '--no-save',
+        '--install-strategy=nested',
+      ],
+      {
+        stdio: ['pipe', 'pipe', 'pipe'],
+        env,
+        shell: platform === 'win32',
+      }
+    );
+
+    if (npmProcess.stdout) {
+      npmProcess.stdout.on('data', (data: Buffer) => {
+        sendKoboldOutput(data.toString().trim());
+      });
+    }
+
+    if (npmProcess.stderr) {
+      npmProcess.stderr.on('data', (data: Buffer) => {
+        sendKoboldOutput(data.toString().trim());
+      });
+    }
+
+    npmProcess.on('exit', (code) => {
+      if (code === 0) {
+        sendKoboldOutput('SillyTavern is ready');
+        resolve();
+      } else {
+        reject(new Error(`npm install failed with code ${code}`));
+      }
+    });
+
+    npmProcess.on('error', (error) => {
+      reject(error);
+    });
+  });
 }
 
 async function createNpxProcess(args: string[]) {
   const env = await getNodeEnvironment();
-  return spawn('npx', args, {
+  const serverJsPath = getSillyTavernServerPath();
+  const installDir = getSillyTavernInstallDir();
+
+  return spawn('node', [serverJsPath, ...args], {
     stdio: ['pipe', 'pipe', 'pipe'],
     detached: false,
     env,
+    cwd: installDir,
     shell: platform === 'win32',
   });
 }
@@ -288,6 +358,7 @@ export async function startFrontend(args: string[]) {
 
     sendKoboldOutput(`Preparing SillyTavern to connect via proxy...`);
 
+    await ensureSillyTavernInstalled();
     await ensureSillyTavernSettings();
     await setupSillyTavernConfig(isImageMode);
 
@@ -295,10 +366,14 @@ export async function startFrontend(args: string[]) {
       `Starting ${config.name} frontend on port ${config.port}...`
     );
 
+    const sillyTavernDataDir = getSillyTavernDataDir();
+
     const sillyTavernArgs = [
       ...SILLYTAVERN_BASE_ARGS,
       '--port',
       config.port.toString(),
+      '--dataRoot',
+      sillyTavernDataDir,
     ];
 
     sillyTavernProcess = await createNpxProcess(sillyTavernArgs);
