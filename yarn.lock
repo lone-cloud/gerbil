@@ -4165,7 +4165,7 @@ __metadata:
     rehype-sanitize: "npm:^6.0.0"
     remark-gfm: "npm:^4.0.1"
     rollup-plugin-visualizer: "npm:^6.0.5"
-    systeminformation: "npm:^5.28.5"
+    systeminformation: "npm:^5.28.6"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.3.0"
     winston: "npm:^3.19.0"
@@ -7839,12 +7839,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"systeminformation@npm:^5.28.5":
-  version: 5.28.5
-  resolution: "systeminformation@npm:5.28.5"
+"systeminformation@npm:^5.28.6":
+  version: 5.28.6
+  resolution: "systeminformation@npm:5.28.6"
   bin:
     systeminformation: lib/cli.js
-  checksum: 10c0/0bfee2aaa4c616dc2fd26f5d4859c6e7c81733293f892f4580245bb96a79c5e9fb3e33a2566ba9d78756f0bd08902433d592ff2e54e6dd025c9431629a4213e7
+  checksum: 10c0/375c9ada7e437bd29f9b9e341eb43af1853ba2ac51d43a504352e32cb93f181d34b6a8729ef05cb4bb6d6bbe54eaa454494a05c0b6fd3a580943adcb67ce9d3a
   conditions: (os=darwin | os=linux | os=win32 | os=freebsd | os=openbsd | os=netbsd | os=sunos | os=android)
   languageName: node
   linkType: hard
