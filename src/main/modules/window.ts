@@ -171,6 +171,7 @@ function setupContextMenu(mainWindow: BrowserWindow) {
     const hasSelection = !!params.selectionText;
     const isEditable = params.isEditable;
     const isDev = isDevelopment;
+    const hasMisspelling = !!params.misspelledWord;
 
     const canCut = hasSelection && isEditable;
     const canCopy = hasSelection;
@@ -192,8 +193,37 @@ function setupContextMenu(mainWindow: BrowserWindow) {
       });
     }
 
-    if (hasEditOperations) {
+    if (hasMisspelling && params.dictionarySuggestions.length > 0) {
       if (isDev) {
+        menuItems.push({ type: 'separator' as const });
+      }
+
+      params.dictionarySuggestions.forEach((suggestion) => {
+        menuItems.push({
+          label: suggestion,
+          click: () => {
+            mainWindow.webContents.replaceMisspelling(suggestion);
+          },
+        });
+      });
+
+      menuItems.push({ type: 'separator' as const });
+      menuItems.push({
+        label: 'Add to Dictionary',
+        click: () => {
+          mainWindow.webContents.session.addWordToSpellCheckerDictionary(
+            params.misspelledWord
+          );
+        },
+      });
+
+      if (hasEditOperations) {
+        menuItems.push({ type: 'separator' as const });
+      }
+    }
+
+    if (hasEditOperations) {
+      if (isDev && !hasMisspelling) {
         menuItems.push({ type: 'separator' as const });
       }
 

@@ -222,7 +222,7 @@ export async function launchKoboldCpp(
     sendKoboldOutput(commandLine);
 
     if (remotetunnel) {
-      startTunnel(frontendPreference);
+      void startTunnel(frontendPreference);
     }
 
     let readyResolve:
@@ -334,9 +334,9 @@ export async function launchKoboldCpp(
 
 export async function stopKoboldCpp() {
   abortActiveDownloads();
-  stopProxy();
-  stopTunnel();
-  stopPreLaunchProcesses();
+  void stopProxy();
+  void stopTunnel();
+  void stopPreLaunchProcesses();
   isIntentionalStop = true;
   return terminateProcess(koboldProcess);
 }
@@ -346,14 +346,10 @@ export const launchKoboldCppWithCustomFrontends = async (
   preLaunchCommands: string[] = []
 ) =>
   safeExecute(async () => {
-    const [frontendPreference, imageGenerationFrontendPreference] =
-      (await Promise.all([
-        getConfig('frontendPreference'),
-        getConfig('imageGenerationFrontendPreference'),
-      ])) as [
-        FrontendPreference,
-        ImageGenerationFrontendPreference | undefined,
-      ];
+    const frontendPreference = getConfig('frontendPreference');
+    const imageGenerationFrontendPreference = getConfig(
+      'imageGenerationFrontendPreference'
+    );
 
     const { isTextMode } = parseKoboldConfig(args);
 
@@ -372,9 +368,9 @@ export const launchKoboldCppWithCustomFrontends = async (
     }
 
     if (frontendPreference === 'sillytavern') {
-      startSillyTavernFrontend(args);
+      void startSillyTavernFrontend(args);
     } else if (frontendPreference === 'openwebui') {
-      startOpenWebUIFrontend(args);
+      void startOpenWebUIFrontend(args);
     }
 
     return result;

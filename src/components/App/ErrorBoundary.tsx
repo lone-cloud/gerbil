@@ -38,7 +38,7 @@ const ErrorFallback = ({
           leftSection={
             <FolderOpen style={{ width: rem(16), height: rem(16) }} />
           }
-          onClick={() => window.electronAPI.app.showLogsFolder()}
+          onClick={() => void window.electronAPI.app.showLogsFolder()}
         >
           Show Logs Folder
         </Button>
@@ -51,7 +51,7 @@ const ErrorFallback = ({
 
         <Button
           onClick={() => {
-            window.electronAPI?.app?.closeWindow();
+            void window.electronAPI?.app?.closeWindow();
           }}
           variant="subtle"
           color="gray"

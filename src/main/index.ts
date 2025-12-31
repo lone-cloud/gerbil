@@ -1,10 +1,10 @@
 import { argv, exit } from 'process';
 
 if (argv[1] === '--version') {
-  (async () => {
+  void (async () => {
     try {
       const { app } = await import('electron');
-      const version = await app.getVersion();
+      const version = app.getVersion();
       // eslint-disable-next-line no-console
       console.log(version);
     } catch {
@@ -14,7 +14,7 @@ if (argv[1] === '--version') {
     exit(0);
   })();
 } else {
-  (async () => {
+  void (async () => {
     const isCliMode = argv.includes('--cli');
 
     if (isCliMode) {

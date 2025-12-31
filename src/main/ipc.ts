@@ -150,9 +150,9 @@ export function setupIPCHandlers() {
   );
 
   ipcMain.handle('kobold:stopKoboldCpp', () => {
-    stopKoboldCpp();
-    stopSillyTavernFrontend();
-    stopOpenWebUIFrontend();
+    void stopKoboldCpp();
+    void stopSillyTavernFrontend();
+    void stopOpenWebUIFrontend();
   });
 
   ipcMain.handle('kobold:parseConfigFile', (_, filePath) =>
@@ -196,13 +196,13 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('config:get', (_, key) => getConfig(key));
 
-  ipcMain.on('config:set', (_, key, value) => setConfig(key, value));
+  ipcMain.on('config:set', (_, key, value) => void setConfig(key, value));
 
   ipcMain.handle('app:getVersion', () => app.getVersion());
 
   ipcMain.handle('app:getVersionInfo', () => getVersionInfo());
 
-  ipcMain.handle('app:openPath', (_, path) => openPathHandler(path));
+  ipcMain.handle('app:openPath', async (_, path) => openPathHandler(path));
 
   ipcMain.handle('app:showLogsFolder', () =>
     openPathHandler(join(app.getPath('userData'), 'logs'))
@@ -230,12 +230,12 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('app:setZoomLevel', (_, level) => {
     mainWindow.webContents.setZoomLevel(level);
-    setConfig('zoomLevel', level);
+    void setConfig('zoomLevel', level);
   });
 
   ipcMain.handle('app:getColorScheme', () => getColorScheme());
 
-  ipcMain.handle('app:setColorScheme', (_, colorScheme) =>
+  ipcMain.handle('app:setColorScheme', async (_, colorScheme) =>
     setConfig('colorScheme', colorScheme)
   );
 
@@ -275,8 +275,8 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('app:openExternal', async (_, url) => openUrl(url));
 
-  mainWindow.webContents.once('did-finish-load', async () => {
-    const savedZoomLevel = await getConfig('zoomLevel');
+  mainWindow.webContents.once('did-finish-load', () => {
+    const savedZoomLevel = getConfig('zoomLevel');
     if (typeof savedZoomLevel === 'number') {
       mainWindow.webContents.setZoomLevel(savedZoomLevel);
     }

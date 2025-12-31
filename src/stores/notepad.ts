@@ -71,7 +71,10 @@ export const useNotepadStore = create<NotepadStore>()(
               t.title === title ? { ...t, content: DEFAULT_TAB_CONTENT } : t
             ),
           }));
-          window.electronAPI.notepad.saveTabContent(title, DEFAULT_TAB_CONTENT);
+          void window.electronAPI.notepad.saveTabContent(
+            title,
+            DEFAULT_TAB_CONTENT
+          );
         }
 
         return;
@@ -90,7 +93,7 @@ export const useNotepadStore = create<NotepadStore>()(
         activeTabId: newActiveTabId,
       });
 
-      window.electronAPI.notepad.deleteTab(title);
+      void window.electronAPI.notepad.deleteTab(title);
     },
 
     reorderTabs: (fromIndex, toIndex) => {
@@ -184,7 +187,7 @@ useNotepadStore.subscribe(
   }),
   () => {
     if (useNotepadStore.getState().isLoaded) {
-      useNotepadStore.getState().saveState();
+      void useNotepadStore.getState().saveState();
     }
   },
   {
@@ -198,5 +201,5 @@ useNotepadStore.subscribe(
 );
 
 setTimeout(() => {
-  useNotepadStore.getState().loadState();
+  void useNotepadStore.getState().loadState();
 }, 0);

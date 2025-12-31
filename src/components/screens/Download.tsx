@@ -100,7 +100,7 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
                           }
                           onDownload={(e) => {
                             e.stopPropagation();
-                            handleDownload(download);
+                            void handleDownload(download);
                           }}
                         />
                       </div>

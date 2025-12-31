@@ -36,7 +36,7 @@ export const GeneralTab = ({ configLoaded = true }: GeneralTabProps) => {
             placeholder="Select a .gguf model file or enter a direct URL to file"
             tooltip="Select a GGUF text generation model file for chat and completion tasks."
             onChange={setModel}
-            onSelectFile={() => selectFile('model', 'Select Text Model')}
+            onSelectFile={() => void selectFile('model', 'Select Text Model')}
             searchParams={{
               pipelineTag: 'text-generation',
               filter: 'gguf',

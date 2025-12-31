@@ -50,7 +50,7 @@ export const useAppUpdateChecker = () => {
 
   const installUpdate = useCallback(() => {
     if (isUpdateDownloaded) {
-      window.electronAPI.updater.quitAndInstall();
+      void window.electronAPI.updater.quitAndInstall();
     }
   }, [isUpdateDownloaded]);
 

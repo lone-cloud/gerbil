@@ -64,20 +64,20 @@ export function startMonitoring(window: BrowserWindow) {
   mainWindow = window;
   isRunning = true;
 
-  collectAndSendCpuMetrics();
+  void collectAndSendCpuMetrics();
   cpuInterval = setInterval(() => {
-    collectAndSendCpuMetrics();
+    void collectAndSendCpuMetrics();
   }, updateFrequency);
 
-  collectAndSendMemoryMetrics();
+  void collectAndSendMemoryMetrics();
   memoryInterval = setInterval(() => {
-    collectAndSendMemoryMetrics();
+    void collectAndSendMemoryMetrics();
   }, updateFrequency);
 
   if (platform === 'linux') {
-    collectAndSendGpuMetrics();
+    void collectAndSendGpuMetrics();
     gpuInterval = setInterval(() => {
-      collectAndSendGpuMetrics();
+      void collectAndSendGpuMetrics();
     }, updateFrequency);
   }
 }

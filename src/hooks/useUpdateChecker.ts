@@ -35,7 +35,7 @@ export const useUpdateChecker = () => {
       }
     };
 
-    loadDismissedUpdates();
+    void loadDismissedUpdates();
   }, []);
 
   const checkForUpdates = useCallback(async () => {

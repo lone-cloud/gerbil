@@ -103,7 +103,7 @@ export const ConfigFileManager = ({
                   return;
                 }
                 if (value) {
-                  onFileSelection(value);
+                  void onFileSelection(value);
                 }
               }}
               data={selectData}
@@ -124,7 +124,7 @@ export const ConfigFileManager = ({
             variant="outline"
             leftSection={saveSuccess ? <Check size={14} /> : <Save size={14} />}
             size="sm"
-            onClick={handleSaveClick}
+            onClick={() => void handleSaveClick()}
             color={saveSuccess ? 'green' : undefined}
             style={{ width: '6rem' }}
           >

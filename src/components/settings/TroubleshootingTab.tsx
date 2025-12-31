@@ -13,7 +13,7 @@ export const TroubleshootingTab = () => {
       }
     };
 
-    loadCurrentInstallDir();
+    void loadCurrentInstallDir();
   }, []);
 
   const handleSelectInstallDir = async () => {
@@ -49,7 +49,7 @@ export const TroubleshootingTab = () => {
           />
           <Button
             variant="outline"
-            onClick={handleSelectInstallDir}
+            onClick={() => void handleSelectInstallDir()}
             leftSection={
               <FolderOpen style={{ width: rem(16), height: rem(16) }} />
             }
@@ -58,7 +58,7 @@ export const TroubleshootingTab = () => {
           </Button>
           <Button
             variant="outline"
-            onClick={handleOpenInstallDir}
+            onClick={() => void handleOpenInstallDir()}
             disabled={!installDir}
             leftSection={
               <ExternalLink style={{ width: rem(16), height: rem(16) }} />
@@ -83,7 +83,7 @@ export const TroubleshootingTab = () => {
             leftSection={
               <FolderOpen style={{ width: rem(16), height: rem(16) }} />
             }
-            onClick={() => window.electronAPI.app.showLogsFolder()}
+            onClick={() => void window.electronAPI.app.showLogsFolder()}
           >
             Show Logs
           </Button>
@@ -93,7 +93,7 @@ export const TroubleshootingTab = () => {
             leftSection={
               <Monitor style={{ width: rem(16), height: rem(16) }} />
             }
-            onClick={() => window.electronAPI.app.viewConfigFile()}
+            onClick={() => void window.electronAPI.app.viewConfigFile()}
           >
             View Config
           </Button>

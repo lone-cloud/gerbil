@@ -53,7 +53,7 @@ export const ImportBackendLink = ({
           type="button"
           size="sm"
           disabled={isDisabled}
-          onClick={handleImport}
+          onClick={() => void handleImport()}
         >
           {importing ? 'Importing...' : 'Select a local file'}
         </Anchor>

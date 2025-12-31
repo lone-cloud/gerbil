@@ -38,7 +38,7 @@ export const NotepadTabs = ({
 
   const handleTabRename = (title: string, newTitle: string) => {
     updateTab(title, { title: newTitle });
-    window.electronAPI.notepad.renameTab(title, newTitle);
+    void window.electronAPI.notepad.renameTab(title, newTitle);
   };
 
   const handleTabBarContextMenu = (e: MouseEvent) => {
@@ -118,7 +118,7 @@ export const NotepadTabs = ({
       <ActionIcon
         variant="subtle"
         size="xs"
-        onClick={onCreateNewTab}
+        onClick={() => void onCreateNewTab()}
         style={{
           margin: '0.25rem',
           alignSelf: 'center',

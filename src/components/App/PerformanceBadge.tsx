@@ -27,7 +27,11 @@ export const PerformanceBadge = ({
   if (iconOnly) {
     return (
       <Tooltip label={tooltipLabel} position="top">
-        <ActionIcon size="sm" variant="subtle" onClick={handlePerformanceClick}>
+        <ActionIcon
+          size="sm"
+          variant="subtle"
+          onClick={() => void handlePerformanceClick()}
+        >
           <Activity size="1.125rem" />
         </ActionIcon>
       </Tooltip>
@@ -49,7 +53,7 @@ export const PerformanceBadge = ({
           fontSize: '0.7em',
           fontWeight: 500,
         }}
-        onClick={handlePerformanceClick}
+        onClick={() => void handlePerformanceClick()}
       >
         {label}: {value}
       </Button>

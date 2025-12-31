@@ -184,7 +184,7 @@ export const useHuggingFaceSearch = (
 
   const changeSortOrder = useCallback(
     (sort: HuggingFaceSortOption, query?: string) => {
-      searchModels(query, true, sort);
+      void searchModels(query, true, sort);
     },
     [searchModels]
   );

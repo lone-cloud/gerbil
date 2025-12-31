@@ -203,4 +203,4 @@ export const useKoboldBackendsStore = create<KoboldBackendsState>(
   })
 );
 
-useKoboldBackendsStore.getState().initialize();
+void useKoboldBackendsStore.getState().initialize();

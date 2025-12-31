@@ -68,7 +68,7 @@ export const ImageGenerationTab = () => {
         placeholder="Select a model file or enter a direct URL"
         tooltip="The primary image generation model. This is the main model that will generate images."
         onChange={setSdmodel}
-        onSelectFile={() => selectFile('sdmodel', 'Select Image Model')}
+        onSelectFile={() => void selectFile('sdmodel', 'Select Image Model')}
         searchParams={{
           pipelineTag: 'text-to-image',
           filter: 'gguf',
@@ -84,7 +84,7 @@ export const ImageGenerationTab = () => {
         placeholder="Select a T5-XXL encoder file or enter a direct URL"
         tooltip="T5-XXL text encoder model for advanced text understanding."
         onChange={setSdt5xxl}
-        onSelectFile={() => selectFile('sdt5xxl', 'Select T5XXL Model')}
+        onSelectFile={() => void selectFile('sdt5xxl', 'Select T5XXL Model')}
         searchParams={{
           search: 't5xxl',
           filter: 'safetensors',
@@ -99,7 +99,7 @@ export const ImageGenerationTab = () => {
         placeholder="Select a Clip-L file or enter a direct URL"
         tooltip="CLIP-L text encoder model for text-image understanding."
         onChange={setSdclipl}
-        onSelectFile={() => selectFile('sdclipl', 'Select CLIP-L Model')}
+        onSelectFile={() => void selectFile('sdclipl', 'Select CLIP-L Model')}
         searchParams={{
           search: 'clip',
           filter: 'safetensors',
@@ -114,7 +114,7 @@ export const ImageGenerationTab = () => {
         placeholder="Select a Clip-G file or enter a direct URL"
         tooltip="CLIP-G text encoder model for enhanced text-image understanding, or mmproj files for vision-language models."
         onChange={setSdclipg}
-        onSelectFile={() => selectFile('sdclipg', 'Select CLIP-G Model')}
+        onSelectFile={() => void selectFile('sdclipg', 'Select CLIP-G Model')}
         searchParams={{
           search: 'clip',
           filter: 'gguf',
@@ -130,7 +130,7 @@ export const ImageGenerationTab = () => {
         tooltip="PhotoMaker is a model that allows face cloning. Select a .safetensors PhotoMaker file to be loaded (SDXL only)."
         onChange={setSdphotomaker}
         onSelectFile={() =>
-          selectFile('sdphotomaker', 'Select PhotoMaker Model')
+          void selectFile('sdphotomaker', 'Select PhotoMaker Model')
         }
         searchParams={{
           search: 'photomaker',
@@ -146,7 +146,7 @@ export const ImageGenerationTab = () => {
         placeholder="Select a VAE file or enter a direct URL"
         tooltip="Variational Autoencoder model for improved image quality."
         onChange={setSdvae}
-        onSelectFile={() => selectFile('sdvae', 'Select VAE Model')}
+        onSelectFile={() => void selectFile('sdvae', 'Select VAE Model')}
         searchParams={{
           search: 'vae',
           filter: 'safetensors',
@@ -161,7 +161,7 @@ export const ImageGenerationTab = () => {
         placeholder="Select a LoRa file or enter a direct URL"
         tooltip="LoRa (Low-Rank Adaptation) file for customizing image generation. Select a .safetensors or .gguf LoRa file to be loaded. Should be unquantized."
         onChange={setSdlora}
-        onSelectFile={() => selectFile('sdlora', 'Select LoRA Model')}
+        onSelectFile={() => void selectFile('sdlora', 'Select LoRA Model')}
         searchParams={{
           search: 'lora',
           filter: 'safetensors',

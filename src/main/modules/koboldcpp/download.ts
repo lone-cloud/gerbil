@@ -84,16 +84,20 @@ async function downloadFile(asset: GitHubAsset, tempPackedFilePath: string) {
   await pump();
 
   await new Promise<void>((resolve, reject) => {
-    writer.on('finish', async () => {
-      if (platform !== 'win32') {
-        try {
-          await chmod(tempPackedFilePath, 0o755);
-        } catch (error) {
-          logError('Failed to make binary executable:', error as Error);
-        }
-      }
-      resolve();
-    });
+    writer.on(
+      'finish',
+      () =>
+        void (async () => {
+          if (platform !== 'win32') {
+            try {
+              await chmod(tempPackedFilePath, 0o755);
+            } catch (error) {
+              logError('Failed to make binary executable:', error as Error);
+            }
+          }
+          resolve();
+        })()
+    );
     writer.on('error', reject);
   });
 }

@@ -50,7 +50,7 @@ export const InfoCard = ({ title, items, loading = false }: InfoCardProps) => {
         <ActionIcon
           variant="subtle"
           size="sm"
-          onClick={copyInfo}
+          onClick={() => void copyInfo()}
           aria-label={`Copy ${title}`}
           style={{
             position: 'absolute',

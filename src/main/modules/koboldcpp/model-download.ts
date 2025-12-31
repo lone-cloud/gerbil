@@ -94,7 +94,7 @@ async function downloadFile(
       abort: () => {
         isAborted = true;
         currentRequest?.destroy();
-        cleanup();
+        void cleanup();
         reject(new Error('Download aborted by user'));
       },
       tempPath,
@@ -197,7 +197,7 @@ async function downloadFile(
 
           if (totalBytes > 0 && downloadedBytes !== totalBytes) {
             activeDownloads.delete(abortController);
-            cleanup();
+            void cleanup();
             reject(
               new Error(
                 `Incomplete download: received ${downloadedBytes} bytes, expected ${totalBytes} bytes`
@@ -207,32 +207,44 @@ async function downloadFile(
           }
 
           fileStream.end();
-          fileStream.on('finish', async () => {
-            try {
-              await rename(tempPath, outputPath);
-              sendKoboldOutput('\n');
-              activeDownloads.delete(abortController);
-              resolve(true);
-            } catch (err) {
-              activeDownloads.delete(abortController);
-              reject(err instanceof Error ? err : new Error(String(err)));
-            }
-          });
+          fileStream.on(
+            'finish',
+            () =>
+              void (async () => {
+                try {
+                  await rename(tempPath, outputPath);
+                  sendKoboldOutput('\n');
+                  activeDownloads.delete(abortController);
+                  resolve(true);
+                } catch (err) {
+                  activeDownloads.delete(abortController);
+                  reject(err instanceof Error ? err : new Error(String(err)));
+                }
+              })()
+          );
         });
 
-        response.on('error', async (err) => {
-          if (isAborted) return;
-          activeDownloads.delete(abortController);
-          await cleanup();
-          reject(err);
-        });
+        response.on(
+          'error',
+          (err) =>
+            void (async () => {
+              if (isAborted) return;
+              activeDownloads.delete(abortController);
+              await cleanup();
+              reject(err);
+            })()
+        );
 
-        fileStream.on('error', async (err) => {
-          if (isAborted) return;
-          activeDownloads.delete(abortController);
-          await cleanup();
-          reject(err);
-        });
+        fileStream.on(
+          'error',
+          (err) =>
+            void (async () => {
+              if (isAborted) return;
+              activeDownloads.delete(abortController);
+              await cleanup();
+              reject(err);
+            })()
+        );
       }).on('error', (err) => {
         if (isAborted) return;
         activeDownloads.delete(abortController);

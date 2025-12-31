@@ -31,7 +31,7 @@ export const AboutTab = () => {
       }
     };
 
-    loadVersionInfo();
+    void loadVersionInfo();
   }, []);
 
   if (!versionInfo) {
@@ -60,7 +60,7 @@ export const AboutTab = () => {
             alt={PRODUCT_NAME}
             w={64}
             h={64}
-            onClick={handleLogoClick}
+            onClick={() => void handleLogoClick()}
             style={{
               minWidth: 64,
               minHeight: 64,
@@ -93,7 +93,7 @@ export const AboutTab = () => {
                   leftSection={
                     <button.icon style={{ width: rem(16), height: rem(16) }} />
                   }
-                  onClick={button.onClick}
+                  onClick={() => void button.onClick()}
                   style={
                     button.label === 'GitHub'
                       ? { textDecoration: 'none' }

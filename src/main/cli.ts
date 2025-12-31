@@ -86,10 +86,10 @@ export async function handleCliMode(args: string[]) {
       }
     };
 
-    on('SIGINT', handleSignal);
-    on('SIGTERM', handleSignal);
+    on('SIGINT', () => void handleSignal());
+    on('SIGTERM', () => void handleSignal());
     if (platform === 'win32') {
-      on('SIGBREAK', handleSignal);
+      on('SIGBREAK', () => void handleSignal());
     }
   });
 }
