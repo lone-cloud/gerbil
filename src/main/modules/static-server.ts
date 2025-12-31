@@ -1,6 +1,6 @@
 import { createServer, Server } from 'http';
 import { readFile } from 'fs/promises';
-import { join, normalize, resolve as resolvePath } from 'path';
+import { join, normalize, resolve as resolvePath, sep } from 'path';
 import { lookup } from 'mime-types';
 import { pathExists } from '@/utils/node/fs';
 
@@ -17,7 +17,7 @@ export const startStaticServer = (distPath: string) =>
           const resolvedDistPath = resolvePath(distPath);
 
           if (
-            !normalizedPath.startsWith(resolvedDistPath + '/') &&
+            !normalizedPath.startsWith(resolvedDistPath + sep) &&
             normalizedPath !== resolvedDistPath
           ) {
             res.writeHead(403);
