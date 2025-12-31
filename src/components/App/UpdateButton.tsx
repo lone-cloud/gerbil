@@ -36,7 +36,7 @@ export const UpdateButton = () => {
     color = 'blue';
     label = 'Download and install update';
     onClick = () => {
-      downloadUpdate();
+      void downloadUpdate();
       setShowDownload(false);
     };
     icon = <Download size="1.25rem" />;
@@ -47,7 +47,7 @@ export const UpdateButton = () => {
       : 'Update available - Click to view';
     onClick = () => {
       if (releaseUrl) {
-        window.electronAPI.app.openExternal(releaseUrl);
+        void window.electronAPI.app.openExternal(releaseUrl);
       }
     };
   }
@@ -56,7 +56,7 @@ export const UpdateButton = () => {
     e.preventDefault();
     if (canAutoUpdate && !isDownloading && !isUpdateDownloaded) {
       setShowDownload(true);
-      downloadUpdate();
+      void downloadUpdate();
     }
   };
 

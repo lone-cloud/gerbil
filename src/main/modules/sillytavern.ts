@@ -187,17 +187,23 @@ async function ensureSillyTavernSettings() {
         const output = data.toString();
 
         if (output.includes(SERVER_READY_SIGNALS.SILLYTAVERN)) {
-          setTimeout(async () => {
-            if (!initProcess.killed && !hasResolved) {
-              hasResolved = true;
+          setTimeout(
+            () =>
+              void (async () => {
+                if (!initProcess.killed && !hasResolved) {
+                  hasResolved = true;
 
-              await terminateProcess(initProcess);
+                  await terminateProcess(initProcess);
 
-              sendKoboldOutput('SillyTavern settings should now be generated');
+                  sendKoboldOutput(
+                    'SillyTavern settings should now be generated'
+                  );
 
-              resolve();
-            }
-          }, 2000);
+                  resolve();
+                }
+              })(),
+            2000
+          );
         }
       });
     }

@@ -9,25 +9,28 @@ let serverPort = 0;
 
 export const startStaticServer = (distPath: string) =>
   new Promise<string>((resolve, reject) => {
-    server = createServer(async (req, res) => {
-      const requestPath = req.url === '/' ? 'index.html' : req.url!;
-      let filePath = join(distPath, requestPath);
+    server = createServer(
+      (req, res) =>
+        void (async () => {
+          const requestPath = req.url === '/' ? 'index.html' : req.url!;
+          let filePath = join(distPath, requestPath);
 
-      if (!(await pathExists(filePath))) {
-        filePath = join(distPath, 'index.html');
-      }
+          if (!(await pathExists(filePath))) {
+            filePath = join(distPath, 'index.html');
+          }
 
-      try {
-        const content = await readFile(filePath);
-        const contentType = lookup(filePath) || 'application/octet-stream';
+          try {
+            const content = await readFile(filePath);
+            const contentType = lookup(filePath) || 'application/octet-stream';
 
-        res.writeHead(200, { 'Content-Type': contentType });
-        res.end(content);
-      } catch {
-        res.writeHead(404);
-        res.end('Not found');
-      }
-    });
+            res.writeHead(200, { 'Content-Type': contentType });
+            res.end(content);
+          } catch {
+            res.writeHead(404);
+            res.end('Not found');
+          }
+        })()
+    );
 
     server.listen(0, 'localhost', () => {
       const address = server!.address();

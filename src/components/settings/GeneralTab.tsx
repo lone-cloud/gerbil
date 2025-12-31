@@ -19,7 +19,7 @@ export const GeneralTab = () => {
       setStartMinimizedToTray(startMinimized);
     };
 
-    loadSystemTrayPreference();
+    void loadSystemTrayPreference();
   }, []);
 
   const handleSystemTrayToggle = async (checked: boolean) => {
@@ -66,7 +66,7 @@ export const GeneralTab = () => {
           label="Enable system tray icon"
           checked={enableSystemTray}
           onChange={(event) =>
-            handleSystemTrayToggle(event.currentTarget.checked)
+            void handleSystemTrayToggle(event.currentTarget.checked)
           }
         />
       </div>
@@ -83,7 +83,7 @@ export const GeneralTab = () => {
           checked={startMinimizedToTray}
           disabled={!enableSystemTray}
           onChange={(event) =>
-            handleStartMinimizedToggle(event.currentTarget.checked)
+            void handleStartMinimizedToggle(event.currentTarget.checked)
           }
         />
       </div>

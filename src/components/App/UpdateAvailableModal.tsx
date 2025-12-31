@@ -154,7 +154,7 @@ export const UpdateAvailableModal = ({
           </Button>
 
           <Button
-            onClick={handleUpdate}
+            onClick={() => void handleUpdate()}
             loading={isDownloading || isUpdating}
             disabled={isDownloading || isUpdating}
             leftSection={

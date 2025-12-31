@@ -71,7 +71,7 @@ export const TitleBar = ({
       setIsMaximized(currentMaximizedState);
     };
 
-    initializeState();
+    void initializeState();
 
     const cleanup = window.electronAPI.app.onWindowStateToggle(() =>
       setIsMaximized((prev) => !prev)
@@ -112,7 +112,7 @@ export const TitleBar = ({
             w={24}
             h={24}
             style={getLogoStyles()}
-            onClick={handleLogoClick}
+            onClick={() => void handleLogoClick()}
           />
         </Group>
 
@@ -186,19 +186,19 @@ export const TitleBar = ({
           {[
             {
               icon: <Minus size="1rem" />,
-              onClick: () => window.electronAPI.app.minimizeWindow(),
+              onClick: () => void window.electronAPI.app.minimizeWindow(),
               color: undefined,
               label: 'Minimize window',
             },
             {
               icon: isMaximized ? <Copy size="1rem" /> : <Square size="1rem" />,
-              onClick: () => window.electronAPI.app.maximizeWindow(),
+              onClick: () => void window.electronAPI.app.maximizeWindow(),
               color: undefined,
               label: isMaximized ? 'Restore window' : 'Maximize window',
             },
             {
               icon: <X size="1.25rem" />,
-              onClick: () => window.electronAPI.app.closeWindow(),
+              onClick: () => void window.electronAPI.app.closeWindow(),
               color: 'red' as const,
               label: 'Close window',
             },

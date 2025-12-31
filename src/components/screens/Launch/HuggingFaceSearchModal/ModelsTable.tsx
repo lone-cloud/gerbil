@@ -69,7 +69,7 @@ export const ModelsTable = ({
             key={model.id}
             onClick={() => {
               if (model.gated) {
-                window.electronAPI.app.openExternal(
+                void window.electronAPI.app.openExternal(
                   `${HUGGINGFACE_BASE_URL}/${model.id}`
                 );
               } else {

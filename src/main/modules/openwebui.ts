@@ -82,10 +82,8 @@ export async function startFrontend(args: string[]) {
       isImageMode,
     } = parseKoboldConfig(args);
 
-    const [, appVersion] = await Promise.all([
-      stopFrontend(),
-      app.getVersion(),
-    ]);
+    await stopFrontend();
+    const appVersion = app.getVersion();
 
     sendKoboldOutput(
       `Preparing Open WebUI to connect at ${koboldHost}:${koboldPort}${isImageMode ? ' (with image generation)' : ''}...`

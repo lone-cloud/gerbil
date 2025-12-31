@@ -285,7 +285,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
   }, [loadConfigFiles]);
 
   const handleLaunchClick = useCallback(() => {
-    handleLaunch({
+    void handleLaunch({
       autoGpuLayers,
       gpuLayers,
       contextSize,

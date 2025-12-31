@@ -29,7 +29,7 @@ export const DeleteConfigModal = ({
           <Button variant="subtle" onClick={onClose}>
             Cancel
           </Button>
-          <Button color="red" onClick={onConfirm}>
+          <Button color="red" onClick={() => void onConfirm()}>
             Delete
           </Button>
         </Group>

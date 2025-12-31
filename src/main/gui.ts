@@ -67,12 +67,12 @@ export async function initializeApp(options?: { startMinimized?: boolean }) {
     app.quit();
   });
 
-  app.on('before-quit', async (event) => {
+  app.on('before-quit', (event) => {
     event.preventDefault();
 
-    await safeExecute(async () => {
+    void safeExecute(async () => {
       const cleanupPromises = [
-        cleanupWindow(),
+        Promise.resolve(cleanupWindow()),
         stopKoboldCpp(),
         stopSillyTavern(),
         stopOpenWebUI(),

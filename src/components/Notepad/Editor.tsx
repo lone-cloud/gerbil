@@ -38,7 +38,7 @@ export const NotepadEditor = ({ tab }: NotepadEditorProps) => {
       }
 
       const timeout = setTimeout(() => {
-        saveTabContent(tab.title, newContent);
+        void saveTabContent(tab.title, newContent);
       }, 500);
 
       setSaveTimeout(timeout);

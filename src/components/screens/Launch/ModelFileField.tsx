@@ -56,7 +56,7 @@ export const ModelFileField = ({
   const combobox = useCombobox();
 
   useEffect(() => {
-    (async () => {
+    void (async () => {
       try {
         const models =
           await window.electronAPI.kobold.getLocalModels(paramType);
@@ -168,7 +168,7 @@ export const ModelFileField = ({
             }
           >
             <ActionIcon
-              onClick={handleAnalyzeModel}
+              onClick={() => void handleAnalyzeModel()}
               variant="light"
               color="blue"
               size="lg"

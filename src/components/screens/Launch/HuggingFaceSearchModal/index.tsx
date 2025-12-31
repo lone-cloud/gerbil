@@ -71,7 +71,7 @@ export const HuggingFaceSearchModal = ({
 
   useEffect(() => {
     if (opened && !prevOpenedRef.current) {
-      searchModels();
+      void searchModels();
     }
     if (!opened && prevOpenedRef.current) {
       reset();
@@ -81,7 +81,7 @@ export const HuggingFaceSearchModal = ({
 
   useEffect(() => {
     if (opened && debouncedQuery !== undefined) {
-      searchModels(debouncedQuery);
+      void searchModels(debouncedQuery);
     }
   }, [debouncedQuery, opened, searchModels]);
 
@@ -91,7 +91,7 @@ export const HuggingFaceSearchModal = ({
   };
 
   const handleModelSelect = (model: HuggingFaceModelInfo) => {
-    loadModelFiles(model);
+    void loadModelFiles(model);
   };
 
   const handleFileSelect = (file: HuggingFaceFileInfo) => {
@@ -103,12 +103,12 @@ export const HuggingFaceSearchModal = ({
 
   const handleBack = () => {
     reset();
-    searchModels(searchQuery);
+    void searchModels(searchQuery);
   };
 
   const handleOpenExternal = () => {
     if (selectedModel) {
-      window.electronAPI.app.openExternal(
+      void window.electronAPI.app.openExternal(
         `${HUGGINGFACE_BASE_URL}/${selectedModel.id}`
       );
     }
@@ -196,7 +196,7 @@ export const HuggingFaceSearchModal = ({
             const isNearBottom =
               target.scrollHeight - y <= target.clientHeight + 100;
             if (isNearBottom && hasMore && !loading && !selectedModel) {
-              loadMoreModels();
+              void loadMoreModels();
             }
           }}
           viewportRef={scrollAreaRef}

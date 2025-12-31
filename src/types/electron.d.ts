@@ -208,9 +208,9 @@ export interface AppAPI {
   openPath: (path: string) => Promise<void>;
   getVersion: () => Promise<string>;
   getVersionInfo: () => Promise<SystemVersionInfo>;
-  minimizeWindow: () => void;
-  maximizeWindow: () => void;
-  closeWindow: () => void;
+  minimizeWindow: () => Promise<void>;
+  maximizeWindow: () => Promise<void>;
+  closeWindow: () => Promise<void>;
   isMaximized: () => Promise<boolean>;
   getZoomLevel: () => Promise<number>;
   setZoomLevel: (level: number) => Promise<void>;
@@ -267,7 +267,7 @@ export interface MonitoringAPI {
 export interface UpdaterAPI {
   checkForUpdates: () => Promise<boolean>;
   downloadUpdate: () => Promise<boolean>;
-  quitAndInstall: () => void;
+  quitAndInstall: () => Promise<void>;
   isUpdateDownloaded: () => Promise<boolean>;
   canAutoUpdate: () => Promise<boolean>;
   isAURInstallation: () => Promise<boolean>;

@@ -45,12 +45,12 @@ export const AccelerationSelector = () => {
     };
 
     if (!hasInitialized.current) {
-      loadAccelerations();
+      void loadAccelerations();
     }
 
     const cleanup = window.electronAPI.kobold.onVersionsUpdated(() => {
       hasInitialized.current = false;
-      loadAccelerations();
+      void loadAccelerations();
     });
 
     return cleanup;
@@ -133,7 +133,7 @@ export const AccelerationSelector = () => {
       }
     };
 
-    calculateLayers();
+    void calculateLayers();
   }, [
     autoGpuLayers,
     model,

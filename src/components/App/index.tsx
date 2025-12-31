@@ -84,7 +84,7 @@ export const App = () => {
         ? displayModel.split('/').pop() || displayModel
         : null;
 
-      window.electronAPI.app.updateTrayState({
+      void window.electronAPI.app.updateTrayState({
         screen: currentScreen,
         model: modelName,
         config: config || null,
@@ -158,7 +158,7 @@ export const App = () => {
       setHasInitialized(true);
     };
 
-    checkInstallation();
+    void checkInstallation();
   }, []);
 
   useEffect(() => {
@@ -169,12 +169,12 @@ export const App = () => {
         await window.electronAPI.kobold.getCurrentBackend();
       if (currentBackend) {
         setTimeout(() => {
-          checkForUpdates();
+          void checkForUpdates();
         }, 5000);
 
         const interval = setInterval(
           () => {
-            checkForUpdates();
+            void checkForUpdates();
           },
           6 * 60 * 60 * 1000
         );
@@ -183,7 +183,7 @@ export const App = () => {
       }
     };
 
-    runUpdateCheck();
+    void runUpdateCheck();
   }, [loadingRemote, hasInitialized, checkForUpdates]);
 
   const handleBinaryUpdate = async (download: DownloadItem) => {
@@ -240,7 +240,7 @@ export const App = () => {
       <TitleBar
         currentScreen={currentScreen || 'launch'}
         currentTab={activeInterfaceTab}
-        onEject={handleEject}
+        onEject={() => void handleEject()}
         onTabChange={setActiveInterfaceTab}
       />
 
@@ -274,8 +274,8 @@ export const App = () => {
               hasInitialized={hasInitialized}
               activeInterfaceTab={activeInterfaceTab}
               isServerReady={isServerReady}
-              onWelcomeComplete={handleWelcomeComplete}
-              onDownloadComplete={handleDownloadComplete}
+              onWelcomeComplete={() => void handleWelcomeComplete()}
+              onDownloadComplete={() => void handleDownloadComplete()}
               onLaunch={handleLaunch}
             />
           )}

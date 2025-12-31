@@ -60,7 +60,7 @@ export const CreateConfigModal = ({
           </Button>
           <Button
             disabled={!trimmedConfigName || !!configNameExists}
-            onClick={handleSubmit}
+            onClick={() => void handleSubmit()}
           >
             Create
           </Button>

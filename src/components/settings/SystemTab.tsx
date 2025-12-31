@@ -56,7 +56,7 @@ export const SystemTab = () => {
       }
     };
 
-    loadAll();
+    void loadAll();
   }, []);
 
   if (loading || !versionInfo) {

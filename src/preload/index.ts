@@ -74,7 +74,7 @@ const koboldAPI: KoboldAPI = {
       flashAttention,
       acceleration
     ),
-  stopKoboldCpp: () => ipcRenderer.invoke('kobold:stopKoboldCpp'),
+  stopKoboldCpp: () => void ipcRenderer.invoke('kobold:stopKoboldCpp'),
   onDownloadProgress: (callback) => {
     const handler = (_: IpcRendererEvent, progress: number) =>
       callback(progress);
@@ -141,14 +141,14 @@ const appAPI: AppAPI = {
   openPath: (path) => ipcRenderer.invoke('app:openPath', path),
   getVersion: () => ipcRenderer.invoke('app:getVersion'),
   getVersionInfo: () => ipcRenderer.invoke('app:getVersionInfo'),
-  minimizeWindow: () => ipcRenderer.invoke('app:minimizeWindow'),
-  maximizeWindow: () => ipcRenderer.invoke('app:maximizeWindow'),
-  closeWindow: () => ipcRenderer.invoke('app:closeWindow'),
+  minimizeWindow: async () => ipcRenderer.invoke('app:minimizeWindow'),
+  maximizeWindow: async () => ipcRenderer.invoke('app:maximizeWindow'),
+  closeWindow: async () => ipcRenderer.invoke('app:closeWindow'),
   isMaximized: () => ipcRenderer.invoke('app:isMaximized'),
   getZoomLevel: () => ipcRenderer.invoke('app:getZoomLevel'),
-  setZoomLevel: (level) => ipcRenderer.invoke('app:setZoomLevel', level),
+  setZoomLevel: async (level) => ipcRenderer.invoke('app:setZoomLevel', level),
   getColorScheme: () => ipcRenderer.invoke('app:getColorScheme'),
-  setColorScheme: (colorScheme) =>
+  setColorScheme: async (colorScheme) =>
     ipcRenderer.invoke('app:setColorScheme', colorScheme),
   getEnableSystemTray: () => ipcRenderer.invoke('app:getEnableSystemTray'),
   setEnableSystemTray: (enabled) =>
@@ -252,7 +252,7 @@ const monitoringAPI: MonitoringAPI = {
 const updaterAPI: UpdaterAPI = {
   checkForUpdates: () => ipcRenderer.invoke('app:checkForUpdates'),
   downloadUpdate: () => ipcRenderer.invoke('app:downloadUpdate'),
-  quitAndInstall: () => ipcRenderer.invoke('app:quitAndInstall'),
+  quitAndInstall: async () => ipcRenderer.invoke('app:quitAndInstall'),
   isUpdateDownloaded: () => ipcRenderer.invoke('app:isUpdateDownloaded'),
   canAutoUpdate: () => ipcRenderer.invoke('app:canAutoUpdate'),
   isAURInstallation: () => ipcRenderer.invoke('app:isAURInstallation'),

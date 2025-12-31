@@ -42,7 +42,9 @@ export const ModelCard = ({ modelId }: ModelCardProps) => {
   return (
     <Accordion>
       <Accordion.Item value="readme">
-        <Accordion.Control onClick={loadReadme}>Model Card</Accordion.Control>
+        <Accordion.Control onClick={() => void loadReadme()}>
+          Model Card
+        </Accordion.Control>
         <Accordion.Panel>
           {loading && (
             <Group justify="center" py="md">

@@ -24,7 +24,13 @@ const createAppLogger = () => {
       format.timestamp({
         format: 'YYYY-MM-DD HH:mm:ss.SSS',
       }),
-      format.printf(({ timestamp, level, message, error }) => {
+      format.printf((info) => {
+        const { timestamp, level, message, error } = info as {
+          timestamp: string;
+          level: string;
+          message: string;
+          error?: Error;
+        };
         let logEntry = `${timestamp} [MAIN] [${level.toUpperCase()}] ${message}`;
 
         if (error && error instanceof Error) {

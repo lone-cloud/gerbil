@@ -1,3 +1,4 @@
+import { defineConfig } from 'eslint/config';
 import js from '@eslint/js';
 import globals from 'globals';
 import tseslint from '@typescript-eslint/eslint-plugin';
@@ -11,7 +12,7 @@ import noComments from 'eslint-plugin-no-comments';
 // @ts-ignore - No types available
 import promise from 'eslint-plugin-promise';
 
-const config = [
+const config = defineConfig([
   js.configs.recommended,
   {
     ignores: [
@@ -50,8 +51,8 @@ const config = [
       },
     },
     plugins: {
-      '@typescript-eslint': tseslint,
-      'react-hooks': reactHooks,
+      '@typescript-eslint': tseslint as any,
+      'react-hooks': reactHooks as any,
       react,
       sonarjs,
       'no-comments': noComments,
@@ -69,6 +70,7 @@ const config = [
       ...importPlugin.configs.recommended.rules,
       ...importPlugin.configs.typescript.rules,
       ...tseslint.configs.recommended.rules,
+      ...tseslint.configs['recommended-type-checked'].rules,
       ...tseslint.configs.stylistic.rules,
 
       '@typescript-eslint/no-unused-vars': [
@@ -81,6 +83,12 @@ const config = [
       ],
       'no-unused-vars': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
+
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
 
       'react/function-component-definition': [
         'error',
@@ -226,6 +234,6 @@ const config = [
       'import/no-default-export': 'off',
     },
   },
-];
+]);
 
 export default config;

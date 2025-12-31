@@ -50,11 +50,11 @@ export const openPathHandler = async (path: string) =>
     error: 'Failed to open path',
   };
 
-export const openUrl = (url: string) =>
-  safeExecute(async () => {
+export const openUrl = async (url: string) =>
+  (await safeExecute(async () => {
     await shell.openExternal(url);
     return { success: true };
-  }, 'Failed to open external URL') || {
+  }, 'Failed to open external URL')) || {
     success: false,
     error: 'Failed to open external URL',
   };

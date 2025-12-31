@@ -68,7 +68,7 @@ export const BackendsTab = () => {
       }
     };
 
-    init();
+    void init();
   }, [getLatestReleaseWithDownloadStatus, refreshDownloads]);
 
   const loadInstalledBackends = useCallback(async () => {
@@ -230,7 +230,7 @@ export const BackendsTab = () => {
       setCurrentBackend(targetBackend);
     }
 
-    window.electronAPI.kobold.setCurrentBackend(backend.installedPath);
+    void window.electronAPI.kobold.setCurrentBackend(backend.installedPath);
   };
 
   if (loadingInstalled) {
@@ -301,19 +301,19 @@ export const BackendsTab = () => {
               disabled={isDisabled}
               onDownload={(e) => {
                 e.stopPropagation();
-                handleDownload(backend);
+                void handleDownload(backend);
               }}
               onUpdate={(e) => {
                 e.stopPropagation();
-                handleUpdate(backend);
+                void handleUpdate(backend);
               }}
               onRedownload={(e) => {
                 e.stopPropagation();
-                handleRedownload(backend);
+                void handleRedownload(backend);
               }}
               onDelete={(e) => {
                 e.stopPropagation();
-                handleDelete(backend);
+                void handleDelete(backend);
               }}
               onMakeCurrent={() => makeCurrent(backend)}
             />

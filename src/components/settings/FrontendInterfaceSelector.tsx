@@ -212,10 +212,10 @@ export const FrontendInterfaceSelector = ({
     const initialize = async () => {
       await checkAllFrontendRequirements();
     };
-    initialize();
+    void initialize();
 
     const handleFocus = () => {
-      checkAllFrontendRequirements();
+      void checkAllFrontendRequirements();
     };
 
     window.addEventListener('focus', handleFocus);
@@ -225,7 +225,7 @@ export const FrontendInterfaceSelector = ({
   useEffect(() => {
     if (frontendPreference) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      checkAllFrontendRequirements();
+      void checkAllFrontendRequirements();
     }
   }, [frontendPreference, checkAllFrontendRequirements]);
 
@@ -323,7 +323,7 @@ export const FrontendInterfaceSelector = ({
             >
               Cancel
             </Button>
-            <Button color="red" onClick={handleClearOpenWebUIData}>
+            <Button color="red" onClick={() => void handleClearOpenWebUIData()}>
               Clear Data
             </Button>
           </Group>
