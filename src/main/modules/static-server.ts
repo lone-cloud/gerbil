@@ -1,6 +1,6 @@
 import { createServer, Server } from 'http';
 import { readFile } from 'fs/promises';
-import { join } from 'path';
+import { join, normalize, resolve as resolvePath } from 'path';
 import { lookup } from 'mime-types';
 import { pathExists } from '@/utils/node/fs';
 
@@ -13,15 +13,27 @@ export const startStaticServer = (distPath: string) =>
       (req, res) =>
         void (async () => {
           const requestPath = req.url === '/' ? 'index.html' : req.url!;
-          let filePath = join(distPath, requestPath);
+          const normalizedPath = normalize(join(distPath, requestPath));
+          const resolvedDistPath = resolvePath(distPath);
 
-          if (!(await pathExists(filePath))) {
-            filePath = join(distPath, 'index.html');
+          if (
+            !normalizedPath.startsWith(resolvedDistPath + '/') &&
+            normalizedPath !== resolvedDistPath
+          ) {
+            res.writeHead(403);
+            res.end('Forbidden');
+            return;
+          }
+
+          let safeFilePath = normalizedPath;
+          if (!(await pathExists(safeFilePath))) {
+            safeFilePath = join(resolvedDistPath, 'index.html');
           }
 
           try {
-            const content = await readFile(filePath);
-            const contentType = lookup(filePath) || 'application/octet-stream';
+            const content = await readFile(safeFilePath);
+            const contentType =
+              lookup(safeFilePath) || 'application/octet-stream';
 
             res.writeHead(200, { 'Content-Type': contentType });
             res.end(content);
