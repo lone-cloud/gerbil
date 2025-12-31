@@ -46,7 +46,7 @@ export async function createMainWindow(options?: { startHidden?: boolean }) {
       preload: join(__dirname, '../preload/index.js'),
       backgroundThrottling: false,
       offscreen: false,
-      spellcheck: false,
+      spellcheck: true,
     },
   } as BrowserWindowConstructorOptions;
 
@@ -95,7 +95,7 @@ export async function createMainWindow(options?: { startHidden?: boolean }) {
         };
       }
 
-      setConfig('windowBounds', bounds);
+      void setConfig('windowBounds', bounds);
     }
   };
 
@@ -115,11 +115,11 @@ export async function createMainWindow(options?: { startHidden?: boolean }) {
   });
 
   if (isDevelopment) {
-    mainWindow.loadURL('http://localhost:5173');
+    void mainWindow.loadURL('http://localhost:5173');
   } else {
     const distPath = join(__dirname, '../../dist');
     const url = await startStaticServer(distPath);
-    mainWindow.loadURL(url);
+    void mainWindow.loadURL(url);
     Menu.setApplicationMenu(null);
   }
 
@@ -239,7 +239,7 @@ function setupContextMenu(mainWindow: BrowserWindow) {
         label: 'Open Link in Browser',
         click: () => {
           if (params.linkURL) {
-            shell.openExternal(params.linkURL);
+            void shell.openExternal(params.linkURL);
           }
         },
       });
@@ -256,7 +256,7 @@ function setupContextMenu(mainWindow: BrowserWindow) {
 
     if (menuItems.length > 0) {
       const menu = Menu.buildFromTemplate(menuItems);
-      menu.popup({ window: mainWindow! });
+      menu.popup({ window: mainWindow });
     }
   });
 }
