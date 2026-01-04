@@ -43,7 +43,7 @@ export const HuggingFaceSearchModal = ({
   const [searchQuery, setSearchQuery] = useState(
     initialSearchParams.search || ''
   );
-  const [debouncedQuery] = useDebouncedValue(searchQuery, 300);
+  const [debouncedQuery] = useDebouncedValue(searchQuery, 600);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const prevOpenedRef = useRef(false);
 

@@ -69,6 +69,9 @@ const UI_COVERED_ARGS = new Set([
   '--lowvram',
   '--smartcache',
   '--pipelineparallel',
+  '--quantkv',
+  '--usecpu',
+  '--autofit',
 ] as const) as ReadonlySet<string>;
 
 const IGNORED_ARGS = new Set([
@@ -184,7 +187,7 @@ const COMMAND_LINE_ARGUMENTS = [
   {
     flag: '--ropeconfig',
     description:
-      'If set, uses customized RoPE scaling from configured frequency scale and frequency base (e.g. --ropeconfig 0.25 10000). Otherwise, uses NTK-Aware scaling set automatically based on context size.',
+      'If set, uses customized RoPE scaling from configured frequency scale and frequency base (e.g. --ropeconfig 0.25 10000). Otherwise, uses NTK-Aware scaling set automatically based on context size. For linear rope, simply set the freq-scale and ignore the freq-base',
     metavar: '[rope-freq-scale] [rope-freq-base]',
     default: '0.0 10000.0',
     type: 'float[]',
@@ -366,35 +369,11 @@ const COMMAND_LINE_ARGUMENTS = [
     category: 'Speculative Decoding',
   },
   {
-    flag: '--quantkv',
-    description:
-      'Sets the KV cache data type quantization, 0=f16, 1=q8, 2=q4. Requires Flash Attention for full effect, otherwise only K cache is quantized.',
-    metavar: '[quantization level 0/1/2]',
-    type: 'int',
-    choices: ['0', '1', '2'],
-    default: 0,
-    category: 'Performance',
-  },
-  {
     flag: '--defaultgenamt',
     description:
       'How many tokens to generate by default, if not specified. Must be smaller than context size. Usually, your frontend GUI will override this.',
     type: 'int',
     default: 896,
-    category: 'Performance',
-  },
-  {
-    flag: '--smartcache',
-    description:
-      'Enables intelligent context switching by saving KV cache snapshots to RAM. Requires fast forwarding.',
-    type: 'boolean',
-    category: 'Performance',
-  },
-  {
-    flag: '--pipelineparallel',
-    description:
-      'Enable Pipeline Parallelism for faster multigpu speeds but using more memory, only active for multigpu.',
-    type: 'boolean',
     category: 'Performance',
   },
   {
