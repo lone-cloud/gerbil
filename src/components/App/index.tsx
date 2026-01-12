@@ -162,28 +162,31 @@ export const App = () => {
   }, []);
 
   useEffect(() => {
-    const runUpdateCheck = async () => {
-      if (loadingRemote || !hasInitialized) return;
+    if (loadingRemote || !hasInitialized) return;
 
+    const runUpdateCheck = async () => {
       const currentBackend =
         await window.electronAPI.kobold.getCurrentBackend();
-      if (currentBackend) {
-        setTimeout(() => {
-          void checkForUpdates();
-        }, 5000);
+      if (!currentBackend) return;
 
-        const interval = setInterval(
-          () => {
-            void checkForUpdates();
-          },
-          6 * 60 * 60 * 1000
-        );
-
-        return () => clearInterval(interval);
-      }
+      void checkForUpdates();
     };
 
-    void runUpdateCheck();
+    const initialTimeout = setTimeout(() => {
+      void runUpdateCheck();
+    }, 5000);
+
+    const interval = setInterval(
+      () => {
+        void runUpdateCheck();
+      },
+      6 * 60 * 60 * 1000
+    );
+
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(interval);
+    };
   }, [loadingRemote, hasInitialized, checkForUpdates]);
 
   const handleBinaryUpdate = async (download: DownloadItem) => {
