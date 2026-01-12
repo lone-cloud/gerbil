@@ -186,9 +186,6 @@ jobs:
               # Fix permissions on extracted files
               chmod -R 755 "${pkgdir}/opt/gerbil/"
               
-              # Rename the main executable to lowercase
-              mv "${pkgdir}/opt/gerbil/Gerbil" "${pkgdir}/opt/gerbil/gerbil"
-              
               # Create executable wrapper
               install -dm755 "${pkgdir}/usr/bin"
               cat > "${pkgdir}/usr/bin/gerbil" << 'WRAPPER'
