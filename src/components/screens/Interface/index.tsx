@@ -1,9 +1,6 @@
-import { useRef, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { ServerTab } from '@/components/screens/Interface/ServerTab';
-import {
-  TerminalTab,
-  type TerminalTabRef,
-} from '@/components/screens/Interface/TerminalTab';
+import { TerminalTab, type TerminalTabRef } from '@/components/screens/Interface/TerminalTab';
 import type { InterfaceTab } from '@/types';
 
 interface InterfaceScreenProps {
@@ -11,10 +8,7 @@ interface InterfaceScreenProps {
   isServerReady: boolean;
 }
 
-export const InterfaceScreen = ({
-  activeTab,
-  isServerReady,
-}: InterfaceScreenProps) => {
+export const InterfaceScreen = ({ activeTab, isServerReady }: InterfaceScreenProps) => {
   const terminalTabRef = useRef<TerminalTabRef>(null);
 
   useEffect(() => {
@@ -35,16 +29,10 @@ export const InterfaceScreen = ({
       <div
         style={{
           flex: 1,
-          display:
-            activeTab === 'chat-text' || activeTab === 'chat-image'
-              ? 'block'
-              : 'none',
+          display: activeTab === 'chat-text' || activeTab === 'chat-image' ? 'block' : 'none',
         }}
       >
-        <ServerTab
-          isServerReady={isServerReady}
-          activeTab={activeTab || undefined}
-        />
+        <ServerTab isServerReady={isServerReady} activeTab={activeTab || undefined} />
       </div>
       <div
         style={{

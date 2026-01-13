@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { compareVersions } from '@/utils/version';
+import { useCallback, useEffect, useState } from 'react';
 import { GITHUB_API } from '@/constants';
+import { compareVersions } from '@/utils/version';
 
 interface AppUpdateInfo {
   currentVersion: string;

@@ -1,6 +1,6 @@
-import { Stack, Group, Text, NumberInput, SimpleGrid } from '@mantine/core';
-import { InfoTooltip } from '@/components/InfoTooltip';
+import { Group, NumberInput, SimpleGrid, Stack, Text } from '@mantine/core';
 import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
+import { InfoTooltip } from '@/components/InfoTooltip';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 
 export const PerformanceTab = () => {

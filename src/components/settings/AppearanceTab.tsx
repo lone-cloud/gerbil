@@ -1,31 +1,25 @@
 import {
+  Group,
+  type MantineColorScheme,
+  rem,
+  SegmentedControl,
+  Slider,
   Stack,
   Text,
-  Group,
-  SegmentedControl,
-  rem,
-  Slider,
   TextInput,
-  type MantineColorScheme,
 } from '@mantine/core';
-import { Sun, Moon, Monitor } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { usePreferencesStore } from '@/stores/preferences';
-import { ZOOM } from '@/constants';
+import { Monitor, Moon, Sun } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { FrontendInterfaceSelector } from '@/components/settings/FrontendInterfaceSelector';
-import {
-  zoomLevelToPercentage,
-  percentageToZoomLevel,
-  isValidZoomPercentage,
-} from '@/utils/zoom';
+import { ZOOM } from '@/constants';
+import { usePreferencesStore } from '@/stores/preferences';
+import { isValidZoomPercentage, percentageToZoomLevel, zoomLevelToPercentage } from '@/utils/zoom';
 
 interface AppearanceTabProps {
   isOnInterfaceScreen?: boolean;
 }
 
-export const AppearanceTab = ({
-  isOnInterfaceScreen = false,
-}: AppearanceTabProps) => {
+export const AppearanceTab = ({ isOnInterfaceScreen = false }: AppearanceTabProps) => {
   const {
     rawColorScheme,
     resolvedColorScheme,
@@ -34,9 +28,7 @@ export const AppearanceTab = ({
   const isDark = resolvedColorScheme === 'dark';
 
   const [zoomLevel, setZoomLevel] = useState<number>(ZOOM.DEFAULT_LEVEL);
-  const [zoomPercentage, setZoomPercentage] = useState(
-    ZOOM.DEFAULT_PERCENTAGE.toString()
-  );
+  const [zoomPercentage, setZoomPercentage] = useState(ZOOM.DEFAULT_PERCENTAGE.toString());
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -67,7 +59,7 @@ export const AppearanceTab = ({
   const handleZoomPercentageChange = (value: string) => {
     setZoomPercentage(value);
     const numValue = Number(value);
-    if (!isNaN(numValue) && isValidZoomPercentage(numValue)) {
+    if (!Number.isNaN(numValue) && isValidZoomPercentage(numValue)) {
       const newZoomLevel = percentageToZoomLevel(numValue);
       setZoomLevel(newZoomLevel);
 
@@ -91,17 +83,11 @@ export const AppearanceTab = ({
           onChange={handleColorSchemeChange}
           styles={(theme) => ({
             root: {
-              border: `0.5px solid ${
-                isDark ? theme.colors.dark[4] : theme.colors.gray[4]
-              }`,
+              border: `0.5px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[4]}`,
             },
             indicator: {
-              backgroundColor: isDark
-                ? theme.colors.dark[5]
-                : theme.colors.gray[2],
-              border: `1px solid ${
-                isDark ? theme.colors.dark[4] : theme.colors.gray[4]
-              }`,
+              backgroundColor: isDark ? theme.colors.dark[5] : theme.colors.gray[2],
+              border: `1px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[4]}`,
             },
           })}
           data={[
@@ -145,13 +131,11 @@ export const AppearanceTab = ({
           </Text>
           <TextInput
             value={zoomPercentage}
-            onChange={(event) =>
-              handleZoomPercentageChange(event.currentTarget.value)
-            }
+            onChange={(event) => handleZoomPercentageChange(event.currentTarget.value)}
             onBlur={(event) => {
               const value = event.currentTarget.value;
               const numValue = Number(value);
-              if (isNaN(numValue) || !isValidZoomPercentage(numValue)) {
+              if (Number.isNaN(numValue) || !isValidZoomPercentage(numValue)) {
                 setZoomPercentage(zoomLevelToPercentage(zoomLevel).toString());
               }
             }}

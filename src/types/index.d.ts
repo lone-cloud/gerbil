@@ -12,11 +12,7 @@ export type ChatMode = 'text' | 'image';
 
 export type SdConvDirectMode = 'off' | 'vaeonly' | 'full';
 
-export type FrontendPreference =
-  | 'koboldcpp'
-  | 'llamacpp'
-  | 'sillytavern'
-  | 'openwebui';
+export type FrontendPreference = 'koboldcpp' | 'llamacpp' | 'sillytavern' | 'openwebui';
 
 export type ImageGenerationFrontendPreference = 'match' | 'builtin';
 
@@ -149,8 +145,4 @@ export interface HuggingFaceSearchParams {
   sort: HuggingFaceSortOption;
 }
 
-export type HuggingFaceSortOption =
-  | 'trendingScore'
-  | 'downloads'
-  | 'likes'
-  | 'lastModified';
+export type HuggingFaceSortOption = 'trendingScore' | 'downloads' | 'likes' | 'lastModified';

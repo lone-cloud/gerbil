@@ -1,9 +1,9 @@
+import { Accordion, Group, Loader, Paper, Text } from '@mantine/core';
 import { useState } from 'react';
-import { Accordion, Paper, Group, Loader, Text } from '@mantine/core';
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize from 'rehype-sanitize';
+import remarkGfm from 'remark-gfm';
 import { HUGGINGFACE_BASE_URL } from '@/constants';
 
 interface ModelCardProps {
@@ -20,9 +20,7 @@ export const ModelCard = ({ modelId }: ModelCardProps) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(
-        `${HUGGINGFACE_BASE_URL}/${modelId}/raw/main/README.md`
-      );
+      const response = await fetch(`${HUGGINGFACE_BASE_URL}/${modelId}/raw/main/README.md`);
       if (!response.ok) {
         throw new Error('README not available');
       }
@@ -42,9 +40,7 @@ export const ModelCard = ({ modelId }: ModelCardProps) => {
   return (
     <Accordion>
       <Accordion.Item value="readme">
-        <Accordion.Control onClick={() => void loadReadme()}>
-          Model Card
-        </Accordion.Control>
+        <Accordion.Control onClick={() => void loadReadme()}>Model Card</Accordion.Control>
         <Accordion.Panel>
           {loading && (
             <Group justify="center" py="md">

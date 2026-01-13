@@ -11,9 +11,7 @@ const isValidFilePath = (path: string) => {
   if (!path.trim()) return false;
 
   const validExtensions = ['.gguf'];
-  const hasValidExtension = validExtensions.some((ext) =>
-    path.toLowerCase().endsWith(ext)
-  );
+  const hasValidExtension = validExtensions.some((ext) => path.toLowerCase().endsWith(ext));
 
   return hasValidExtension || path.includes('/') || path.includes('\\');
 };

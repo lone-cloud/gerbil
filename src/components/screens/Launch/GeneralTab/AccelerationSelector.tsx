@@ -1,11 +1,11 @@
-import { Text, Group, Checkbox, TextInput } from '@mantine/core';
-import { useState, useEffect, useRef } from 'react';
+import { Checkbox, Group, Text, TextInput } from '@mantine/core';
+import { useEffect, useRef, useState } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
+import { Select } from '@/components/Select';
 import { AccelerationSelectItem } from '@/components/screens/Launch/GeneralTab/AccelerationSelectItem';
 import { GpuDeviceSelector } from '@/components/screens/Launch/GeneralTab/GpuDeviceSelector';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 import type { Acceleration, AccelerationOption } from '@/types';
-import { Select } from '@/components/Select';
 
 export const AccelerationSelector = () => {
   const {
@@ -21,9 +21,7 @@ export const AccelerationSelector = () => {
     setAutoGpuLayers,
   } = useLaunchConfigStore();
 
-  const [availableAccelerations, setAvailableAccelerations] = useState<
-    AccelerationOption[]
-  >([]);
+  const [availableAccelerations, setAvailableAccelerations] = useState<AccelerationOption[]>([]);
   const [isLoadingAccelerations, setIsLoadingAccelerations] = useState(false);
   const [isCalculatingLayers, setIsCalculatingLayers] = useState(false);
   const [isMac, setIsMac] = useState(false);
@@ -63,9 +61,7 @@ export const AccelerationSelector = () => {
       );
 
       if (!isAccelerationAvailable) {
-        const fallbackAcceleration = availableAccelerations.find(
-          (a) => !a.disabled
-        );
+        const fallbackAcceleration = availableAccelerations.find((a) => !a.disabled);
         if (fallbackAcceleration) {
           setAcceleration(fallbackAcceleration.value as Acceleration);
         }
@@ -76,13 +72,7 @@ export const AccelerationSelector = () => {
   useEffect(() => {
     const calculateLayers = async () => {
       const isCpuOnly = acceleration === 'cpu' && !isMac;
-      if (
-        !autoGpuLayers ||
-        !model ||
-        !contextSize ||
-        isCpuOnly ||
-        isLoadingAccelerations
-      ) {
+      if (!autoGpuLayers || !model || !contextSize || isCpuOnly || isLoadingAccelerations) {
         return;
       }
 
@@ -97,18 +87,13 @@ export const AccelerationSelector = () => {
         const selectedDeviceIndices = gpuDeviceSelection
           .split(',')
           .map((d) => parseInt(d.trim(), 10))
-          .filter((d) => !isNaN(d));
+          .filter((d) => !Number.isNaN(d));
 
-        const availableVramGB = selectedDeviceIndices.reduce(
-          (total, deviceIndex) => {
-            const device = gpuMemory[deviceIndex];
-            const vramGB = device?.totalMemoryGB
-              ? parseFloat(device.totalMemoryGB)
-              : 0;
-            return total + vramGB;
-          },
-          0
-        );
+        const availableVramGB = selectedDeviceIndices.reduce((total, deviceIndex) => {
+          const device = gpuMemory[deviceIndex];
+          const vramGB = device?.totalMemoryGB ? parseFloat(device.totalMemoryGB) : 0;
+          return total + vramGB;
+        }, 0);
 
         if (availableVramGB === 0) {
           return;
@@ -124,10 +109,7 @@ export const AccelerationSelector = () => {
 
         setGpuLayers(result.recommendedLayers);
       } catch (error) {
-        window.electronAPI.logs.logError(
-          'Failed to calculate optimal GPU layers',
-          error as Error
-        );
+        window.electronAPI.logs.logError('Failed to calculate optimal GPU layers', error as Error);
       } finally {
         setIsCalculatingLayers(false);
       }
@@ -158,14 +140,10 @@ export const AccelerationSelector = () => {
           </Group>
           <Select
             placeholder={
-              isLoadingAccelerations
-                ? 'Loading accelerations...'
-                : 'Select acceleration'
+              isLoadingAccelerations ? 'Loading accelerations...' : 'Select acceleration'
             }
             value={
-              availableAccelerations.some(
-                (a) => a.value === acceleration && !a.disabled
-              )
+              availableAccelerations.some((a) => a.value === acceleration && !a.disabled)
                 ? acceleration
                 : null
             }
@@ -179,13 +157,9 @@ export const AccelerationSelector = () => {
               label: a.label,
               disabled: a.disabled,
             }))}
-            disabled={
-              isLoadingAccelerations || availableAccelerations.length === 0
-            }
+            disabled={isLoadingAccelerations || availableAccelerations.length === 0}
             renderOption={({ option }) => {
-              const accelerationData = availableAccelerations.find(
-                (a) => a.value === option.value
-              );
+              const accelerationData = availableAccelerations.find((a) => a.value === option.value);
 
               return (
                 <AccelerationSelectItem
@@ -215,9 +189,7 @@ export const AccelerationSelector = () => {
                     : gpuLayers.toString()
                   : undefined
               }
-              onChange={(event) =>
-                setGpuLayers(Number(event.target.value) || 0)
-              }
+              onChange={(event) => setGpuLayers(Number(event.target.value) || 0)}
               type="number"
               min={0}
               max={100}
@@ -230,9 +202,7 @@ export const AccelerationSelector = () => {
               <Checkbox
                 label="Auto"
                 checked={autoGpuLayers}
-                onChange={(event) =>
-                  setAutoGpuLayers(event.currentTarget.checked)
-                }
+                onChange={(event) => setAutoGpuLayers(event.currentTarget.checked)}
                 size="sm"
                 disabled={acceleration === 'cpu' && !isMac}
               />

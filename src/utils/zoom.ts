@@ -1,7 +1,6 @@
 import { ZOOM } from '@/constants';
 
-export const zoomLevelToPercentage = (zoomLevel: number) =>
-  Math.round(Math.pow(1.2, zoomLevel) * 100);
+export const zoomLevelToPercentage = (zoomLevel: number) => Math.round(1.2 ** zoomLevel * 100);
 
 export const percentageToZoomLevel = (percentage: number) =>
   Math.log(percentage / 100) / Math.log(1.2);

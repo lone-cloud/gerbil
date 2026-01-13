@@ -1,6 +1,6 @@
+import { mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
 import { app } from 'electron';
-import { join } from 'path';
-import { mkdir } from 'fs/promises';
 import { createLogger, format } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import { isDevelopment } from '@/utils/node/environment';
@@ -64,27 +64,17 @@ export const logError = (message: string, error?: Error) => {
 };
 
 export const flushLogs = () => {
-  const fileTransport = logger.transports.find(
-    (t) => t.constructor.name === 'DailyRotateFile'
-  );
-  if (
-    fileTransport &&
-    'flush' in fileTransport &&
-    typeof fileTransport.flush === 'function'
-  ) {
+  const fileTransport = logger.transports.find((t) => t.constructor.name === 'DailyRotateFile');
+  if (fileTransport && 'flush' in fileTransport && typeof fileTransport.flush === 'function') {
     (fileTransport as { flush: () => void }).flush();
   }
 };
 
-export const getLogFilePath = () =>
-  join(app.getPath('userData'), 'logs', 'gerbil.log');
+export const getLogFilePath = () => join(app.getPath('userData'), 'logs', 'gerbil.log');
 
 export const getLogsDirectory = () => join(app.getPath('userData'), 'logs');
 
-export const safeExecute = async <T>(
-  operation: () => Promise<T>,
-  errorMessage: string
-) => {
+export const safeExecute = async <T>(operation: () => Promise<T>, errorMessage: string) => {
   try {
     return operation();
   } catch (error) {
@@ -93,10 +83,7 @@ export const safeExecute = async <T>(
   }
 };
 
-export const tryExecute = async (
-  operation: () => Promise<void>,
-  errorMessage: string
-) => {
+export const tryExecute = async (operation: () => Promise<void>, errorMessage: string) => {
   try {
     await operation();
     return true;

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import type { Acceleration, ConfigFile, SdConvDirectMode } from '@/types';
-import { IMAGE_MODEL_PRESETS } from '@/constants/imageModelPresets';
 import { DEFAULT_AUTO_GPU_LAYERS, DEFAULT_CONTEXT_SIZE } from '@/constants';
+import { IMAGE_MODEL_PRESETS } from '@/constants/imageModelPresets';
+import type { Acceleration, ConfigFile, SdConvDirectMode } from '@/types';
 
 interface LaunchConfigState {
   gpuLayers: number;
@@ -204,10 +204,8 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   setSmartcache: (smartcache) => set({ smartcache }),
   setPipelineparallel: (pipelineparallel) => set({ pipelineparallel }),
 
-  // eslint-disable-next-line sonarjs/cognitive-complexity
   parseAndApplyConfigFile: async (configPath: string) => {
-    const configData =
-      await window.electronAPI.kobold.parseConfigFile(configPath);
+    const configData = await window.electronAPI.kobold.parseConfigFile(configPath);
 
     if (configData) {
       const updates: Partial<LaunchConfigState> = {};
@@ -248,8 +246,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
         const filteredCommands = configData.preLaunchCommands.filter(
           (cmd): cmd is string => typeof cmd === 'string'
         );
-        updates.preLaunchCommands =
-          filteredCommands.length === 0 ? [''] : filteredCommands;
+        updates.preLaunchCommands = filteredCommands.length === 0 ? [''] : filteredCommands;
       } else {
         updates.preLaunchCommands = [''];
       }
@@ -344,10 +341,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
         const gpuInfo = await window.electronAPI.kobold.detectGPU();
         updates.acceleration = gpuInfo.hasNVIDIA ? 'cuda' : 'rocm';
 
-        if (
-          Array.isArray(configData.usecuda) &&
-          configData.usecuda.length >= 3
-        ) {
+        if (Array.isArray(configData.usecuda) && configData.usecuda.length >= 3) {
           const [vramMode, deviceId, mmqMode] = configData.usecuda;
           updates.lowvram = vramMode === 'lowvram';
           updates.gpuDeviceSelection = deviceId || '0';
@@ -355,10 +349,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
         }
       } else if (configData.usevulkan === true) {
         updates.acceleration = 'vulkan';
-      } else if (
-        Array.isArray(configData.useclblast) &&
-        configData.useclblast.length === 2
-      ) {
+      } else if (Array.isArray(configData.useclblast) && configData.useclblast.length === 2) {
         updates.acceleration = 'clblast';
         const [deviceIndex, platformIndex] = configData.useclblast;
         updates.gpuDeviceSelection = deviceIndex.toString();
@@ -450,10 +441,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
     }
   },
 
-  loadConfigFromFile: async (
-    configFiles: ConfigFile[],
-    savedConfig: string | null
-  ) => {
+  loadConfigFromFile: async (configFiles: ConfigFile[], savedConfig: string | null) => {
     let currentSelectedFile = null;
 
     if (savedConfig) {
@@ -476,8 +464,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
     const result = await window.electronAPI.kobold.selectModelFile(title);
     if (!result) return;
     if (field === 'model') set({ model: result, isTextMode: true });
-    else if (field === 'sdmodel')
-      set({ sdmodel: result, isImageGenerationMode: true });
+    else if (field === 'sdmodel') set({ sdmodel: result, isImageGenerationMode: true });
     else set({ [field]: result });
   },
 

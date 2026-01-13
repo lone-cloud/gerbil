@@ -1,13 +1,12 @@
-import { useState, useEffect } from 'react';
 import { Stack, Text } from '@mantine/core';
-import { usePreferencesStore } from '@/stores/preferences';
+import { useEffect, useState } from 'react';
 import { Switch } from '@/components/Switch';
+import { usePreferencesStore } from '@/stores/preferences';
 
 export const GeneralTab = () => {
   const [enableSystemTray, setEnableSystemTray] = useState(false);
   const [startMinimizedToTray, setStartMinimizedToTray] = useState(false);
-  const { systemMonitoringEnabled, setSystemMonitoringEnabled } =
-    usePreferencesStore();
+  const { systemMonitoringEnabled, setSystemMonitoringEnabled } = usePreferencesStore();
 
   useEffect(() => {
     const loadSystemTrayPreference = async () => {
@@ -48,9 +47,7 @@ export const GeneralTab = () => {
         <Switch
           label="Show system metrics"
           checked={systemMonitoringEnabled}
-          onChange={(event) =>
-            setSystemMonitoringEnabled(event.currentTarget.checked)
-          }
+          onChange={(event) => setSystemMonitoringEnabled(event.currentTarget.checked)}
         />
       </div>
 
@@ -59,15 +56,12 @@ export const GeneralTab = () => {
           System Tray
         </Text>
         <Text size="sm" c="dimmed" mb="md">
-          Add a system tray icon with quick access to launch, eject and monitor
-          system metrics
+          Add a system tray icon with quick access to launch, eject and monitor system metrics
         </Text>
         <Switch
           label="Enable system tray icon"
           checked={enableSystemTray}
-          onChange={(event) =>
-            void handleSystemTrayToggle(event.currentTarget.checked)
-          }
+          onChange={(event) => void handleSystemTrayToggle(event.currentTarget.checked)}
         />
       </div>
 
@@ -82,9 +76,7 @@ export const GeneralTab = () => {
           label="Start minimized to tray"
           checked={startMinimizedToTray}
           disabled={!enableSystemTray}
-          onChange={(event) =>
-            void handleStartMinimizedToggle(event.currentTarget.checked)
-          }
+          onChange={(event) => void handleStartMinimizedToggle(event.currentTarget.checked)}
         />
       </div>
     </Stack>

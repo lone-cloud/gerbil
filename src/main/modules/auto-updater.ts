@@ -1,8 +1,8 @@
-import { autoUpdater } from 'electron-updater';
+import { platform } from 'node:process';
 import { app } from 'electron';
-import { platform } from 'process';
-import { logError, safeExecute } from '@/utils/node/logging';
+import { autoUpdater } from 'electron-updater';
 import { isDevelopment } from '@/utils/node/environment';
+import { logError, safeExecute } from '@/utils/node/logging';
 import { getAURVersion, isWindowsPortableInstallation } from './dependencies';
 
 export interface UpdateInfo {
@@ -42,10 +42,7 @@ export const checkForUpdates = async () => {
   }
 
   return (
-    (await safeExecute(
-      () => autoUpdater.checkForUpdates(),
-      'Failed to check for updates'
-    )) !== null
+    (await safeExecute(() => autoUpdater.checkForUpdates(), 'Failed to check for updates')) !== null
   );
 };
 
@@ -55,10 +52,7 @@ export const downloadUpdate = async () => {
   }
 
   return (
-    (await safeExecute(
-      () => autoUpdater.downloadUpdate(),
-      'Failed to download update'
-    )) !== null
+    (await safeExecute(() => autoUpdater.downloadUpdate(), 'Failed to download update')) !== null
   );
 };
 

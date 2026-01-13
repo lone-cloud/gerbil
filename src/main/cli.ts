@@ -1,10 +1,8 @@
-/* eslint-disable no-console */
-import { spawn } from 'child_process';
-import { platform, exit, stdout, stderr, stdin, on } from 'process';
-
-import { terminateProcess } from '@/utils/node/process';
+import { spawn } from 'node:child_process';
+import { exit, on, platform, stderr, stdin, stdout } from 'node:process';
 import { pathExists, readJsonFile } from '@/utils/node/fs';
 import { getConfigDir } from '@/utils/node/path';
+import { terminateProcess } from '@/utils/node/process';
 
 async function getCurrentKoboldBinary() {
   try {
@@ -13,9 +11,7 @@ async function getCurrentKoboldBinary() {
       return null;
     }
 
-    const config = await readJsonFile<{ currentKoboldBinary?: string }>(
-      configPath
-    );
+    const config = await readJsonFile<{ currentKoboldBinary?: string }>(configPath);
     return config?.currentKoboldBinary || null;
   } catch {
     return null;
@@ -26,9 +22,7 @@ export async function handleCliMode(args: string[]) {
   const currentBinary = await getCurrentKoboldBinary();
 
   if (!currentBinary) {
-    console.error(
-      'Error: No binary found. Please run the GUI first to download the binary.'
-    );
+    console.error('Error: No binary found. Please run the GUI first to download the binary.');
     exit(1);
   }
 

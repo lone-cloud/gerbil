@@ -1,10 +1,6 @@
-import type {
-  FrontendPreference,
-  InterfaceTab,
-  ImageGenerationFrontendPreference,
-} from '@/types';
-import { FRONTENDS, SILLYTAVERN, OPENWEBUI } from '@/constants';
+import { FRONTENDS, OPENWEBUI, SILLYTAVERN } from '@/constants';
 import { PROXY } from '@/constants/proxy';
+import type { FrontendPreference, ImageGenerationFrontendPreference, InterfaceTab } from '@/types';
 
 export interface InterfaceOption {
   value: InterfaceTab | 'eject';
@@ -27,22 +23,12 @@ export function getAvailableInterfaceOptions({
   const chatItems: InterfaceOption[] = [];
 
   const effectiveImageFrontend =
-    imageGenerationFrontendPreference === 'builtin'
-      ? 'koboldcpp'
-      : frontendPreference;
+    imageGenerationFrontendPreference === 'builtin' ? 'koboldcpp' : frontendPreference;
 
-  if (
-    frontendPreference === 'sillytavern' ||
-    frontendPreference === 'openwebui'
-  ) {
-    if (
-      isTextMode ||
-      (isImageGenerationMode && effectiveImageFrontend === frontendPreference)
-    ) {
+  if (frontendPreference === 'sillytavern' || frontendPreference === 'openwebui') {
+    if (isTextMode || (isImageGenerationMode && effectiveImageFrontend === frontendPreference)) {
       const label =
-        frontendPreference === 'sillytavern'
-          ? FRONTENDS.SILLYTAVERN
-          : FRONTENDS.OPENWEBUI;
+        frontendPreference === 'sillytavern' ? FRONTENDS.SILLYTAVERN : FRONTENDS.OPENWEBUI;
 
       chatItems.push({
         value: 'chat-text',
@@ -66,10 +52,7 @@ export function getAvailableInterfaceOptions({
   }
 
   if (isImageGenerationMode) {
-    if (
-      effectiveImageFrontend === 'koboldcpp' ||
-      effectiveImageFrontend === 'llamacpp'
-    ) {
+    if (effectiveImageFrontend === 'koboldcpp' || effectiveImageFrontend === 'llamacpp') {
       chatItems.push({
         value: 'chat-image',
         label: FRONTENDS.STABLE_UI,
@@ -91,18 +74,10 @@ export function getDefaultInterfaceTab({
   isImageGenerationMode,
 }: InterfaceSelectionParams) {
   const effectiveImageFrontend =
-    imageGenerationFrontendPreference === 'builtin'
-      ? 'koboldcpp'
-      : frontendPreference;
+    imageGenerationFrontendPreference === 'builtin' ? 'koboldcpp' : frontendPreference;
 
-  if (
-    frontendPreference === 'sillytavern' ||
-    frontendPreference === 'openwebui'
-  ) {
-    if (
-      isImageGenerationMode &&
-      effectiveImageFrontend !== frontendPreference
-    ) {
+  if (frontendPreference === 'sillytavern' || frontendPreference === 'openwebui') {
+    if (isImageGenerationMode && effectiveImageFrontend !== frontendPreference) {
       return 'chat-image';
     }
     return 'chat-text';
@@ -137,10 +112,7 @@ export function getServerInterfaceInfo({
 }: ServerInterfaceParams) {
   const proxyUrl = PROXY.URL;
 
-  if (
-    isImageGenerationMode &&
-    imageGenerationFrontendPreference === 'builtin'
-  ) {
+  if (isImageGenerationMode && imageGenerationFrontendPreference === 'builtin') {
     return {
       url: `${proxyUrl}/sdui`,
       title: FRONTENDS.STABLE_UI,
@@ -170,38 +142,24 @@ export function getServerInterfaceInfo({
 
   return {
     url: isImageGenerationMode ? `${proxyUrl}/sdui` : proxyUrl,
-    title: isImageGenerationMode
-      ? FRONTENDS.STABLE_UI
-      : FRONTENDS.KOBOLDAI_LITE,
+    title: isImageGenerationMode ? FRONTENDS.STABLE_UI : FRONTENDS.KOBOLDAI_LITE,
   };
 }
 
 export function getTunnelInterfaceUrl(
   tunnelBaseUrl: string,
   params: Omit<ServerInterfaceParams, 'frontendPreference'> & {
-    frontendPreference: Exclude<
-      FrontendPreference,
-      'sillytavern' | 'openwebui'
-    >;
+    frontendPreference: Exclude<FrontendPreference, 'sillytavern' | 'openwebui'>;
   }
 ) {
-  const {
-    frontendPreference,
-    imageGenerationFrontendPreference,
-    isImageGenerationMode,
-  } = params;
+  const { frontendPreference, imageGenerationFrontendPreference, isImageGenerationMode } = params;
 
-  if (
-    isImageGenerationMode &&
-    imageGenerationFrontendPreference === 'builtin'
-  ) {
+  if (isImageGenerationMode && imageGenerationFrontendPreference === 'builtin') {
     return `${tunnelBaseUrl}/sdui`;
   }
 
   if (frontendPreference === 'llamacpp') {
-    return isImageGenerationMode
-      ? `${tunnelBaseUrl}/sdui`
-      : `${tunnelBaseUrl}/lcpp`;
+    return isImageGenerationMode ? `${tunnelBaseUrl}/sdui` : `${tunnelBaseUrl}/lcpp`;
   }
 
   return isImageGenerationMode ? `${tunnelBaseUrl}/sdui` : tunnelBaseUrl;

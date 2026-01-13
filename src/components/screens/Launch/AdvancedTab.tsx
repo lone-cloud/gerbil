@@ -1,16 +1,8 @@
-import {
-  Stack,
-  Group,
-  Text,
-  TextInput,
-  Button,
-  SimpleGrid,
-  ActionIcon,
-} from '@mantine/core';
-import { useState, useEffect } from 'react';
+import { ActionIcon, Button, Group, SimpleGrid, Stack, Text, TextInput } from '@mantine/core';
 import { Plus, Trash2 } from 'lucide-react';
-import { InfoTooltip } from '@/components/InfoTooltip';
+import { useEffect, useState } from 'react';
 import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
+import { InfoTooltip } from '@/components/InfoTooltip';
 import { CommandLineArgumentsModal } from '@/components/screens/Launch/CommandLineArgumentsModal';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 
@@ -36,16 +28,13 @@ export const AdvancedTab = () => {
 
   const handleAddArgument = (newArgument: string) => {
     const currentArgs = additionalArguments.trim();
-    const updatedArgs = currentArgs
-      ? `${currentArgs} ${newArgument}`
-      : newArgument;
+    const updatedArgs = currentArgs ? `${currentArgs} ${newArgument}` : newArgument;
     setAdditionalArguments(updatedArgs);
   };
 
   useEffect(() => {
     const detectAccelerationSupport = async () => {
-      const support =
-        await window.electronAPI.kobold.detectAccelerationSupport();
+      const support = await window.electronAPI.kobold.detectAccelerationSupport();
 
       if (support) {
         setBackendSupport({
@@ -107,20 +96,14 @@ export const AdvancedTab = () => {
             </Text>
             <InfoTooltip label="Additional command line arguments to pass to the binary. Leave this empty if you don't know what they are." />
           </Group>
-          <Button
-            size="xs"
-            variant="light"
-            onClick={() => setCommandLineModalOpen(true)}
-          >
+          <Button size="xs" variant="light" onClick={() => setCommandLineModalOpen(true)}>
             View Available Arguments
           </Button>
         </Group>
         <TextInput
           placeholder="Additional command line arguments"
           value={additionalArguments}
-          onChange={(event) =>
-            setAdditionalArguments(event.currentTarget.value)
-          }
+          onChange={(event) => setAdditionalArguments(event.currentTarget.value)}
         />
       </div>
 
@@ -149,12 +132,8 @@ export const AdvancedTab = () => {
                 color="red"
                 disabled={preLaunchCommands.length === 1}
                 onClick={() => {
-                  const newCommands = preLaunchCommands.filter(
-                    (_, i) => i !== index
-                  );
-                  setPreLaunchCommands(
-                    newCommands.length === 0 ? [''] : newCommands
-                  );
+                  const newCommands = preLaunchCommands.filter((_, i) => i !== index);
+                  setPreLaunchCommands(newCommands.length === 0 ? [''] : newCommands);
                 }}
               >
                 <Trash2 size={16} />

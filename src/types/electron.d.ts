@@ -14,11 +14,7 @@ import type {
   CachedModel,
 } from '@/types';
 import type { MantineColorScheme } from '@mantine/core';
-import type {
-  CpuMetrics,
-  MemoryMetrics,
-  GpuMetrics,
-} from '@/main/modules/monitoring';
+import type { CpuMetrics, MemoryMetrics, GpuMetrics } from '@/main/modules/monitoring';
 import type { KoboldCrashInfo } from '@/types/ipc';
 
 export interface GitHubAsset {
@@ -140,27 +136,17 @@ export interface KoboldAPI {
   detectSystemMemory: () => Promise<SystemMemoryInfo>;
   detectROCm: () => Promise<{ supported: boolean; devices: string[] }>;
   detectAccelerationSupport: () => Promise<AccelerationSupport | null>;
-  getAvailableAccelerations: (
-    includeDisabled?: boolean
-  ) => Promise<AccelerationOption[]>;
+  getAvailableAccelerations: (includeDisabled?: boolean) => Promise<AccelerationOption[]>;
   getCurrentInstallDir: () => Promise<string>;
   selectInstallDirectory: () => Promise<string | null>;
-  downloadRelease: (
-    asset: GitHubAsset,
-    options: DownloadReleaseOptions
-  ) => Promise<void>;
-  deleteRelease: (
-    binaryPath: string
-  ) => Promise<{ success: boolean; error?: string }>;
+  downloadRelease: (asset: GitHubAsset, options: DownloadReleaseOptions) => Promise<void>;
+  deleteRelease: (binaryPath: string) => Promise<{ success: boolean; error?: string }>;
   launchKoboldCpp: (
     args?: string[],
     preLaunchCommands?: string[]
   ) => Promise<{ success: boolean; pid?: number; error?: string }>;
   getConfigFiles: () => Promise<{ name: string; path: string; size: number }[]>;
-  saveConfigFile: (
-    configName: string,
-    configData: KoboldConfig
-  ) => Promise<boolean>;
+  saveConfigFile: (configName: string, configData: KoboldConfig) => Promise<boolean>;
   deleteConfigFile: (configName: string) => Promise<boolean>;
   getSelectedConfig: () => Promise<string | null>;
   setSelectedConfig: (configName: string) => Promise<boolean>;
@@ -181,9 +167,7 @@ export interface KoboldAPI {
   onInstallDirChanged: (callback: (newPath: string) => void) => () => void;
   onVersionsUpdated: (callback: () => void) => () => void;
   onKoboldOutput: (callback: (data: string) => void) => () => void;
-  onKoboldCrashed: (
-    callback: (crashInfo: KoboldCrashInfo) => void
-  ) => () => void;
+  onKoboldCrashed: (callback: (crashInfo: KoboldCrashInfo) => void) => () => void;
   onServerReady: (callback: () => void) => () => void;
   onTunnelUrlChanged: (callback: (url: string | null) => void) => () => void;
 }
@@ -237,9 +221,7 @@ export interface AppAPI {
   quitAndInstall: () => Promise<void>;
   isUpdateDownloaded: () => Promise<boolean>;
   onWindowStateToggle: (callback: () => void) => () => void;
-  onLineNumbersChanged: (
-    callback: (showLineNumbers: boolean) => void
-  ) => () => void;
+  onLineNumbersChanged: (callback: (showLineNumbers: boolean) => void) => () => void;
 }
 
 export interface ConfigAPI {

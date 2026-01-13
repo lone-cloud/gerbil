@@ -1,6 +1,6 @@
-import { Text, Group, Badge, Box } from '@mantine/core';
+import { Badge, Box, Group, Text } from '@mantine/core';
 import type { AccelerationOption } from '@/types';
-import { GPUDevice } from '@/types/hardware';
+import type { GPUDevice } from '@/types/hardware';
 
 type AccelerationSelectItemProps = Omit<AccelerationOption, 'value'>;
 
@@ -11,9 +11,7 @@ export const AccelerationSelectItem = ({
 }: AccelerationSelectItemProps) => {
   const renderDeviceName = (device: string | GPUDevice) => {
     const deviceName = typeof device === 'string' ? device : device.name;
-    return deviceName.length > 25
-      ? `${deviceName.slice(0, 25)}...`
-      : deviceName;
+    return deviceName.length > 25 ? `${deviceName.slice(0, 25)}...` : deviceName;
   };
 
   return (

@@ -1,8 +1,8 @@
 import { ActionIcon, Tooltip } from '@mantine/core';
 import { CircleFadingArrowUp, Download } from 'lucide-react';
-import { useAppUpdateChecker } from '@/hooks/useAppUpdateChecker';
+import { type MouseEvent, useState } from 'react';
 import { TITLEBAR_HEIGHT } from '@/constants';
-import { useState, type MouseEvent } from 'react';
+import { useAppUpdateChecker } from '@/hooks/useAppUpdateChecker';
 
 export const UpdateButton = () => {
   const {

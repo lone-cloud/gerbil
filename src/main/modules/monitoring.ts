@@ -1,10 +1,10 @@
-import { mem, cpuTemperature, currentLoad } from 'systeminformation';
-import { BrowserWindow } from 'electron';
-import { platform } from 'process';
-import { spawn } from 'child_process';
+import { spawn } from 'node:child_process';
+import { platform } from 'node:process';
+import type { BrowserWindow } from 'electron';
+import { cpuTemperature, currentLoad, mem } from 'systeminformation';
 import { getGPUData } from '@/utils/node/gpu';
+import { safeExecute, tryExecute } from '@/utils/node/logging';
 import { detectGPU } from './hardware';
-import { tryExecute, safeExecute } from '@/utils/node/logging';
 import { isTrayActive, updateMetrics } from './tray';
 
 export interface CpuMetrics {
@@ -115,9 +115,7 @@ async function collectAndSendCpuMetrics() {
       try {
         const tempData = await cpuTemperature();
         metrics.temperature =
-          tempData.main && tempData.main > 0
-            ? Math.round(tempData.main)
-            : undefined;
+          tempData.main && tempData.main > 0 ? Math.round(tempData.main) : undefined;
       } catch {}
     }
 
@@ -244,10 +242,7 @@ export const openPerformanceManager = async () =>
   (await safeExecute(async () => {
     switch (platform) {
       case 'darwin': {
-        const success = await tryLaunchCommand('open', [
-          '-a',
-          'Activity Monitor',
-        ]);
+        const success = await tryLaunchCommand('open', ['-a', 'Activity Monitor']);
         if (success) {
           return { success: true, app: 'Activity Monitor' };
         }

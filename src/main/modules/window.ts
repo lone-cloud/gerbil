@@ -1,19 +1,19 @@
-import { BrowserWindow, app, shell, screen, Menu, clipboard } from 'electron';
-import { join } from 'path';
-import { stripVTControlCharacters } from 'util';
+import { join } from 'node:path';
+import { stripVTControlCharacters } from 'node:util';
+import type { BrowserWindowConstructorOptions } from 'electron';
+import { app, BrowserWindow, clipboard, Menu, screen, shell } from 'electron';
 import { PRODUCT_NAME } from '@/constants';
+import type { IPCChannel, IPCChannelPayloads } from '@/types/ipc';
 import { isDevelopment } from '@/utils/node/environment';
-import { startStaticServer } from './static-server';
 import {
   getBackgroundColor,
+  getEnableSystemTray,
   getWindowBounds,
   set as setConfig,
-  WindowBounds,
-  getEnableSystemTray,
+  type WindowBounds,
 } from './config';
+import { startStaticServer } from './static-server';
 import { isTrayActive } from './tray';
-import type { IPCChannel, IPCChannelPayloads } from '@/types/ipc';
-import type { BrowserWindowConstructorOptions } from 'electron';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -23,10 +23,7 @@ export async function createMainWindow(options?: { startHidden?: boolean }) {
 
   const defaultWidth = 800;
   const minHeight = 600;
-  const defaultHeight = Math.max(
-    minHeight,
-    Math.min(Math.floor(size.height * 0.75), 1000)
-  );
+  const defaultHeight = Math.max(minHeight, Math.min(Math.floor(size.height * 0.75), 1000));
 
   const windowOptions = {
     minWidth: 600,
@@ -61,12 +58,8 @@ export async function createMainWindow(options?: { startHidden?: boolean }) {
       windowOptions.x = savedBounds.x;
       windowOptions.y = savedBounds.y;
     } else {
-      windowOptions.x = Math.floor(
-        (size.width - (savedBounds.width || defaultWidth)) / 2
-      );
-      windowOptions.y = Math.floor(
-        (size.height - (savedBounds.height || defaultHeight)) / 2
-      );
+      windowOptions.x = Math.floor((size.width - (savedBounds.width || defaultWidth)) / 2);
+      windowOptions.y = Math.floor((size.height - (savedBounds.height || defaultHeight)) / 2);
     }
   } else {
     windowOptions.x = Math.floor((size.width - defaultWidth) / 2);
@@ -165,7 +158,6 @@ export async function createMainWindow(options?: { startHidden?: boolean }) {
 }
 
 function setupContextMenu(mainWindow: BrowserWindow) {
-  // eslint-disable-next-line sonarjs/cognitive-complexity
   mainWindow.webContents.on('context-menu', (_, params) => {
     const hasLinkURL = !!params.linkURL;
     const hasSelection = !!params.selectionText;
@@ -179,8 +171,7 @@ function setupContextMenu(mainWindow: BrowserWindow) {
     const canSelectAll = isEditable || params.mediaType === 'none';
     const canUndo = isEditable && params.editFlags?.canUndo;
     const canRedo = isEditable && params.editFlags?.canRedo;
-    const hasEditOperations =
-      canCut || canCopy || canPaste || canSelectAll || canUndo || canRedo;
+    const hasEditOperations = canCut || canCopy || canPaste || canSelectAll || canUndo || canRedo;
 
     const menuItems = [];
 
@@ -211,9 +202,7 @@ function setupContextMenu(mainWindow: BrowserWindow) {
       menuItems.push({
         label: 'Add to Dictionary',
         click: () => {
-          mainWindow.webContents.session.addWordToSpellCheckerDictionary(
-            params.misspelledWord
-          );
+          mainWindow.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord);
         },
       });
 
@@ -234,10 +223,7 @@ function setupContextMenu(mainWindow: BrowserWindow) {
         menuItems.push({ label: 'Redo', role: 'redo' as const });
       }
 
-      if (
-        (canUndo || canRedo) &&
-        (canCut || canCopy || canPaste || canSelectAll)
-      ) {
+      if ((canUndo || canRedo) && (canCut || canCopy || canPaste || canSelectAll)) {
         menuItems.push({ type: 'separator' as const });
       }
 

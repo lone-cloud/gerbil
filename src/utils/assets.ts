@@ -16,11 +16,7 @@ export const getAssetDescription = (assetName: string) => {
     return 'Standard backend with NVIDIA CUDA support removed for minimal file size.';
   }
 
-  if (
-    name === 'koboldcpp-linux-x64' ||
-    name === 'koboldcpp-mac-arm64' ||
-    name === 'koboldcpp'
-  ) {
+  if (name === 'koboldcpp-linux-x64' || name === 'koboldcpp-mac-arm64' || name === 'koboldcpp') {
     return "Standard backend that's ideal for most cases.";
   }
 
@@ -31,8 +27,7 @@ export const isWindowsROCmBuild = (assetName: string) => {
   const name = stripAssetExtensions(assetName).toLowerCase();
   return (
     name.includes(ASSET_SUFFIXES.ROCM) &&
-    (assetName.toLowerCase().includes('.exe') ||
-      assetName.toLowerCase().includes('koboldcpp_rocm'))
+    (assetName.toLowerCase().includes('.exe') || assetName.toLowerCase().includes('koboldcpp_rocm'))
   );
 };
 
@@ -46,9 +41,7 @@ export const isAssetStandard = (assetName: string) => {
   );
 };
 
-export const sortDownloadsByType = <T extends { name: string }>(
-  downloads: T[]
-) =>
+export const sortDownloadsByType = <T extends { name: string }>(downloads: T[]) =>
   [...downloads].sort((a, b) => {
     const aName = stripAssetExtensions(a.name).toLowerCase();
     const bName = stripAssetExtensions(b.name).toLowerCase();

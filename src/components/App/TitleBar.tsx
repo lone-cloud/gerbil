@@ -1,23 +1,16 @@
-import {
-  Group,
-  ActionIcon,
-  Box,
-  Image,
-  AppShell,
-  Tooltip,
-} from '@mantine/core';
-import { Minus, Square, X, Copy, Settings } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { ActionIcon, AppShell, Box, Group, Image, Tooltip } from '@mantine/core';
+import { Copy, Minus, Settings, Square, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { UpdateButton } from '@/components/App/UpdateButton';
+import { Select } from '@/components/Select';
+import { SettingsModal } from '@/components/settings/SettingsModal';
+import { PRODUCT_NAME, TITLEBAR_HEIGHT } from '@/constants';
+import { useLogoClickSounds } from '@/hooks/useLogoClickSounds';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 import { usePreferencesStore } from '@/stores/preferences';
-import { getAvailableInterfaceOptions } from '@/utils/interface';
-import { useLogoClickSounds } from '@/hooks/useLogoClickSounds';
-import { SettingsModal } from '@/components/settings/SettingsModal';
-import { UpdateButton } from '@/components/App/UpdateButton';
-import icon from '/icon.png';
-import { PRODUCT_NAME, TITLEBAR_HEIGHT } from '@/constants';
 import type { InterfaceTab, Screen, SelectOption } from '@/types';
-import { Select } from '@/components/Select';
+import { getAvailableInterfaceOptions } from '@/utils/interface';
+import icon from '/icon.png';
 
 interface TitleBarProps {
   currentScreen: Screen;
@@ -26,12 +19,7 @@ interface TitleBarProps {
   onTabChange: (tab: InterfaceTab) => void;
 }
 
-export const TitleBar = ({
-  currentScreen,
-  currentTab,
-  onEject,
-  onTabChange,
-}: TitleBarProps) => {
+export const TitleBar = ({ currentScreen, currentTab, onEject, onTabChange }: TitleBarProps) => {
   const {
     resolvedColorScheme: colorScheme,
     frontendPreference,
@@ -56,8 +44,7 @@ export const TitleBar = ({
     <Box
       style={{
         textAlign: 'center',
-        color:
-          option.value === 'eject' ? 'var(--mantine-color-red-6)' : undefined,
+        color: option.value === 'eject' ? 'var(--mantine-color-red-6)' : undefined,
         fontWeight: option.value === 'eject' ? 600 : undefined,
       }}
     >
@@ -81,9 +68,7 @@ export const TitleBar = ({
   }, []);
 
   return (
-    <AppShell.Header
-      style={{ display: 'flex', flexDirection: 'column', border: 'none' }}
-    >
+    <AppShell.Header style={{ display: 'flex', flexDirection: 'column', border: 'none' }}>
       <Box
         style={{
           height: TITLEBAR_HEIGHT,
@@ -92,20 +77,14 @@ export const TitleBar = ({
           alignItems: 'center',
           justifyContent: 'space-between',
           backgroundColor:
-            colorScheme === 'dark'
-              ? 'var(--mantine-color-dark-6)'
-              : 'var(--mantine-color-gray-1)',
+            colorScheme === 'dark' ? 'var(--mantine-color-dark-6)' : 'var(--mantine-color-gray-1)',
           border: '1px solid var(--mantine-color-default-border)',
           WebkitAppRegion: isSelectOpen ? 'no-drag' : 'drag',
           userSelect: 'none',
           position: 'relative',
         }}
       >
-        <Group
-          gap="0.5rem"
-          align="center"
-          style={{ WebkitAppRegion: 'no-drag' }}
-        >
+        <Group gap="0.5rem" align="center" style={{ WebkitAppRegion: 'no-drag' }}>
           <Image
             src={icon}
             alt={PRODUCT_NAME}

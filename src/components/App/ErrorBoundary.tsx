@@ -1,6 +1,6 @@
-import { ReactNode } from 'react';
-import { Center, Stack, Text, Button, Alert, rem } from '@mantine/core';
+import { Alert, Button, Center, rem, Stack, Text } from '@mantine/core';
 import { AlertTriangle, FolderOpen } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary';
 
 interface ErrorBoundaryProps {
@@ -24,8 +24,8 @@ const ErrorFallback = ({
 
       <Alert color="red" title="Something went wrong" w="100%">
         <Text size="sm" mb="md">
-          The application encountered an unexpected error and crashed. You can
-          view the error details in the logs folder.
+          The application encountered an unexpected error and crashed. You can view the error
+          details in the logs folder.
         </Text>
 
         <Text size="xs" c="dimmed" style={{ fontFamily: 'monospace' }} mb="sm">
@@ -35,9 +35,7 @@ const ErrorFallback = ({
         <Button
           variant="light"
           size="compact-sm"
-          leftSection={
-            <FolderOpen style={{ width: rem(16), height: rem(16) }} />
-          }
+          leftSection={<FolderOpen style={{ width: rem(16), height: rem(16) }} />}
           onClick={() => void window.electronAPI.app.showLogsFolder()}
         >
           Show Logs Folder
@@ -68,10 +66,7 @@ export const ErrorBoundary = ({ children }: ErrorBoundaryProps) => (
   <ReactErrorBoundary
     FallbackComponent={ErrorFallback}
     onError={(error) => {
-      window.electronAPI?.logs?.logError(
-        'App crashed with unhandled error:',
-        error
-      );
+      window.electronAPI?.logs?.logError('App crashed with unhandled error:', error);
     }}
   >
     {children}

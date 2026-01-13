@@ -1,10 +1,7 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
-import type { NotepadTab, NotepadState } from '@/types/electron';
-import {
-  DEFAULT_NOTEPAD_POSITION,
-  DEFAULT_TAB_CONTENT,
-} from '@/constants/notepad';
+import { DEFAULT_NOTEPAD_POSITION, DEFAULT_TAB_CONTENT } from '@/constants/notepad';
+import type { NotepadState, NotepadTab } from '@/types/electron';
 
 interface NotepadStore extends NotepadState {
   isLoaded: boolean;
@@ -71,10 +68,7 @@ export const useNotepadStore = create<NotepadStore>()(
               t.title === title ? { ...t, content: DEFAULT_TAB_CONTENT } : t
             ),
           }));
-          void window.electronAPI.notepad.saveTabContent(
-            title,
-            DEFAULT_TAB_CONTENT
-          );
+          void window.electronAPI.notepad.saveTabContent(title, DEFAULT_TAB_CONTENT);
         }
 
         return;
@@ -123,12 +117,10 @@ export const useNotepadStore = create<NotepadStore>()(
 
         const tabsWithContent = await Promise.all(
           savedState.tabs.map((tab) =>
-            window.electronAPI.notepad
-              .loadTabContent(tab.title)
-              .then((content) => ({
-                ...tab,
-                content,
-              }))
+            window.electronAPI.notepad.loadTabContent(tab.title).then((content) => ({
+              ...tab,
+              content,
+            }))
           )
         );
 
@@ -139,8 +131,7 @@ export const useNotepadStore = create<NotepadStore>()(
 
         set({
           tabs: tabsWithContent,
-          activeTabId:
-            savedState.activeTabId || tabsWithContent[0]?.title || null,
+          activeTabId: savedState.activeTabId || tabsWithContent[0]?.title || null,
           position: savedState.position,
           isVisible: savedState.isVisible,
           showLineNumbers: savedState.showLineNumbers ?? true,

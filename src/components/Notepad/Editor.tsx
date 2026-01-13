@@ -1,16 +1,10 @@
-import {
-  useCallback,
-  useEffect,
-  useState,
-  useRef,
-  type MouseEvent,
-} from 'react';
+import { history, historyKeymap } from '@codemirror/commands';
+import { search } from '@codemirror/search';
+import { oneDark } from '@codemirror/theme-one-dark';
+import { EditorView, highlightActiveLine, keymap } from '@codemirror/view';
 import { Box } from '@mantine/core';
 import CodeMirror, { type ReactCodeMirrorRef } from '@uiw/react-codemirror';
-import { search } from '@codemirror/search';
-import { EditorView, highlightActiveLine, keymap } from '@codemirror/view';
-import { oneDark } from '@codemirror/theme-one-dark';
-import { history, historyKeymap } from '@codemirror/commands';
+import { type MouseEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { useNotepadStore } from '@/stores/notepad';
 import { usePreferencesStore } from '@/stores/preferences';
 import type { NotepadTab } from '@/types/electron';
@@ -20,13 +14,10 @@ interface NotepadEditorProps {
 }
 
 export const NotepadEditor = ({ tab }: NotepadEditorProps) => {
-  const { saveTabContent, showLineNumbers, setShowLineNumbers } =
-    useNotepadStore();
+  const { saveTabContent, showLineNumbers, setShowLineNumbers } = useNotepadStore();
   const { resolvedColorScheme } = usePreferencesStore();
   const [content, setContent] = useState(() => tab.content);
-  const [saveTimeout, setSaveTimeout] = useState<ReturnType<
-    typeof setTimeout
-  > | null>(null);
+  const [saveTimeout, setSaveTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
   const editorRef = useRef<ReactCodeMirrorRef>(null);
 
   const handleContentChange = useCallback(

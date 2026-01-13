@@ -1,27 +1,14 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import {
-  Stack,
-  Text,
-  Group,
-  Card,
-  Loader,
-  Center,
-  Anchor,
-} from '@mantine/core';
+import { Anchor, Card, Center, Group, Loader, Stack, Text } from '@mantine/core';
 import { ExternalLink } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DownloadCard } from '@/components/DownloadCard';
 import { ImportBackendLink } from '@/components/ImportBackendLink';
-import { getAssetDescription } from '@/utils/assets';
-import {
-  getDisplayNameFromPath,
-  stripAssetExtensions,
-  compareVersions,
-} from '@/utils/version';
-import { formatDownloadSize } from '@/utils/format';
-
 import { useKoboldBackendsStore } from '@/stores/koboldBackends';
-import type { InstalledBackend, ReleaseWithStatus } from '@/types/electron';
 import type { BackendInfo } from '@/types';
+import type { InstalledBackend, ReleaseWithStatus } from '@/types/electron';
+import { getAssetDescription } from '@/utils/assets';
+import { formatDownloadSize } from '@/utils/format';
+import { compareVersions, getDisplayNameFromPath, stripAssetExtensions } from '@/utils/version';
 
 export const BackendsTab = () => {
   const {
@@ -34,16 +21,10 @@ export const BackendsTab = () => {
     refreshDownloads,
   } = useKoboldBackendsStore();
 
-  const [installedBackends, setInstalledBackends] = useState<
-    InstalledBackend[]
-  >([]);
-  const [currentBackend, setCurrentBackend] = useState<InstalledBackend | null>(
-    null
-  );
+  const [installedBackends, setInstalledBackends] = useState<InstalledBackend[]>([]);
+  const [currentBackend, setCurrentBackend] = useState<InstalledBackend | null>(null);
   const [loadingInstalled, setLoadingInstalled] = useState(true);
-  const [latestRelease, setLatestRelease] = useState<ReleaseWithStatus | null>(
-    null
-  );
+  const [latestRelease, setLatestRelease] = useState<ReleaseWithStatus | null>(null);
   const [importing, setImporting] = useState(false);
   const downloadingItemRef = useRef<HTMLDivElement>(null);
 
@@ -94,19 +75,14 @@ export const BackendsTab = () => {
       });
 
       const isCurrent = Boolean(
-        installedBackend &&
-        currentBackend &&
-        currentBackend.path === installedBackend.path
+        installedBackend && currentBackend && currentBackend.path === installedBackend.path
       );
 
       if (installedBackend) {
         processedInstalled.add(installedBackend.path);
 
         const hasUpdate =
-          compareVersions(
-            download.version || 'unknown',
-            installedBackend.version
-          ) > 0;
+          compareVersions(download.version || 'unknown', installedBackend.version) > 0;
 
         backends.push({
           name: download.name,
@@ -135,9 +111,7 @@ export const BackendsTab = () => {
     installedBackends.forEach((installed) => {
       if (!processedInstalled.has(installed.path)) {
         const displayName = getDisplayNameFromPath(installed);
-        const isCurrent = Boolean(
-          currentBackend && currentBackend.path === installed.path
-        );
+        const isCurrent = Boolean(currentBackend && currentBackend.path === installed.path);
 
         backends.push({
           name: displayName,
@@ -212,9 +186,7 @@ export const BackendsTab = () => {
   const handleDelete = async (backend: BackendInfo) => {
     if (!backend.installedPath || backend.isCurrent) return;
 
-    const result = await window.electronAPI.kobold.deleteRelease(
-      backend.installedPath
-    );
+    const result = await window.electronAPI.kobold.deleteRelease(backend.installedPath);
     if (result.success) {
       await loadInstalledBackends();
     }
@@ -223,9 +195,7 @@ export const BackendsTab = () => {
   const makeCurrent = (backend: BackendInfo) => {
     if (!backend.installedPath) return;
 
-    const targetBackend = installedBackends.find(
-      (b) => b.path === backend.installedPath
-    );
+    const targetBackend = installedBackends.find((b) => b.path === backend.installedPath);
     if (targetBackend) {
       setCurrentBackend(targetBackend);
     }
@@ -292,11 +262,7 @@ export const BackendsTab = () => {
           >
             <DownloadCard
               backend={backend}
-              size={
-                backend.size
-                  ? formatDownloadSize(backend.size, backend.downloadUrl)
-                  : ''
-              }
+              size={backend.size ? formatDownloadSize(backend.size, backend.downloadUrl) : ''}
               description={getAssetDescription(backend.name)}
               disabled={isDisabled}
               onDownload={(e) => {

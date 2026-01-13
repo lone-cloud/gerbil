@@ -1,25 +1,20 @@
-import { useEffect, useState } from 'react';
 import {
-  Group,
   ActionIcon,
-  Tooltip,
   Button,
   Combobox,
-  useCombobox,
+  Group,
   TextInput,
+  Tooltip,
+  useCombobox,
 } from '@mantine/core';
-import { File, Search, Info } from 'lucide-react';
+import { File, Info, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { LabelWithTooltip } from '@/components/LabelWithTooltip';
-import { ModelAnalysisModal } from '@/components/screens/Launch/ModelAnalysisModal';
 import { HuggingFaceSearchModal } from '@/components/screens/Launch/HuggingFaceSearchModal';
-import { getInputValidationState } from '@/utils/validation';
+import { ModelAnalysisModal } from '@/components/screens/Launch/ModelAnalysisModal';
+import type { CachedModel, HuggingFaceSearchParams, ModelAnalysis, ModelParamType } from '@/types';
 import { logError } from '@/utils/logger';
-import type {
-  ModelAnalysis,
-  ModelParamType,
-  CachedModel,
-  HuggingFaceSearchParams,
-} from '@/types';
+import { getInputValidationState } from '@/utils/validation';
 
 interface ModelFileFieldProps {
   label: string;
@@ -46,9 +41,7 @@ export const ModelFileField = ({
 }: ModelFileFieldProps) => {
   const validationState = getInputValidationState(value);
   const [analysisModalOpened, setAnalysisModalOpened] = useState(false);
-  const [modelAnalysis, setModelAnalysis] = useState<ModelAnalysis | null>(
-    null
-  );
+  const [modelAnalysis, setModelAnalysis] = useState<ModelAnalysis | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [analysisError, setAnalysisError] = useState<string>();
   const [cachedModels, setCachedModels] = useState<CachedModel[]>([]);
@@ -58,8 +51,7 @@ export const ModelFileField = ({
   useEffect(() => {
     void (async () => {
       try {
-        const models =
-          await window.electronAPI.kobold.getLocalModels(paramType);
+        const models = await window.electronAPI.kobold.getLocalModels(paramType);
         setCachedModels(models);
       } catch (error) {
         logError('Failed to load cached models:', error as Error);
@@ -95,8 +87,7 @@ export const ModelFileField = ({
       const analysis = await window.electronAPI.kobold.analyzeModel(value);
       setModelAnalysis(analysis);
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Failed to analyze model';
+      const errorMessage = error instanceof Error ? error.message : 'Failed to analyze model';
       setAnalysisError(errorMessage);
       logError('Failed to analyze model:', error as Error);
     } finally {
@@ -126,9 +117,7 @@ export const ModelFileField = ({
                 }}
                 onFocus={() => combobox.openDropdown()}
                 onBlur={() => combobox.closeDropdown()}
-                error={
-                  validationState === 'invalid' ? getHelperText() : undefined
-                }
+                error={validationState === 'invalid' ? getHelperText() : undefined}
                 rightSection={<Combobox.Chevron />}
                 rightSectionPointerEvents="none"
               />
@@ -141,20 +130,12 @@ export const ModelFileField = ({
             )}
           </Combobox>
         </div>
-        <Button
-          onClick={onSelectFile}
-          variant="light"
-          leftSection={<File size={16} />}
-        >
+        <Button onClick={onSelectFile} variant="light" leftSection={<File size={16} />}>
           Browse
         </Button>
         {searchParams && (
           <Tooltip label="Search Hugging Face">
-            <ActionIcon
-              onClick={() => setSearchModalOpened(true)}
-              variant="outline"
-              size="lg"
-            >
+            <ActionIcon onClick={() => setSearchModalOpened(true)} variant="outline" size="lg">
               <Search size={16} />
             </ActionIcon>
           </Tooltip>
@@ -172,9 +153,7 @@ export const ModelFileField = ({
               variant="light"
               color="blue"
               size="lg"
-              disabled={
-                validationState === 'neutral' || validationState === 'invalid'
-              }
+              disabled={validationState === 'neutral' || validationState === 'invalid'}
             >
               <Info size={16} />
             </ActionIcon>

@@ -1,63 +1,30 @@
-import { ipcMain, app } from 'electron';
-import { join } from 'path';
-import { platform } from 'process';
-import type { Screen, Acceleration } from '@/types';
+import { join } from 'node:path';
+import { platform } from 'node:process';
+import { app, ipcMain } from 'electron';
 import {
-  stopKoboldCpp,
-  launchKoboldCppWithCustomFrontends,
-} from '@/main/modules/koboldcpp/launcher';
+  canAutoUpdate,
+  checkForUpdates,
+  downloadUpdate,
+  isUpdateDownloaded,
+  quitAndInstall,
+} from '@/main/modules/auto-updater';
 import {
-  downloadRelease,
-  importLocalBackend,
-} from '@/main/modules/koboldcpp/download';
-import {
-  getInstalledBackends,
-  getCurrentBackend,
-  setCurrentBackend,
-  deleteRelease,
-} from '@/main/modules/koboldcpp/backend';
-import {
-  getConfigFiles,
-  saveConfigFile,
-  deleteConfigFile,
-  parseConfigFile,
-  selectModelFile,
-  selectInstallDirectory,
-} from '@/main/modules/koboldcpp/config';
-import { getLocalModelsForType } from '@/main/modules/koboldcpp/model-download';
-import { analyzeGGUFModel } from '@/main/modules/koboldcpp/analyze';
-import {
-  get as getConfig,
-  set as setConfig,
-  getSelectedConfig,
-  getInstallDir,
   getColorScheme,
+  get as getConfig,
   getEnableSystemTray,
+  getInstallDir,
+  getSelectedConfig,
+  set as setConfig,
 } from '@/main/modules/config';
-import { createTray, updateTrayState, destroyTray } from '@/main/modules/tray';
-import { getConfigDir, openPathHandler, openUrl } from '@/utils/node/path';
-import { logError } from '@/utils/node/logging';
-import { stopFrontend as stopSillyTavernFrontend } from '@/main/modules/sillytavern';
-import { stopFrontend as stopOpenWebUIFrontend } from '@/main/modules/openwebui';
 import {
-  isUvAvailable,
-  isNpxAvailable,
   getVersionInfo,
   isAURInstallation,
+  isNpxAvailable,
+  isUvAvailable,
 } from '@/main/modules/dependencies';
-import { getMainWindow } from '@/main/modules/window';
 import {
-  saveTabContent,
-  loadTabContent,
-  saveNotepadState,
-  loadNotepadState,
-  deleteTabFile,
-  createNewTab,
-  renameTab,
-} from '@/main/modules/notepad';
-import {
-  detectGPU,
   detectCPU,
+  detectGPU,
   detectGPUCapabilities,
   detectGPUMemory,
   detectROCm,
@@ -67,18 +34,44 @@ import {
   detectAccelerationSupport,
   getAvailableAccelerations,
 } from '@/main/modules/koboldcpp/acceleration';
+import { analyzeGGUFModel } from '@/main/modules/koboldcpp/analyze';
 import {
-  openPerformanceManager,
-  startMonitoring,
-  stopMonitoring,
-} from '@/main/modules/monitoring';
+  deleteRelease,
+  getCurrentBackend,
+  getInstalledBackends,
+  setCurrentBackend,
+} from '@/main/modules/koboldcpp/backend';
 import {
-  checkForUpdates,
-  downloadUpdate,
-  quitAndInstall,
-  isUpdateDownloaded,
-  canAutoUpdate,
-} from '@/main/modules/auto-updater';
+  deleteConfigFile,
+  getConfigFiles,
+  parseConfigFile,
+  saveConfigFile,
+  selectInstallDirectory,
+  selectModelFile,
+} from '@/main/modules/koboldcpp/config';
+import { downloadRelease, importLocalBackend } from '@/main/modules/koboldcpp/download';
+import {
+  launchKoboldCppWithCustomFrontends,
+  stopKoboldCpp,
+} from '@/main/modules/koboldcpp/launcher';
+import { getLocalModelsForType } from '@/main/modules/koboldcpp/model-download';
+import { openPerformanceManager, startMonitoring, stopMonitoring } from '@/main/modules/monitoring';
+import {
+  createNewTab,
+  deleteTabFile,
+  loadNotepadState,
+  loadTabContent,
+  renameTab,
+  saveNotepadState,
+  saveTabContent,
+} from '@/main/modules/notepad';
+import { stopFrontend as stopOpenWebUIFrontend } from '@/main/modules/openwebui';
+import { stopFrontend as stopSillyTavernFrontend } from '@/main/modules/sillytavern';
+import { createTray, destroyTray, updateTrayState } from '@/main/modules/tray';
+import { getMainWindow } from '@/main/modules/window';
+import type { Acceleration, Screen } from '@/types';
+import { logError } from '@/utils/node/logging';
+import { getConfigDir, openPathHandler, openUrl } from '@/utils/node/path';
 import { calculateOptimalGpuLayers } from '@/utils/node/vram';
 
 export function setupIPCHandlers() {
@@ -98,9 +91,7 @@ export function setupIPCHandlers() {
     saveConfigFile(configName, configData)
   );
 
-  ipcMain.handle('kobold:deleteConfigFile', async (_, configName) =>
-    deleteConfigFile(configName)
-  );
+  ipcMain.handle('kobold:deleteConfigFile', async (_, configName) => deleteConfigFile(configName));
 
   ipcMain.handle('kobold:getSelectedConfig', () => getSelectedConfig());
 
@@ -108,15 +99,11 @@ export function setupIPCHandlers() {
     setConfig('selectedConfig', configName)
   );
 
-  ipcMain.handle('kobold:setCurrentBackend', (_, version) =>
-    setCurrentBackend(version)
-  );
+  ipcMain.handle('kobold:setCurrentBackend', (_, version) => setCurrentBackend(version));
 
   ipcMain.handle('kobold:getCurrentInstallDir', () => getInstallDir());
 
-  ipcMain.handle('kobold:selectInstallDirectory', () =>
-    selectInstallDirectory()
-  );
+  ipcMain.handle('kobold:selectInstallDirectory', () => selectInstallDirectory());
 
   ipcMain.handle('kobold:detectGPU', () => detectGPU());
 
@@ -130,13 +117,10 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('kobold:detectROCm', () => detectROCm());
 
-  ipcMain.handle('kobold:detectAccelerationSupport', () =>
-    detectAccelerationSupport()
-  );
+  ipcMain.handle('kobold:detectAccelerationSupport', () => detectAccelerationSupport());
 
-  ipcMain.handle(
-    'kobold:getAvailableAccelerations',
-    (_, includeDisabled = false) => getAvailableAccelerations(includeDisabled)
+  ipcMain.handle('kobold:getAvailableAccelerations', (_, includeDisabled = false) =>
+    getAvailableAccelerations(includeDisabled)
   );
 
   ipcMain.handle('kobold:getPlatform', () => platform);
@@ -145,9 +129,7 @@ export function setupIPCHandlers() {
     launchKoboldCppWithCustomFrontends(args, preLaunchCommands)
   );
 
-  ipcMain.handle('kobold:deleteRelease', (_, binaryPath) =>
-    deleteRelease(binaryPath)
-  );
+  ipcMain.handle('kobold:deleteRelease', (_, binaryPath) => deleteRelease(binaryPath));
 
   ipcMain.handle('kobold:stopKoboldCpp', () => {
     void stopKoboldCpp();
@@ -155,25 +137,17 @@ export function setupIPCHandlers() {
     void stopOpenWebUIFrontend();
   });
 
-  ipcMain.handle('kobold:parseConfigFile', (_, filePath) =>
-    parseConfigFile(filePath)
-  );
+  ipcMain.handle('kobold:parseConfigFile', (_, filePath) => parseConfigFile(filePath));
 
-  ipcMain.handle('kobold:selectModelFile', (_, title) =>
-    selectModelFile(title)
-  );
+  ipcMain.handle('kobold:selectModelFile', (_, title) => selectModelFile(title));
 
   ipcMain.handle('kobold:importLocalBackend', () => importLocalBackend());
 
   ipcMain.handle('kobold:getLocalModels', (_, paramType: string) =>
-    getLocalModelsForType(
-      paramType as Parameters<typeof getLocalModelsForType>[0]
-    )
+    getLocalModelsForType(paramType as Parameters<typeof getLocalModelsForType>[0])
   );
 
-  ipcMain.handle('kobold:analyzeModel', async (_, filePath: string) =>
-    analyzeGGUFModel(filePath)
-  );
+  ipcMain.handle('kobold:analyzeModel', async (_, filePath: string) => analyzeGGUFModel(filePath));
 
   ipcMain.handle(
     'kobold:calculateOptimalLayers',
@@ -224,9 +198,7 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('app:isMaximized', () => mainWindow.isMaximized());
 
-  ipcMain.handle('app:getZoomLevel', () =>
-    mainWindow.webContents.getZoomLevel()
-  );
+  ipcMain.handle('app:getZoomLevel', () => mainWindow.webContents.getZoomLevel());
 
   ipcMain.handle('app:setZoomLevel', (_, level) => {
     mainWindow.webContents.setZoomLevel(level);
@@ -250,9 +222,7 @@ export function setupIPCHandlers() {
     }
   });
 
-  ipcMain.handle('app:getStartMinimizedToTray', () =>
-    getConfig('startMinimizedToTray')
-  );
+  ipcMain.handle('app:getStartMinimizedToTray', () => getConfig('startMinimizedToTray'));
 
   ipcMain.handle('app:setStartMinimizedToTray', async (_, enabled: boolean) => {
     await setConfig('startMinimizedToTray', enabled);
@@ -291,7 +261,7 @@ export function setupIPCHandlers() {
   ipcMain.handle('dependencies:isUvAvailable', () => isUvAvailable());
 
   ipcMain.handle('dependencies:clearOpenWebUIData', async () => {
-    const { rm } = await import('fs/promises');
+    const { rm } = await import('node:fs/promises');
     const openWebUIDataDir = join(getInstallDir(), 'openwebui-data');
     try {
       await rm(openWebUIDataDir, { recursive: true, force: true });
@@ -318,15 +288,11 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('app:isAURInstallation', () => isAURInstallation());
 
-  ipcMain.handle('notepad:saveTabContent', (_, title, content) =>
-    saveTabContent(title, content)
-  );
+  ipcMain.handle('notepad:saveTabContent', (_, title, content) => saveTabContent(title, content));
 
   ipcMain.handle('notepad:loadTabContent', (_, title) => loadTabContent(title));
 
-  ipcMain.handle('notepad:renameTab', (_, oldTitle, newTitle) =>
-    renameTab(oldTitle, newTitle)
-  );
+  ipcMain.handle('notepad:renameTab', (_, oldTitle, newTitle) => renameTab(oldTitle, newTitle));
 
   ipcMain.handle('notepad:saveState', (_, state) => saveNotepadState(state));
 

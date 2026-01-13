@@ -1,9 +1,8 @@
-import http from 'http';
-import type { IncomingMessage, ServerResponse } from 'http';
-
+import type { IncomingMessage, ServerResponse } from 'node:http';
+import http from 'node:http';
+import { PROXY } from '@/constants/proxy';
 import { logError } from '@/utils/node/logging';
 import { sendKoboldOutput } from '../window';
-import { PROXY } from '@/constants/proxy';
 
 let proxyServer: http.Server | null = null;
 let koboldCppHost = 'localhost';
@@ -17,10 +16,7 @@ const replaceKoboldWithGerbil = (data: string) => {
   }
 };
 
-const proxyRequest = (
-  clientReq: IncomingMessage,
-  clientRes: ServerResponse
-) => {
+const proxyRequest = (clientReq: IncomingMessage, clientRes: ServerResponse) => {
   const options = {
     hostname: koboldCppHost,
     port: koboldCppPort,
@@ -30,8 +26,7 @@ const proxyRequest = (
   };
 
   const proxyReq = http.request(options, (proxyRes) => {
-    const isJson =
-      proxyRes.headers['content-type']?.includes('application/json');
+    const isJson = proxyRes.headers['content-type']?.includes('application/json');
 
     if (isJson) {
       let body = '';

@@ -1,5 +1,5 @@
-import { ReactNode } from 'react';
 import { Transition } from '@mantine/core';
+import type { ReactNode } from 'react';
 
 interface ScreenTransitionProps {
   isActive: boolean;
@@ -7,11 +7,7 @@ interface ScreenTransitionProps {
   children: ReactNode;
 }
 
-export const ScreenTransition = ({
-  isActive,
-  shouldAnimate,
-  children,
-}: ScreenTransitionProps) => (
+export const ScreenTransition = ({ isActive, shouldAnimate, children }: ScreenTransitionProps) => (
   <Transition
     mounted={isActive}
     transition="fade"

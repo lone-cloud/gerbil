@@ -1,5 +1,5 @@
+import { Anchor, Box, Text } from '@mantine/core';
 import { useState } from 'react';
-import { Text, Anchor, Box } from '@mantine/core';
 
 interface ImportBackendLinkProps {
   disabled?: boolean;

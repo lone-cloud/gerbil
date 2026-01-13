@@ -1,8 +1,7 @@
-import { readFile, writeFile, copyFile } from 'fs/promises';
-import { join } from 'path';
-
-import { tryExecute } from '@/utils/node/logging';
+import { copyFile, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { pathExists } from '@/utils/node/fs';
+import { tryExecute } from '@/utils/node/logging';
 import { getAssetPath } from '@/utils/node/path';
 
 const KLITE_CSS_OVERRIDE = `
@@ -86,10 +85,7 @@ export const patchKliteEmbd = (unpackedDir: string) =>
         );
       }
 
-      patchedContent = patchedContent.replace(
-        '</head>',
-        `${KLITE_CSS_OVERRIDE}\n</head>`
-      );
+      patchedContent = patchedContent.replace('</head>', `${KLITE_CSS_OVERRIDE}\n</head>`);
 
       await writeFile(kliteEmbdPath, patchedContent, 'utf8');
     }

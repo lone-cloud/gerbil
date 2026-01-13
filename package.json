@@ -6,8 +6,7 @@
   "main": "out/main/index.js",
   "homepage": "./",
   "engines": {
-    "node": ">=22.0.0",
-    "yarn": "^4.0.0"
+    "node": ">=22.0.0"
   },
   "packageManager": "yarn@4.12.0",
   "scripts": {
@@ -15,12 +14,8 @@
     "build": "electron-vite build",
     "package": "electron-vite build && electron-builder --publish=never",
     "analyze": "cross-env ANALYZE=true electron-vite build && yarn dlx open-cli dist/stats.html",
-    "format": "prettier --write . --ignore-path .gitignore | grep -v '(unchanged)' || true",
-    "format:check": "prettier --check . --ignore-path .gitignore",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "compile": "tsc --noEmit",
-    "check": "yarn format:check && yarn lint && yarn compile",
+    "check": "biome check . && tsc --noEmit",
+    "fix": "biome check --write .",
     "release": "yarn dlx tsx scripts/release.ts"
   },
   "keywords": [
@@ -65,29 +60,18 @@
     "zustand": "^5.0.10"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.2",
+    "@biomejs/biome": "^2.3.11",
     "@types/mime-types": "^3.0.1",
     "@types/node": "^25.0.6",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "@types/yauzl": "^2.10.3",
-    "@typescript-eslint/eslint-plugin": "^8.53.0",
-    "@typescript-eslint/parser": "^8.53.0",
     "@vitejs/plugin-react": "^5.1.2",
     "cross-env": "^10.1.0",
     "electron": "^38.7.2",
     "electron-builder": "^26.4.0",
     "electron-vite": "^5.0.0",
-    "eslint": "^9.39.2",
-    "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-no-comments": "^1.1.10",
-    "eslint-plugin-promise": "^7.2.1",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-sonarjs": "^3.0.5",
-    "globals": "^17.0.0",
     "jiti": "^2.6.1",
-    "prettier": "^3.7.4",
     "rollup-plugin-visualizer": "^6.0.5",
     "typescript": "^5.9.3",
     "vite": "^7.3.1"

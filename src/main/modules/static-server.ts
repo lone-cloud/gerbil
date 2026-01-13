@@ -1,6 +1,6 @@
-import { createServer, Server } from 'http';
-import { readFile } from 'fs/promises';
-import { join, normalize, resolve as resolvePath, sep } from 'path';
+import { readFile } from 'node:fs/promises';
+import { createServer, type Server } from 'node:http';
+import { join, normalize, resolve as resolvePath, sep } from 'node:path';
 import { lookup } from 'mime-types';
 import { pathExists } from '@/utils/node/fs';
 
@@ -12,7 +12,7 @@ export const startStaticServer = (distPath: string) =>
     server = createServer(
       (req, res) =>
         void (async () => {
-          const requestPath = req.url === '/' ? 'index.html' : req.url!;
+          const requestPath = req.url === '/' ? 'index.html' : (req.url ?? 'index.html');
           const normalizedPath = normalize(join(distPath, requestPath));
           const resolvedDistPath = resolvePath(distPath);
 
@@ -32,8 +32,7 @@ export const startStaticServer = (distPath: string) =>
 
           try {
             const content = await readFile(safeFilePath);
-            const contentType =
-              lookup(safeFilePath) || 'application/octet-stream';
+            const contentType = lookup(safeFilePath) || 'application/octet-stream';
 
             res.writeHead(200, { 'Content-Type': contentType });
             res.end(content);
@@ -45,7 +44,7 @@ export const startStaticServer = (distPath: string) =>
     );
 
     server.listen(0, 'localhost', () => {
-      const address = server!.address();
+      const address = server?.address();
       if (address && typeof address !== 'string') {
         serverPort = address.port;
         resolve(`http://localhost:${serverPort}`);

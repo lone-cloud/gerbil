@@ -1,4 +1,4 @@
-import { createTheme, CSSVariablesResolver } from '@mantine/core';
+import { type CSSVariablesResolver, createTheme } from '@mantine/core';
 
 export const theme = createTheme({
   fontFamily: 'Inter, sans-serif',
@@ -48,12 +48,10 @@ export const theme = createTheme({
     Modal: {
       styles: {
         content: {
-          backgroundColor:
-            'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))',
+          backgroundColor: 'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))',
         },
         header: {
-          backgroundColor:
-            'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))',
+          backgroundColor: 'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))',
         },
       },
     },

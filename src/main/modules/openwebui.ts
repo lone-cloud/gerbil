@@ -1,27 +1,21 @@
-import { spawn } from 'child_process';
-import { join } from 'path';
-import { on } from 'process';
+import type { ChildProcess } from 'node:child_process';
+import { spawn } from 'node:child_process';
+import { join } from 'node:path';
+import { on } from 'node:process';
 import { app } from 'electron';
-import type { ChildProcess } from 'child_process';
-
-import { logError } from '@/utils/node/logging';
-import { sendKoboldOutput, sendToRenderer } from './window';
-import { getInstallDir } from './config';
 import { OPENWEBUI, SERVER_READY_SIGNALS } from '@/constants';
-import { terminateProcess } from '@/utils/node/process';
-import { parseKoboldConfig } from '@/utils/node/kobold';
-import { getUvEnvironment } from './dependencies';
 import { PROXY } from '@/constants/proxy';
+import { parseKoboldConfig } from '@/utils/node/kobold';
+import { logError } from '@/utils/node/logging';
+import { terminateProcess } from '@/utils/node/process';
+import { getInstallDir } from './config';
+import { getUvEnvironment } from './dependencies';
+import { sendKoboldOutput, sendToRenderer } from './window';
 
 let openWebUIProcess: ChildProcess | null = null;
 
 const OPENWEBUI_VERSION = '0.6.41';
-const OPENWEBUI_BASE_ARGS = [
-  '--python',
-  '3.11',
-  `open-webui@${OPENWEBUI_VERSION}`,
-  'serve',
-];
+const OPENWEBUI_BASE_ARGS = ['--python', '3.11', `open-webui@${OPENWEBUI_VERSION}`, 'serve'];
 
 on('SIGINT', () => {
   void stopFrontend();
@@ -76,11 +70,7 @@ export async function startFrontend(args: string[]) {
       name: 'openwebui',
       port: OPENWEBUI.PORT,
     };
-    const {
-      host: koboldHost,
-      port: koboldPort,
-      isImageMode,
-    } = parseKoboldConfig(args);
+    const { host: koboldHost, port: koboldPort, isImageMode } = parseKoboldConfig(args);
 
     await stopFrontend();
     const appVersion = app.getVersion();
@@ -92,11 +82,7 @@ export async function startFrontend(args: string[]) {
     const koboldUrl = `http://${koboldHost}:${koboldPort}`;
     const proxyUrl = PROXY.URL;
 
-    const openWebUIArgs = [
-      ...OPENWEBUI_BASE_ARGS,
-      '--port',
-      config.port.toString(),
-    ];
+    const openWebUIArgs = [...OPENWEBUI_BASE_ARGS, '--port', config.port.toString()];
 
     sendKoboldOutput(
       `Starting Open WebUI with uv${isImageMode ? ' (image generation enabled)' : ''}...`
@@ -143,16 +129,13 @@ export async function startFrontend(args: string[]) {
       });
     }
 
-    openWebUIProcess.on(
-      'exit',
-      (code: number | null, signal: string | null) => {
-        const message = signal
-          ? `Open WebUI terminated with signal ${signal}`
-          : `Open WebUI exited with code ${code}`;
-        sendKoboldOutput(message);
-        openWebUIProcess = null;
-      }
-    );
+    openWebUIProcess.on('exit', (code: number | null, signal: string | null) => {
+      const message = signal
+        ? `Open WebUI terminated with signal ${signal}`
+        : `Open WebUI exited with code ${code}`;
+      sendKoboldOutput(message);
+      openWebUIProcess = null;
+    });
 
     openWebUIProcess.on('error', (error) => {
       logError('Open WebUI process error:', error);
@@ -162,7 +145,7 @@ export async function startFrontend(args: string[]) {
 
     await waitForOpenWebUIToStart();
 
-    sendKoboldOutput(`Open WebUI is ready and auto-configured!`);
+    sendKoboldOutput('Open WebUI is ready and auto-configured!');
     sendKoboldOutput(`Access Open WebUI at: http://localhost:${config.port}`);
     sendKoboldOutput(`Text Generation: ${proxyUrl}/v1 (auto-configured)`);
     if (isImageMode) {

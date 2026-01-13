@@ -1,11 +1,4 @@
-import {
-  Stack,
-  Text,
-  Group,
-  TextInput,
-  Slider,
-  Transition,
-} from '@mantine/core';
+import { Group, Slider, Stack, Text, TextInput, Transition } from '@mantine/core';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { AccelerationSelector } from '@/components/screens/Launch/GeneralTab/AccelerationSelector';
 import { ModelFileField } from '@/components/screens/Launch/ModelFileField';
@@ -20,12 +13,7 @@ export const GeneralTab = ({ configLoaded = true }: GeneralTabProps) => {
     useLaunchConfigStore();
 
   return (
-    <Transition
-      mounted={configLoaded}
-      transition="fade"
-      duration={100}
-      timingFunction="ease-out"
-    >
+    <Transition mounted={configLoaded} transition="fade" duration={100} timingFunction="ease-out">
       {(styles) => (
         <Stack gap="md" style={styles}>
           <AccelerationSelector />
@@ -56,9 +44,7 @@ export const GeneralTab = ({ configLoaded = true }: GeneralTabProps) => {
               </Group>
               <TextInput
                 value={contextSize?.toString() || ''}
-                onChange={(event) =>
-                  setContextSizeWithStep(Number(event.target.value) || 256)
-                }
+                onChange={(event) => setContextSizeWithStep(Number(event.target.value) || 256)}
                 type="number"
                 min={256}
                 max={131072}

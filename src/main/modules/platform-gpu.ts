@@ -1,6 +1,6 @@
-import { platform } from 'process';
-import { detectGPU } from './hardware';
+import { platform } from 'node:process';
 import { safeExecute } from '@/utils/node/logging';
+import { detectGPU } from './hardware';
 
 export interface PlatformGPUInfo {
   hasAMD: boolean;

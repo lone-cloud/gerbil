@@ -1,4 +1,4 @@
-import { Button, Tooltip, ActionIcon } from '@mantine/core';
+import { ActionIcon, Button, Tooltip } from '@mantine/core';
 import { Activity } from 'lucide-react';
 
 interface PerformanceBadgeProps {
@@ -18,20 +18,14 @@ export const PerformanceBadge = ({
     const result = await window.electronAPI.app.openPerformanceManager();
 
     if (!result.success) {
-      window.electronAPI.logs.logError(
-        `Failed to open performance manager: ${result.error}`
-      );
+      window.electronAPI.logs.logError(`Failed to open performance manager: ${result.error}`);
     }
   };
 
   if (iconOnly) {
     return (
       <Tooltip label={tooltipLabel} position="top">
-        <ActionIcon
-          size="sm"
-          variant="subtle"
-          onClick={() => void handlePerformanceClick()}
-        >
+        <ActionIcon size="sm" variant="subtle" onClick={() => void handlePerformanceClick()}>
           <Activity size="1.125rem" />
         </ActionIcon>
       </Tooltip>

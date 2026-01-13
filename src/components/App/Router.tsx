@@ -1,7 +1,7 @@
 import { ScreenTransition } from '@/components/App/ScreenTransition';
 import { DownloadScreen } from '@/components/screens/Download';
-import { LaunchScreen } from '@/components/screens/Launch';
 import { InterfaceScreen } from '@/components/screens/Interface';
+import { LaunchScreen } from '@/components/screens/Launch';
 import { WelcomeScreen } from '@/components/screens/Welcome';
 import type { InterfaceTab, Screen } from '@/types';
 
@@ -28,35 +28,20 @@ export const AppRouter = ({
 
   return (
     <>
-      <ScreenTransition
-        isActive={currentScreen === 'welcome'}
-        shouldAnimate={hasInitialized}
-      >
+      <ScreenTransition isActive={currentScreen === 'welcome'} shouldAnimate={hasInitialized}>
         <WelcomeScreen onGetStarted={onWelcomeComplete} />
       </ScreenTransition>
 
-      <ScreenTransition
-        isActive={currentScreen === 'download'}
-        shouldAnimate={hasInitialized}
-      >
+      <ScreenTransition isActive={currentScreen === 'download'} shouldAnimate={hasInitialized}>
         <DownloadScreen onDownloadComplete={onDownloadComplete} />
       </ScreenTransition>
 
-      <ScreenTransition
-        isActive={currentScreen === 'launch'}
-        shouldAnimate={hasInitialized}
-      >
+      <ScreenTransition isActive={currentScreen === 'launch'} shouldAnimate={hasInitialized}>
         <LaunchScreen onLaunch={onLaunch} />
       </ScreenTransition>
 
-      <ScreenTransition
-        isActive={isInterfaceScreen}
-        shouldAnimate={hasInitialized}
-      >
-        <InterfaceScreen
-          activeTab={activeInterfaceTab}
-          isServerReady={isServerReady}
-        />
+      <ScreenTransition isActive={isInterfaceScreen} shouldAnimate={hasInitialized}>
+        <InterfaceScreen activeTab={activeInterfaceTab} isServerReady={isServerReady} />
       </ScreenTransition>
     </>
   );

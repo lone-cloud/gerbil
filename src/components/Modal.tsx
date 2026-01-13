@@ -1,5 +1,5 @@
-import { Modal as MantineModal, Button, Box } from '@mantine/core';
-import { ReactNode } from 'react';
+import { Box, Button, Modal as MantineModal } from '@mantine/core';
+import type { ReactNode } from 'react';
 
 const TITLEBAR_HEIGHT = '2.5rem';
 

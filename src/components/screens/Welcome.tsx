@@ -1,17 +1,17 @@
-import { PRODUCT_NAME } from '@/constants';
 import {
-  Container,
-  Card,
-  Stack,
-  Title,
-  Text,
   Button,
+  Card,
+  Container,
   Group,
-  List,
-  ThemeIcon,
   Image,
+  List,
+  Stack,
+  Text,
+  ThemeIcon,
+  Title,
 } from '@mantine/core';
 import { Check } from 'lucide-react';
+import { PRODUCT_NAME } from '@/constants';
 import iconUrl from '/icon.png';
 
 interface WelcomeScreenProps {
@@ -81,8 +81,8 @@ export const WelcomeScreen = ({ onGetStarted }: WelcomeScreenProps) => (
             </List>
 
             <Text size="xs" c="dimmed" ta="center" mt="sm">
-              Hardware acceleration requires appropriate drivers to be manually
-              installed (CUDA for NVIDIA GPUs, ROCm for AMD GPUs, etc.)
+              Hardware acceleration requires appropriate drivers to be manually installed (CUDA for
+              NVIDIA GPUs, ROCm for AMD GPUs, etc.)
             </Text>
           </Stack>
 

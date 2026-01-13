@@ -1,6 +1,6 @@
+import type { ChildProcess } from 'node:child_process';
+import { platform } from 'node:process';
 import { execa } from 'execa';
-import { platform } from 'process';
-import type { ChildProcess } from 'child_process';
 
 async function killWindowsProcessTree(pid: number) {
   try {

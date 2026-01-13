@@ -14,7 +14,6 @@ let vulkanInfoCache: {
   apiVersion?: string;
 } | null = null;
 
-// eslint-disable-next-line sonarjs/cognitive-complexity
 export async function getVulkanInfo() {
   if (vulkanInfoCache) {
     return vulkanInfoCache;
@@ -42,11 +41,7 @@ export async function getVulkanInfo() {
       let currentGPU: (typeof allGPUs)[0] | null = null;
 
       for (const line of lines) {
-        if (
-          !globalApiVersion &&
-          line.includes('apiVersion') &&
-          line.includes('=')
-        ) {
+        if (!globalApiVersion && line.includes('apiVersion') && line.includes('=')) {
           const match = line.match(/=\s*(\d+\.\d+(?:\.\d+)?)/);
           if (match) {
             globalApiVersion = match[1];
@@ -58,29 +53,21 @@ export async function getVulkanInfo() {
           line.includes('PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU')
         ) {
           foundGPU = true;
-          const isIntegrated = line.includes(
-            'PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU'
-          );
+          const isIntegrated = line.includes('PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU');
           currentGPU = {
             name: '',
             hasAMD: false,
             hasNVIDIA: false,
             isIntegrated,
           };
-        } else if (
-          foundGPU &&
-          currentGPU &&
-          line.includes('deviceName') &&
-          line.includes('=')
-        ) {
+        } else if (foundGPU && currentGPU && line.includes('deviceName') && line.includes('=')) {
           const parts = line.split('=');
           if (parts.length >= 2) {
             const name = parts[1]?.trim();
             if (name) {
               currentGPU.name = name;
               currentGPU.hasAMD =
-                name.toLowerCase().includes('amd') ||
-                name.toLowerCase().includes('radeon');
+                name.toLowerCase().includes('amd') || name.toLowerCase().includes('radeon');
               currentGPU.hasNVIDIA =
                 name.toLowerCase().includes('nvidia') ||
                 name.toLowerCase().includes('geforce') ||
@@ -93,12 +80,7 @@ export async function getVulkanInfo() {
           if (mesaMatch) {
             currentGPU.driverInfo = `Mesa ${mesaMatch[1].trim()}`;
           }
-        } else if (
-          foundGPU &&
-          currentGPU &&
-          line.includes('apiVersion') &&
-          line.includes('=')
-        ) {
+        } else if (foundGPU && currentGPU && line.includes('apiVersion') && line.includes('=')) {
           const match = line.match(/=\s*(\d+\.\d+(?:\.\d+)?)/);
           if (match) {
             currentGPU.apiVersion = match[1];

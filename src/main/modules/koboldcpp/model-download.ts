@@ -1,14 +1,14 @@
-import { join, basename, dirname } from 'path';
-import { mkdir, readdir, stat, rename, unlink } from 'fs/promises';
-import { createWriteStream } from 'fs';
-import { get as httpGet } from 'http';
-import { get as httpsGet } from 'https';
+import { createWriteStream } from 'node:fs';
+import { mkdir, readdir, rename, stat, unlink } from 'node:fs/promises';
+import type { IncomingMessage } from 'node:http';
+import { get as httpGet } from 'node:http';
+import { get as httpsGet } from 'node:https';
+import { basename, dirname, join } from 'node:path';
 import { getInstallDir } from '@/main/modules/config';
+import { sendKoboldOutput, sendToRenderer } from '@/main/modules/window';
+import type { CachedModel, ModelParamType } from '@/types';
 import { pathExists } from '@/utils/node/fs';
 import { logError } from '@/utils/node/logging';
-import { sendKoboldOutput, sendToRenderer } from '@/main/modules/window';
-import type { ModelParamType, CachedModel } from '@/types';
-import type { IncomingMessage } from 'http';
 
 const activeDownloads = new Set<{
   abort: () => void;
@@ -27,9 +27,7 @@ interface DownloadProgress {
 }
 
 function parseHuggingFaceUrl(url: string) {
-  const hfMatch = url.match(
-    /huggingface\.co\/([^/]+)\/([^/]+)\/(?:resolve|blob)\/[^/]+\/(.+)/
-  );
+  const hfMatch = url.match(/huggingface\.co\/([^/]+)\/([^/]+)\/(?:resolve|blob)\/[^/]+\/(.+)/);
 
   if (hfMatch) {
     const pathWithQuery = hfMatch[3];
@@ -131,13 +129,11 @@ async function downloadFile(
 
         if (response.statusCode !== 200) {
           activeDownloads.delete(abortController);
-          reject(
-            new Error(`HTTP ${response.statusCode}: ${response.statusMessage}`)
-          );
+          reject(new Error(`HTTP ${response.statusCode}: ${response.statusMessage}`));
           return;
         }
 
-        const totalBytes = parseInt(response.headers['content-length'] || '0');
+        const totalBytes = parseInt(response.headers['content-length'] || '0', 10);
         let downloadedBytes = 0;
         let lastReportTime = Date.now();
         let lastReportedBytes = 0;
@@ -154,23 +150,17 @@ async function downloadFile(
           if (timeDiff >= 0.5) {
             const bytesDiff = downloadedBytes - lastReportedBytes;
             const speedBytesPerSec = bytesDiff / timeDiff;
-            const percent = totalBytes
-              ? Math.round((downloadedBytes / totalBytes) * 100)
-              : 0;
+            const percent = totalBytes ? Math.round((downloadedBytes / totalBytes) * 100) : 0;
             const downloadedMB = (downloadedBytes / 1024 / 1024).toFixed(2);
             const totalMB = (totalBytes / 1024 / 1024).toFixed(2);
             const speedMBPerSec = (speedBytesPerSec / 1024 / 1024).toFixed(2);
 
             const remainingBytes = totalBytes - downloadedBytes;
-            const etaSeconds = speedBytesPerSec
-              ? Math.round(remainingBytes / speedBytesPerSec)
-              : 0;
+            const etaSeconds = speedBytesPerSec ? Math.round(remainingBytes / speedBytesPerSec) : 0;
             const etaMinutes = Math.floor(etaSeconds / 60);
             const etaSecondsRemainder = etaSeconds % 60;
             const etaStr =
-              etaMinutes > 0
-                ? `${etaMinutes}m${etaSecondsRemainder}s`
-                : `${etaSeconds}s`;
+              etaMinutes > 0 ? `${etaMinutes}m${etaSecondsRemainder}s` : `${etaSeconds}s`;
 
             const progressMsg = totalBytes
               ? `Downloaded ${downloadedMB}MB / ${totalMB}MB (${percent}%) - ${speedMBPerSec}MB/s - ETA: ${etaStr}`
@@ -366,6 +356,8 @@ export async function getLocalModelsForType(paramType: ModelParamType) {
 
 export function abortActiveDownloads() {
   const downloads = Array.from(activeDownloads);
-  downloads.forEach((controller) => controller.abort());
+  for (const controller of downloads) {
+    controller.abort();
+  }
   activeDownloads.clear();
 }

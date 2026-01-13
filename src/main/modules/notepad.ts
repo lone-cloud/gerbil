@@ -1,12 +1,9 @@
-import { get, set, getInstallDir } from './config';
+import { readdir, readFile, rename, unlink, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { DEFAULT_NOTEPAD_POSITION, DEFAULT_TAB_CONTENT } from '@/constants/notepad';
 import type { SavedNotepadState } from '@/types/electron';
-import {
-  DEFAULT_NOTEPAD_POSITION,
-  DEFAULT_TAB_CONTENT,
-} from '@/constants/notepad';
 import { pathExists } from '@/utils/node/fs';
-import { join } from 'path';
-import { readFile, readdir, writeFile, unlink, rename } from 'fs/promises';
+import { get, getInstallDir, set } from './config';
 
 const DEFAULT_NOTEPAD_STATE: SavedNotepadState = {
   activeTabId: null,
@@ -41,10 +38,7 @@ export const renameTab = async (oldTitle: string, newTitle: string) => {
   try {
     const notepadDir = getNotepadDir();
 
-    await rename(
-      join(notepadDir, `${oldTitle}.txt`),
-      join(notepadDir, `${newTitle}.txt`)
-    );
+    await rename(join(notepadDir, `${oldTitle}.txt`), join(notepadDir, `${newTitle}.txt`));
     return true;
   } catch {
     return false;

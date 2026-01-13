@@ -1,10 +1,9 @@
-import { join } from 'path';
-import { homedir } from 'os';
-import { platform, resourcesPath } from 'process';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
+import { platform, resourcesPath } from 'node:process';
 import { shell } from 'electron';
-
+import { CONFIG_FILE_NAME, PRODUCT_NAME } from '@/constants';
 import { safeExecute } from '@/utils/logger';
-import { PRODUCT_NAME, CONFIG_FILE_NAME } from '@/constants';
 import { isDevelopment } from './environment';
 import { pathExists } from './fs';
 

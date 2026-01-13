@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Stack, Text, Group, TextInput, Button, rem } from '@mantine/core';
-import { Folder, FolderOpen, Monitor, ExternalLink } from 'lucide-react';
+import { Button, Group, rem, Stack, Text, TextInput } from '@mantine/core';
+import { ExternalLink, Folder, FolderOpen, Monitor } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export const TroubleshootingTab = () => {
   const [installDir, setInstallDir] = useState('');
@@ -17,8 +17,7 @@ export const TroubleshootingTab = () => {
   }, []);
 
   const handleSelectInstallDir = async () => {
-    const selectedDir =
-      await window.electronAPI.kobold.selectInstallDirectory();
+    const selectedDir = await window.electronAPI.kobold.selectInstallDirectory();
     if (selectedDir) {
       setInstallDir(selectedDir);
     }
@@ -50,9 +49,7 @@ export const TroubleshootingTab = () => {
           <Button
             variant="outline"
             onClick={() => void handleSelectInstallDir()}
-            leftSection={
-              <FolderOpen style={{ width: rem(16), height: rem(16) }} />
-            }
+            leftSection={<FolderOpen style={{ width: rem(16), height: rem(16) }} />}
           >
             Browse
           </Button>
@@ -60,9 +57,7 @@ export const TroubleshootingTab = () => {
             variant="outline"
             onClick={() => void handleOpenInstallDir()}
             disabled={!installDir}
-            leftSection={
-              <ExternalLink style={{ width: rem(16), height: rem(16) }} />
-            }
+            leftSection={<ExternalLink style={{ width: rem(16), height: rem(16) }} />}
           >
             Open
           </Button>
@@ -80,9 +75,7 @@ export const TroubleshootingTab = () => {
           <Button
             variant="outline"
             size="compact-sm"
-            leftSection={
-              <FolderOpen style={{ width: rem(16), height: rem(16) }} />
-            }
+            leftSection={<FolderOpen style={{ width: rem(16), height: rem(16) }} />}
             onClick={() => void window.electronAPI.app.showLogsFolder()}
           >
             Show Logs
@@ -90,9 +83,7 @@ export const TroubleshootingTab = () => {
           <Button
             variant="outline"
             size="compact-sm"
-            leftSection={
-              <Monitor style={{ width: rem(16), height: rem(16) }} />
-            }
+            leftSection={<Monitor style={{ width: rem(16), height: rem(16) }} />}
             onClick={() => void window.electronAPI.app.viewConfigFile()}
           >
             View Config

@@ -1,6 +1,0 @@
-# Prettier-specific ignores (beyond .gitignore)
-# Keep files that should be tracked by git but not formatted by prettier
-
-.vscode/settings.json
-coverage/
-package-lock.json

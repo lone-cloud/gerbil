@@ -1,6 +1,6 @@
-import { Table, Text, Group, Loader } from '@mantine/core';
-import { formatBytes } from '@/utils/format';
+import { Group, Loader, Table, Text } from '@mantine/core';
 import type { HuggingFaceFileInfo } from '@/types';
+import { formatBytes } from '@/utils/format';
 
 interface FilesTableProps {
   files: HuggingFaceFileInfo[];
@@ -35,11 +35,7 @@ export const FilesTable = ({ files, loading, onSelect }: FilesTableProps) => {
       </Table.Thead>
       <Table.Tbody>
         {files.map((file) => (
-          <Table.Tr
-            key={file.path}
-            onClick={() => onSelect(file)}
-            style={{ cursor: 'pointer' }}
-          >
+          <Table.Tr key={file.path} onClick={() => onSelect(file)} style={{ cursor: 'pointer' }}>
             <Table.Td>
               <Text size="sm" lineClamp={1}>
                 {file.path}

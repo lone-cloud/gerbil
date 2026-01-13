@@ -1,18 +1,18 @@
-import { readJsonFile, writeJsonFile } from '@/utils/node/fs';
-import { safeExecute } from '@/utils/node/logging';
-import { getConfigDir } from '@/utils/node/path';
-import { homedir } from 'os';
-import { join } from 'path';
-import { platform } from 'process';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
+import { platform } from 'node:process';
+import type { MantineColorScheme } from '@mantine/core';
 import { nativeTheme } from 'electron';
 import { PRODUCT_NAME } from '@/constants';
 import type {
-  FrontendPreference,
   DismissedUpdate,
+  FrontendPreference,
   ImageGenerationFrontendPreference,
 } from '@/types';
-import type { MantineColorScheme } from '@mantine/core';
 import type { SavedNotepadState } from '@/types/electron';
+import { readJsonFile, writeJsonFile } from '@/utils/node/fs';
+import { safeExecute } from '@/utils/node/logging';
+import { getConfigDir } from '@/utils/node/path';
 
 export interface WindowBounds {
   x?: number;
@@ -51,10 +51,7 @@ async function loadConfig() {
 }
 
 async function saveConfig() {
-  const success = await safeExecute(
-    () => writeJsonFile(configPath, config),
-    'Error saving config'
-  );
+  const success = await safeExecute(() => writeJsonFile(configPath, config), 'Error saving config');
   return success !== null;
 }
 
@@ -65,10 +62,7 @@ export async function initialize() {
 
 export const get = <K extends keyof AppConfig>(key: K) => config[key];
 
-export async function set<K extends keyof AppConfig>(
-  key: K,
-  value: AppConfig[K]
-) {
+export async function set<K extends keyof AppConfig>(key: K, value: AppConfig[K]) {
   config[key] = value;
   await saveConfig();
 }
@@ -123,5 +117,4 @@ export const getWindowBounds = () => config.windowBounds;
 
 export const getEnableSystemTray = () => config.enableSystemTray ?? false;
 
-export const getStartMinimizedToTray = () =>
-  config.startMinimizedToTray ?? false;
+export const getStartMinimizedToTray = () => config.startMinimizedToTray ?? false;

@@ -1,9 +1,9 @@
-import { Box, Text, Stack } from '@mantine/core';
+import { Box, Stack, Text } from '@mantine/core';
 import { useMemo } from 'react';
+import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 import { usePreferencesStore } from '@/stores/preferences';
 import { getServerInterfaceInfo } from '@/utils/interface';
-import { TITLEBAR_HEIGHT, STATUSBAR_HEIGHT } from '@/constants';
 
 interface ServerTabProps {
   isServerReady?: boolean;
@@ -12,15 +12,10 @@ interface ServerTabProps {
 
 export const ServerTab = ({ isServerReady, activeTab }: ServerTabProps) => {
   const { isImageGenerationMode } = useLaunchConfigStore();
-  const { frontendPreference, imageGenerationFrontendPreference } =
-    usePreferencesStore();
+  const { frontendPreference, imageGenerationFrontendPreference } = usePreferencesStore();
 
   const effectiveImageMode =
-    activeTab === 'chat-image'
-      ? true
-      : activeTab === 'chat-text'
-        ? false
-        : isImageGenerationMode;
+    activeTab === 'chat-image' ? true : activeTab === 'chat-text' ? false : isImageGenerationMode;
 
   const { url: iframeUrl, title } = useMemo(
     () =>
@@ -48,9 +43,8 @@ export const ServerTab = ({ isServerReady, activeTab }: ServerTabProps) => {
             Waiting for the server to start...
           </Text>
           <Text c="dimmed" size="sm">
-            The{' '}
-            {title.toLowerCase().includes('ui') ? 'image generation' : 'chat'}{' '}
-            interface will load automatically when ready
+            The {title.toLowerCase().includes('ui') ? 'image generation' : 'chat'} interface will
+            load automatically when ready
           </Text>
         </Stack>
       </Box>
