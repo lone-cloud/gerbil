@@ -1,35 +1,27 @@
-import { useState, useEffect, useMemo } from 'react';
-import {
-  AppShell,
-  Loader,
-  Center,
-  Stack,
-  Text,
-  useMantineColorScheme,
-} from '@mantine/core';
-import { UpdateAvailableModal } from '@/components/App/UpdateAvailableModal';
-import { EjectConfirmModal } from '@/components/App/EjectConfirmModal';
+import { AppShell, Center, Loader, Stack, Text, useMantineColorScheme } from '@mantine/core';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BackendCrashModal } from '@/components/App/BackendCrashModal';
-import { TitleBar } from '@/components/App/TitleBar';
-import { StatusBar } from '@/components/App/StatusBar';
+import { EjectConfirmModal } from '@/components/App/EjectConfirmModal';
 import { ErrorBoundary } from '@/components/App/ErrorBoundary';
 import { AppRouter } from '@/components/App/Router';
+import { StatusBar } from '@/components/App/StatusBar';
+import { TitleBar } from '@/components/App/TitleBar';
+import { UpdateAvailableModal } from '@/components/App/UpdateAvailableModal';
 import { NotepadContainer } from '@/components/Notepad/Container';
+import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { useKoboldBackendsStore } from '@/stores/koboldBackends';
-import { usePreferencesStore } from '@/stores/preferences';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
-import { getDefaultInterfaceTab } from '@/utils/interface';
-import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
-import type { DownloadItem } from '@/types/electron';
+import { usePreferencesStore } from '@/stores/preferences';
 import type { InterfaceTab, Screen } from '@/types';
+import type { DownloadItem } from '@/types/electron';
 import type { KoboldCrashInfo } from '@/types/ipc';
+import { getDefaultInterfaceTab } from '@/utils/interface';
 
 export const App = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen | null>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
-  const [activeInterfaceTab, setActiveInterfaceTab] =
-    useState<InterfaceTab>('terminal');
+  const [activeInterfaceTab, setActiveInterfaceTab] = useState<InterfaceTab>('terminal');
   const [isServerReady, setIsServerReady] = useState(false);
   const [ejectConfirmModalOpen, setEjectConfirmModalOpen] = useState(false);
   const [crashInfo, setCrashInfo] = useState<KoboldCrashInfo | null>(null);
@@ -42,8 +34,7 @@ export const App = () => {
     imageGenerationFrontendPreference,
   } = usePreferencesStore();
   const { setColorScheme } = useMantineColorScheme();
-  const { model, sdmodel, isTextMode, isImageGenerationMode } =
-    useLaunchConfigStore();
+  const { model, sdmodel, isTextMode, isImageGenerationMode } = useLaunchConfigStore();
 
   const defaultInterfaceTab = useMemo(
     () =>
@@ -53,12 +44,7 @@ export const App = () => {
         isTextMode,
         isImageGenerationMode,
       }),
-    [
-      frontendPreference,
-      imageGenerationFrontendPreference,
-      isTextMode,
-      isImageGenerationMode,
-    ]
+    [frontendPreference, imageGenerationFrontendPreference, isTextMode, isImageGenerationMode]
   );
 
   useEffect(() => {
@@ -80,9 +66,7 @@ export const App = () => {
     const updateTray = async () => {
       const config = await window.electronAPI.kobold.getSelectedConfig();
       const displayModel = model || sdmodel || null;
-      const modelName = displayModel
-        ? displayModel.split('/').pop() || displayModel
-        : null;
+      const modelName = displayModel ? displayModel.split('/').pop() || displayModel : null;
 
       void window.electronAPI.app.updateTrayState({
         screen: currentScreen,
@@ -95,12 +79,12 @@ export const App = () => {
     void updateTray();
   }, [currentScreen, model, sdmodel, systemMonitoringEnabled]);
 
-  const performEject = () => {
+  const performEject = useCallback(() => {
     window.electronAPI.kobold.stopKoboldCpp();
     setIsServerReady(false);
     setActiveInterfaceTab('terminal');
     setCurrentScreen('launch');
-  };
+  }, []);
 
   useEffect(() => {
     const ejectCleanup = window.electronAPI.app.onTrayEject(() => {
@@ -110,14 +94,12 @@ export const App = () => {
     return () => {
       ejectCleanup();
     };
-  }, []);
+  }, [performEject]);
 
   useEffect(() => {
-    const crashCleanup = window.electronAPI.kobold.onKoboldCrashed(
-      (crashData) => {
-        setCrashInfo(crashData);
-      }
-    );
+    const crashCleanup = window.electronAPI.kobold.onKoboldCrashed((crashData) => {
+      setCrashInfo(crashData);
+    });
 
     return () => {
       crashCleanup();
@@ -134,10 +116,7 @@ export const App = () => {
 
   const { handleDownload, loadingRemote } = useKoboldBackendsStore();
 
-  const determineScreen = (
-    currentVersion: unknown,
-    hasSeenWelcome: boolean
-  ) => {
+  const determineScreen = useCallback((currentVersion: unknown, hasSeenWelcome: boolean) => {
     if (!hasSeenWelcome) {
       setCurrentScreen('welcome');
     } else if (currentVersion) {
@@ -145,7 +124,7 @@ export const App = () => {
     } else {
       setCurrentScreen('download');
     }
-  };
+  }, []);
 
   useEffect(() => {
     const checkInstallation = async () => {
@@ -159,14 +138,13 @@ export const App = () => {
     };
 
     void checkInstallation();
-  }, []);
+  }, [determineScreen]);
 
   useEffect(() => {
     if (loadingRemote || !hasInitialized) return;
 
     const runUpdateCheck = async () => {
-      const currentBackend =
-        await window.electronAPI.kobold.getCurrentBackend();
+      const currentBackend = await window.electronAPI.kobold.getCurrentBackend();
       if (!currentBackend) return;
 
       void checkForUpdates();
@@ -203,9 +181,7 @@ export const App = () => {
   };
 
   const handleEject = async () => {
-    const skipEjectConfirmation = await window.electronAPI.config.get(
-      'skipEjectConfirmation'
-    );
+    const skipEjectConfirmation = await window.electronAPI.config.get('skipEjectConfirmation');
 
     if (skipEjectConfirmation) {
       performEject();

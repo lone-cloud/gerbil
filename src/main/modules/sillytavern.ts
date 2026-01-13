@@ -1,28 +1,22 @@
-import { spawn } from 'child_process';
-import { createServer, request, type Server } from 'http';
-import { join } from 'path';
-import { platform, on } from 'process';
-import type { ChildProcess } from 'child_process';
-
-import { logError, tryExecute } from '@/utils/node/logging';
-import { sendKoboldOutput, sendToRenderer } from './window';
-import { SILLYTAVERN, SERVER_READY_SIGNALS } from '@/constants';
+import type { ChildProcess } from 'node:child_process';
+import { spawn } from 'node:child_process';
+import { createServer, request, type Server } from 'node:http';
+import { join } from 'node:path';
+import { on, platform } from 'node:process';
+import { SERVER_READY_SIGNALS, SILLYTAVERN } from '@/constants';
 import { PROXY } from '@/constants/proxy';
-import { terminateProcess } from '@/utils/node/process';
 import { pathExists, readJsonFile, writeJsonFile } from '@/utils/node/fs';
 import { parseKoboldConfig } from '@/utils/node/kobold';
-import { getNodeEnvironment } from './dependencies';
+import { logError, tryExecute } from '@/utils/node/logging';
+import { terminateProcess } from '@/utils/node/process';
 import { getInstallDir } from './config';
+import { getNodeEnvironment } from './dependencies';
+import { sendKoboldOutput, sendToRenderer } from './window';
 
 let sillyTavernProcess: ChildProcess | null = null;
 let proxyServer: Server | null = null;
 
-const SILLYTAVERN_BASE_ARGS = [
-  '--listen',
-  '--browserLaunchEnabled',
-  'false',
-  '--disableCsrf',
-];
+const SILLYTAVERN_BASE_ARGS = ['--listen', '--browserLaunchEnabled', 'false', '--disableCsrf'];
 
 on('SIGINT', () => {
   void stopFrontend();
@@ -34,8 +28,7 @@ on('SIGTERM', () => {
 
 const getSillyTavernDataDir = () => join(getInstallDir(), 'sillytavern-data');
 
-const getSillyTavernInstallDir = () =>
-  join(getInstallDir(), 'sillytavern-server');
+const getSillyTavernInstallDir = () => join(getInstallDir(), 'sillytavern-server');
 
 const getSillyTavernServerPath = () =>
   join(getSillyTavernInstallDir(), 'node_modules', 'sillytavern', 'server.js');
@@ -57,18 +50,14 @@ async function ensureSillyTavernInstalled() {
       await new Promise<void>((resolve, reject) => {
         const rmCmd = platform === 'win32' ? 'rmdir' : 'rm';
         const rmArgs =
-          platform === 'win32'
-            ? ['/s', '/q', nodeModulesPath]
-            : ['-rf', nodeModulesPath];
+          platform === 'win32' ? ['/s', '/q', nodeModulesPath] : ['-rf', nodeModulesPath];
 
         spawn(rmCmd, rmArgs, {
           stdio: 'inherit',
           shell: true,
         })
           .on('exit', (code) =>
-            code === 0
-              ? resolve()
-              : reject(new Error(`Failed with code ${code}`))
+            code === 0 ? resolve() : reject(new Error(`Failed with code ${code}`))
           )
           .on('error', reject);
       });
@@ -195,9 +184,7 @@ async function ensureSillyTavernSettings() {
 
                   await terminateProcess(initProcess);
 
-                  sendKoboldOutput(
-                    'SillyTavern settings should now be generated'
-                  );
+                  sendKoboldOutput('SillyTavern settings should now be generated');
 
                   resolve();
                 }
@@ -223,15 +210,14 @@ async function setupSillyTavernConfig(isImageMode: boolean) {
 
     if (await pathExists(configPath)) {
       try {
-        const existingSettings =
-          await readJsonFile<Record<string, unknown>>(configPath);
+        const existingSettings = await readJsonFile<Record<string, unknown>>(configPath);
 
         if (existingSettings) {
           settings = existingSettings;
-          sendKoboldOutput(`Loaded existing SillyTavern settings`);
+          sendKoboldOutput('Loaded existing SillyTavern settings');
         }
       } catch {
-        sendKoboldOutput(`Could not read existing settings, creating new ones`);
+        sendKoboldOutput('Could not read existing settings, creating new ones');
       }
     }
 
@@ -241,12 +227,8 @@ async function setupSillyTavernConfig(isImageMode: boolean) {
     const powerUser = settings.power_user as Record<string, unknown>;
     powerUser.auto_connect = true;
 
-    if (!settings.textgenerationwebui_settings)
-      settings.textgenerationwebui_settings = {};
-    const textgenSettings = settings.textgenerationwebui_settings as Record<
-      string,
-      unknown
-    >;
+    if (!settings.textgenerationwebui_settings) settings.textgenerationwebui_settings = {};
+    const textgenSettings = settings.textgenerationwebui_settings as Record<string, unknown>;
 
     if (!textgenSettings.server_urls) textgenSettings.server_urls = {};
     const serverUrls = textgenSettings.server_urls as Record<string, unknown>;
@@ -255,14 +237,12 @@ async function setupSillyTavernConfig(isImageMode: boolean) {
     settings.main_api = 'textgenerationwebui';
     textgenSettings.type = 'koboldcpp';
 
-    sendKoboldOutput(
-      `Configured SillyTavern for text generation at ${proxyUrl}`
-    );
+    sendKoboldOutput(`Configured SillyTavern for text generation at ${proxyUrl}`);
 
     if (isImageMode) {
       sendKoboldOutput(
-        `Image generation mode detected. Configure SillyTavern manually:\n` +
-          `1. Open SillyTavern Settings (top-right gear icon)\n` +
+        'Image generation mode detected. Configure SillyTavern manually:\n' +
+          '1. Open SillyTavern Settings (top-right gear icon)\n' +
           `2. Go to 'Extensions' tab and enable 'Image Generation'\n` +
           `3. Set Source to 'Stable Diffusion WebUI (AUTOMATIC1111)'\n` +
           `4. Set API URL to: ${proxyUrl}/sdui\n` +
@@ -272,13 +252,11 @@ async function setupSillyTavernConfig(isImageMode: boolean) {
 
     await writeJsonFile(configPath, settings);
 
-    sendKoboldOutput(`SillyTavern configuration updated successfully!`);
+    sendKoboldOutput('SillyTavern configuration updated successfully!');
   }, 'Failed to setup SillyTavern config');
 
   if (!success) {
-    sendKoboldOutput(
-      `Failed to configure SillyTavern. Check logs for details.`
-    );
+    sendKoboldOutput('Failed to configure SillyTavern. Check logs for details.');
   }
 }
 
@@ -352,15 +330,13 @@ export async function startFrontend(args: string[]) {
 
     await stopFrontend();
 
-    sendKoboldOutput(`Preparing SillyTavern to connect via proxy...`);
+    sendKoboldOutput('Preparing SillyTavern to connect via proxy...');
 
     await ensureSillyTavernInstalled();
     await ensureSillyTavernSettings();
     await setupSillyTavernConfig(isImageMode);
 
-    sendKoboldOutput(
-      `Starting ${config.name} frontend on port ${config.port}...`
-    );
+    sendKoboldOutput(`Starting ${config.name} frontend on port ${config.port}...`);
 
     const sillyTavernDataDir = getSillyTavernDataDir();
 
@@ -386,16 +362,13 @@ export async function startFrontend(args: string[]) {
       });
     }
 
-    sillyTavernProcess.on(
-      'exit',
-      (code: number | null, signal: string | null) => {
-        const message = signal
-          ? `SillyTavern terminated with signal ${signal}`
-          : `SillyTavern exited with code ${code}`;
-        sendKoboldOutput(message);
-        sillyTavernProcess = null;
-      }
-    );
+    sillyTavernProcess.on('exit', (code: number | null, signal: string | null) => {
+      const message = signal
+        ? `SillyTavern terminated with signal ${signal}`
+        : `SillyTavern exited with code ${code}`;
+      sendKoboldOutput(message);
+      sillyTavernProcess = null;
+    });
 
     sillyTavernProcess.on('error', (error) => {
       logError('SillyTavern process error:', error);

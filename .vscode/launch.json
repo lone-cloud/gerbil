@@ -27,10 +27,7 @@
   "compounds": [
     {
       "name": "Debug Electron (Main + Renderer)",
-      "configurations": [
-        "Debug Electron Main Process",
-        "Debug Electron Renderer Process"
-      ]
+      "configurations": ["Debug Electron Main Process", "Debug Electron Renderer Process"]
     }
   ]
 }

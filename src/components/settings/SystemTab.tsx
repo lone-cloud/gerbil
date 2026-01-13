@@ -1,18 +1,12 @@
-import { useState, useEffect } from 'react';
-import {
-  createSoftwareItems,
-  createDriverItems,
-  createHardwareItems,
-} from '@/utils/systemInfo';
-import { Stack, Text, Center } from '@mantine/core';
+import { Center, Stack, Text } from '@mantine/core';
+import { useEffect, useState } from 'react';
 import { InfoCard } from '@/components/InfoCard';
-import type { HardwareInfo } from '@/types/hardware';
 import type { SystemVersionInfo } from '@/types/electron';
+import type { HardwareInfo } from '@/types/hardware';
+import { createDriverItems, createHardwareItems, createSoftwareItems } from '@/utils/systemInfo';
 
 export const SystemTab = () => {
-  const [versionInfo, setVersionInfo] = useState<SystemVersionInfo | null>(
-    null
-  );
+  const [versionInfo, setVersionInfo] = useState<SystemVersionInfo | null>(null);
   const [hardwareInfo, setHardwareInfo] = useState<HardwareInfo | null>(null);
   const [koboldVersion, setKoboldVersion] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,14 +24,13 @@ export const SystemTab = () => {
         setVersionInfo(info);
         setKoboldVersion(currentBackend?.version || null);
 
-        const [cpu, gpu, gpuCapabilities, gpuMemory, systemMemory] =
-          await Promise.all([
-            window.electronAPI.kobold.detectCPU(),
-            window.electronAPI.kobold.detectGPU(),
-            window.electronAPI.kobold.detectGPUCapabilities(),
-            window.electronAPI.kobold.detectGPUMemory(),
-            window.electronAPI.kobold.detectSystemMemory(),
-          ]);
+        const [cpu, gpu, gpuCapabilities, gpuMemory, systemMemory] = await Promise.all([
+          window.electronAPI.kobold.detectCPU(),
+          window.electronAPI.kobold.detectGPU(),
+          window.electronAPI.kobold.detectGPUCapabilities(),
+          window.electronAPI.kobold.detectGPUMemory(),
+          window.electronAPI.kobold.detectSystemMemory(),
+        ]);
 
         setHardwareInfo({
           cpu,
@@ -47,10 +40,7 @@ export const SystemTab = () => {
           systemMemory,
         });
       } catch (error) {
-        window.electronAPI.logs.logError(
-          'Failed to load system info',
-          error as Error
-        );
+        window.electronAPI.logs.logError('Failed to load system info', error as Error);
       } finally {
         setLoading(false);
       }
@@ -77,11 +67,7 @@ export const SystemTab = () => {
 
       <InfoCard title="Drivers" items={driverItems} loading={!hardwareInfo} />
 
-      <InfoCard
-        title="Hardware"
-        items={hardwareItems}
-        loading={!hardwareInfo}
-      />
+      <InfoCard title="Hardware" items={hardwareItems} loading={!hardwareInfo} />
     </Stack>
   );
 };

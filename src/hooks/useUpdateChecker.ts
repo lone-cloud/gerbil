@@ -1,13 +1,9 @@
-import { useState, useCallback, useEffect } from 'react';
-import {
-  getDisplayNameFromPath,
-  compareVersions,
-  stripAssetExtensions,
-} from '@/utils/version';
+import { useCallback, useEffect, useState } from 'react';
 import { useKoboldBackendsStore } from '@/stores/koboldBackends';
-import { getROCmDownload } from '@/utils/rocm';
-import type { InstalledBackend, DownloadItem } from '@/types/electron';
 import type { DismissedUpdate } from '@/types';
+import type { DownloadItem, InstalledBackend } from '@/types/electron';
+import { getROCmDownload } from '@/utils/rocm';
+import { compareVersions, getDisplayNameFromPath, stripAssetExtensions } from '@/utils/version';
 
 export interface BinaryUpdateInfo {
   currentBackend: InstalledBackend;
@@ -18,17 +14,14 @@ export const useUpdateChecker = () => {
   const [updateInfo, setUpdateInfo] = useState<BinaryUpdateInfo | null>(null);
   const [isChecking, setIsChecking] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [dismissedUpdates, setDismissedUpdates] = useState<DismissedUpdate[]>(
-    []
-  );
+  const [dismissedUpdates, setDismissedUpdates] = useState<DismissedUpdate[]>([]);
 
-  const { availableDownloads: releases, loadingRemote } =
-    useKoboldBackendsStore();
+  const { availableDownloads: releases, loadingRemote } = useKoboldBackendsStore();
   useEffect(() => {
     const loadDismissedUpdates = async () => {
-      const dismissed = (await window.electronAPI.config.get(
-        'dismissedUpdates'
-      )) as DismissedUpdate[] | undefined;
+      const dismissed = (await window.electronAPI.config.get('dismissedUpdates')) as
+        | DismissedUpdate[]
+        | undefined;
 
       if (dismissed) {
         setDismissedUpdates(dismissed);
@@ -61,16 +54,13 @@ export const useUpdateChecker = () => {
 
     const currentDisplayName = getDisplayNameFromPath(currentBackend);
 
-    const matchingDownload = availableDownloads.find(
-      (download: DownloadItem) => {
-        const downloadBaseName = stripAssetExtensions(download.name);
-        return downloadBaseName === currentDisplayName;
-      }
-    );
+    const matchingDownload = availableDownloads.find((download: DownloadItem) => {
+      const downloadBaseName = stripAssetExtensions(download.name);
+      return downloadBaseName === currentDisplayName;
+    });
 
-    if (matchingDownload && matchingDownload.version) {
-      const hasUpdate =
-        compareVersions(matchingDownload.version, currentBackend.version) > 0;
+    if (matchingDownload?.version) {
+      const hasUpdate = compareVersions(matchingDownload.version, currentBackend.version) > 0;
 
       if (hasUpdate) {
         const isUpdateDismissed = dismissedUpdates.some(
@@ -93,7 +83,7 @@ export const useUpdateChecker = () => {
   }, [dismissedUpdates, releases, loadingRemote]);
 
   const skipUpdate = useCallback(() => {
-    if (updateInfo && updateInfo.availableUpdate.version) {
+    if (updateInfo?.availableUpdate.version) {
       const newDismissedUpdate: DismissedUpdate = {
         currentBackendPath: updateInfo.currentBackend.path,
         targetVersion: updateInfo.availableUpdate.version,

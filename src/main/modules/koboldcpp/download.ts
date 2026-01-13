@@ -1,40 +1,28 @@
-import { createWriteStream } from 'fs';
-import { join, basename } from 'path';
-import { platform } from 'process';
-import { rm, unlink, rename, mkdir, chmod, copyFile } from 'fs/promises';
-import { execa } from 'execa';
+import { createWriteStream } from 'node:fs';
+import { chmod, copyFile, mkdir, rename, rm, unlink } from 'node:fs/promises';
+import { basename, join } from 'node:path';
+import { platform } from 'node:process';
 import { dialog } from 'electron';
-
-import {
-  getInstallDir,
-  getCurrentKoboldBinary,
-  setCurrentKoboldBinary,
-} from '../config';
-import { logError } from '@/utils/node/logging';
-import { getMainWindow, sendToRenderer } from '../window';
-import { pathExists } from '@/utils/node/fs';
-import { stripAssetExtensions } from '@/utils/version';
-import { getLauncherPath } from '@/utils/node/path';
+import { execa } from 'execa';
 import type { DownloadReleaseOptions, GitHubAsset } from '@/types/electron';
+import { pathExists } from '@/utils/node/fs';
+import { logError } from '@/utils/node/logging';
+import { getLauncherPath } from '@/utils/node/path';
+import { stripAssetExtensions } from '@/utils/version';
+import { getCurrentKoboldBinary, getInstallDir, setCurrentKoboldBinary } from '../config';
+import { getMainWindow, sendToRenderer } from '../window';
 import { clearBackendVersionCache, getVersionFromBinary } from './backend';
 
-async function removeDirectoryWithRetry(
-  dirPath: string,
-  maxRetries = 3,
-  currentRetry = 0
-) {
+async function removeDirectoryWithRetry(dirPath: string, maxRetries = 3, currentRetry = 0) {
   try {
     await rm(dirPath, { recursive: true, force: true });
   } catch (error) {
     if (currentRetry < maxRetries) {
-      const delay = Math.pow(2, currentRetry) * 1000;
+      const delay = 2 ** currentRetry * 1000;
       await new Promise((resolve) => setTimeout(resolve, delay));
       return removeDirectoryWithRetry(dirPath, maxRetries, currentRetry + 1);
     } else {
-      logError(
-        `Failed to remove directory after ${maxRetries} retries:`,
-        error as Error
-      );
+      logError(`Failed to remove directory after ${maxRetries} retries:`, error as Error);
     }
   }
 }
@@ -51,10 +39,7 @@ async function downloadFile(asset: GitHubAsset, tempPackedFilePath: string) {
     throw new Error(`Failed to download: ${response.statusText}`);
   }
 
-  const totalBytes = parseInt(
-    response.headers.get('content-length') || '0',
-    10
-  );
+  const totalBytes = parseInt(response.headers.get('content-length') || '0', 10);
   const reader = response.body.getReader();
 
   const pump = async () => {
@@ -102,10 +87,7 @@ async function downloadFile(asset: GitHubAsset, tempPackedFilePath: string) {
   });
 }
 
-async function setupLauncher(
-  tempPackedFilePath: string,
-  unpackedDirPath: string
-) {
+async function setupLauncher(tempPackedFilePath: string, unpackedDirPath: string) {
   let launcherPath = await getLauncherPath(unpackedDirPath);
 
   if (!launcherPath || !(await pathExists(launcherPath))) {
@@ -149,8 +131,7 @@ async function unpackKoboldCpp(packedPath: string, unpackDir: string) {
       stdout?: string;
       message: string;
     };
-    const errorMessage =
-      execaError.stderr || execaError.stdout || execaError.message;
+    const errorMessage = execaError.stderr || execaError.stdout || execaError.message;
     throw new Error(`Unpack failed: ${errorMessage}`);
   }
 }
@@ -208,15 +189,10 @@ async function installBackend({
   return launcherPath;
 }
 
-export async function downloadRelease(
-  asset: GitHubAsset,
-  options: DownloadReleaseOptions
-) {
+export async function downloadRelease(asset: GitHubAsset, options: DownloadReleaseOptions) {
   const tempPackedFilePath = join(getInstallDir(), `${asset.name}.packed`);
   const baseFilename = stripAssetExtensions(asset.name);
-  const folderName = asset.version
-    ? `${baseFilename}-${asset.version}`
-    : baseFilename;
+  const folderName = asset.version ? `${baseFilename}-${asset.version}` : baseFilename;
   const unpackedDirPath = join(getInstallDir(), folderName);
 
   try {
@@ -264,8 +240,7 @@ export async function importLocalBackend() {
     if (!backendVersion || backendVersion.version === 'unknown') {
       return {
         success: false,
-        error:
-          'Invalid backend executable. Could not determine version information.',
+        error: 'Invalid backend executable. Could not determine version information.',
       };
     }
 

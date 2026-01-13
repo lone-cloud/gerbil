@@ -1,12 +1,4 @@
-import {
-  rem,
-  ActionIcon,
-  Tooltip,
-  Card,
-  Stack,
-  Group,
-  Text,
-} from '@mantine/core';
+import { ActionIcon, Card, Group, rem, Stack, Text, Tooltip } from '@mantine/core';
 import { Copy } from 'lucide-react';
 import { safeExecute } from '@/utils/logger';
 

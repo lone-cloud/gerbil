@@ -1,18 +1,18 @@
-import { Card, Container, Stack, Tabs, Group, Button } from '@mantine/core';
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { logError } from '@/utils/logger';
-import { useLaunchConfigStore } from '@/stores/launchConfig';
+import { Button, Card, Container, Group, Stack, Tabs } from '@mantine/core';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { AdvancedTab } from '@/components/screens/Launch/AdvancedTab';
+import { ConfigFileManager } from '@/components/screens/Launch/ConfigFileManager';
+import { GeneralTab } from '@/components/screens/Launch/GeneralTab/index';
+import { ImageGenerationTab } from '@/components/screens/Launch/ImageGenerationTab';
+import { NetworkTab } from '@/components/screens/Launch/NetworkTab';
+import { PerformanceTab } from '@/components/screens/Launch/PerformanceTab';
+import { WarningDisplay } from '@/components/WarningDisplay';
+import { DEFAULT_MODEL_URL } from '@/constants';
 import { useLaunchLogic } from '@/hooks/useLaunchLogic';
 import { useWarnings } from '@/hooks/useWarnings';
-import { GeneralTab } from '@/components/screens/Launch/GeneralTab/index';
-import { AdvancedTab } from '@/components/screens/Launch/AdvancedTab';
-import { PerformanceTab } from '@/components/screens/Launch/PerformanceTab';
-import { NetworkTab } from '@/components/screens/Launch/NetworkTab';
-import { ImageGenerationTab } from '@/components/screens/Launch/ImageGenerationTab';
-import { WarningDisplay } from '@/components/WarningDisplay';
-import { ConfigFileManager } from '@/components/screens/Launch/ConfigFileManager';
-import { DEFAULT_MODEL_URL } from '@/constants';
+import { useLaunchConfigStore } from '@/stores/launchConfig';
 import type { Acceleration, ConfigFile } from '@/types';
+import { logError } from '@/utils/logger';
 
 interface LaunchScreenProps {
   onLaunch: () => void;
@@ -86,8 +86,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
   });
 
   const setHappyDefaults = useCallback(async () => {
-    const accelerations =
-      await window.electronAPI.kobold.getAvailableAccelerations();
+    const accelerations = await window.electronAPI.kobold.getAvailableAccelerations();
 
     if (!acceleration && accelerations && accelerations.length > 0) {
       setAcceleration(accelerations[0].value as Acceleration);
@@ -96,11 +95,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
 
   const setInitialDefaults = useCallback(
     (currentModel: string, currentSdModel: string) => {
-      if (
-        !defaultsSetRef.current &&
-        !currentModel.trim() &&
-        !currentSdModel.trim()
-      ) {
+      if (!defaultsSetRef.current && !currentModel.trim() && !currentSdModel.trim()) {
         setModel(DEFAULT_MODEL_URL);
         defaultsSetRef.current = true;
       }
@@ -139,14 +134,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     }
 
     setConfigLoaded(true);
-  }, [
-    selectedFile,
-    loadConfigFromFile,
-    setConfigFiles,
-    setInstallDir,
-    setSelectedFile,
-    setConfigLoaded,
-  ]);
+  }, [selectedFile, loadConfigFromFile]);
 
   const handleFileSelection = async (fileName: string) => {
     setSelectedFile(fileName);
@@ -211,19 +199,13 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
       setSelectedFile(fullConfigName);
       await window.electronAPI.kobold.setSelectedConfig(fullConfigName);
     } else {
-      logError(
-        'Failed to create new configuration',
-        new Error('Save operation failed')
-      );
+      logError('Failed to create new configuration', new Error('Save operation failed'));
     }
   };
 
   const handleSaveConfig = async () => {
     if (!selectedFile) {
-      logError(
-        'No configuration file selected for saving',
-        new Error('Selected file is null')
-      );
+      logError('No configuration file selected for saving', new Error('Selected file is null'));
       return false;
     }
 
@@ -233,10 +215,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     );
 
     if (!saveSuccess) {
-      logError(
-        'Failed to save configuration',
-        new Error('Save operation failed')
-      );
+      logError('Failed to save configuration', new Error('Save operation failed'));
       return false;
     }
 
@@ -244,8 +223,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
   };
 
   const handleDeleteConfig = async (fileName: string) => {
-    const deleteSuccess =
-      await window.electronAPI.kobold.deleteConfigFile(fileName);
+    const deleteSuccess = await window.electronAPI.kobold.deleteConfigFile(fileName);
 
     if (deleteSuccess) {
       await loadConfigFiles();
@@ -270,16 +248,13 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadConfigFiles();
 
     const handleInstallDirChange = () => {
       void loadConfigFiles();
     };
 
-    const cleanup = window.electronAPI.kobold.onInstallDirChanged(
-      handleInstallDirChange
-    );
+    const cleanup = window.electronAPI.kobold.onInstallDirChanged(handleInstallDirChange);
 
     return cleanup;
   }, [loadConfigFiles]);
@@ -368,13 +343,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
   return (
     <Container size="sm" mt="md">
       <Stack gap="md">
-        <Card
-          withBorder
-          radius="md"
-          shadow="sm"
-          p="lg"
-          style={{ position: 'relative' }}
-        >
+        <Card withBorder radius="md" shadow="sm" p="lg" style={{ position: 'relative' }}>
           <Stack gap="lg">
             <ConfigFileManager
               configFiles={configFiles}

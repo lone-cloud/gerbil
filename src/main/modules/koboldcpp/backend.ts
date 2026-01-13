@@ -1,22 +1,14 @@
-import { readdir, stat, rm } from 'fs/promises';
-import { join } from 'path';
+import { readdir, rm, stat } from 'node:fs/promises';
+import { join } from 'node:path';
 import { execa } from 'execa';
-
-import {
-  getCurrentKoboldBinary,
-  setCurrentKoboldBinary,
-  getInstallDir,
-} from '../config';
-import { sendToRenderer } from '../window';
+import type { InstalledBackend } from '@/types/electron';
 import { pathExists } from '@/utils/node/fs';
 import { logError } from '@/utils/node/logging';
 import { getLauncherPath } from '@/utils/node/path';
-import type { InstalledBackend } from '@/types/electron';
+import { getCurrentKoboldBinary, getInstallDir, setCurrentKoboldBinary } from '../config';
+import { sendToRenderer } from '../window';
 
-const backendVersionCache = new Map<
-  string,
-  { version: string; actualVersion?: string } | null
->();
+const backendVersionCache = new Map<string, { version: string; actualVersion?: string } | null>();
 
 export function clearBackendVersionCache(path?: string) {
   if (path) {
@@ -70,18 +62,13 @@ export async function getInstalledBackends() {
           actualVersion: versionInfo.actualVersion,
         } as InstalledBackend;
       } catch (error) {
-        logError(
-          `Could not detect version for ${launcher.filename}:`,
-          error as Error
-        );
+        logError(`Could not detect version for ${launcher.filename}:`, error as Error);
         return null;
       }
     });
 
     const results = await Promise.all(versionPromises);
-    return results.filter(
-      (version): version is InstalledBackend => version !== null
-    );
+    return results.filter((version): version is InstalledBackend => version !== null);
   } catch (error) {
     logError('Error scanning install directory:', error as Error);
     return [];
@@ -93,9 +80,7 @@ export async function getCurrentBackend() {
   const backends = await getInstalledBackends();
 
   if (currentBinaryPath && (await pathExists(currentBinaryPath))) {
-    const currentBackend = backends.find(
-      (b: InstalledBackend) => b.path === currentBinaryPath
-    );
+    const currentBackend = backends.find((b: InstalledBackend) => b.path === currentBinaryPath);
     if (currentBackend) {
       return currentBackend;
     }

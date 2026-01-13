@@ -1,6 +1,6 @@
-import { readFile, writeFile, access, mkdir } from 'fs/promises';
-import { constants } from 'fs';
-import { dirname } from 'path';
+import { constants } from 'node:fs';
+import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
 
 export const pathExists = async (path: string) => {
   try {

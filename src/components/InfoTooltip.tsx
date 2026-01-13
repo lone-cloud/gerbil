@@ -7,11 +7,7 @@ interface InfoTooltipProps {
   width?: number;
 }
 
-export const InfoTooltip = ({
-  label,
-  multiline = true,
-  width = 300,
-}: InfoTooltipProps) => (
+export const InfoTooltip = ({ label, multiline = true, width = 300 }: InfoTooltipProps) => (
   <Tooltip label={label} multiline={multiline} w={width}>
     <ActionIcon variant="subtle" size="xs" color="gray">
       <Info size={14} />

@@ -1,5 +1,5 @@
+import { stat } from 'node:fs/promises';
 import { gguf } from '@huggingface/gguf';
-import { stat } from 'fs/promises';
 import type { Acceleration } from '@/types';
 
 interface VramCalculationParams {
@@ -20,7 +20,6 @@ function getAccelerationOverhead(acceleration: Acceleration) {
       return { multiplier: 1.15, computeBufferGB: 0.4, headroomGB: 0.2 };
     case 'clblast':
       return { multiplier: 1.2, computeBufferGB: 0.5, headroomGB: 0.3 };
-    // eslint-disable-next-line no-comments/disallowComments
     // assuming metal on macOS which we refer to as "cpu" acceleration
     case 'cpu':
       return { multiplier: 1.05, computeBufferGB: 0.2, headroomGB: 0.1 };
@@ -52,8 +51,7 @@ export async function calculateOptimalGpuLayers({
   flashAttention = false,
   acceleration,
 }: VramCalculationParams) {
-  const isUrl =
-    modelPath.startsWith('http://') || modelPath.startsWith('https://');
+  const isUrl = modelPath.startsWith('http://') || modelPath.startsWith('https://');
 
   let fileSize: number;
   if (isUrl) {
@@ -79,23 +77,17 @@ export async function calculateOptimalGpuLayers({
 
   const metadataRecord = metadata as Record<string, unknown>;
 
-  const architecture =
-    (metadataRecord['general.architecture'] as string) || 'llama';
-  const totalLayers =
-    (metadataRecord[`${architecture}.block_count`] as number) || 32;
-  const embeddingLength =
-    (metadataRecord[`${architecture}.embedding_length`] as number) || 4096;
-  const headCount =
-    (metadataRecord[`${architecture}.attention.head_count`] as number) || 32;
+  const architecture = (metadataRecord['general.architecture'] as string) || 'llama';
+  const totalLayers = (metadataRecord[`${architecture}.block_count`] as number) || 32;
+  const embeddingLength = (metadataRecord[`${architecture}.embedding_length`] as number) || 4096;
+  const headCount = (metadataRecord[`${architecture}.attention.head_count`] as number) || 32;
   const headCountKv =
-    (metadataRecord[`${architecture}.attention.head_count_kv`] as number) ||
-    headCount;
+    (metadataRecord[`${architecture}.attention.head_count_kv`] as number) || headCount;
 
   const headDim = embeddingLength / headCount;
   const kvDim = headCountKv * headDim;
 
-  const { multiplier, computeBufferGB, headroomGB } =
-    getAccelerationOverhead(acceleration);
+  const { multiplier, computeBufferGB, headroomGB } = getAccelerationOverhead(acceleration);
 
   const modelSizeGB = fileSize / 1024 ** 3;
   const effectiveModelSizeGB = modelSizeGB * multiplier;
@@ -107,12 +99,7 @@ export async function calculateOptimalGpuLayers({
 
   for (let layers = 1; layers <= totalLayers; layers++) {
     const modelVram = layers * vramPerLayerGB;
-    const contextVram = estimateContextVram(
-      contextSize,
-      layers,
-      kvDim,
-      flashAttention
-    );
+    const contextVram = estimateContextVram(contextSize, layers, kvDim, flashAttention);
     const totalVram = modelVram + contextVram;
 
     if (totalVram <= availableForModel) {
@@ -123,12 +110,7 @@ export async function calculateOptimalGpuLayers({
   }
 
   const modelVramGB = recommendedLayers * vramPerLayerGB;
-  const contextVramGB = estimateContextVram(
-    contextSize,
-    recommendedLayers,
-    kvDim,
-    flashAttention
-  );
+  const contextVramGB = estimateContextVram(contextSize, recommendedLayers, kvDim, flashAttention);
 
   return {
     recommendedLayers,

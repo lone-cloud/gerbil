@@ -1,7 +1,7 @@
-import { Text, Group, TextInput } from '@mantine/core';
+import { Group, Text, TextInput } from '@mantine/core';
 import { InfoTooltip } from '@/components/InfoTooltip';
-import { useLaunchConfigStore } from '@/stores/launchConfig';
 import { Select } from '@/components/Select';
+import { useLaunchConfigStore } from '@/stores/launchConfig';
 import type { AccelerationOption } from '@/types';
 
 const GPU_ACCELERATIONS = ['cuda', 'rocm', 'vulkan', 'clblast'];
@@ -11,29 +11,16 @@ interface GpuDeviceSelectorProps {
   availableAccelerations: AccelerationOption[];
 }
 
-export const GpuDeviceSelector = ({
-  availableAccelerations,
-}: GpuDeviceSelectorProps) => {
-  const {
-    acceleration,
-    gpuDeviceSelection,
-    tensorSplit,
-    setGpuDeviceSelection,
-    setTensorSplit,
-  } = useLaunchConfigStore();
+export const GpuDeviceSelector = ({ availableAccelerations }: GpuDeviceSelectorProps) => {
+  const { acceleration, gpuDeviceSelection, tensorSplit, setGpuDeviceSelection, setTensorSplit } =
+    useLaunchConfigStore();
 
-  const selectedAcceleration = availableAccelerations.find(
-    (a) => a.value === acceleration
-  );
+  const selectedAcceleration = availableAccelerations.find((a) => a.value === acceleration);
   const isGpuAcceleration = GPU_ACCELERATIONS.includes(acceleration);
 
   const getDiscreteDeviceCount = () => {
     if (!selectedAcceleration?.devices) return 0;
-    if (
-      acceleration === 'clblast' ||
-      acceleration === 'vulkan' ||
-      acceleration === 'rocm'
-    ) {
+    if (acceleration === 'clblast' || acceleration === 'vulkan' || acceleration === 'rocm') {
       return selectedAcceleration.devices.filter(
         (device) => typeof device === 'string' || !device.isIntegrated
       ).length;
@@ -68,9 +55,7 @@ export const GpuDeviceSelector = ({
             label: `GPU ${index}: ${deviceName}`,
           };
         })
-        .filter(
-          (option): option is NonNullable<typeof option> => option !== null
-        );
+        .filter((option): option is NonNullable<typeof option> => option !== null);
     }
 
     if (acceleration === 'vulkan' || acceleration === 'rocm') {
@@ -85,9 +70,7 @@ export const GpuDeviceSelector = ({
             label: `GPU ${index}: ${deviceName}`,
           };
         })
-        .filter(
-          (option): option is NonNullable<typeof option> => option !== null
-        );
+        .filter((option): option is NonNullable<typeof option> => option !== null);
 
       return [{ value: 'all', label: 'All GPUs' }, ...discreteDeviceOptions];
     }

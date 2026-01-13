@@ -1,31 +1,31 @@
-import { useEffect, useState, useRef } from 'react';
 import {
-  Stack,
-  TextInput,
-  Text,
-  Group,
   ActionIcon,
-  Tooltip,
-  Badge,
-  Loader,
   Alert,
+  Badge,
+  Group,
+  Loader,
   ScrollArea,
   SegmentedControl,
+  Stack,
+  Text,
+  TextInput,
+  Tooltip,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
-import { Search, ArrowLeft, ExternalLink } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Search } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { Modal } from '@/components/Modal';
-import { useHuggingFaceSearch } from '@/hooks/useHuggingFaceSearch';
 import { HUGGINGFACE_BASE_URL } from '@/constants';
+import { useHuggingFaceSearch } from '@/hooks/useHuggingFaceSearch';
 import type {
-  HuggingFaceModelInfo,
   HuggingFaceFileInfo,
-  HuggingFaceSortOption,
+  HuggingFaceModelInfo,
   HuggingFaceSearchParams,
+  HuggingFaceSortOption,
 } from '@/types';
-import { ModelsTable } from './ModelsTable';
 import { FilesTable } from './FilesTable';
 import { ModelCard } from './ModelCard';
+import { ModelsTable } from './ModelsTable';
 
 interface HuggingFaceSearchModalProps {
   opened: boolean;
@@ -40,9 +40,7 @@ export const HuggingFaceSearchModal = ({
   onSelect,
   searchParams: initialSearchParams,
 }: HuggingFaceSearchModalProps) => {
-  const [searchQuery, setSearchQuery] = useState(
-    initialSearchParams.search || ''
-  );
+  const [searchQuery, setSearchQuery] = useState(initialSearchParams.search || '');
   const [debouncedQuery] = useDebouncedValue(searchQuery, 600);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const prevOpenedRef = useRef(false);
@@ -108,17 +106,14 @@ export const HuggingFaceSearchModal = ({
 
   const handleOpenExternal = () => {
     if (selectedModel) {
-      void window.electronAPI.app.openExternal(
-        `${HUGGINGFACE_BASE_URL}/${selectedModel.id}`
-      );
+      void window.electronAPI.app.openExternal(`${HUGGINGFACE_BASE_URL}/${selectedModel.id}`);
     }
   };
 
   const getFilterBadges = () => {
     const badges: string[] = [];
     if (searchParams?.filter) badges.push(searchParams.filter.toUpperCase());
-    if (searchParams?.pipelineTag)
-      badges.push(searchParams.pipelineTag.replace('-', ' '));
+    if (searchParams?.pipelineTag) badges.push(searchParams.pipelineTag.replace('-', ' '));
     return badges;
   };
 
@@ -193,8 +188,7 @@ export const HuggingFaceSearchModal = ({
           onScrollPositionChange={({ y }) => {
             const target = scrollAreaRef.current;
             if (!target) return;
-            const isNearBottom =
-              target.scrollHeight - y <= target.clientHeight + 100;
+            const isNearBottom = target.scrollHeight - y <= target.clientHeight + 100;
             if (isNearBottom && hasMore && !loading && !selectedModel) {
               void loadMoreModels();
             }
@@ -204,11 +198,7 @@ export const HuggingFaceSearchModal = ({
           {selectedModel ? (
             <Stack gap="md">
               <ModelCard modelId={selectedModel.id} />
-              <FilesTable
-                files={files}
-                loading={loadingFiles}
-                onSelect={handleFileSelect}
-              />
+              <FilesTable files={files} loading={loadingFiles} onSelect={handleFileSelect} />
             </Stack>
           ) : (
             <ModelsTable

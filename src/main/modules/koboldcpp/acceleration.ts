@@ -1,10 +1,10 @@
-import { join, dirname } from 'path';
-import { platform } from 'process';
-import { pathExists } from '@/utils/node/fs';
-import { getCurrentBinaryInfo } from './backend';
-import { detectGPUCapabilities, detectCPU } from '../hardware';
-import { tryExecute, safeExecute } from '@/utils/node/logging';
+import { dirname, join } from 'node:path';
+import { platform } from 'node:process';
 import type { AccelerationOption, AccelerationSupport } from '@/types';
+import { pathExists } from '@/utils/node/fs';
+import { safeExecute, tryExecute } from '@/utils/node/logging';
+import { detectCPU, detectGPUCapabilities } from '../hardware';
+import { getCurrentBinaryInfo } from './backend';
 
 const accelerationSupportCache = new Map<string, AccelerationSupport>();
 const availableAccelerationsCache = new Map<string, AccelerationOption[]>();
@@ -12,8 +12,9 @@ const availableAccelerationsCache = new Map<string, AccelerationOption[]>();
 const CPU_LABEL = platform === 'darwin' ? 'Metal' : 'CPU';
 
 async function detectAccelerationSupportFromPath(koboldBinaryPath: string) {
-  if (accelerationSupportCache.has(koboldBinaryPath)) {
-    return accelerationSupportCache.get(koboldBinaryPath)!;
+  const cached = accelerationSupportCache.get(koboldBinaryPath);
+  if (cached) {
+    return cached;
   }
 
   const support: AccelerationSupport = {
@@ -84,14 +85,12 @@ export async function getAvailableAccelerations(includeDisabled = false) {
     return [{ value: 'cpu', label: CPU_LABEL }];
   }
 
-  // eslint-disable-next-line sonarjs/cognitive-complexity
   const result = await safeExecute(async () => {
-    const [currentBinaryInfo, hardwareCapabilities, cpuCapabilities] =
-      await Promise.all([
-        getCurrentBinaryInfo(),
-        detectGPUCapabilities(),
-        includeDisabled ? detectCPU() : Promise.resolve(null),
-      ]);
+    const [currentBinaryInfo, hardwareCapabilities, cpuCapabilities] = await Promise.all([
+      getCurrentBinaryInfo(),
+      detectGPUCapabilities(),
+      includeDisabled ? detectCPU() : Promise.resolve(null),
+    ]);
 
     if (!currentBinaryInfo?.path) {
       return [{ value: 'cpu', label: CPU_LABEL }];
@@ -99,8 +98,9 @@ export async function getAvailableAccelerations(includeDisabled = false) {
 
     const cacheKey = `${currentBinaryInfo.path}:${includeDisabled}`;
 
-    if (availableAccelerationsCache.has(cacheKey)) {
-      return availableAccelerationsCache.get(cacheKey)!;
+    const cached = availableAccelerationsCache.get(cacheKey);
+    if (cached) {
+      return cached;
     }
 
     const accelerationSupport = await detectAccelerationSupport();

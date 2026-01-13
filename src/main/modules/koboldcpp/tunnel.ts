@@ -1,17 +1,16 @@
-import { createWriteStream } from 'fs';
-import { chmod, access } from 'fs/promises';
-import path from 'path';
-import { platform, arch } from 'process';
-import { pipeline } from 'stream/promises';
-import { Readable } from 'stream';
+import { createWriteStream } from 'node:fs';
+import { access, chmod } from 'node:fs/promises';
+import path from 'node:path';
+import { arch, platform } from 'node:process';
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { execa, type ResultPromise } from 'execa';
-
-import { logError } from '@/utils/node/logging';
-import { sendKoboldOutput, sendToRenderer } from '../window';
+import { GITHUB_API, OPENWEBUI, SILLYTAVERN } from '@/constants';
 import { PROXY } from '@/constants/proxy';
-import { SILLYTAVERN, OPENWEBUI, GITHUB_API } from '@/constants';
 import { getInstallDir } from '@/main/modules/config';
 import type { FrontendPreference } from '@/types';
+import { logError } from '@/utils/node/logging';
+import { sendKoboldOutput, sendToRenderer } from '../window';
 
 let activeTunnel: ResultPromise | null = null;
 let tunnelUrl: string | null = null;
@@ -36,16 +35,11 @@ const getCloudflaredAssetName = () => {
 const getCloudflaredDownloadUrl = async () => {
   const response = await fetch(GITHUB_API.CLOUDFLARED_LATEST_RELEASE_URL);
   if (!response.ok) {
-    throw new Error(
-      `Failed to fetch latest cloudflared release: ${response.statusText}`
-    );
+    throw new Error(`Failed to fetch latest cloudflared release: ${response.statusText}`);
   }
 
   const release = (await response.json()) as { tag_name: string };
-  return GITHUB_API.getCloudflaredDownloadUrl(
-    release.tag_name,
-    getCloudflaredAssetName()
-  );
+  return GITHUB_API.getCloudflaredDownloadUrl(release.tag_name, getCloudflaredAssetName());
 };
 
 const downloadCloudflared = async (binPath: string) => {
@@ -57,11 +51,8 @@ const downloadCloudflared = async (binPath: string) => {
     throw new Error(`Failed to download cloudflared: ${response.statusText}`);
   }
 
-  await pipeline(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Readable.fromWeb(response.body as any),
-    createWriteStream(binPath)
-  );
+  // biome-ignore lint/suspicious/noExplicitAny: Node.js stream types are incompatible with web streams
+  await pipeline(Readable.fromWeb(response.body as any), createWriteStream(binPath));
 
   if (platform !== 'win32') {
     await chmod(binPath, 0o755);
@@ -100,9 +91,7 @@ const waitForBackend = async (url: string, timeoutMs = 30000) => {
   return false;
 };
 
-export const startTunnel = async (
-  frontendPreference: FrontendPreference = 'koboldcpp'
-) => {
+export const startTunnel = async (frontendPreference: FrontendPreference = 'koboldcpp') => {
   if (activeTunnel) {
     return tunnelUrl;
   }
@@ -131,12 +120,7 @@ export const startTunnel = async (
       await downloadCloudflared(bin);
     }
 
-    const tunnel = execa(bin, [
-      'tunnel',
-      '--url',
-      tunnelTarget,
-      '--no-autoupdate',
-    ]);
+    const tunnel = execa(bin, ['tunnel', '--url', tunnelTarget, '--no-autoupdate']);
 
     activeTunnel = tunnel;
 
@@ -204,9 +188,7 @@ export const startTunnel = async (
     });
 
     tunnel.on('exit', (code: number, signal: string) => {
-      sendKoboldOutput(
-        `Tunnel process exited (code: ${code}, signal: ${signal})`
-      );
+      sendKoboldOutput(`Tunnel process exited (code: ${code}, signal: ${signal})`);
       activeTunnel = null;
       tunnelUrl = null;
       sendToRenderer('tunnel-url-changed', null);

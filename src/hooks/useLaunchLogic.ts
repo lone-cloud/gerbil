@@ -47,11 +47,7 @@ interface LaunchArgs {
   pipelineparallel: boolean;
 }
 
-const buildModelArgs = (
-  model: string,
-  sdmodel: string,
-  launchArgs: LaunchArgs
-) => {
+const buildModelArgs = (model: string, sdmodel: string, launchArgs: LaunchArgs) => {
   const args: string[] = [];
 
   if (model.trim() !== '') {
@@ -99,8 +95,7 @@ const buildModelArgs = (
 const buildConfigArgs = (isImageMode: boolean, launchArgs: LaunchArgs) => {
   const args: string[] = [];
 
-  const isGpuAcceleration =
-    launchArgs.acceleration && launchArgs.acceleration !== 'cpu';
+  const isGpuAcceleration = launchArgs.acceleration && launchArgs.acceleration !== 'cpu';
 
   if (isGpuAcceleration) {
     if (launchArgs.autoGpuLayers && launchArgs.gpuLayers > 0) {
@@ -187,29 +182,23 @@ const buildClblastArgs = (launchArgs: LaunchArgs) => {
   ) {
     const parsed = parseCLBlastDevice(launchArgs.gpuDeviceSelection);
     if (parsed) {
-      clblastArgs.push(
-        parsed.platformIndex.toString(),
-        parsed.deviceIndex.toString()
-      );
+      clblastArgs.push(parsed.platformIndex.toString(), parsed.deviceIndex.toString());
     } else {
       clblastArgs.push(launchArgs.gpuPlatform.toString(), '0');
     }
   } else {
-    clblastArgs.push(
-      launchArgs.gpuPlatform.toString(),
-      launchArgs.gpuDeviceSelection || '0'
-    );
+    clblastArgs.push(launchArgs.gpuPlatform.toString(), launchArgs.gpuDeviceSelection || '0');
   }
 
   return clblastArgs;
 };
 
 const addTensorSplitArgs = (args: string[], launchArgs: LaunchArgs) => {
-  if (launchArgs.tensorSplit && launchArgs.tensorSplit.trim()) {
+  if (launchArgs.tensorSplit?.trim()) {
     const tensorValues = launchArgs.tensorSplit
       .split(',')
       .map((value) => value.trim())
-      .filter((value) => value !== '' && !isNaN(Number(value)));
+      .filter((value) => value !== '' && !Number.isNaN(Number(value)));
 
     if (tensorValues.length > 0) {
       args.push('--tensorsplit', ...tensorValues);
@@ -237,10 +226,7 @@ const buildBackendArgs = (launchArgs: LaunchArgs, platform: string) => {
     launchArgs.acceleration === 'rocm' ||
     launchArgs.acceleration === 'vulkan';
 
-  if (
-    launchArgs.acceleration === 'cuda' ||
-    launchArgs.acceleration === 'rocm'
-  ) {
+  if (launchArgs.acceleration === 'cuda' || launchArgs.acceleration === 'rocm') {
     args.push(...buildCudaArgs(launchArgs));
 
     if (launchArgs.gpuDeviceSelection === 'all' && isTensorSplitSupported) {
@@ -270,11 +256,7 @@ function parseCLBlastDevice(deviceString: string) {
   return null;
 }
 
-export const useLaunchLogic = ({
-  model,
-  sdmodel,
-  onLaunch,
-}: UseLaunchLogicProps) => {
+export const useLaunchLogic = ({ model, sdmodel, onLaunch }: UseLaunchLogicProps) => {
   const [isLaunching, setIsLaunching] = useState(false);
 
   const handleLaunch = useCallback(
@@ -299,29 +281,19 @@ export const useLaunchLogic = ({
       ];
 
       if (launchArgs.additionalArguments.trim()) {
-        const additionalArgs = launchArgs.additionalArguments
-          .trim()
-          .split(/\s+/);
+        const additionalArgs = launchArgs.additionalArguments.trim().split(/\s+/);
         args.push(...additionalArgs);
       }
 
-      const preLaunchCommands = launchArgs.preLaunchCommands.filter(
-        (cmd) => cmd.trim() !== ''
-      );
+      const preLaunchCommands = launchArgs.preLaunchCommands.filter((cmd) => cmd.trim() !== '');
 
-      const result = await window.electronAPI.kobold.launchKoboldCpp(
-        args,
-        preLaunchCommands
-      );
+      const result = await window.electronAPI.kobold.launchKoboldCpp(args, preLaunchCommands);
 
       if (result.success) {
         onLaunch();
       } else {
         const errorMessage = result.error || 'Unknown launch error';
-        window.electronAPI.logs.logError(
-          'Launch failed:',
-          new Error(errorMessage)
-        );
+        window.electronAPI.logs.logError('Launch failed:', new Error(errorMessage));
       }
 
       setIsLaunching(false);

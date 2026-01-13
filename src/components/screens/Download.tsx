@@ -1,12 +1,12 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { Card, Text, Title, Loader, Stack, Container } from '@mantine/core';
+import { Card, Container, Loader, Stack, Text, Title } from '@mantine/core';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { DownloadCard } from '@/components/DownloadCard';
 import { ImportBackendLink } from '@/components/ImportBackendLink';
-import { getPlatformDisplayName } from '@/utils/platform';
-import { formatDownloadSize } from '@/utils/format';
-import { getAssetDescription } from '@/utils/assets';
 import { useKoboldBackendsStore } from '@/stores/koboldBackends';
 import type { DownloadItem } from '@/types/electron';
+import { getAssetDescription } from '@/utils/assets';
+import { formatDownloadSize } from '@/utils/format';
+import { getPlatformDisplayName } from '@/utils/platform';
 
 interface DownloadScreenProps {
   onDownloadComplete: () => void;
@@ -73,14 +73,10 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
                 <Stack gap="sm">
                   {availableDownloads.map((download) => {
                     const isDownloading =
-                      Boolean(downloading) &&
-                      downloadingAsset === download.name;
+                      Boolean(downloading) && downloadingAsset === download.name;
 
                     return (
-                      <div
-                        key={download.name}
-                        ref={isDownloading ? downloadingItemRef : null}
-                      >
+                      <div key={download.name} ref={isDownloading ? downloadingItemRef : null}>
                         <DownloadCard
                           backend={{
                             name: download.name,
@@ -95,8 +91,7 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
                           description={getAssetDescription(download.name)}
                           disabled={
                             importing ||
-                            (Boolean(downloading) &&
-                              downloadingAsset !== download.name)
+                            (Boolean(downloading) && downloadingAsset !== download.name)
                           }
                           onDownload={(e) => {
                             e.stopPropagation();
@@ -109,9 +104,8 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
                 </Stack>
               ) : (
                 <Text size="sm" c="dimmed" ta="center">
-                  Unable to fetch downloads for your platform (
-                  {getPlatformDisplayName(platform)}). Check your internet
-                  connection and try again.
+                  Unable to fetch downloads for your platform ({getPlatformDisplayName(platform)}).
+                  Check your internet connection and try again.
                 </Text>
               )}
 

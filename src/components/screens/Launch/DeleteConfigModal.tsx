@@ -1,4 +1,4 @@
-import { Text, Group, Button, Stack } from '@mantine/core';
+import { Button, Group, Stack, Text } from '@mantine/core';
 import { Modal } from '@/components/Modal';
 import { stripFileExtension } from '@/utils/format';
 
@@ -21,8 +21,7 @@ export const DeleteConfigModal = ({
     <Modal opened={opened} onClose={onClose} title="Delete Configuration">
       <Stack gap="md">
         <Text size="sm" c="dimmed">
-          Are you sure you want to delete &ldquo;{displayName}&rdquo;? This
-          action cannot be undone.
+          Are you sure you want to delete &ldquo;{displayName}&rdquo;? This action cannot be undone.
         </Text>
 
         <Group justify="flex-end" gap="sm">

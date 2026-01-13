@@ -1,15 +1,6 @@
-import {
-  Text,
-  Stack,
-  Group,
-  Badge,
-  Accordion,
-  Code,
-  TextInput,
-  Button,
-} from '@mantine/core';
-import { useState } from 'react';
+import { Accordion, Badge, Button, Code, Group, Stack, Text, TextInput } from '@mantine/core';
 import { Code as CodeIcon } from 'lucide-react';
+import { useState } from 'react';
 import { Modal } from '@/components/Modal';
 
 interface CommandLineArgumentsModalProps {
@@ -108,8 +99,7 @@ const COMMAND_LINE_ARGUMENTS = [
   },
   {
     flag: '--analyze',
-    description:
-      'Reads the metadata, weight types and tensor names in any GGUF file.',
+    description: 'Reads the metadata, weight types and tensor names in any GGUF file.',
     metavar: '[filename]',
     default: '',
     category: 'Advanced',
@@ -130,18 +120,7 @@ const COMMAND_LINE_ARGUMENTS = [
     description:
       'Sets the batch size used in batched processing (default 512). Setting it to -1 disables batched mode, but keeps other benefits like GPU offload.',
     type: 'int',
-    choices: [
-      '-1',
-      '16',
-      '32',
-      '64',
-      '128',
-      '256',
-      '512',
-      '1024',
-      '2048',
-      '4096',
-    ],
+    choices: ['-1', '16', '32', '64', '128', '256', '512', '1024', '2048', '4096'],
     default: 512,
     category: 'Advanced',
   },
@@ -212,8 +191,7 @@ const COMMAND_LINE_ARGUMENTS = [
   },
   {
     flag: '--onready',
-    description:
-      'An optional shell command to execute after the model has been loaded.',
+    description: 'An optional shell command to execute after the model has been loaded.',
     metavar: '[shell command]',
     type: 'string',
     default: '',
@@ -310,8 +288,7 @@ const COMMAND_LINE_ARGUMENTS = [
   },
   {
     flag: '--mmproj',
-    description:
-      'Select a multimodal projector file for vision models like LLaVA.',
+    description: 'Select a multimodal projector file for vision models like LLaVA.',
     metavar: '[filename]',
     default: '',
     category: 'Multimodal',
@@ -353,8 +330,7 @@ const COMMAND_LINE_ARGUMENTS = [
   {
     flag: '--draftgpulayers',
     aliases: ['--gpu-layers-draft', '--n-gpu-layers-draft', '-ngld'],
-    description:
-      'How many layers to offload to GPU for the draft model (default=full offload)',
+    description: 'How many layers to offload to GPU for the draft model (default=full offload)',
     metavar: '[layers]',
     type: 'int',
     default: 999,
@@ -401,8 +377,7 @@ const COMMAND_LINE_ARGUMENTS = [
   },
   {
     flag: '--ignoremissing',
-    description:
-      'Ignores all missing non-essential files, just skipping them instead.',
+    description: 'Ignores all missing non-essential files, just skipping them instead.',
     type: 'boolean',
     category: 'Advanced',
   },
@@ -438,8 +413,7 @@ const COMMAND_LINE_ARGUMENTS = [
   },
   {
     flag: '--unpack',
-    description:
-      'Extracts the file contents of the KoboldCpp binary into a target directory.',
+    description: 'Extracts the file contents of the KoboldCpp binary into a target directory.',
     metavar: 'destination',
     type: 'string',
     default: '',
@@ -447,8 +421,7 @@ const COMMAND_LINE_ARGUMENTS = [
   },
   {
     flag: '--exportconfig',
-    description:
-      'Exports the current selected arguments as a .kcpps settings file',
+    description: 'Exports the current selected arguments as a .kcpps settings file',
     metavar: '[filename]',
     type: 'string',
     default: '',
@@ -456,8 +429,7 @@ const COMMAND_LINE_ARGUMENTS = [
   },
   {
     flag: '--exporttemplate',
-    description:
-      'Exports the current selected arguments as a .kcppt template file',
+    description: 'Exports the current selected arguments as a .kcppt template file',
     metavar: '[filename]',
     type: 'string',
     default: '',
@@ -465,8 +437,7 @@ const COMMAND_LINE_ARGUMENTS = [
   },
   {
     flag: '--nomodel',
-    description:
-      'Allows you to launch the GUI alone, without selecting any model.',
+    description: 'Allows you to launch the GUI alone, without selecting any model.',
     type: 'boolean',
     category: 'Advanced',
   },
@@ -577,8 +548,7 @@ const COMMAND_LINE_ARGUMENTS = [
   },
   {
     flag: '--sdquant',
-    description:
-      'If specified, loads the model quantized to save memory. 0=off, 1=q8, 2=q4',
+    description: 'If specified, loads the model quantized to save memory. 0=off, 1=q8, 2=q4',
     metavar: '[quantization level 0/1/2]',
     type: 'int',
     choices: ['0', '1', '2'],
@@ -605,8 +575,7 @@ const COMMAND_LINE_ARGUMENTS = [
   },
   {
     flag: '--sdvaeauto',
-    description:
-      'Uses a built-in VAE via TAE SD, which is very fast and fixed bad VAEs.',
+    description: 'Uses a built-in VAE via TAE SD, which is very fast and fixed bad VAEs.',
     type: 'boolean',
     category: 'Image Generation',
   },
@@ -629,23 +598,20 @@ const COMMAND_LINE_ARGUMENTS = [
   },
   {
     flag: '--sdoffloadcpu',
-    description:
-      'Offload image weights in RAM to save VRAM, swap into VRAM when needed.',
+    description: 'Offload image weights in RAM to save VRAM, swap into VRAM when needed.',
     type: 'boolean',
     category: 'Image Generation',
   },
   {
     flag: '--sdgendefaults',
-    description:
-      'Sets default parameters for image generation, as a JSON string.',
+    description: 'Sets default parameters for image generation, as a JSON string.',
     metavar: '{"parameter":"value",...}',
     default: '',
     category: 'Image Generation',
   },
   {
     flag: '--whispermodel',
-    description:
-      'Specify a Whisper .bin model to enable Speech-To-Text transcription.',
+    description: 'Specify a Whisper .bin model to enable Speech-To-Text transcription.',
     metavar: '[filename]',
     default: '',
     category: 'Audio',
@@ -688,16 +654,14 @@ const COMMAND_LINE_ARGUMENTS = [
   },
   {
     flag: '--embeddingsmodel',
-    description:
-      'Specify an embeddings model to be loaded for generating embedding vectors.',
+    description: 'Specify an embeddings model to be loaded for generating embedding vectors.',
     metavar: '[filename]',
     default: '',
     category: 'Embeddings',
   },
   {
     flag: '--embeddingsgpu',
-    description:
-      'Attempts to offload layers of the embeddings model to GPU. Usually not needed.',
+    description: 'Attempts to offload layers of the embeddings model to GPU. Usually not needed.',
     type: 'boolean',
     category: 'Embeddings',
   },
@@ -740,10 +704,7 @@ export const CommandLineArgumentsModal = ({
         (arg) =>
           arg.flag.toLowerCase().includes(searchQuery.toLowerCase()) ||
           arg.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (arg.aliases &&
-            arg.aliases.some((alias) =>
-              alias.toLowerCase().includes(searchQuery.toLowerCase())
-            ))
+          arg.aliases?.some((alias) => alias.toLowerCase().includes(searchQuery.toLowerCase()))
       );
 
       if (filteredArgs.length > 0) {
@@ -782,8 +743,8 @@ export const CommandLineArgumentsModal = ({
     >
       <Stack gap="md">
         <Text size="sm" c="dimmed">
-          These are additional command line arguments that can be added to the
-          &quot;Additional Arguments&quot; input field.
+          These are additional command line arguments that can be added to the &quot;Additional
+          Arguments&quot; input field.
         </Text>
 
         <TextInput
@@ -816,21 +777,12 @@ export const CommandLineArgumentsModal = ({
                     >
                       <Group gap="xs" wrap="wrap" justify="space-between">
                         <Group gap="xs" wrap="wrap" style={{ flex: 1 }}>
-                          <Code
-                            style={{ fontSize: '0.875em', fontWeight: 600 }}
-                          >
-                            {arg.flag}
-                          </Code>
-                          {arg.aliases &&
-                            arg.aliases.map((alias) => (
-                              <Code
-                                key={alias}
-                                style={{ fontSize: '0.75em' }}
-                                c="dimmed"
-                              >
-                                {alias}
-                              </Code>
-                            ))}
+                          <Code style={{ fontSize: '0.875em', fontWeight: 600 }}>{arg.flag}</Code>
+                          {arg.aliases?.map((alias) => (
+                            <Code key={alias} style={{ fontSize: '0.75em' }} c="dimmed">
+                              {alias}
+                            </Code>
+                          ))}
                           {arg.type && (
                             <Badge size="xs" variant="light" color="blue">
                               {arg.type}
@@ -839,11 +791,7 @@ export const CommandLineArgumentsModal = ({
                         </Group>
 
                         {onAddArgument && (
-                          <Button
-                            size="xs"
-                            variant="light"
-                            onClick={() => handleAddArgument(arg)}
-                          >
+                          <Button size="xs" variant="light" onClick={() => handleAddArgument(arg)}>
                             Add
                           </Button>
                         )}
@@ -853,9 +801,7 @@ export const CommandLineArgumentsModal = ({
                         {arg.description}
                       </Text>
 
-                      {(arg.metavar ||
-                        arg.default !== undefined ||
-                        arg.choices) && (
+                      {(arg.metavar || arg.default !== undefined || arg.choices) && (
                         <Group gap="lg">
                           {arg.metavar && (
                             <Text size="xs" c="dimmed">

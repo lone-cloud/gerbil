@@ -1,35 +1,25 @@
-import { spawn, ChildProcess } from 'child_process';
-import { platform } from 'process';
-
-import { terminateProcess } from '@/utils/node/process';
-import { logError, safeExecute } from '@/utils/node/logging';
-import { sendKoboldOutput, sendToRenderer } from '@/main/modules/window';
+import { type ChildProcess, spawn } from 'node:child_process';
+import { platform } from 'node:process';
 import { SERVER_READY_SIGNALS } from '@/constants';
-import type { KoboldCrashInfo } from '@/types/ipc';
-import { pathExists } from '@/utils/node/fs';
-import { parseKoboldConfig } from '@/utils/node/kobold';
-import { getCurrentBackend } from '../backend';
-import {
-  getCurrentKoboldBinary,
-  get as getConfig,
-  getInstallDir,
-} from '@/main/modules/config';
-import { startFrontend as startSillyTavernFrontend } from '@/main/modules/sillytavern';
+import { get as getConfig, getCurrentKoboldBinary, getInstallDir } from '@/main/modules/config';
 import { startFrontend as startOpenWebUIFrontend } from '@/main/modules/openwebui';
-import {
-  patchKliteEmbd,
-  patchKcppSduiEmbd,
-  patchLcppGzEmbd,
-  filterSpam,
-} from './patches';
-import { startProxy, stopProxy } from '../proxy';
-import { startTunnel, stopTunnel } from '../tunnel';
-import { resolveModelPath, abortActiveDownloads } from '../model-download';
+import { startFrontend as startSillyTavernFrontend } from '@/main/modules/sillytavern';
+import { sendKoboldOutput, sendToRenderer } from '@/main/modules/window';
 import type {
   FrontendPreference,
   ImageGenerationFrontendPreference,
   ModelParamType,
 } from '@/types';
+import type { KoboldCrashInfo } from '@/types/ipc';
+import { pathExists } from '@/utils/node/fs';
+import { parseKoboldConfig } from '@/utils/node/kobold';
+import { logError, safeExecute } from '@/utils/node/logging';
+import { terminateProcess } from '@/utils/node/process';
+import { getCurrentBackend } from '../backend';
+import { abortActiveDownloads, resolveModelPath } from '../model-download';
+import { startProxy, stopProxy } from '../proxy';
+import { startTunnel, stopTunnel } from '../tunnel';
+import { filterSpam, patchKcppSduiEmbd, patchKliteEmbd, patchLcppGzEmbd } from './patches';
 
 let koboldProcess: ChildProcess | null = null;
 let isIntentionalStop = false;
@@ -73,9 +63,7 @@ function spawnPreLaunchCommands(commands: string[]) {
         if (code !== 0 && code !== null) {
           sendKoboldOutput(`Command "${command}" exited with code ${code}\n`);
         } else if (signal) {
-          sendKoboldOutput(
-            `Command "${command}" terminated with signal ${signal}\n`
-          );
+          sendKoboldOutput(`Command "${command}" terminated with signal ${signal}\n`);
         }
       });
     } catch (error) {
@@ -87,9 +75,7 @@ function spawnPreLaunchCommands(commands: string[]) {
 }
 
 async function stopPreLaunchProcesses() {
-  const terminations = Array.from(preLaunchProcesses).map((process) =>
-    terminateProcess(process)
-  );
+  const terminations = Array.from(preLaunchProcesses).map((process) => terminateProcess(process));
 
   await Promise.all(terminations);
   preLaunchProcesses.clear();
@@ -126,8 +112,7 @@ async function resolveModelPaths(args: string[]) {
         resolvedArgs.push(resolvedPath);
         i++;
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
         if (errorMessage.includes('aborted')) {
           throw error;
         }
@@ -225,9 +210,8 @@ export async function launchKoboldCpp(
       void startTunnel(frontendPreference);
     }
 
-    let readyResolve:
-      | ((value: { success: boolean; pid?: number; error?: string }) => void)
-      | null = null;
+    let readyResolve: ((value: { success: boolean; pid?: number; error?: string }) => void) | null =
+      null;
     let readyReject: ((error: Error) => void) | null = null;
     let isReady = false;
 
@@ -275,7 +259,7 @@ export async function launchKoboldCpp(
       const displayMessage = signal
         ? `\nProcess terminated with signal ${signal}`
         : code === 0
-          ? `\nProcess exited successfully`
+          ? '\nProcess exited successfully'
           : code && (code > 1 || code < 0)
             ? `\nProcess exited with code ${code}`
             : `\nProcess exited with code ${code}`;
@@ -297,9 +281,7 @@ export async function launchKoboldCpp(
 
       if (!isReady) {
         readyReject?.(
-          new Error(
-            `Process exited before ready signal (code: ${code}, signal: ${signal})`
-          )
+          new Error(`Process exited before ready signal (code: ${code}, signal: ${signal})`)
         );
       }
     });
@@ -347,9 +329,7 @@ export const launchKoboldCppWithCustomFrontends = async (
 ) =>
   safeExecute(async () => {
     const frontendPreference = getConfig('frontendPreference');
-    const imageGenerationFrontendPreference = getConfig(
-      'imageGenerationFrontendPreference'
-    );
+    const imageGenerationFrontendPreference = getConfig('imageGenerationFrontendPreference');
 
     const { isTextMode } = parseKoboldConfig(args);
 

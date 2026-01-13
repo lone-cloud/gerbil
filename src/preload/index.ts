@@ -1,71 +1,49 @@
-import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
+import { contextBridge, type IpcRendererEvent, ipcRenderer } from 'electron';
+import type { CpuMetrics, GpuMetrics, MemoryMetrics } from '@/main/modules/monitoring';
 import type {
-  KoboldAPI,
   AppAPI,
   ConfigAPI,
-  LogsAPI,
   DependenciesAPI,
+  KoboldAPI,
+  LogsAPI,
   MonitoringAPI,
-  UpdaterAPI,
   NotepadAPI,
+  UpdaterAPI,
 } from '@/types/electron';
-import type {
-  CpuMetrics,
-  MemoryMetrics,
-  GpuMetrics,
-} from '@/main/modules/monitoring';
 import type { KoboldCrashInfo } from '@/types/ipc';
 
 const koboldAPI: KoboldAPI = {
   getInstalledBackends: () => ipcRenderer.invoke('kobold:getInstalledBackends'),
   getCurrentBackend: () => ipcRenderer.invoke('kobold:getCurrentBackend'),
-  setCurrentBackend: (backend) =>
-    ipcRenderer.invoke('kobold:setCurrentBackend', backend),
+  setCurrentBackend: (backend) => ipcRenderer.invoke('kobold:setCurrentBackend', backend),
   getPlatform: () => ipcRenderer.invoke('kobold:getPlatform'),
   detectGPU: () => ipcRenderer.invoke('kobold:detectGPU'),
   detectCPU: () => ipcRenderer.invoke('kobold:detectCPU'),
-  detectGPUCapabilities: () =>
-    ipcRenderer.invoke('kobold:detectGPUCapabilities'),
+  detectGPUCapabilities: () => ipcRenderer.invoke('kobold:detectGPUCapabilities'),
   detectGPUMemory: () => ipcRenderer.invoke('kobold:detectGPUMemory'),
   detectSystemMemory: () => ipcRenderer.invoke('kobold:detectSystemMemory'),
   detectROCm: () => ipcRenderer.invoke('kobold:detectROCm'),
-  detectAccelerationSupport: () =>
-    ipcRenderer.invoke('kobold:detectAccelerationSupport'),
+  detectAccelerationSupport: () => ipcRenderer.invoke('kobold:detectAccelerationSupport'),
   getAvailableAccelerations: (includeDisabled) =>
     ipcRenderer.invoke('kobold:getAvailableAccelerations', includeDisabled),
   getCurrentInstallDir: () => ipcRenderer.invoke('kobold:getCurrentInstallDir'),
-  selectInstallDirectory: () =>
-    ipcRenderer.invoke('kobold:selectInstallDirectory'),
-  downloadRelease: (asset, options) =>
-    ipcRenderer.invoke('kobold:downloadRelease', asset, options),
-  deleteRelease: (binaryPath) =>
-    ipcRenderer.invoke('kobold:deleteRelease', binaryPath),
+  selectInstallDirectory: () => ipcRenderer.invoke('kobold:selectInstallDirectory'),
+  downloadRelease: (asset, options) => ipcRenderer.invoke('kobold:downloadRelease', asset, options),
+  deleteRelease: (binaryPath) => ipcRenderer.invoke('kobold:deleteRelease', binaryPath),
   launchKoboldCpp: (args, preLaunchCommands) =>
     ipcRenderer.invoke('kobold:launchKoboldCpp', args, preLaunchCommands),
   getConfigFiles: () => ipcRenderer.invoke('kobold:getConfigFiles'),
   saveConfigFile: (configName, configData) =>
     ipcRenderer.invoke('kobold:saveConfigFile', configName, configData),
-  deleteConfigFile: (configName) =>
-    ipcRenderer.invoke('kobold:deleteConfigFile', configName),
+  deleteConfigFile: (configName) => ipcRenderer.invoke('kobold:deleteConfigFile', configName),
   getSelectedConfig: () => ipcRenderer.invoke('kobold:getSelectedConfig'),
-  setSelectedConfig: (configName) =>
-    ipcRenderer.invoke('kobold:setSelectedConfig', configName),
-  parseConfigFile: (filePath) =>
-    ipcRenderer.invoke('kobold:parseConfigFile', filePath),
-  selectModelFile: (title) =>
-    ipcRenderer.invoke('kobold:selectModelFile', title),
+  setSelectedConfig: (configName) => ipcRenderer.invoke('kobold:setSelectedConfig', configName),
+  parseConfigFile: (filePath) => ipcRenderer.invoke('kobold:parseConfigFile', filePath),
+  selectModelFile: (title) => ipcRenderer.invoke('kobold:selectModelFile', title),
   importLocalBackend: () => ipcRenderer.invoke('kobold:importLocalBackend'),
-  getLocalModels: (paramType) =>
-    ipcRenderer.invoke('kobold:getLocalModels', paramType),
-  analyzeModel: (filePath) =>
-    ipcRenderer.invoke('kobold:analyzeModel', filePath),
-  calculateOptimalLayers: (
-    modelPath,
-    contextSize,
-    availableVramGB,
-    flashAttention,
-    acceleration
-  ) =>
+  getLocalModels: (paramType) => ipcRenderer.invoke('kobold:getLocalModels', paramType),
+  analyzeModel: (filePath) => ipcRenderer.invoke('kobold:analyzeModel', filePath),
+  calculateOptimalLayers: (modelPath, contextSize, availableVramGB, flashAttention, acceleration) =>
     ipcRenderer.invoke(
       'kobold:calculateOptimalLayers',
       modelPath,
@@ -76,8 +54,7 @@ const koboldAPI: KoboldAPI = {
     ),
   stopKoboldCpp: () => void ipcRenderer.invoke('kobold:stopKoboldCpp'),
   onDownloadProgress: (callback) => {
-    const handler = (_: IpcRendererEvent, progress: number) =>
-      callback(progress);
+    const handler = (_: IpcRendererEvent, progress: number) => callback(progress);
     ipcRenderer.on('download-progress', handler);
 
     return () => {
@@ -109,8 +86,7 @@ const koboldAPI: KoboldAPI = {
     };
   },
   onKoboldCrashed: (callback) => {
-    const handler = (_: IpcRendererEvent, crashInfo: KoboldCrashInfo) =>
-      callback(crashInfo);
+    const handler = (_: IpcRendererEvent, crashInfo: KoboldCrashInfo) => callback(crashInfo);
     ipcRenderer.on('kobold-crashed', handler);
 
     return () => {
@@ -148,15 +124,11 @@ const appAPI: AppAPI = {
   getZoomLevel: () => ipcRenderer.invoke('app:getZoomLevel'),
   setZoomLevel: async (level) => ipcRenderer.invoke('app:setZoomLevel', level),
   getColorScheme: () => ipcRenderer.invoke('app:getColorScheme'),
-  setColorScheme: async (colorScheme) =>
-    ipcRenderer.invoke('app:setColorScheme', colorScheme),
+  setColorScheme: async (colorScheme) => ipcRenderer.invoke('app:setColorScheme', colorScheme),
   getEnableSystemTray: () => ipcRenderer.invoke('app:getEnableSystemTray'),
-  setEnableSystemTray: (enabled) =>
-    ipcRenderer.invoke('app:setEnableSystemTray', enabled),
-  getStartMinimizedToTray: () =>
-    ipcRenderer.invoke('app:getStartMinimizedToTray'),
-  setStartMinimizedToTray: (enabled) =>
-    ipcRenderer.invoke('app:setStartMinimizedToTray', enabled),
+  setEnableSystemTray: (enabled) => ipcRenderer.invoke('app:setEnableSystemTray', enabled),
+  getStartMinimizedToTray: () => ipcRenderer.invoke('app:getStartMinimizedToTray'),
+  setStartMinimizedToTray: (enabled) => ipcRenderer.invoke('app:setStartMinimizedToTray', enabled),
   updateTrayState: (state) => ipcRenderer.invoke('app:updateTrayState', state),
   onTrayEject: (callback) => {
     const handler = () => callback();
@@ -166,8 +138,7 @@ const appAPI: AppAPI = {
     };
   },
   openExternal: (url) => ipcRenderer.invoke('app:openExternal', url),
-  openPerformanceManager: () =>
-    ipcRenderer.invoke('app:openPerformanceManager'),
+  openPerformanceManager: () => ipcRenderer.invoke('app:openPerformanceManager'),
   checkForUpdates: () => ipcRenderer.invoke('app:checkForUpdates'),
   downloadUpdate: () => ipcRenderer.invoke('app:downloadUpdate'),
   quitAndInstall: () => ipcRenderer.invoke('app:quitAndInstall'),
@@ -184,8 +155,7 @@ const appAPI: AppAPI = {
     };
   },
   onLineNumbersChanged: (callback) => {
-    const handler = (_: IpcRendererEvent, showLineNumbers: boolean) =>
-      callback(showLineNumbers);
+    const handler = (_: IpcRendererEvent, showLineNumbers: boolean) => callback(showLineNumbers);
 
     ipcRenderer.on('line-numbers-changed', handler);
 
@@ -201,15 +171,13 @@ const configAPI: ConfigAPI = {
 };
 
 const logsAPI: LogsAPI = {
-  logError: (message, error) =>
-    ipcRenderer.send('logs:logError', message, error),
+  logError: (message, error) => ipcRenderer.send('logs:logError', message, error),
 };
 
 const dependenciesAPI: DependenciesAPI = {
   isUvAvailable: () => ipcRenderer.invoke('dependencies:isUvAvailable'),
   isNpxAvailable: () => ipcRenderer.invoke('dependencies:isNpxAvailable'),
-  clearOpenWebUIData: () =>
-    ipcRenderer.invoke('dependencies:clearOpenWebUIData'),
+  clearOpenWebUIData: () => ipcRenderer.invoke('dependencies:clearOpenWebUIData'),
 };
 
 const monitoringAPI: MonitoringAPI = {
@@ -221,8 +189,7 @@ const monitoringAPI: MonitoringAPI = {
     };
   },
   onCpuMetrics: (callback) => {
-    const handler = (_: IpcRendererEvent, metrics: CpuMetrics) =>
-      callback(metrics);
+    const handler = (_: IpcRendererEvent, metrics: CpuMetrics) => callback(metrics);
     ipcRenderer.on('cpu-metrics', handler);
 
     return () => {
@@ -230,8 +197,7 @@ const monitoringAPI: MonitoringAPI = {
     };
   },
   onMemoryMetrics: (callback) => {
-    const handler = (_: IpcRendererEvent, metrics: MemoryMetrics) =>
-      callback(metrics);
+    const handler = (_: IpcRendererEvent, metrics: MemoryMetrics) => callback(metrics);
     ipcRenderer.on('memory-metrics', handler);
 
     return () => {
@@ -239,8 +205,7 @@ const monitoringAPI: MonitoringAPI = {
     };
   },
   onGpuMetrics: (callback) => {
-    const handler = (_: IpcRendererEvent, metrics: GpuMetrics) =>
-      callback(metrics);
+    const handler = (_: IpcRendererEvent, metrics: GpuMetrics) => callback(metrics);
     ipcRenderer.on('gpu-metrics', handler);
 
     return () => {
@@ -259,12 +224,9 @@ const updaterAPI: UpdaterAPI = {
 };
 
 const notepadAPI: NotepadAPI = {
-  saveTabContent: (title, content) =>
-    ipcRenderer.invoke('notepad:saveTabContent', title, content),
-  loadTabContent: (title) =>
-    ipcRenderer.invoke('notepad:loadTabContent', title),
-  renameTab: (oldTitle, newTitle) =>
-    ipcRenderer.invoke('notepad:renameTab', oldTitle, newTitle),
+  saveTabContent: (title, content) => ipcRenderer.invoke('notepad:saveTabContent', title, content),
+  loadTabContent: (title) => ipcRenderer.invoke('notepad:loadTabContent', title),
+  renameTab: (oldTitle, newTitle) => ipcRenderer.invoke('notepad:renameTab', oldTitle, newTitle),
   saveState: (state) => ipcRenderer.invoke('notepad:saveState', state),
   loadState: () => ipcRenderer.invoke('notepad:loadState'),
   deleteTab: (title) => ipcRenderer.invoke('notepad:deleteTab', title),

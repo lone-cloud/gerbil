@@ -1,5 +1,5 @@
-import { Select as MantineSelect } from '@mantine/core';
 import type { SelectProps } from '@mantine/core';
+import { Select as MantineSelect } from '@mantine/core';
 
 export const Select = ({
   allowDeselect = false,
@@ -7,10 +7,5 @@ export const Select = ({
   size = 'sm',
   ...props
 }: SelectProps) => (
-  <MantineSelect
-    allowDeselect={allowDeselect}
-    clearable={clearable}
-    size={size}
-    {...props}
-  />
+  <MantineSelect allowDeselect={allowDeselect} clearable={clearable} size={size} {...props} />
 );

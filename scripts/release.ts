@@ -37,9 +37,7 @@ try {
 
   console.log(`✅ Release ${tagName} created successfully!`);
   console.log(`📦 GitHub Actions will now build and publish the release.`);
-  console.log(
-    `🔗 Check the progress at: https://github.com/lone-cloud/gerbil/actions`
-  );
+  console.log(`🔗 Check the progress at: https://github.com/lone-cloud/gerbil/actions`);
 } catch (error: unknown) {
   const errorMessage = error instanceof Error ? error.message : String(error);
   console.error('❌ Error creating release:', errorMessage);

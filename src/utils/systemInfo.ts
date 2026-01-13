@@ -1,7 +1,7 @@
-import type { SystemVersionInfo } from '@/types/electron';
-import { PRODUCT_NAME } from '@/constants';
 import type { InfoItem } from '@/components/InfoCard';
-import type { HardwareInfo, GPUDevice } from '@/types/hardware';
+import { PRODUCT_NAME } from '@/constants';
+import type { SystemVersionInfo } from '@/types/electron';
+import type { GPUDevice, HardwareInfo } from '@/types/hardware';
 
 export const createSoftwareItems = (
   versionInfo: SystemVersionInfo,
@@ -13,7 +13,7 @@ export const createSoftwareItems = (
       ? (() => {
           const pkgrel = versionInfo.aurPackageVersion.split('-')[1];
           return pkgrel
-            ? `${versionInfo.appVersion} (AUR${pkgrel !== '1' ? ' r' + pkgrel : ''})`
+            ? `${versionInfo.appVersion} (AUR${pkgrel !== '1' ? ` r${pkgrel}` : ''})`
             : versionInfo.appVersion;
         })()
       : versionInfo.appVersion,
@@ -27,16 +27,13 @@ export const createSoftwareItems = (
   {
     label: 'Node.js',
     value:
-      versionInfo.nodeJsSystemVersion &&
-      versionInfo.nodeJsSystemVersion !== versionInfo.nodeVersion
+      versionInfo.nodeJsSystemVersion && versionInfo.nodeJsSystemVersion !== versionInfo.nodeVersion
         ? `${versionInfo.nodeVersion} (system: ${versionInfo.nodeJsSystemVersion})`
         : versionInfo.nodeVersion,
   },
   { label: 'Chromium', value: versionInfo.chromeVersion },
   { label: 'V8', value: versionInfo.v8Version },
-  ...(versionInfo.uvVersion
-    ? [{ label: 'uv', value: versionInfo.uvVersion }]
-    : []),
+  ...(versionInfo.uvVersion ? [{ label: 'uv', value: versionInfo.uvVersion }] : []),
 ];
 
 export const createDriverItems = (hardwareInfo: HardwareInfo) => {
@@ -62,9 +59,7 @@ export const createDriverItems = (hardwareInfo: HardwareInfo) => {
   if (gpuCapabilities.cuda.devices.length > 0) {
     items.push({
       label: 'CUDA',
-      value: gpuCapabilities.cuda.version
-        ? gpuCapabilities.cuda.version
-        : 'Available',
+      value: gpuCapabilities.cuda.version ? gpuCapabilities.cuda.version : 'Available',
     });
   }
 
@@ -78,18 +73,14 @@ export const createDriverItems = (hardwareInfo: HardwareInfo) => {
   if (gpuCapabilities.rocm.devices.length > 0) {
     items.push({
       label: 'ROCm',
-      value: gpuCapabilities.rocm.version
-        ? gpuCapabilities.rocm.version
-        : 'Available',
+      value: gpuCapabilities.rocm.version ? gpuCapabilities.rocm.version : 'Available',
     });
   }
 
   if (gpuCapabilities.vulkan.devices.length > 0) {
     items.push({
       label: 'Vulkan',
-      value: gpuCapabilities.vulkan.version
-        ? gpuCapabilities.vulkan.version
-        : 'Available',
+      value: gpuCapabilities.vulkan.version ? gpuCapabilities.vulkan.version : 'Available',
     });
   } else {
     items.push({
@@ -101,9 +92,7 @@ export const createDriverItems = (hardwareInfo: HardwareInfo) => {
   if (gpuCapabilities.clblast.devices.length > 0) {
     items.push({
       label: 'CLBlast',
-      value: gpuCapabilities.clblast.version
-        ? gpuCapabilities.clblast.version
-        : 'Available',
+      value: gpuCapabilities.clblast.version ? gpuCapabilities.clblast.version : 'Available',
     });
   }
 
@@ -114,22 +103,14 @@ export const createHardwareItems = (hardwareInfo: HardwareInfo) => [
   {
     label: 'CPU',
     value:
-      hardwareInfo.cpu.devices.length > 0
-        ? hardwareInfo.cpu.devices[0].detailedName
-        : 'Unknown',
+      hardwareInfo.cpu.devices.length > 0 ? hardwareInfo.cpu.devices[0].detailedName : 'Unknown',
   },
   {
     label: 'RAM',
     value: hardwareInfo.systemMemory
       ? `${hardwareInfo.systemMemory.totalGB} GB${
-          hardwareInfo.systemMemory.type
-            ? ` ${hardwareInfo.systemMemory.type}`
-            : ''
-        }${
-          hardwareInfo.systemMemory.speed
-            ? ` @ ${hardwareInfo.systemMemory.speed} MHz`
-            : ''
-        }`
+          hardwareInfo.systemMemory.type ? ` ${hardwareInfo.systemMemory.type}` : ''
+        }${hardwareInfo.systemMemory.speed ? ` @ ${hardwareInfo.systemMemory.speed} MHz` : ''}`
       : 'Detecting...',
   },
   ...(() => {
@@ -145,23 +126,17 @@ export const createHardwareItems = (hardwareInfo: HardwareInfo) => [
     }
     if (hardwareInfo.gpuCapabilities.vulkan.devices.length > 0) {
       discreteGPUs.push(
-        ...hardwareInfo.gpuCapabilities.vulkan.devices.filter(
-          (gpu) => !gpu.isIntegrated
-        )
+        ...hardwareInfo.gpuCapabilities.vulkan.devices.filter((gpu) => !gpu.isIntegrated)
       );
     }
     if (hardwareInfo.gpuCapabilities.rocm.devices.length > 0) {
       discreteGPUs.push(
-        ...hardwareInfo.gpuCapabilities.rocm.devices.filter(
-          (gpu) => !gpu.isIntegrated
-        )
+        ...hardwareInfo.gpuCapabilities.rocm.devices.filter((gpu) => !gpu.isIntegrated)
       );
     }
     if (hardwareInfo.gpuCapabilities.clblast.devices.length > 0) {
       discreteGPUs.push(
-        ...hardwareInfo.gpuCapabilities.clblast.devices.filter(
-          (gpu) => !gpu.isIntegrated
-        )
+        ...hardwareInfo.gpuCapabilities.clblast.devices.filter((gpu) => !gpu.isIntegrated)
       );
     }
 

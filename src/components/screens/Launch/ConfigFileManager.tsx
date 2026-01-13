@@ -1,11 +1,11 @@
-import { Stack, Text, Group, Button, Tooltip } from '@mantine/core';
-import { useState, useCallback } from 'react';
-import { Save, File, Plus, Check, Trash2 } from 'lucide-react';
+import { Button, Group, Stack, Text, Tooltip } from '@mantine/core';
+import { Check, File, Plus, Save, Trash2 } from 'lucide-react';
+import { useCallback, useState } from 'react';
+import { Select } from '@/components/Select';
 import type { ConfigFile } from '@/types';
+import { stripFileExtension } from '@/utils/format';
 import { CreateConfigModal } from './CreateConfigModal';
 import { DeleteConfigModal } from './DeleteConfigModal';
-import { Select } from '@/components/Select';
-import { stripFileExtension } from '@/utils/format';
 
 interface ConfigFileManagerProps {
   configFiles: ConfigFile[];

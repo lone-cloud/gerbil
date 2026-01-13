@@ -1,15 +1,9 @@
-import {
-  useState,
-  useEffect,
-  useRef,
-  forwardRef,
-  useImperativeHandle,
-} from 'react';
-import { Box, ScrollArea, ActionIcon } from '@mantine/core';
+import { ActionIcon, Box, ScrollArea } from '@mantine/core';
 import { ChevronDown } from 'lucide-react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
-import { handleTerminalOutput, processTerminalContent } from '@/utils/terminal';
 import { usePreferencesStore } from '@/stores/preferences';
+import { handleTerminalOutput, processTerminalContent } from '@/utils/terminal';
 
 export interface TerminalTabRef {
   scrollToBottom: () => void;
@@ -55,7 +49,7 @@ export const TerminalTab = forwardRef<TerminalTabRef>((_props, ref) => {
       const viewport = viewportRef.current;
       viewport.scrollTop = viewport.scrollHeight;
     }
-  }, [terminalContent, shouldAutoScroll, isUserScrolling]);
+  }, [shouldAutoScroll, isUserScrolling]);
 
   useEffect(() => {
     const cleanup = window.electronAPI.kobold.onKoboldOutput((data: string) => {

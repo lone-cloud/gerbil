@@ -1,14 +1,11 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Text, Box, Anchor, rem, Button, Group, Stack } from '@mantine/core';
-import { Monitor, Image } from 'lucide-react';
-import { usePreferencesStore } from '@/stores/preferences';
-import type {
-  FrontendPreference,
-  ImageGenerationFrontendPreference,
-} from '@/types';
-import { FRONTENDS } from '@/constants';
-import { Select } from '@/components/Select';
+import { Anchor, Box, Button, Group, rem, Stack, Text } from '@mantine/core';
+import { Image, Monitor } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Modal } from '@/components/Modal';
+import { Select } from '@/components/Select';
+import { FRONTENDS } from '@/constants';
+import { usePreferencesStore } from '@/stores/preferences';
+import type { FrontendPreference, ImageGenerationFrontendPreference } from '@/types';
 
 interface FrontendRequirement {
   id: string;
@@ -37,9 +34,7 @@ export const FrontendInterfaceSelector = ({
     setImageGenerationFrontendPreference,
   } = usePreferencesStore();
 
-  const [frontendRequirements, setFrontendRequirements] = useState<
-    Map<string, boolean>
-  >(new Map());
+  const [frontendRequirements, setFrontendRequirements] = useState<Map<string, boolean>>(new Map());
 
   const [showClearDataModal, setShowClearDataModal] = useState(false);
 
@@ -63,8 +58,7 @@ export const FrontendInterfaceSelector = ({
             url: 'https://nodejs.org/',
           },
         ],
-        requirementCheck: () =>
-          window.electronAPI.dependencies.isNpxAvailable(),
+        requirementCheck: () => window.electronAPI.dependencies.isNpxAvailable(),
       },
       {
         value: 'openwebui',
@@ -131,9 +125,7 @@ export const FrontendInterfaceSelector = ({
   };
 
   const handleImageGenerationFrontendChange = (value: string | null) => {
-    setImageGenerationFrontendPreference(
-      value as ImageGenerationFrontendPreference
-    );
+    setImageGenerationFrontendPreference(value as ImageGenerationFrontendPreference);
   };
 
   const handleClearOpenWebUIData = async () => {
@@ -158,52 +150,45 @@ export const FrontendInterfaceSelector = ({
       if (!requirementGroups.has(reqKey)) {
         requirementGroups.set(reqKey, []);
       }
-      requirementGroups.get(reqKey)!.push(config.label);
+      requirementGroups.get(reqKey)?.push(config.label);
     });
 
     return (
       <Box mt="sm">
-        {Array.from(requirementGroups.entries()).map(
-          ([reqKey, frontendLabels]) => {
-            const firstDisabledFrontend = disabledFrontends.find(
-              (config) =>
-                getUnmetRequirementsForFrontend(config.value)
-                  .map((req) => req.id)
-                  .join(',') === reqKey
-            );
-            const unmetReqs = firstDisabledFrontend
-              ? getUnmetRequirementsForFrontend(firstDisabledFrontend.value)
-              : [];
+        {Array.from(requirementGroups.entries()).map(([reqKey, frontendLabels]) => {
+          const firstDisabledFrontend = disabledFrontends.find(
+            (config) =>
+              getUnmetRequirementsForFrontend(config.value)
+                .map((req) => req.id)
+                .join(',') === reqKey
+          );
+          const unmetReqs = firstDisabledFrontend
+            ? getUnmetRequirementsForFrontend(firstDisabledFrontend.value)
+            : [];
 
-            const frontendText =
-              frontendLabels.length === 1
-                ? frontendLabels[0]
-                : frontendLabels.length === 2
-                  ? `${frontendLabels[0]} and ${frontendLabels[1]}`
-                  : `${frontendLabels.slice(0, -1).join(', ')}, and ${frontendLabels[frontendLabels.length - 1]}`;
+          const frontendText =
+            frontendLabels.length === 1
+              ? frontendLabels[0]
+              : frontendLabels.length === 2
+                ? `${frontendLabels[0]} and ${frontendLabels[1]}`
+                : `${frontendLabels.slice(0, -1).join(', ')}, and ${frontendLabels[frontendLabels.length - 1]}`;
 
-            const isAre = frontendLabels.length === 1 ? 'is' : 'are';
+          const isAre = frontendLabels.length === 1 ? 'is' : 'are';
 
-            return (
-              <Text key={reqKey} size="sm" c="orange">
-                {frontendText} {isAre} disabled - requires{' '}
-                {unmetReqs.map((req, index) => (
-                  <span key={req.id}>
-                    <Anchor
-                      href={req.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      td="underline"
-                    >
-                      {req.name}
-                    </Anchor>
-                    {index < unmetReqs.length - 1 ? ', ' : ''}
-                  </span>
-                ))}
-              </Text>
-            );
-          }
-        )}
+          return (
+            <Text key={reqKey} size="sm" c="orange">
+              {frontendText} {isAre} disabled - requires{' '}
+              {unmetReqs.map((req, index) => (
+                <span key={req.id}>
+                  <Anchor href={req.url} target="_blank" rel="noopener noreferrer" td="underline">
+                    {req.name}
+                  </Anchor>
+                  {index < unmetReqs.length - 1 ? ', ' : ''}
+                </span>
+              ))}
+            </Text>
+          );
+        })}
       </Box>
     );
   };
@@ -224,7 +209,6 @@ export const FrontendInterfaceSelector = ({
 
   useEffect(() => {
     if (frontendPreference) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       void checkAllFrontendRequirements();
     }
   }, [frontendPreference, checkAllFrontendRequirements]);
@@ -238,8 +222,7 @@ export const FrontendInterfaceSelector = ({
 
         {getUnmetRequirements().length === 0 && (
           <Text size="sm" c="dimmed" mb="md">
-            Choose which frontend interface to use for interacting with AI
-            models
+            Choose which frontend interface to use for interacting with AI models
           </Text>
         )}
 
@@ -274,9 +257,7 @@ export const FrontendInterfaceSelector = ({
               label: config.label,
               disabled: !isFrontendAvailable(config.value),
             }))}
-            leftSection={
-              <Monitor style={{ width: rem(16), height: rem(16) }} />
-            }
+            leftSection={<Monitor style={{ width: rem(16), height: rem(16) }} />}
             style={{ flex: 1 }}
           />
 
@@ -317,10 +298,7 @@ export const FrontendInterfaceSelector = ({
           </Box>
 
           <Group justify="flex-end" gap="sm">
-            <Button
-              variant="subtle"
-              onClick={() => setShowClearDataModal(false)}
-            >
+            <Button variant="subtle" onClick={() => setShowClearDataModal(false)}>
               Cancel
             </Button>
             <Button color="red" onClick={() => void handleClearOpenWebUIData()}>

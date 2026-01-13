@@ -1,13 +1,13 @@
+import { ActionIcon, Box, Text, TextInput } from '@mantine/core';
+import { X } from 'lucide-react';
 import {
-  type MouseEvent,
   type DragEvent,
   type KeyboardEvent,
-  useState,
-  useRef,
+  type MouseEvent,
   useEffect,
+  useRef,
+  useState,
 } from 'react';
-import { Box, ActionIcon, Text, TextInput } from '@mantine/core';
-import { X } from 'lucide-react';
 import { usePreferencesStore } from '@/stores/preferences';
 
 interface TabProps {

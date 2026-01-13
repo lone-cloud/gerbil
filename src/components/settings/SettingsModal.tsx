@@ -1,22 +1,22 @@
-import { useState, useEffect } from 'react';
-import { Tabs, Text, Group, rem } from '@mantine/core';
+import { Group, rem, Tabs, Text } from '@mantine/core';
 import {
-  Settings,
-  Palette,
-  SlidersHorizontal,
   GitBranch,
-  Monitor,
   Info,
+  Monitor,
+  Palette,
+  Settings,
+  SlidersHorizontal,
   Wrench,
 } from 'lucide-react';
-import { GeneralTab } from '@/components/settings/GeneralTab';
-import { BackendsTab } from '@/components/settings/BackendsTab';
+import { useEffect, useState } from 'react';
+import { Modal } from '@/components/Modal';
+import { AboutTab } from '@/components/settings/AboutTab';
 import { AppearanceTab } from '@/components/settings/AppearanceTab';
+import { BackendsTab } from '@/components/settings/BackendsTab';
+import { GeneralTab } from '@/components/settings/GeneralTab';
 import { SystemTab } from '@/components/settings/SystemTab';
 import { TroubleshootingTab } from '@/components/settings/TroubleshootingTab';
-import { AboutTab } from '@/components/settings/AboutTab';
 import type { Screen } from '@/types';
-import { Modal } from '@/components/Modal';
 
 interface SettingsModalProps {
   opened: boolean;
@@ -33,17 +33,14 @@ export const SettingsModal = ({
 }: SettingsModalProps) => {
   const [activeTab, setActiveTab] = useState('general');
 
-  const showBackendsTab =
-    currentScreen !== 'download' && currentScreen !== 'welcome';
+  const showBackendsTab = currentScreen !== 'download' && currentScreen !== 'welcome';
 
-  const effectiveActiveTab =
-    !showBackendsTab && activeTab === 'backends' ? 'general' : activeTab;
+  const effectiveActiveTab = !showBackendsTab && activeTab === 'backends' ? 'general' : activeTab;
 
   useEffect(() => {
     if (opened) {
       const originalOverflow = document.body.style.overflow;
-      const scrollbarWidth =
-        window.innerWidth - document.documentElement.clientWidth;
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
 
       document.body.style.overflow = 'hidden';
       document.body.style.paddingRight = `${scrollbarWidth}px`;
@@ -94,35 +91,27 @@ export const SettingsModal = ({
         <Tabs.List>
           <Tabs.Tab
             value="general"
-            leftSection={
-              <SlidersHorizontal style={{ width: rem(16), height: rem(16) }} />
-            }
+            leftSection={<SlidersHorizontal style={{ width: rem(16), height: rem(16) }} />}
           >
             General
           </Tabs.Tab>
           {showBackendsTab && (
             <Tabs.Tab
               value="backends"
-              leftSection={
-                <GitBranch style={{ width: rem(16), height: rem(16) }} />
-              }
+              leftSection={<GitBranch style={{ width: rem(16), height: rem(16) }} />}
             >
               Backends
             </Tabs.Tab>
           )}
           <Tabs.Tab
             value="appearance"
-            leftSection={
-              <Palette style={{ width: rem(16), height: rem(16) }} />
-            }
+            leftSection={<Palette style={{ width: rem(16), height: rem(16) }} />}
           >
             Appearance
           </Tabs.Tab>
           <Tabs.Tab
             value="system"
-            leftSection={
-              <Monitor style={{ width: rem(16), height: rem(16) }} />
-            }
+            leftSection={<Monitor style={{ width: rem(16), height: rem(16) }} />}
           >
             System
           </Tabs.Tab>

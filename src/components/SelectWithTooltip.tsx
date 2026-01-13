@@ -1,8 +1,8 @@
-import type { CSSProperties } from 'react';
 import type { ComboboxItem } from '@mantine/core';
+import type { CSSProperties } from 'react';
 import { LabelWithTooltip } from '@/components/LabelWithTooltip';
-import type { SelectOption } from '@/types';
 import { Select } from '@/components/Select';
+import type { SelectOption } from '@/types';
 
 interface SelectWithTooltipProps {
   label: string;

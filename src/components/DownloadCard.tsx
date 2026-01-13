@@ -1,20 +1,10 @@
-import {
-  Card,
-  Stack,
-  Group,
-  Text,
-  Badge,
-  Button,
-  Loader,
-  Progress,
-  rem,
-} from '@mantine/core';
+import { Badge, Button, Card, Group, Loader, Progress, rem, Stack, Text } from '@mantine/core';
 import { Download, Trash2 } from 'lucide-react';
-import { MouseEvent } from 'react';
-import { pretifyBinName, isWindowsROCmBuild } from '@/utils/assets';
-import { usePreferencesStore } from '@/stores/preferences';
+import type { MouseEvent } from 'react';
 import { useKoboldBackendsStore } from '@/stores/koboldBackends';
+import { usePreferencesStore } from '@/stores/preferences';
 import type { BackendInfo } from '@/types';
+import { isWindowsROCmBuild, pretifyBinName } from '@/utils/assets';
 
 interface DownloadCardProps {
   backend: BackendInfo;
@@ -43,16 +33,11 @@ export const DownloadCard = ({
   const { downloading, downloadProgress } = useKoboldBackendsStore();
 
   const isLoading = downloading === backend.name;
-  const currentProgress = isLoading
-    ? Math.min(downloadProgress[backend.name], 100) || 0
-    : 0;
+  const currentProgress = isLoading ? Math.min(downloadProgress[backend.name], 100) || 0 : 0;
   const hasVersionMismatch = Boolean(
-    backend.version &&
-    backend.actualVersion &&
-    backend.version !== backend.actualVersion
+    backend.version && backend.actualVersion && backend.version !== backend.actualVersion
   );
 
-  // eslint-disable-next-line sonarjs/cognitive-complexity
   const renderActionButtons = () => {
     const buttons = [];
 

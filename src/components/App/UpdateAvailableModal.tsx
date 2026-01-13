@@ -1,23 +1,14 @@
-import {
-  Stack,
-  Text,
-  Group,
-  Button,
-  Card,
-  Loader,
-  Anchor,
-  Progress,
-} from '@mantine/core';
-import { Download, X, ExternalLink } from 'lucide-react';
+import { Anchor, Button, Card, Group, Loader, Progress, Stack, Text } from '@mantine/core';
+import { Download, ExternalLink, X } from 'lucide-react';
 import { useState } from 'react';
-import type { DownloadItem } from '@/types/electron';
+import { Modal } from '@/components/Modal';
+import { GITHUB_API } from '@/constants';
 import type { BinaryUpdateInfo } from '@/hooks/useUpdateChecker';
 import { useKoboldBackendsStore } from '@/stores/koboldBackends';
+import type { DownloadItem } from '@/types/electron';
 import { pretifyBinName } from '@/utils/assets';
 import { formatDownloadSize } from '@/utils/format';
-import { GITHUB_API } from '@/constants';
 import { safeExecute } from '@/utils/logger';
-import { Modal } from '@/components/Modal';
 
 interface UpdateAvailableModalProps {
   opened: boolean;
@@ -39,11 +30,8 @@ export const UpdateAvailableModal = ({
   const availableUpdate = updateInfo?.availableUpdate;
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const isDownloading =
-    !!availableUpdate && downloading === availableUpdate.name;
-  const currentProgress = availableUpdate
-    ? downloadProgress[availableUpdate.name] || 0
-    : 0;
+  const isDownloading = !!availableUpdate && downloading === availableUpdate.name;
+  const currentProgress = availableUpdate ? downloadProgress[availableUpdate.name] || 0 : 0;
 
   const handleUpdate = async () => {
     if (availableUpdate) {
@@ -99,8 +87,7 @@ export const UpdateAvailableModal = ({
 
             {availableUpdate?.size && (
               <Text size="xs" c="dimmed">
-                Update Size:{' '}
-                {formatDownloadSize(availableUpdate.size, availableUpdate.url)}
+                Update Size: {formatDownloadSize(availableUpdate.size, availableUpdate.url)}
               </Text>
             )}
 
@@ -158,11 +145,7 @@ export const UpdateAvailableModal = ({
             loading={isDownloading || isUpdating}
             disabled={isDownloading || isUpdating}
             leftSection={
-              isDownloading || isUpdating ? (
-                <Loader size="1rem" />
-              ) : (
-                <Download size={16} />
-              )
+              isDownloading || isUpdating ? <Loader size="1rem" /> : <Download size={16} />
             }
             color="orange"
           >

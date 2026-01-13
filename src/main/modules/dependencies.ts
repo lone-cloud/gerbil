@@ -1,9 +1,9 @@
-import { access, readdir, readlink } from 'fs/promises';
-import { homedir, release } from 'os';
-import { join } from 'path';
-import { platform, env as processEnv, versions, arch } from 'process';
-import { execa } from 'execa';
+import { access, readdir, readlink } from 'node:fs/promises';
+import { homedir, release } from 'node:os';
+import { join } from 'node:path';
+import { arch, platform, env as processEnv, versions } from 'node:process';
 import { app } from 'electron';
+import { execa } from 'execa';
 import { PRODUCT_NAME } from '@/constants';
 
 const PATH_SEPARATOR = platform === 'win32' ? ';' : ':';
@@ -75,10 +75,7 @@ export async function isUvAvailable() {
 export async function getUvEnvironment() {
   const env = { ...processEnv };
 
-  const uvPaths = [
-    join(homedir(), '.cargo', 'bin'),
-    join(homedir(), '.local', 'bin'),
-  ];
+  const uvPaths = [join(homedir(), '.cargo', 'bin'), join(homedir(), '.local', 'bin')];
 
   const existingPaths: string[] = [];
   for (const path of uvPaths) {
@@ -149,10 +146,7 @@ async function findNodeBinPath(baseDir: string) {
   return null;
 }
 
-async function tryVersionManagerPath(
-  basePath: string,
-  env: Record<string, string | undefined>
-) {
+async function tryVersionManagerPath(basePath: string, env: Record<string, string | undefined>) {
   if (!(await pathExists(basePath))) {
     return false;
   }
@@ -224,9 +218,11 @@ export async function isAURInstallation() {
 }
 
 export async function getVersionInfo() {
-  const [nodeJsSystemVersion, uvVersion, aurPackageVersion] = await Promise.all(
-    [getSystemNodeVersion(), getUvVersion(), getAURVersion()]
-  );
+  const [nodeJsSystemVersion, uvVersion, aurPackageVersion] = await Promise.all([
+    getSystemNodeVersion(),
+    getUvVersion(),
+    getAURVersion(),
+  ]);
 
   return {
     appVersion: app.getVersion(),
@@ -243,10 +239,7 @@ export async function getVersionInfo() {
   };
 }
 
-function tryAddPathToEnv(
-  env: Record<string, string | undefined>,
-  path: string
-) {
+function tryAddPathToEnv(env: Record<string, string | undefined>, path: string) {
   if (!env.PATH?.includes(path)) {
     env.PATH = `${path}${PATH_SEPARATOR}${env.PATH}`;
     return true;
@@ -269,16 +262,12 @@ export function isWindowsPortableInstallation() {
     const execPath = app.getPath('exe');
 
     const isInTemp =
-      execPath.toLowerCase().includes('\\temp\\') ||
-      execPath.toLowerCase().includes('\\tmp\\');
+      execPath.toLowerCase().includes('\\temp\\') || execPath.toLowerCase().includes('\\tmp\\');
 
     const isInProgramFiles = execPath.toLowerCase().includes('program files');
-    const isInAppDataPrograms = execPath
-      .toLowerCase()
-      .includes('appdata\\local\\programs');
+    const isInAppDataPrograms = execPath.toLowerCase().includes('appdata\\local\\programs');
 
-    windowsPortableInstallationCache =
-      isInTemp && !isInProgramFiles && !isInAppDataPrograms;
+    windowsPortableInstallationCache = isInTemp && !isInProgramFiles && !isInAppDataPrograms;
 
     return windowsPortableInstallationCache;
   } catch {

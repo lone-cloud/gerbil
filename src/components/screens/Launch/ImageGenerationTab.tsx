@@ -1,8 +1,8 @@
-import { Stack, Group } from '@mantine/core';
+import { Group, Stack } from '@mantine/core';
 import { useState } from 'react';
-import { ModelFileField } from '@/components/screens/Launch/ModelFileField';
-import { SelectWithTooltip } from '@/components/SelectWithTooltip';
 import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
+import { SelectWithTooltip } from '@/components/SelectWithTooltip';
+import { ModelFileField } from '@/components/screens/Launch/ModelFileField';
 import { IMAGE_MODEL_PRESETS } from '@/constants/imageModelPresets';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 
@@ -129,9 +129,7 @@ export const ImageGenerationTab = () => {
         placeholder="Select a PhotoMaker file or enter a direct URL"
         tooltip="PhotoMaker is a model that allows face cloning. Select a .safetensors PhotoMaker file to be loaded (SDXL only)."
         onChange={setSdphotomaker}
-        onSelectFile={() =>
-          void selectFile('sdphotomaker', 'Select PhotoMaker Model')
-        }
+        onSelectFile={() => void selectFile('sdphotomaker', 'Select PhotoMaker Model')}
         searchParams={{
           search: 'photomaker',
           filter: 'safetensors',

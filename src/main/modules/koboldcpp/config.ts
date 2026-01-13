@@ -1,13 +1,12 @@
-import { join } from 'path';
-import { readdir, stat, unlink } from 'fs/promises';
+import { readdir, stat, unlink } from 'node:fs/promises';
+import { join } from 'node:path';
 import { dialog } from 'electron';
-
-import { getInstallDir, setInstallDir } from '../config';
-import { logError, safeExecute, tryExecute } from '@/utils/node/logging';
-import { pathExists, readJsonFile, writeJsonFile } from '@/utils/node/fs';
-import { getMainWindow, sendToRenderer } from '../window';
 import { PRODUCT_NAME } from '@/constants';
 import type { KoboldConfig } from '@/types/electron';
+import { pathExists, readJsonFile, writeJsonFile } from '@/utils/node/fs';
+import { logError, safeExecute, tryExecute } from '@/utils/node/logging';
+import { getInstallDir, setInstallDir } from '../config';
+import { getMainWindow, sendToRenderer } from '../window';
 
 export async function getConfigFiles() {
   const configFiles: { name: string; path: string; size: number }[] = [];
@@ -23,9 +22,7 @@ export async function getConfigFiles() {
         const stats = await stat(filePath);
         if (
           stats.isFile() &&
-          (file.endsWith('.kcpps') ||
-            file.endsWith('.kcppt') ||
-            file.endsWith('.json'))
+          (file.endsWith('.kcpps') || file.endsWith('.kcppt') || file.endsWith('.json'))
         ) {
           configFiles.push({
             name: file,
@@ -53,10 +50,7 @@ export async function parseConfigFile(filePath: string) {
   }, 'Error parsing config file');
 }
 
-export async function saveConfigFile(
-  configFileName: string,
-  configData: KoboldConfig
-) {
+export async function saveConfigFile(configFileName: string, configData: KoboldConfig) {
   return tryExecute(async () => {
     const installDir = getInstallDir();
     const configPath = join(installDir, configFileName);

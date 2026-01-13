@@ -1,6 +1,6 @@
-import { type MouseEvent, type DragEvent, useState } from 'react';
-import { Box, ActionIcon } from '@mantine/core';
+import { ActionIcon, Box } from '@mantine/core';
 import { Plus } from 'lucide-react';
+import { type DragEvent, type MouseEvent, useState } from 'react';
 import { Tab } from '@/components/Notepad/Tab';
 import { useNotepadStore } from '@/stores/notepad';
 import { usePreferencesStore } from '@/stores/preferences';
@@ -10,10 +10,7 @@ interface NotepadTabsProps {
   onCloseTab: (title: string) => void;
 }
 
-export const NotepadTabs = ({
-  onCreateNewTab,
-  onCloseTab,
-}: NotepadTabsProps) => {
+export const NotepadTabs = ({ onCreateNewTab, onCloseTab }: NotepadTabsProps) => {
   const {
     tabs,
     activeTabId,

@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
-import { CPUCapabilities, GPUDevice } from '@/types/hardware';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { AccelerationOption, AccelerationSupport } from '@/types';
+import type { CPUCapabilities, GPUDevice } from '@/types/hardware';
 
 export interface Warning {
   type: 'warning' | 'info';
@@ -14,11 +14,7 @@ interface UseWarningsProps {
   configLoaded?: boolean;
 }
 
-const checkModelWarnings = (
-  model: string,
-  sdmodel: string,
-  configLoaded: boolean
-) => {
+const checkModelWarnings = (model: string, sdmodel: string, configLoaded: boolean) => {
   const hasTextModel = model?.trim() !== '';
   const hasImageModel = sdmodel.trim() !== '';
   const showModelPriorityWarning = hasTextModel && hasImageModel;
@@ -37,8 +33,7 @@ const checkModelWarnings = (
   if (showNoModelWarning) {
     warnings.push({
       type: 'info',
-      message:
-        'Select a model in the General or Image Generation tab to enable launch.',
+      message: 'Select a model in the General or Image Generation tab to enable launch.',
     });
   }
 
@@ -64,11 +59,7 @@ const checkGpuWarnings = async (
 ) => {
   const warnings: Warning[] = [];
 
-  if (
-    accelerationSupport.cuda &&
-    gpuCapabilities.cuda.devices.length === 0 &&
-    gpuInfo.hasNVIDIA
-  ) {
+  if (accelerationSupport.cuda && gpuCapabilities.cuda.devices.length === 0 && gpuInfo.hasNVIDIA) {
     warnings.push({
       type: 'warning',
       message:
@@ -76,11 +67,7 @@ const checkGpuWarnings = async (
     });
   }
 
-  if (
-    accelerationSupport.rocm &&
-    gpuCapabilities.rocm.devices.length === 0 &&
-    gpuInfo.hasAMD
-  ) {
+  if (accelerationSupport.rocm && gpuCapabilities.rocm.devices.length === 0 && gpuInfo.hasAMD) {
     const platform = await window.electronAPI.kobold.getPlatform();
     const baseMessage =
       'Your binary supports ROCm and you have an AMD GPU, but ROCm runtime is not detected on your system.';
@@ -102,9 +89,7 @@ const checkGpuWarnings = async (
 
 const checkVramWarnings = async (acceleration: string): Promise<Warning[]> => {
   const warnings: Warning[] = [];
-  const isGpuAcceleration = ['cuda', 'rocm', 'vulkan', 'clblast'].includes(
-    acceleration
-  );
+  const isGpuAcceleration = ['cuda', 'rocm', 'vulkan', 'clblast'].includes(acceleration);
 
   if (isGpuAcceleration) {
     const gpuMemoryInfo = await window.electronAPI.kobold.detectGPUMemory();
@@ -115,12 +100,12 @@ const checkVramWarnings = async (acceleration: string): Promise<Warning[]> => {
         (gpu) => gpu.totalMemoryGB !== null && gpu.totalMemoryGB !== ''
       );
       const lowVramGpus = validGpus.filter(
-        (gpu) => parseFloat(gpu.totalMemoryGB!) < lowVramThreshold
+        (gpu) => parseFloat(gpu.totalMemoryGB ?? '0') < lowVramThreshold
       );
 
       if (validGpus.length > 0 && lowVramGpus.length === validGpus.length) {
         const memoryDetails = lowVramGpus
-          .map((gpu) => `${parseFloat(gpu.totalMemoryGB!).toFixed(1)}GB`)
+          .map((gpu) => `${parseFloat(gpu.totalMemoryGB ?? '0').toFixed(1)}GB`)
           .join(', ');
 
         warnings.push({
@@ -134,20 +119,14 @@ const checkVramWarnings = async (acceleration: string): Promise<Warning[]> => {
   return warnings;
 };
 
-const checkCpuWarnings = (
-  acceleration: string,
-  availableAccelerations: AccelerationOption[]
-) => {
+const checkCpuWarnings = (acceleration: string, availableAccelerations: AccelerationOption[]) => {
   const warnings: Warning[] = [];
 
   if (acceleration !== 'cpu') {
     return warnings;
   }
 
-  if (
-    availableAccelerations.length > 0 &&
-    availableAccelerations.some((a) => a.value === 'cpu')
-  ) {
+  if (availableAccelerations.length > 0 && availableAccelerations.some((a) => a.value === 'cpu')) {
     warnings.push({
       type: 'info',
       message:
@@ -175,11 +154,7 @@ const checkBackendWarnings = async (params?: {
     return warnings;
   }
 
-  const gpuWarnings = await checkGpuWarnings(
-    accelerationSupport,
-    gpuCapabilities,
-    gpuInfo
-  );
+  const gpuWarnings = await checkGpuWarnings(accelerationSupport, gpuCapabilities, gpuInfo);
   warnings.push(...gpuWarnings);
 
   if (params) {
@@ -189,10 +164,7 @@ const checkBackendWarnings = async (params?: {
     warnings.push(...vramWarnings);
 
     if (cpuCapabilities) {
-      const cpuWarnings = checkCpuWarnings(
-        acceleration,
-        availableAccelerations
-      );
+      const cpuWarnings = checkCpuWarnings(acceleration, availableAccelerations);
       warnings.push(...cpuWarnings);
     }
   }
@@ -234,7 +206,6 @@ export const useWarnings = ({
   }, [acceleration]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void updateBackendWarnings();
   }, [updateBackendWarnings]);
 

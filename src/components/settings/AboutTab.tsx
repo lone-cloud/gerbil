@@ -1,26 +1,14 @@
-import { useState, useEffect } from 'react';
-import {
-  Text,
-  Stack,
-  Group,
-  Card,
-  Image,
-  Center,
-  Badge,
-  Button,
-  rem,
-} from '@mantine/core';
+import { Badge, Button, Card, Center, Group, Image, rem, Stack, Text } from '@mantine/core';
 import { Github } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { GITHUB_API, PRODUCT_NAME } from '@/constants';
 import { useLogoClickSounds } from '@/hooks/useLogoClickSounds';
-import { PRODUCT_NAME, GITHUB_API } from '@/constants';
 import type { SystemVersionInfo } from '@/types/electron';
 
 import icon from '/icon.png';
 
 export const AboutTab = () => {
-  const [versionInfo, setVersionInfo] = useState<SystemVersionInfo | null>(
-    null
-  );
+  const [versionInfo, setVersionInfo] = useState<SystemVersionInfo | null>(null);
   const { handleLogoClick, getLogoStyles } = useLogoClickSounds();
 
   useEffect(() => {
@@ -46,8 +34,7 @@ export const AboutTab = () => {
     {
       icon: Github,
       label: 'GitHub',
-      onClick: () =>
-        window.electronAPI.app.openExternal(GITHUB_API.GERBIL_GITHUB_URL),
+      onClick: () => window.electronAPI.app.openExternal(GITHUB_API.GERBIL_GITHUB_URL),
     },
   ];
 
@@ -72,12 +59,7 @@ export const AboutTab = () => {
               <Text size="xl" fw={600}>
                 {PRODUCT_NAME}
               </Text>
-              <Badge
-                variant="light"
-                color="blue"
-                size="lg"
-                style={{ textTransform: 'none' }}
-              >
+              <Badge variant="light" color="blue" size="lg" style={{ textTransform: 'none' }}>
                 v{versionInfo.appVersion}
               </Badge>
             </Group>
@@ -90,15 +72,9 @@ export const AboutTab = () => {
                   key={button.label}
                   variant="light"
                   size="compact-sm"
-                  leftSection={
-                    <button.icon style={{ width: rem(16), height: rem(16) }} />
-                  }
+                  leftSection={<button.icon style={{ width: rem(16), height: rem(16) }} />}
                   onClick={() => void button.onClick()}
-                  style={
-                    button.label === 'GitHub'
-                      ? { textDecoration: 'none' }
-                      : undefined
-                  }
+                  style={button.label === 'GitHub' ? { textDecoration: 'none' } : undefined}
                 >
                   {button.label}
                 </Button>
@@ -113,10 +89,9 @@ export const AboutTab = () => {
           About {PRODUCT_NAME}
         </Text>
         <Text size="sm" c="dimmed" mb="md">
-          {PRODUCT_NAME} is a user-friendly desktop application that makes it
-          easy to run large language models locally on your machine. Whether
-          you&apos;re looking to chat with AI models, generate images, or
-          explore different interfaces like SillyTavern and Open WebUI,{' '}
+          {PRODUCT_NAME} is a user-friendly desktop application that makes it easy to run large
+          language models locally on your machine. Whether you&apos;re looking to chat with AI
+          models, generate images, or explore different interfaces like SillyTavern and Open WebUI,{' '}
           {PRODUCT_NAME} provides a streamlined experience for local AI.
         </Text>
       </Card>

@@ -1,13 +1,12 @@
-import { useState, useCallback, useRef } from 'react';
-import { logError } from '@/utils/logger';
+import { useCallback, useRef, useState } from 'react';
+import { HUGGINGFACE_BASE_URL } from '@/constants';
 import type {
-  HuggingFaceModelInfo,
   HuggingFaceFileInfo,
+  HuggingFaceModelInfo,
   HuggingFaceSearchParams,
   HuggingFaceSortOption,
 } from '@/types';
-
-import { HUGGINGFACE_BASE_URL } from '@/constants';
+import { logError } from '@/utils/logger';
 
 const MODELS_PER_PAGE = 20;
 const HF_API_BASE = `${HUGGINGFACE_BASE_URL}/api`;
@@ -78,9 +77,7 @@ const fetchBaseModelParams = async (baseModelId: string) => {
   }
 };
 
-export const useHuggingFaceSearch = (
-  initialParams: HuggingFaceSearchParams
-) => {
+export const useHuggingFaceSearch = (initialParams: HuggingFaceSearchParams) => {
   const [models, setModels] = useState<HuggingFaceModelInfo[]>([]);
   const [files, setFiles] = useState<HuggingFaceFileInfo[]>([]);
   const [loading, setLoading] = useState(false);
@@ -88,19 +85,13 @@ export const useHuggingFaceSearch = (
   const [error, setError] = useState<string>();
   const [hasMore, setHasMore] = useState(true);
   const [selectedModel, setSelectedModel] = useState<HuggingFaceModelInfo>();
-  const [sortBy, setSortBy] = useState<HuggingFaceSortOption>(
-    initialParams.sort
-  );
+  const [sortBy, setSortBy] = useState<HuggingFaceSortOption>(initialParams.sort);
   const [searchParams] = useState<HuggingFaceSearchParams>(initialParams);
   const pageRef = useRef(0);
   const currentQueryRef = useRef<string | undefined>(undefined);
 
   const searchModels = useCallback(
-    async (
-      query?: string,
-      reset = true,
-      sort: HuggingFaceSortOption = sortBy
-    ) => {
+    async (query?: string, reset = true, sort: HuggingFaceSortOption = sortBy) => {
       if (reset) {
         setModels([]);
         setHasMore(true);
@@ -115,21 +106,17 @@ export const useHuggingFaceSearch = (
       currentQueryRef.current = query;
 
       try {
-        const searchQuery =
-          query !== undefined ? query.trim() || undefined : searchParams.search;
+        const searchQuery = query !== undefined ? query.trim() || undefined : searchParams.search;
 
         const params = new URLSearchParams();
         if (searchQuery) params.set('search', searchQuery);
-        if (searchParams.pipelineTag)
-          params.set('pipeline_tag', searchParams.pipelineTag);
+        if (searchParams.pipelineTag) params.set('pipeline_tag', searchParams.pipelineTag);
         if (searchParams.filter) params.set('filter', searchParams.filter);
         params.set('sort', sort);
         params.set('limit', String(MODELS_PER_PAGE));
         params.set('full', 'false');
 
-        const response = await fetch(
-          `${HF_API_BASE}/models?${params.toString()}`
-        );
+        const response = await fetch(`${HF_API_BASE}/models?${params.toString()}`);
 
         if (!response.ok) {
           throw new Error(`Failed to fetch models: ${response.statusText}`);
@@ -171,8 +158,7 @@ export const useHuggingFaceSearch = (
         setHasMore(data.length === MODELS_PER_PAGE);
         pageRef.current = 1;
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Failed to search models';
+        const message = err instanceof Error ? err.message : 'Failed to search models';
         setError(message);
         logError('HuggingFace search failed:', err as Error);
       } finally {
@@ -202,17 +188,14 @@ export const useHuggingFaceSearch = (
 
       const params = new URLSearchParams();
       if (searchQuery) params.set('search', searchQuery);
-      if (searchParams.pipelineTag)
-        params.set('pipeline_tag', searchParams.pipelineTag);
+      if (searchParams.pipelineTag) params.set('pipeline_tag', searchParams.pipelineTag);
       if (searchParams.filter) params.set('filter', searchParams.filter);
       params.set('sort', sortBy);
       params.set('limit', String(MODELS_PER_PAGE));
       params.set('skip', String(pageRef.current * MODELS_PER_PAGE));
       params.set('full', 'false');
 
-      const response = await fetch(
-        `${HF_API_BASE}/models?${params.toString()}`
-      );
+      const response = await fetch(`${HF_API_BASE}/models?${params.toString()}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch models: ${response.statusText}`);
       }
@@ -253,8 +236,7 @@ export const useHuggingFaceSearch = (
       setHasMore(validModels.length === MODELS_PER_PAGE);
       pageRef.current += 1;
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Failed to load more models';
+      const message = err instanceof Error ? err.message : 'Failed to load more models';
       setError(message);
       logError('HuggingFace load more failed:', err as Error);
     } finally {
@@ -273,9 +255,7 @@ export const useHuggingFaceSearch = (
         const filter = searchParams?.filter;
         const extensions = getExtensionsForLibrary(filter);
 
-        const response = await fetch(
-          `${HF_API_BASE}/models/${model.id}/tree/main?recursive=true`
-        );
+        const response = await fetch(`${HF_API_BASE}/models/${model.id}/tree/main?recursive=true`);
 
         if (!response.ok) {
           throw new Error(`Failed to fetch files: ${response.statusText}`);
@@ -285,10 +265,7 @@ export const useHuggingFaceSearch = (
         const fileResults: HuggingFaceFileInfo[] = [];
 
         for (const file of items) {
-          if (
-            file.type === 'file' &&
-            extensions.some((ext) => file.path.endsWith(ext))
-          ) {
+          if (file.type === 'file' && extensions.some((ext) => file.path.endsWith(ext))) {
             fileResults.push({
               path: file.path,
               size: file.lfs?.size ?? file.size,
@@ -299,8 +276,7 @@ export const useHuggingFaceSearch = (
         fileResults.sort((a, b) => b.size - a.size);
         setFiles(fileResults);
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Failed to load model files';
+        const message = err instanceof Error ? err.message : 'Failed to load model files';
         setError(message);
         logError('HuggingFace list files failed:', err as Error);
       } finally {

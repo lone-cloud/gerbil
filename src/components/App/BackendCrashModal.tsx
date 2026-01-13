@@ -1,4 +1,4 @@
-import { Text, Group, Button, Stack } from '@mantine/core';
+import { Button, Group, Stack, Text } from '@mantine/core';
 import { Modal } from '@/components/Modal';
 import type { KoboldCrashInfo } from '@/types/ipc';
 
@@ -26,10 +26,7 @@ const getCrashDescription = (crashInfo: KoboldCrashInfo) => {
       SIGHUP: 'The process lost its controlling terminal',
     };
 
-    return (
-      signalDescriptions[crashInfo.signal] ||
-      `Terminated by signal ${crashInfo.signal}`
-    );
+    return signalDescriptions[crashInfo.signal] || `Terminated by signal ${crashInfo.signal}`;
   }
 
   if (crashInfo.exitCode !== null) {
@@ -39,11 +36,7 @@ const getCrashDescription = (crashInfo: KoboldCrashInfo) => {
   return 'The process terminated unexpectedly';
 };
 
-export const BackendCrashModal = ({
-  opened,
-  onClose,
-  crashInfo,
-}: BackendCrashModalProps) => {
+export const BackendCrashModal = ({ opened, onClose, crashInfo }: BackendCrashModalProps) => {
   if (!crashInfo) return null;
 
   const description = getCrashDescription(crashInfo);

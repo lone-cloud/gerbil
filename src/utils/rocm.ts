@@ -50,12 +50,9 @@ async function getWindowsROCmDownload() {
     const version = latestRelease?.tag_name?.replace(/^v/, '') || 'unknown';
 
     const windowsAsset =
+      latestRelease.assets?.find((asset: GitHubAsset) => asset.name === 'koboldcpp_rocm.exe') ||
       latestRelease.assets?.find(
-        (asset: GitHubAsset) => asset.name === 'koboldcpp_rocm.exe'
-      ) ||
-      latestRelease.assets?.find(
-        (asset: GitHubAsset) =>
-          asset.name.includes('koboldcpp_rocm') && asset.name.endsWith('.exe')
+        (asset: GitHubAsset) => asset.name.includes('koboldcpp_rocm') && asset.name.endsWith('.exe')
       );
 
     if (!windowsAsset) {

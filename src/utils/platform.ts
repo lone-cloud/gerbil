@@ -11,25 +11,14 @@ export const getPlatformDisplayName = (platform: string) => {
   }
 };
 
-export const isAssetCompatibleWithPlatform = (
-  assetName: string,
-  platform: string
-) => {
+export const isAssetCompatibleWithPlatform = (assetName: string, platform: string) => {
   const name = assetName.toLowerCase();
 
   switch (platform) {
     case 'win32':
-      return (
-        name.includes('windows') ||
-        name.includes('win') ||
-        name.includes('.exe')
-      );
+      return name.includes('windows') || name.includes('win') || name.includes('.exe');
     case 'darwin':
-      return (
-        name.includes('macos') ||
-        name.includes('mac') ||
-        name.includes('darwin')
-      );
+      return name.includes('macos') || name.includes('mac') || name.includes('darwin');
     case 'linux':
       return name.includes('linux') || name.includes('ubuntu');
     default:
@@ -37,8 +26,5 @@ export const isAssetCompatibleWithPlatform = (
   }
 };
 
-export const filterAssetsByPlatform = <T extends { name: string }>(
-  assets: T[],
-  platform: string
-) =>
+export const filterAssetsByPlatform = <T extends { name: string }>(assets: T[], platform: string) =>
   assets.filter((asset) => isAssetCompatibleWithPlatform(asset.name, platform));

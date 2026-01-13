@@ -1,7 +1,7 @@
+import { stat } from 'node:fs/promises';
 import { gguf } from '@huggingface/gguf';
-import { stat } from 'fs/promises';
-import { logError } from '@/utils/node/logging';
 import { formatBytes } from '@/utils/format';
+import { logError } from '@/utils/node/logging';
 
 function estimateMemoryRequirements(fileSize: number) {
   const vramOverhead = 1.1;
@@ -43,8 +43,7 @@ function getMetadataValue(metadata: Record<string, unknown>, key: string) {
 
 export async function analyzeGGUFModel(filePath: string) {
   try {
-    const isUrl =
-      filePath.startsWith('http://') || filePath.startsWith('https://');
+    const isUrl = filePath.startsWith('http://') || filePath.startsWith('https://');
 
     let fileSize: number;
     if (isUrl) {
@@ -62,31 +61,22 @@ export async function analyzeGGUFModel(filePath: string) {
 
     const metadataRecord = metadata as Record<string, unknown>;
 
-    const architecture = getMetadataValue(
-      metadataRecord,
-      'general.architecture'
-    ) as string;
-    const name = getMetadataValue(metadataRecord, 'general.name') as
-      | string
+    const architecture = getMetadataValue(metadataRecord, 'general.architecture') as string;
+    const name = getMetadataValue(metadataRecord, 'general.name') as string | undefined;
+    const paramCount = getMetadataValue(metadataRecord, 'general.parameter_count') as
+      | number
       | undefined;
-    const paramCount = getMetadataValue(
-      metadataRecord,
-      'general.parameter_count'
-    ) as number | undefined;
 
-    const contextLength = getMetadataValue(
-      metadataRecord,
-      `${architecture}.context_length`
-    ) as number | undefined;
+    const contextLength = getMetadataValue(metadataRecord, `${architecture}.context_length`) as
+      | number
+      | undefined;
 
-    const blockCount = getMetadataValue(
-      metadataRecord,
-      `${architecture}.block_count`
-    ) as number | undefined;
-    const expertCount = getMetadataValue(
-      metadataRecord,
-      `${architecture}.expert_count`
-    ) as number | undefined;
+    const blockCount = getMetadataValue(metadataRecord, `${architecture}.block_count`) as
+      | number
+      | undefined;
+    const expertCount = getMetadataValue(metadataRecord, `${architecture}.expert_count`) as
+      | number
+      | undefined;
 
     const memoryEstimates = estimateMemoryRequirements(fileSize);
     const vramPerLayer = estimateVramPerLayer(fileSize, blockCount);

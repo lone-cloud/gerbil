@@ -1,5 +1,5 @@
+import { Button, Checkbox, Group, Stack, Text } from '@mantine/core';
 import { useState } from 'react';
-import { Text, Group, Button, Checkbox, Stack } from '@mantine/core';
 import { Modal } from '@/components/Modal';
 
 interface EjectConfirmModalProps {
@@ -8,11 +8,7 @@ interface EjectConfirmModalProps {
   onConfirm: (skipConfirmation: boolean) => void;
 }
 
-export const EjectConfirmModal = ({
-  opened,
-  onClose,
-  onConfirm,
-}: EjectConfirmModalProps) => {
+export const EjectConfirmModal = ({ opened, onClose, onConfirm }: EjectConfirmModalProps) => {
   const [skipConfirmation, setSkipConfirmation] = useState(false);
 
   const handleConfirm = () => {
@@ -26,15 +22,10 @@ export const EjectConfirmModal = ({
   };
 
   return (
-    <Modal
-      opened={opened}
-      onClose={handleClose}
-      title="Are you sure you want to eject?"
-    >
+    <Modal opened={opened} onClose={handleClose} title="Are you sure you want to eject?">
       <Stack gap="md">
         <Text size="sm" c="dimmed">
-          This will terminate the running process and return to the launch
-          screen.
+          This will terminate the running process and return to the launch screen.
         </Text>
 
         <Checkbox

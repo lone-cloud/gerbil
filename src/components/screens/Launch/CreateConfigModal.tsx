@@ -1,6 +1,6 @@
-import { TextInput, Group, Button, Stack } from '@mantine/core';
-import { Modal } from '@/components/Modal';
+import { Button, Group, Stack, TextInput } from '@mantine/core';
 import { useState } from 'react';
+import { Modal } from '@/components/Modal';
 
 interface CreateConfigModalProps {
   opened: boolean;
@@ -19,8 +19,7 @@ export const CreateConfigModal = ({
 
   const trimmedConfigName = newConfigName.trim();
   const configNameExists =
-    trimmedConfigName &&
-    existingConfigNames.includes(trimmedConfigName.toLowerCase());
+    trimmedConfigName && existingConfigNames.includes(trimmedConfigName.toLowerCase());
 
   const handleClose = () => {
     setNewConfigName('');
@@ -35,12 +34,7 @@ export const CreateConfigModal = ({
   };
 
   return (
-    <Modal
-      opened={opened}
-      onClose={handleClose}
-      title="Create New Configuration"
-      size="sm"
-    >
+    <Modal opened={opened} onClose={handleClose} title="Create New Configuration" size="sm">
       <Stack gap="md">
         <TextInput
           label="Name"
@@ -48,11 +42,7 @@ export const CreateConfigModal = ({
           value={newConfigName}
           onChange={(event) => setNewConfigName(event.currentTarget.value)}
           data-autofocus
-          error={
-            configNameExists
-              ? 'A configuration with this name already exists'
-              : undefined
-          }
+          error={configNameExists ? 'A configuration with this name already exists' : undefined}
         />
         <Group justify="flex-end" gap="sm">
           <Button variant="outline" onClick={handleClose}>

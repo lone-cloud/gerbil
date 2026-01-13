@@ -1,14 +1,12 @@
-import { argv, exit } from 'process';
+import { argv, exit } from 'node:process';
 
 if (argv[1] === '--version') {
   void (async () => {
     try {
       const { app } = await import('electron');
       const version = app.getVersion();
-      // eslint-disable-next-line no-console
       console.log(version);
     } catch {
-      // eslint-disable-next-line no-console
       console.log('unknown');
     }
     exit(0);
@@ -24,12 +22,10 @@ if (argv[1] === '--version') {
         try {
           await cliModule.handleCliMode(args);
         } catch (error) {
-          // eslint-disable-next-line no-console
           console.error('CLI mode error:', error);
           exit(1);
         }
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error('Failed to load CLI module:', error);
         exit(1);
       }
@@ -37,11 +33,8 @@ if (argv[1] === '--version') {
       try {
         const guiModule = await import('./gui');
         const startMinimized = argv.includes('--minimized');
-        await guiModule.initializeApp(
-          startMinimized ? { startMinimized } : undefined
-        );
+        await guiModule.initializeApp(startMinimized ? { startMinimized } : undefined);
       } catch (error: unknown) {
-        // eslint-disable-next-line no-console
         console.error('Failed to initialize Gerbil:', error);
       }
     }

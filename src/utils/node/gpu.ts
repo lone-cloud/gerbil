@@ -1,6 +1,6 @@
-import { readFile, readdir } from 'fs/promises';
-import { join } from 'path';
-import { platform } from 'process';
+import { readdir, readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { platform } from 'node:process';
 import { graphics as siGraphics } from 'systeminformation';
 
 interface CachedGPUInfo {
@@ -51,10 +51,7 @@ async function initializeLinuxGPUCache() {
       for (const card of cardEntries) {
         const devicePath = join(drmPath, card, 'device');
         try {
-          const memTotalData = await readFile(
-            `${devicePath}/mem_info_vram_total`,
-            'utf8'
-          );
+          const memTotalData = await readFile(`${devicePath}/mem_info_vram_total`, 'utf8');
           const memoryTotal = Math.max(
             0,
             (parseInt(memTotalData.trim(), 10) || 0) / (1024 * 1024 * 1024)
@@ -80,9 +77,7 @@ async function initializeLinuxGPUCache() {
               let hwmonPath: string | undefined;
               try {
                 const hwmonEntries = await readdir(`${devicePath}/hwmon`);
-                const hwmonEntry = hwmonEntries.find((e) =>
-                  e.startsWith('hwmon')
-                );
+                const hwmonEntry = hwmonEntries.find((e) => e.startsWith('hwmon'));
                 if (hwmonEntry) {
                   hwmonPath = `${devicePath}/hwmon/${hwmonEntry}`;
                 }
@@ -95,9 +90,7 @@ async function initializeLinuxGPUCache() {
               });
             }
           }
-        } catch {
-          continue;
-        }
+        } catch {}
       }
 
       linuxGpuCache = gpus;
@@ -126,10 +119,7 @@ async function getLinuxGPUData() {
             readFile(`${cachedGPU.devicePath}/mem_info_vram_used`, 'utf8'),
           ]);
 
-          const usage = Math.max(
-            0,
-            Math.min(100, parseInt(usageData.trim(), 10) || 0)
-          );
+          const usage = Math.max(0, Math.min(100, parseInt(usageData.trim(), 10) || 0));
           const memoryUsed = Math.max(
             0,
             (parseInt(memUsedData.trim(), 10) || 0) / (1024 * 1024 * 1024)
@@ -138,10 +128,7 @@ async function getLinuxGPUData() {
           let temperature: number | undefined;
           if (cachedGPU.hwmonPath) {
             try {
-              const tempData = await readFile(
-                `${cachedGPU.hwmonPath}/temp1_input`,
-                'utf8'
-              );
+              const tempData = await readFile(`${cachedGPU.hwmonPath}/temp1_input`, 'utf8');
               temperature = Math.round(parseInt(tempData.trim(), 10) / 1000);
             } catch {}
           }
@@ -152,9 +139,7 @@ async function getLinuxGPUData() {
             memoryTotal: parseFloat(cachedGPU.memoryTotal.toFixed(2)),
             temperature,
           });
-        } catch {
-          continue;
-        }
+        } catch {}
       }
     }
 

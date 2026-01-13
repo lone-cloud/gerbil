@@ -5,15 +5,13 @@ export const formatDownloadSize = (size: number, url?: string) => {
 
   const isApproximateSize = url?.includes(ROCM.LINUX.DOWNLOAD_URL);
 
-  return isApproximateSize
-    ? `~${formatFileSizeInMB(size)}`
-    : formatFileSizeInMB(size);
+  return isApproximateSize ? `~${formatFileSizeInMB(size)}` : formatFileSizeInMB(size);
 };
 
 const formatFileSizeInMB = (bytes: number) => {
   if (bytes === 0) return '0 MB';
   const mb = bytes / (1024 * 1024);
-  return parseFloat(mb.toFixed(1)) + ' MB';
+  return `${parseFloat(mb.toFixed(1))} MB`;
 };
 
 export const formatBytes = (bytes: number) => {
@@ -46,8 +44,7 @@ export const formatDeviceName = (deviceName: string) =>
     .replace(/\s+/g, ' ')
     .trim();
 
-export const stripFileExtension = (filename: string) =>
-  filename.replace(/\.[^/.]+$/, '');
+export const stripFileExtension = (filename: string) => filename.replace(/\.[^/.]+$/, '');
 
 export const formatDownloads = (count: number) => {
   if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`;

@@ -1,21 +1,17 @@
-import {
-  cpu as siCpu,
-  mem as siMem,
-  memLayout as siMemLayout,
-} from 'systeminformation';
-import { safeExecute } from '@/utils/node/logging';
-import { getGPUData } from '@/utils/node/gpu';
+import { platform } from 'node:process';
+import { execa } from 'execa';
+import { cpu as siCpu, mem as siMem, memLayout as siMemLayout } from 'systeminformation';
 import type {
+  BasicGPUInfo,
   CPUCapabilities,
   GPUCapabilities,
-  BasicGPUInfo,
-  GPUMemoryInfo,
   GPUDevice,
+  GPUMemoryInfo,
 } from '@/types/hardware';
-import { execa } from 'execa';
 import { formatDeviceName } from '@/utils/format';
-import { platform } from 'process';
-import { getVulkanInfo, detectGPUViaVulkan } from '@/utils/node/vulkan';
+import { getGPUData } from '@/utils/node/gpu';
+import { safeExecute } from '@/utils/node/logging';
+import { detectGPUViaVulkan, getVulkanInfo } from '@/utils/node/vulkan';
 
 const COMMON_EXEC_OPTIONS = {
   timeout: 3000,
@@ -65,10 +61,7 @@ export async function detectGPU() {
     return basicGPUInfoCache;
   }
 
-  const result = await safeExecute(
-    () => detectGPUViaVulkan(),
-    'GPU detection failed'
-  );
+  const result = await safeExecute(() => detectGPUViaVulkan(), 'GPU detection failed');
 
   const fallbackGPUInfo = {
     hasAMD: false,
@@ -172,7 +165,6 @@ async function detectCUDA() {
   }
 }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity
 export async function detectROCm() {
   try {
     const rocminfoCommand = platform === 'win32' ? 'hipInfo' : 'rocminfo';
@@ -188,9 +180,7 @@ export async function detectROCm() {
 
     try {
       if (hipccOutput.trim()) {
-        const hipVersionMatch = hipccOutput.match(
-          /HIP version:\s*(\d+\.\d+(?:\.\d+)?)/i
-        );
+        const hipVersionMatch = hipccOutput.match(/HIP version:\s*(\d+\.\d+(?:\.\d+)?)/i);
 
         if (hipVersionMatch) {
           version = hipVersionMatch[1];
@@ -273,11 +263,7 @@ function parseClInfoOutput(output: string) {
 }
 
 function findDeviceNameInClInfo(lines: string[], startIndex: number) {
-  for (
-    let j = startIndex + 1;
-    j < Math.min(startIndex + 50, lines.length);
-    j++
-  ) {
+  for (let j = startIndex + 1; j < Math.min(startIndex + 50, lines.length); j++) {
     const nextLine = lines[j].trim();
     if (nextLine.includes('Device Board Name (AMD)')) {
       return nextLine.split('Device Board Name (AMD)')[1]?.trim() || '';
@@ -287,11 +273,7 @@ function findDeviceNameInClInfo(lines: string[], startIndex: number) {
     }
   }
 
-  for (
-    let j = startIndex + 1;
-    j < Math.min(startIndex + 100, lines.length);
-    j++
-  ) {
+  for (let j = startIndex + 1; j < Math.min(startIndex + 100, lines.length); j++) {
     const nextLine = lines[j].trim();
     if (nextLine.startsWith('Device Name:')) {
       return nextLine.split('Device Name:')[1]?.trim() || '';
@@ -305,11 +287,7 @@ function findDeviceNameInClInfo(lines: string[], startIndex: number) {
 }
 
 function findComputeUnitsInClInfo(lines: string[], startIndex: number) {
-  for (
-    let j = startIndex + 1;
-    j < Math.min(startIndex + 50, lines.length);
-    j++
-  ) {
+  for (let j = startIndex + 1; j < Math.min(startIndex + 50, lines.length); j++) {
     const nextLine = lines[j].trim();
     if (nextLine.includes('Max compute units')) {
       const units = nextLine
@@ -347,9 +325,7 @@ function parseRocmOutput(output: string, vulkanInfo: { allGPUs: GPUDevice[] }) {
   }
 
   if (currentDevice?.name) {
-    devices.push(
-      createDevice(currentDevice.name, currentDevice.isIntegrated || false)
-    );
+    devices.push(createDevice(currentDevice.name, currentDevice.isIntegrated || false));
   }
 
   return devices;
@@ -362,9 +338,7 @@ function handleHipInfoLine(
 ) {
   if (trimmedLine.startsWith('device#')) {
     if (currentDevice?.name) {
-      devices.push(
-        createDevice(currentDevice.name, currentDevice.isIntegrated || false)
-      );
+      devices.push(createDevice(currentDevice.name, currentDevice.isIntegrated || false));
     }
     return true;
   }
@@ -408,11 +382,7 @@ function findDeviceType(lines: string[], startIndex: number) {
   const searchStartIndex = Math.max(0, startIndex - searchRangeLines);
   const searchEndIndex = Math.min(lines.length, startIndex + searchRangeLines);
 
-  for (
-    let searchIndex = searchStartIndex;
-    searchIndex < searchEndIndex;
-    searchIndex++
-  ) {
+  for (let searchIndex = searchStartIndex; searchIndex < searchEndIndex; searchIndex++) {
     if (lines[searchIndex].includes('Device Type:')) {
       return lines[searchIndex].split('Device Type:')[1]?.trim() || '';
     }
@@ -420,10 +390,7 @@ function findDeviceType(lines: string[], startIndex: number) {
   return '';
 }
 
-function determineIfIntegrated(
-  name: string,
-  vulkanInfo: { allGPUs: GPUDevice[] }
-) {
+function determineIfIntegrated(name: string, vulkanInfo: { allGPUs: GPUDevice[] }) {
   try {
     const matchingGPU = vulkanInfo.allGPUs.find(
       (gpu) => gpu.name.includes(name) || name.includes(gpu.name)
@@ -492,8 +459,7 @@ export const detectSystemMemory = async () => {
       const populatedSlot = memLayout.find(
         (slot) =>
           slot.size > 0 &&
-          ((slot.clockSpeed && slot.clockSpeed > 0) ||
-            (slot.type && slot.type !== ''))
+          ((slot.clockSpeed && slot.clockSpeed > 0) || (slot.type && slot.type !== ''))
       );
 
       if (populatedSlot) {
@@ -501,10 +467,7 @@ export const detectSystemMemory = async () => {
           populatedSlot.clockSpeed && populatedSlot.clockSpeed > 0
             ? populatedSlot.clockSpeed
             : undefined;
-        type =
-          populatedSlot.type && populatedSlot.type !== ''
-            ? populatedSlot.type
-            : undefined;
+        type = populatedSlot.type && populatedSlot.type !== '' ? populatedSlot.type : undefined;
       }
     }
 

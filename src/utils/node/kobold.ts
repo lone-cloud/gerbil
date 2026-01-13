@@ -7,14 +7,11 @@ export function parseKoboldConfig(args: string[]) {
   let remotetunnel = false;
 
   for (let i = 0; i < args.length; i++) {
-    if (
-      (args[i] === '--hostname' || args[i] === '--host') &&
-      i + 1 < args.length
-    ) {
+    if ((args[i] === '--hostname' || args[i] === '--host') && i + 1 < args.length) {
       host = args[i + 1];
     } else if (args[i] === '--port' && i + 1 < args.length) {
       const parsedPort = parseInt(args[i + 1], 10);
-      if (!isNaN(parsedPort)) {
+      if (!Number.isNaN(parsedPort)) {
         port = parsedPort;
       }
     } else if (args[i] === '--sdmodel') {

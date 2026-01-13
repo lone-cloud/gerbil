@@ -1,18 +1,12 @@
-import {
-  app,
-  Tray,
-  Menu,
-  nativeImage,
-  MenuItemConstructorOptions,
-} from 'electron';
-import { join } from 'path';
-import { platform, resourcesPath } from 'process';
-import { getEnableSystemTray } from './config';
-import { getMainWindow } from './window';
-import type { CpuMetrics, MemoryMetrics, GpuMetrics } from './monitoring';
-import type { Screen } from '@/types';
+import { join } from 'node:path';
+import { platform, resourcesPath } from 'node:process';
+import { app, Menu, type MenuItemConstructorOptions, nativeImage, Tray } from 'electron';
 import { PRODUCT_NAME } from '@/constants';
+import type { Screen } from '@/types';
 import { stripFileExtension } from '@/utils/format';
+import { getEnableSystemTray } from './config';
+import type { CpuMetrics, GpuMetrics, MemoryMetrics } from './monitoring';
+import { getMainWindow } from './window';
 
 let tray: Tray | null = null;
 let currentMetrics: {
@@ -82,11 +76,7 @@ function showAndFocusWindow() {
 function buildTooltipText() {
   const parts: string[] = [];
 
-  if (
-    appState.monitoringEnabled &&
-    currentMetrics.cpu &&
-    currentMetrics.memory
-  ) {
+  if (appState.monitoringEnabled && currentMetrics.cpu && currentMetrics.memory) {
     const metrics: string[] = [];
 
     const cpuText = `CPU:   ${currentMetrics.cpu.usage}%${currentMetrics.cpu.temperature ? ` • ${currentMetrics.cpu.temperature}°C` : ''}`;
@@ -97,13 +87,12 @@ function buildTooltipText() {
 
     if (currentMetrics.gpu?.gpus) {
       currentMetrics.gpu.gpus.forEach((gpu, index) => {
-        const gpuLabel =
-          currentMetrics.gpu!.gpus.length > 1 ? `GPU ${index + 1}` : 'GPU';
+        const gpuLabel = (currentMetrics.gpu?.gpus?.length ?? 0) > 1 ? `GPU ${index + 1}` : 'GPU';
         const gpuText = `${gpuLabel}:   ${gpu.usage}%${gpu.temperature ? ` • ${gpu.temperature}°C` : ''}`;
         metrics.push(gpuText);
 
         const vramLabel =
-          currentMetrics.gpu!.gpus.length > 1 ? `VRAM ${index + 1}` : 'VRAM';
+          (currentMetrics.gpu?.gpus?.length ?? 0) > 1 ? `VRAM ${index + 1}` : 'VRAM';
         const vramText = `${vramLabel}: ${gpu.memoryUsage}% • ${gpu.memoryUsed.toFixed(2)} GB`;
         metrics.push(vramText);
       });

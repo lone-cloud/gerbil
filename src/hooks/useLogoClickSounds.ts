@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { soundAssets, playSound, initializeAudio } from '@/utils/sounds';
+import { initializeAudio, playSound, soundAssets } from '@/utils/sounds';
 
 export const useLogoClickSounds = () => {
   const [logoClickCount, setLogoClickCount] = useState(0);
@@ -36,9 +36,7 @@ export const useLogoClickSounds = () => {
     cursor: 'pointer',
     userSelect: 'none' as const,
     transition: 'transform 0.15s ease-in-out',
-    transform: isElephantMode
-      ? 'scale(1.3) rotate(5deg)'
-      : 'scale(1) rotate(0deg)',
+    transform: isElephantMode ? 'scale(1.3) rotate(5deg)' : 'scale(1) rotate(0deg)',
     animation: isElephantMode
       ? 'elephantShake 1.5s ease-in-out'
       : isMouseSqueaking

@@ -1,16 +1,8 @@
-import {
-  Table,
-  Text,
-  Group,
-  Loader,
-  Stack,
-  Badge,
-  Tooltip,
-} from '@mantine/core';
+import { Badge, Group, Loader, Stack, Table, Text, Tooltip } from '@mantine/core';
 import { Download, Heart, Lock } from 'lucide-react';
 import { HUGGINGFACE_BASE_URL } from '@/constants';
-import { formatDownloads, formatDate } from '@/utils/format';
 import type { HuggingFaceModelInfo, HuggingFaceSortOption } from '@/types';
+import { formatDate, formatDownloads } from '@/utils/format';
 
 interface ModelsTableProps {
   models: HuggingFaceModelInfo[];
@@ -55,10 +47,7 @@ export const ModelsTable = ({
           >
             Downloads{sortBy === 'downloads' && ' ↓'}
           </Table.Th>
-          <Table.Th
-            style={{ width: 90, cursor: 'pointer' }}
-            onClick={() => onSortChange('likes')}
-          >
+          <Table.Th style={{ width: 90, cursor: 'pointer' }} onClick={() => onSortChange('likes')}>
             Likes{sortBy === 'likes' && ' ↓'}
           </Table.Th>
         </Table.Tr>
@@ -69,9 +58,7 @@ export const ModelsTable = ({
             key={model.id}
             onClick={() => {
               if (model.gated) {
-                void window.electronAPI.app.openExternal(
-                  `${HUGGINGFACE_BASE_URL}/${model.id}`
-                );
+                void window.electronAPI.app.openExternal(`${HUGGINGFACE_BASE_URL}/${model.id}`);
               } else {
                 onSelect(model);
               }
@@ -88,11 +75,7 @@ export const ModelsTable = ({
                   </Text>
                   {model.gated && (
                     <Tooltip label="Gated model - click to open on HuggingFace">
-                      <Badge
-                        size="xs"
-                        color="yellow"
-                        leftSection={<Lock size={10} />}
-                      >
+                      <Badge size="xs" color="yellow" leftSection={<Lock size={10} />}>
                         Gated
                       </Badge>
                     </Tooltip>

@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState, type MouseEvent } from 'react';
-import { Box, Paper, ActionIcon } from '@mantine/core';
+import { ActionIcon, Box, Paper } from '@mantine/core';
 import { Minus } from 'lucide-react';
+import { type MouseEvent, useEffect, useRef, useState } from 'react';
+import { NOTEPAD_MIN_HEIGHT, NOTEPAD_MIN_WIDTH } from '@/constants/notepad';
 import { useNotepadStore } from '@/stores/notepad';
 import { usePreferencesStore } from '@/stores/preferences';
-import { NOTEPAD_MIN_WIDTH, NOTEPAD_MIN_HEIGHT } from '@/constants/notepad';
-import { NotepadTabs } from './Tabs.tsx';
-import { NotepadEditor } from './Editor.tsx';
 import { CloseConfirmModal } from './CloseConfirmModal.tsx';
+import { NotepadEditor } from './Editor.tsx';
+import { NotepadTabs } from './Tabs.tsx';
 
 export const NotepadContainer = () => {
   const {
@@ -62,11 +62,10 @@ export const NotepadContainer = () => {
     setConfirmCloseModal({ isOpen: false, title: '' });
   };
 
-  const handleResizeStart =
-    (direction: string) => (e: MouseEvent<HTMLDivElement>) => {
-      e.stopPropagation();
-      setResizeDirection(direction);
-    };
+  const handleResizeStart = (direction: string) => (e: MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    setResizeDirection(direction);
+  };
 
   useEffect(() => {
     const handleMouseMove = (e: globalThis.MouseEvent) => {
@@ -81,10 +80,7 @@ export const NotepadContainer = () => {
           newWidth = Math.max(NOTEPAD_MIN_WIDTH, e.clientX - rect.left);
         }
         if (resizeDirection.includes('top')) {
-          newHeight = Math.max(
-            NOTEPAD_MIN_HEIGHT,
-            window.innerHeight - e.clientY - 5
-          );
+          newHeight = Math.max(NOTEPAD_MIN_HEIGHT, window.innerHeight - e.clientY - 5);
         }
 
         setPosition({
@@ -179,8 +175,7 @@ export const NotepadContainer = () => {
             zIndex: 9999,
             backgroundColor: 'transparent',
             cursor:
-              resizeDirection.includes('right') &&
-              resizeDirection.includes('top')
+              resizeDirection.includes('right') && resizeDirection.includes('top')
                 ? 'ne-resize'
                 : resizeDirection.includes('right')
                   ? 'ew-resize'
@@ -203,10 +198,7 @@ export const NotepadContainer = () => {
             minHeight: 28,
           }}
         >
-          <NotepadTabs
-            onCreateNewTab={handleCreateNewTab}
-            onCloseTab={handleTabCloseRequest}
-          />
+          <NotepadTabs onCreateNewTab={handleCreateNewTab} onCloseTab={handleTabCloseRequest} />
 
           <Box
             style={{
@@ -217,11 +209,7 @@ export const NotepadContainer = () => {
               flexShrink: 0,
             }}
           >
-            <ActionIcon
-              variant="subtle"
-              size="xs"
-              onClick={() => setVisible(false)}
-            >
+            <ActionIcon variant="subtle" size="xs" onClick={() => setVisible(false)}>
               <Minus size="1rem" />
             </ActionIcon>
           </Box>

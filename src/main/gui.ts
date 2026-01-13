@@ -1,26 +1,21 @@
+import { platform } from 'node:process';
 import { app } from 'electron';
-import { platform } from 'process';
-
-import {
-  createMainWindow,
-  cleanup as cleanupWindow,
-  getMainWindow,
-} from '@/main/modules/window';
-import {
-  initialize as initializeConfig,
-  getInstallDir,
-  getEnableSystemTray,
-  getStartMinimizedToTray,
-} from '@/main/modules/config';
-import { createTray } from '@/main/modules/tray';
-import { safeExecute } from '@/utils/node/logging';
-import { stopKoboldCpp } from '@/main/modules/koboldcpp/launcher';
-import { stopFrontend as stopSillyTavern } from '@/main/modules/sillytavern';
-import { stopFrontend as stopOpenWebUI } from '@/main/modules/openwebui';
-import { stopStaticServer } from '@/main/modules/static-server';
-import { setupIPCHandlers } from '@/main/ipc';
-import { ensureDir } from '@/utils/node/fs';
 import { PRODUCT_NAME } from '@/constants';
+import { setupIPCHandlers } from '@/main/ipc';
+import {
+  getEnableSystemTray,
+  getInstallDir,
+  getStartMinimizedToTray,
+  initialize as initializeConfig,
+} from '@/main/modules/config';
+import { stopKoboldCpp } from '@/main/modules/koboldcpp/launcher';
+import { stopFrontend as stopOpenWebUI } from '@/main/modules/openwebui';
+import { stopFrontend as stopSillyTavern } from '@/main/modules/sillytavern';
+import { stopStaticServer } from '@/main/modules/static-server';
+import { createTray } from '@/main/modules/tray';
+import { cleanup as cleanupWindow, createMainWindow, getMainWindow } from '@/main/modules/window';
+import { ensureDir } from '@/utils/node/fs';
+import { safeExecute } from '@/utils/node/logging';
 
 export async function initializeApp(options?: { startMinimized?: boolean }) {
   const gotTheLock = app.requestSingleInstanceLock();

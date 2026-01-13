@@ -1,7 +1,7 @@
-@import '@mantine/core/styles.css';
-@import '@fontsource/inter/latin-400.css';
-@import '@fontsource/inter/latin-500.css';
-@import '@fontsource/inter/latin-600.css';
+@import "@mantine/core/styles.css";
+@import "@fontsource/inter/latin-400.css";
+@import "@fontsource/inter/latin-500.css";
+@import "@fontsource/inter/latin-600.css";
 
 #root {
   height: 100vh;
@@ -11,13 +11,13 @@
   box-sizing: border-box;
 }
 
-[data-mantine-color-scheme='dark'] #root {
+[data-mantine-color-scheme="dark"] #root {
   border-left: 1px solid rgba(255, 255, 255, 0.15);
   border-right: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-[data-mantine-color-scheme='light'] .mantine-Select-option:hover {
-  background-color: #e9ecef !important;
+[data-mantine-color-scheme="light"] .mantine-Select-option:hover {
+  background-color: #e9ecef;
 }
 
 /* Custom scrollbars */
@@ -46,15 +46,15 @@
 }
 
 /* Dark mode scrollbar support */
-[data-mantine-color-scheme='dark'] ::-webkit-scrollbar-thumb {
+[data-mantine-color-scheme="dark"] ::-webkit-scrollbar-thumb {
   background: rgba(173, 181, 189, 0.5);
 }
 
-[data-mantine-color-scheme='dark'] ::-webkit-scrollbar-thumb:hover {
+[data-mantine-color-scheme="dark"] ::-webkit-scrollbar-thumb:hover {
   background: rgba(173, 181, 189, 0.8);
 }
 
-[data-mantine-color-scheme='dark'] ::-webkit-scrollbar-thumb:active {
+[data-mantine-color-scheme="dark"] ::-webkit-scrollbar-thumb:active {
   background: rgba(206, 212, 218, 0.9);
 }
 

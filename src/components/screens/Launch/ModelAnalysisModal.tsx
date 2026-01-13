@@ -1,6 +1,6 @@
-import { Modal } from '@/components/Modal';
-import { Stack, Group, Text, Alert, rem } from '@mantine/core';
+import { Alert, Group, rem, Stack, Text } from '@mantine/core';
 import { Info } from 'lucide-react';
+import { Modal } from '@/components/Modal';
 import type { ModelAnalysis } from '@/types';
 
 interface ModelAnalysisModalProps {
@@ -63,9 +63,7 @@ export const ModelAnalysisModal = ({
 
     {analysis && (
       <Stack gap="xs">
-        {analysis.general.name && (
-          <InfoRow label="Name" value={analysis.general.name} />
-        )}
+        {analysis.general.name && <InfoRow label="Name" value={analysis.general.name} />}
         <InfoRow label="Architecture" value={analysis.general.architecture} />
         {analysis.general.parameterCount && (
           <InfoRow label="Parameters" value={analysis.general.parameterCount} />
@@ -73,16 +71,10 @@ export const ModelAnalysisModal = ({
         <InfoRow label="File Size" value={analysis.general.fileSize} />
 
         {analysis.architecture.expertCount && (
-          <InfoRow
-            label="Expert Count (MoE)"
-            value={analysis.architecture.expertCount}
-          />
+          <InfoRow label="Expert Count (MoE)" value={analysis.architecture.expertCount} />
         )}
         {analysis.context.maxContextLength && (
-          <InfoRow
-            label="Max Context Length"
-            value={analysis.context.maxContextLength}
-          />
+          <InfoRow label="Max Context Length" value={analysis.context.maxContextLength} />
         )}
         {analysis.architecture.layers && (
           <InfoRow
