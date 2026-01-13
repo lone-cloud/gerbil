@@ -374,14 +374,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@codemirror/search@npm:^6.0.0, @codemirror/search@npm:^6.5.11":
-  version: 6.5.11
-  resolution: "@codemirror/search@npm:6.5.11"
+"@codemirror/search@npm:^6.0.0, @codemirror/search@npm:^6.6.0":
+  version: 6.6.0
+  resolution: "@codemirror/search@npm:6.6.0"
   dependencies:
     "@codemirror/state": "npm:^6.0.0"
-    "@codemirror/view": "npm:^6.0.0"
+    "@codemirror/view": "npm:^6.37.0"
     crelt: "npm:^1.0.5"
-  checksum: 10c0/8f25647ceb9a255a6e5797c20ec787587537e8496f651d8815d3f8f6c9fc5bf586b6552dadfcc7ad24364c659fcd12315c5fa235a098ba15840bb76bed35cc09
+  checksum: 10c0/dacb6dbf94dbc4513b681ea2ea215b5771b478bc940c88e52976b7981dc135b3f17cfcb1e3e929579078f334b42e91bdfee89b9ec874638ddaf82f87cefa0de2
   languageName: node
   linkType: hard
 
@@ -406,15 +406,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@codemirror/view@npm:^6.0.0, @codemirror/view@npm:^6.17.0, @codemirror/view@npm:^6.23.0, @codemirror/view@npm:^6.27.0, @codemirror/view@npm:^6.35.0, @codemirror/view@npm:^6.39.9":
-  version: 6.39.9
-  resolution: "@codemirror/view@npm:6.39.9"
+"@codemirror/view@npm:^6.0.0, @codemirror/view@npm:^6.17.0, @codemirror/view@npm:^6.23.0, @codemirror/view@npm:^6.27.0, @codemirror/view@npm:^6.35.0, @codemirror/view@npm:^6.37.0, @codemirror/view@npm:^6.39.10":
+  version: 6.39.10
+  resolution: "@codemirror/view@npm:6.39.10"
   dependencies:
     "@codemirror/state": "npm:^6.5.0"
     crelt: "npm:^1.0.6"
     style-mod: "npm:^4.1.0"
     w3c-keyname: "npm:^2.2.4"
-  checksum: 10c0/4880ede78372f9719f54d62098aeb15eef819514725d4a6ae4d86dacf3e2c30b6c1366db1c3b9c59484bd1bf2d1796d6fd931d9e0fa6f2e17382e2fae5bdf9d6
+  checksum: 10c0/0952c96d7c69409256b09360f32f24cadbf0a43921194aa46dba331cb550add15cad7efa2f00f9f029f544e89856f732605340d76affa35bc7c7022bfd24d3a9
   languageName: node
   linkType: hard
 
@@ -1534,12 +1534,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^25.0.6":
-  version: 25.0.6
-  resolution: "@types/node@npm:25.0.6"
+"@types/node@npm:*, @types/node@npm:^25.0.8":
+  version: 25.0.8
+  resolution: "@types/node@npm:25.0.8"
   dependencies:
     undici-types: "npm:~7.16.0"
-  checksum: 10c0/4ee3b6b606bc28f6840c04d58769e1e75dd8085149908956c874c85f8f8c890990701bcbe783fc2d14017817861dc07fcf23de6fc2805fe491f84eae717b5705
+  checksum: 10c0/2282464cd928ab184b2310b79899c76bfaa88c8d14640dfab2f9218fdee7e2d916056492de683aa3a26050c8f3bbcade0305616a55277a7c344926c0393149e0
   languageName: node
   linkType: hard
 
@@ -3268,15 +3268,15 @@ __metadata:
   resolution: "gerbil@workspace:."
   dependencies:
     "@biomejs/biome": "npm:^2.3.11"
-    "@codemirror/search": "npm:^6.5.11"
+    "@codemirror/search": "npm:^6.6.0"
     "@codemirror/theme-one-dark": "npm:^6.1.3"
-    "@codemirror/view": "npm:^6.39.9"
+    "@codemirror/view": "npm:^6.39.10"
     "@fontsource/inter": "npm:^5.2.8"
     "@huggingface/gguf": "npm:^0.3.2"
     "@mantine/core": "npm:^8.3.12"
     "@mantine/hooks": "npm:^8.3.12"
     "@types/mime-types": "npm:^3.0.1"
-    "@types/node": "npm:^25.0.6"
+    "@types/node": "npm:^25.0.8"
     "@types/react": "npm:^19.2.8"
     "@types/react-dom": "npm:^19.2.3"
     "@types/yauzl": "npm:^2.10.3"
