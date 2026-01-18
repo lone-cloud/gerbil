@@ -406,15 +406,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@codemirror/view@npm:^6.0.0, @codemirror/view@npm:^6.17.0, @codemirror/view@npm:^6.23.0, @codemirror/view@npm:^6.27.0, @codemirror/view@npm:^6.35.0, @codemirror/view@npm:^6.37.0, @codemirror/view@npm:^6.39.10":
-  version: 6.39.10
-  resolution: "@codemirror/view@npm:6.39.10"
+"@codemirror/view@npm:^6.0.0, @codemirror/view@npm:^6.17.0, @codemirror/view@npm:^6.23.0, @codemirror/view@npm:^6.27.0, @codemirror/view@npm:^6.35.0, @codemirror/view@npm:^6.37.0, @codemirror/view@npm:^6.39.11":
+  version: 6.39.11
+  resolution: "@codemirror/view@npm:6.39.11"
   dependencies:
     "@codemirror/state": "npm:^6.5.0"
     crelt: "npm:^1.0.6"
     style-mod: "npm:^4.1.0"
     w3c-keyname: "npm:^2.2.4"
-  checksum: 10c0/0952c96d7c69409256b09360f32f24cadbf0a43921194aa46dba331cb550add15cad7efa2f00f9f029f544e89856f732605340d76affa35bc7c7022bfd24d3a9
+  checksum: 10c0/832c240d9efcdc1df7e60686e471517059bc3e1f8d6083216d98f2ea15550d29d861ca5b82e4b9d61cbd3d71b0abb9e39f58608a373e3c5bc10e7a2e325aeff2
   languageName: node
   linkType: hard
 
@@ -1534,21 +1534,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^25.0.8":
-  version: 25.0.8
-  resolution: "@types/node@npm:25.0.8"
+"@types/node@npm:*, @types/node@npm:^25.0.9":
+  version: 25.0.9
+  resolution: "@types/node@npm:25.0.9"
   dependencies:
     undici-types: "npm:~7.16.0"
-  checksum: 10c0/2282464cd928ab184b2310b79899c76bfaa88c8d14640dfab2f9218fdee7e2d916056492de683aa3a26050c8f3bbcade0305616a55277a7c344926c0393149e0
+  checksum: 10c0/a757efafe303d9c8833eb53c2e9a0981cd5ac725cdc04c5612a71db86468c938778d4fa328be4231b68fffc68258638764df7b9c69e86cf55f0bb67105eb056f
   languageName: node
   linkType: hard
 
 "@types/node@npm:^22.7.7":
-  version: 22.18.10
-  resolution: "@types/node@npm:22.18.10"
+  version: 22.19.7
+  resolution: "@types/node@npm:22.19.7"
   dependencies:
     undici-types: "npm:~6.21.0"
-  checksum: 10c0/37b34553f1953ab8fc25b7467d44701446400f62547adb62c842cebac091350985470aeed87acd60f5295778c370d9721d477310e643677a7eab03a8dc6ed74f
+  checksum: 10c0/0a4b13fd51306a72393f145693063e074be1bf884bdc642c879436d2c053ac9d573cc0a0d69867f60b14d3f1b9d03317e8ec0e4377f7527cb645e7b2a5d34045
   languageName: node
   linkType: hard
 
@@ -3270,13 +3270,13 @@ __metadata:
     "@biomejs/biome": "npm:^2.3.11"
     "@codemirror/search": "npm:^6.6.0"
     "@codemirror/theme-one-dark": "npm:^6.1.3"
-    "@codemirror/view": "npm:^6.39.10"
+    "@codemirror/view": "npm:^6.39.11"
     "@fontsource/inter": "npm:^5.2.8"
     "@huggingface/gguf": "npm:^0.3.2"
     "@mantine/core": "npm:^8.3.12"
     "@mantine/hooks": "npm:^8.3.12"
     "@types/mime-types": "npm:^3.0.1"
-    "@types/node": "npm:^25.0.8"
+    "@types/node": "npm:^25.0.9"
     "@types/react": "npm:^19.2.8"
     "@types/react-dom": "npm:^19.2.3"
     "@types/yauzl": "npm:^2.10.3"
@@ -3293,13 +3293,13 @@ __metadata:
     mime-types: "npm:^3.0.2"
     react: "npm:^19.2.3"
     react-dom: "npm:^19.2.3"
-    react-error-boundary: "npm:^6.0.3"
+    react-error-boundary: "npm:^6.1.0"
     react-markdown: "npm:^10.1.0"
     rehype-raw: "npm:^7.0.0"
     rehype-sanitize: "npm:^6.0.0"
     remark-gfm: "npm:^4.0.1"
     rollup-plugin-visualizer: "npm:^6.0.5"
-    systeminformation: "npm:^5.30.3"
+    systeminformation: "npm:^5.30.5"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.3.1"
     winston: "npm:^3.19.0"
@@ -5303,12 +5303,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-error-boundary@npm:^6.0.3":
-  version: 6.0.3
-  resolution: "react-error-boundary@npm:6.0.3"
+"react-error-boundary@npm:^6.1.0":
+  version: 6.1.0
+  resolution: "react-error-boundary@npm:6.1.0"
   peerDependencies:
     react: ^18.0.0 || ^19.0.0
-  checksum: 10c0/993f1e31b5dd78ae254e122faee53ef4cb986dc8f029fa670584bea25c713f38f82e9aba870d5083a47802c88aee534758111ebc5d2a2209ba79e1becb8a65f9
+  checksum: 10c0/943eda25fef9bb70400861506be679d3025fa291ac1665b789d6af886cfb8d8af6c155d1fa6649b19ff45aa40ec9fd88592f169da07beeb74e08e674452932a9
   languageName: node
   linkType: hard
 
@@ -6023,12 +6023,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"systeminformation@npm:^5.30.3":
-  version: 5.30.3
-  resolution: "systeminformation@npm:5.30.3"
+"systeminformation@npm:^5.30.5":
+  version: 5.30.5
+  resolution: "systeminformation@npm:5.30.5"
   bin:
     systeminformation: lib/cli.js
-  checksum: 10c0/ce72e2092cb96b52fde94e7ed8e308844d6110236606bdd504653dac86b64a8ca5b2a64bd144b832bee1b7bc4dc323bc05308b85d82ff722a3321b0e4d354965
+  checksum: 10c0/4c6f9c38002c7b64cabb02aef6a9cadf2280907b0d04ffe8c724246f87ee9e2be18872c8cc6612b8467a8f1f6e0e5605de397ceb1e114a6ea67e7f463d9312d9
   conditions: (os=darwin | os=linux | os=win32 | os=freebsd | os=openbsd | os=netbsd | os=sunos | os=android)
   languageName: node
   linkType: hard
@@ -6055,15 +6055,15 @@ __metadata:
   linkType: hard
 
 "tar@npm:^7.4.3":
-  version: 7.5.2
-  resolution: "tar@npm:7.5.2"
+  version: 7.5.3
+  resolution: "tar@npm:7.5.3"
   dependencies:
     "@isaacs/fs-minipass": "npm:^4.0.0"
     chownr: "npm:^3.0.0"
     minipass: "npm:^7.1.2"
     minizlib: "npm:^3.1.0"
     yallist: "npm:^5.0.0"
-  checksum: 10c0/a7d8b801139b52f93a7e34830db0de54c5aa45487c7cb551f6f3d44a112c67f1cb8ffdae856b05fd4f17b1749911f1c26f1e3a23bbe0279e17fd96077f13f467
+  checksum: 10c0/e5e3237bca325fbb33282d92d9807f4c8d81abaf71bf2627efdf93bd5610c146460c78fc7e9767d4ab5ae3c0b18af8197314c964f8cbd23b30b25bf4d42d7cb4
   languageName: node
   linkType: hard
 

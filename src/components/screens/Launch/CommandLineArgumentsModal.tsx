@@ -449,6 +449,20 @@ const COMMAND_LINE_ARGUMENTS = [
     category: 'Advanced',
   },
   {
+    flag: '--gendefaults',
+    description: 'Sets extra default parameters for some fields in API requests, as a JSON string.',
+    metavar: '{"parameter":"value",...}',
+    default: '',
+    category: 'Advanced',
+  },
+  {
+    flag: '--gendefaultsoverwrite',
+    description:
+      'Allow the gendefaults parameters to overwrite the original value in API payloads.',
+    type: 'boolean',
+    category: 'Advanced',
+  },
+  {
     flag: '--maxrequestsize',
     description:
       'Specify a max request payload size. Any requests to the server larger than this size will be dropped. Do not change if unsure.',
@@ -575,7 +589,7 @@ const COMMAND_LINE_ARGUMENTS = [
   },
   {
     flag: '--sdvaeauto',
-    description: 'Uses a built-in VAE via TAE SD, which is very fast and fixed bad VAEs.',
+    description: 'Uses a built-in VAE via TAE SD, which is very fast, and fixed bad VAEs.',
     type: 'boolean',
     category: 'Image Generation',
   },
@@ -600,13 +614,6 @@ const COMMAND_LINE_ARGUMENTS = [
     flag: '--sdoffloadcpu',
     description: 'Offload image weights in RAM to save VRAM, swap into VRAM when needed.',
     type: 'boolean',
-    category: 'Image Generation',
-  },
-  {
-    flag: '--sdgendefaults',
-    description: 'Sets default parameters for image generation, as a JSON string.',
-    metavar: '{"parameter":"value",...}',
-    default: '',
     category: 'Image Generation',
   },
   {
