@@ -54,10 +54,18 @@ export const TerminalTab = forwardRef<TerminalTabRef>((_props, ref) => {
   useEffect(() => {
     const cleanup = window.electronAPI.kobold.onKoboldOutput((data: string) => {
       setTerminalContent((prev) => handleTerminalOutput(prev, data.toString()));
+
+      if (shouldAutoScroll && !isUserScrolling && viewportRef.current) {
+        requestAnimationFrame(() => {
+          if (viewportRef.current) {
+            viewportRef.current.scrollTop = viewportRef.current.scrollHeight;
+          }
+        });
+      }
     });
 
     return cleanup;
-  }, []);
+  }, [shouldAutoScroll, isUserScrolling]);
 
   const scrollToBottom = () => {
     if (viewportRef.current) {
