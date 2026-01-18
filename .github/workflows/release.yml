@@ -48,11 +48,8 @@ jobs:
       - name: Install dependencies
         run: yarn
 
-      - name: Run type check
-        run: yarn compile
-
-      - name: Run linter
-        run: yarn lint
+      - name: Run type check and linter
+        run: yarn check
 
       - name: Build Electron app
         run: yarn package
