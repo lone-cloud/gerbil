@@ -70,7 +70,9 @@ export function startMonitoring(window: BrowserWindow) {
   mainWindow = window;
   isRunning = true;
 
-  powerShellStart();
+  if (platform === 'win32') {
+    powerShellStart();
+  }
 
   void collectAndSendCpuMetrics();
   cpuInterval = setInterval(() => {
@@ -105,7 +107,9 @@ export function stopMonitoring() {
   }
   isRunning = false;
 
-  powerShellRelease();
+  if (platform === 'win32') {
+    powerShellRelease();
+  }
 }
 
 function updateTrayWithMetrics() {
