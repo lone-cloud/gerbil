@@ -348,9 +348,19 @@ export const launchKoboldCppWithCustomFrontends = async (
     }
 
     if (frontendPreference === 'sillytavern') {
-      void startSillyTavernFrontend(args);
+      startSillyTavernFrontend(args).catch((error) => {
+        logError('Failed to start SillyTavern frontend:', error);
+        sendKoboldOutput(
+          `Failed to start SillyTavern: ${error instanceof Error ? error.message : String(error)}`
+        );
+      });
     } else if (frontendPreference === 'openwebui') {
-      void startOpenWebUIFrontend(args);
+      startOpenWebUIFrontend(args).catch((error) => {
+        logError('Failed to start OpenWebUI frontend:', error);
+        sendKoboldOutput(
+          `Failed to start OpenWebUI: ${error instanceof Error ? error.message : String(error)}`
+        );
+      });
     }
 
     return result;

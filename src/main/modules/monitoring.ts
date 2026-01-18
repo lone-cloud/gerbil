@@ -1,7 +1,13 @@
 import { spawn } from 'node:child_process';
 import { platform } from 'node:process';
 import type { BrowserWindow } from 'electron';
-import { cpuTemperature, currentLoad, mem } from 'systeminformation';
+import {
+  cpuTemperature,
+  currentLoad,
+  mem,
+  powerShellRelease,
+  powerShellStart,
+} from 'systeminformation';
 import { getGPUData } from '@/utils/node/gpu';
 import { safeExecute, tryExecute } from '@/utils/node/logging';
 import { detectGPU } from './hardware';
@@ -64,6 +70,8 @@ export function startMonitoring(window: BrowserWindow) {
   mainWindow = window;
   isRunning = true;
 
+  powerShellStart();
+
   void collectAndSendCpuMetrics();
   cpuInterval = setInterval(() => {
     void collectAndSendCpuMetrics();
@@ -96,6 +104,8 @@ export function stopMonitoring() {
     gpuInterval = null;
   }
   isRunning = false;
+
+  powerShellRelease();
 }
 
 function updateTrayWithMetrics() {
