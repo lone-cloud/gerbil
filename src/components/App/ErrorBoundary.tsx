@@ -11,7 +11,7 @@ const ErrorFallback = ({
   error,
   resetErrorBoundary,
 }: {
-  error: Error;
+  error: unknown;
   resetErrorBoundary: () => void;
 }) => (
   <Center h="100%" style={{ minHeight: '25rem' }}>
@@ -29,7 +29,7 @@ const ErrorFallback = ({
         </Text>
 
         <Text size="xs" c="dimmed" style={{ fontFamily: 'monospace' }} mb="sm">
-          {error.message}
+          {error instanceof Error ? error.message : String(error)}
         </Text>
 
         <Button
@@ -66,7 +66,7 @@ export const ErrorBoundary = ({ children }: ErrorBoundaryProps) => (
   <ReactErrorBoundary
     FallbackComponent={ErrorFallback}
     onError={(error) => {
-      window.electronAPI?.logs?.logError('App crashed with unhandled error:', error);
+      window.electronAPI?.logs?.logError('App crashed with unhandled error:', error as Error);
     }}
   >
     {children}
