@@ -988,21 +988,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@huggingface/gguf@npm:^0.3.2":
-  version: 0.3.2
-  resolution: "@huggingface/gguf@npm:0.3.2"
+"@huggingface/gguf@npm:^0.3.3":
+  version: 0.3.3
+  resolution: "@huggingface/gguf@npm:0.3.3"
   dependencies:
-    "@huggingface/tasks": "npm:^0.19.47"
+    "@huggingface/tasks": "npm:^0.19.78"
   bin:
     gguf-view: dist/cli.js
-  checksum: 10c0/f39bfc6b468bdd4f9ee1da548dde504dd1cb6ceee75c6c8c2c5473ed48bed789cbf75604f3e04a1b91cf9b3714e4fa081a3fb8f2189196b659bfce4824e558f9
+  checksum: 10c0/a2b54fba69369517011a11a8f3ed3d69dd5a741811ac73065fd0aa731afed3cd0cfa89b7c74e205d5ba8cba2b444e0bfa4bff9231b7fe3e2ff98338ddeaaa718
   languageName: node
   linkType: hard
 
-"@huggingface/tasks@npm:^0.19.47":
-  version: 0.19.58
-  resolution: "@huggingface/tasks@npm:0.19.58"
-  checksum: 10c0/3349a674bba49dfd729285ae6bb5698291748ba1cc80c8eb1e390b6627d7e97acad52114dbf196b1215a4e962d50c4cad6ec1cf91887301fd7c1115fa8ac4217
+"@huggingface/tasks@npm:^0.19.78":
+  version: 0.19.78
+  resolution: "@huggingface/tasks@npm:0.19.78"
+  checksum: 10c0/364aa80ca1b7d82622d8e241bef26997b5462619b2886feacf5238286f755c4f2bcf5540baefe176509bc4c247329c177bb63664a42a635432ade2e4c4958742
   languageName: node
   linkType: hard
 
@@ -1135,9 +1135,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/core@npm:^8.3.12":
-  version: 8.3.12
-  resolution: "@mantine/core@npm:8.3.12"
+"@mantine/core@npm:^8.3.13":
+  version: 8.3.13
+  resolution: "@mantine/core@npm:8.3.13"
   dependencies:
     "@floating-ui/react": "npm:^0.27.16"
     clsx: "npm:^2.1.1"
@@ -1146,19 +1146,19 @@ __metadata:
     react-textarea-autosize: "npm:8.5.9"
     type-fest: "npm:^4.41.0"
   peerDependencies:
-    "@mantine/hooks": 8.3.12
+    "@mantine/hooks": 8.3.13
     react: ^18.x || ^19.x
     react-dom: ^18.x || ^19.x
-  checksum: 10c0/8c7986c3202026651749d6fe96ab01ca4d72df5c81b791d693e7d41bf3122baaa1244f4a1d74ab7dc86949c1842bfe407441ab609951a358fee54e7582700d07
+  checksum: 10c0/5fe5259fd4449b6398cd59e474008a1c4a457689a8483d19d5a2729264202c6260ae1e64ace1ca39531c04f0ae2d8b0647965f5560a79c56dfd27b57d226b449
   languageName: node
   linkType: hard
 
-"@mantine/hooks@npm:^8.3.12":
-  version: 8.3.12
-  resolution: "@mantine/hooks@npm:8.3.12"
+"@mantine/hooks@npm:^8.3.13":
+  version: 8.3.13
+  resolution: "@mantine/hooks@npm:8.3.13"
   peerDependencies:
     react: ^18.x || ^19.x
-  checksum: 10c0/a2e0ef9a47155f1c73e8b4e9a111ebfd822d01cc98ac048c938c7e9fa734191d789e8121617800ae803f27dd1ff213e1ef891cb6a1ba224f69b0b51ac258a2a3
+  checksum: 10c0/2b91a20ddaf2f209e09c45f11e4b157f43b0652d9eef5e9fc8874c7947316481d0a969ab50a50594b834cbe2e5ca3478797ccff51ed42f721a7c672f52fdb130
   languageName: node
   linkType: hard
 
@@ -1571,12 +1571,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^19.2.8":
-  version: 19.2.8
-  resolution: "@types/react@npm:19.2.8"
+"@types/react@npm:^19.2.9":
+  version: 19.2.9
+  resolution: "@types/react@npm:19.2.9"
   dependencies:
     csstype: "npm:^3.2.2"
-  checksum: 10c0/832834998c4ee971fca72ecf1eb95dc924ad3931a2112c687a4dae498aabd115c5fa4db09186853e34a646226b0223808c8f867df03d17601168f9cf119448de
+  checksum: 10c0/91c6839edd10ebdab4cd686d2a744e6ae078ed5831a36d48284ae92df0463c89bda1084ffdd2e6445f0716236c2c6ae0828b82f70720727632331695f4581d2a
   languageName: node
   linkType: hard
 
@@ -3272,12 +3272,12 @@ __metadata:
     "@codemirror/theme-one-dark": "npm:^6.1.3"
     "@codemirror/view": "npm:^6.39.11"
     "@fontsource/inter": "npm:^5.2.8"
-    "@huggingface/gguf": "npm:^0.3.2"
-    "@mantine/core": "npm:^8.3.12"
-    "@mantine/hooks": "npm:^8.3.12"
+    "@huggingface/gguf": "npm:^0.3.3"
+    "@mantine/core": "npm:^8.3.13"
+    "@mantine/hooks": "npm:^8.3.13"
     "@types/mime-types": "npm:^3.0.1"
     "@types/node": "npm:^25.0.9"
-    "@types/react": "npm:^19.2.8"
+    "@types/react": "npm:^19.2.9"
     "@types/react-dom": "npm:^19.2.3"
     "@types/yauzl": "npm:^2.10.3"
     "@uiw/react-codemirror": "npm:^4.25.4"
@@ -6055,15 +6055,15 @@ __metadata:
   linkType: hard
 
 "tar@npm:^7.4.3":
-  version: 7.5.3
-  resolution: "tar@npm:7.5.3"
+  version: 7.5.6
+  resolution: "tar@npm:7.5.6"
   dependencies:
     "@isaacs/fs-minipass": "npm:^4.0.0"
     chownr: "npm:^3.0.0"
     minipass: "npm:^7.1.2"
     minizlib: "npm:^3.1.0"
     yallist: "npm:^5.0.0"
-  checksum: 10c0/e5e3237bca325fbb33282d92d9807f4c8d81abaf71bf2627efdf93bd5610c146460c78fc7e9767d4ab5ae3c0b18af8197314c964f8cbd23b30b25bf4d42d7cb4
+  checksum: 10c0/08af3807035957650ad5f2a300c49ca4fe0566ac0ea5a23741a5b5103c6da42891a9eeaed39bc1fbcf21c5cac4dc846828a004727fb08b9d946322d3144d1fd2
   languageName: node
   linkType: hard
 
