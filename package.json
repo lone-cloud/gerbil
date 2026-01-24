@@ -44,7 +44,7 @@
     "@uiw/react-codemirror": "^4.25.4",
     "electron-updater": "^6.7.3",
     "execa": "^9.6.1",
-    "lucide-react": "^0.562.0",
+    "lucide-react": "^0.563.0",
     "mime-types": "^3.0.2",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
@@ -60,9 +60,9 @@
     "zustand": "^5.0.10"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.11",
+    "@biomejs/biome": "^2.3.12",
     "@types/mime-types": "^3.0.1",
-    "@types/node": "^25.0.9",
+    "@types/node": "^25.0.10",
     "@types/react": "^19.2.9",
     "@types/react-dom": "^19.2.3",
     "@types/yauzl": "^2.10.3",
