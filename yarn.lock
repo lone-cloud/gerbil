@@ -406,15 +406,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@codemirror/view@npm:^6.0.0, @codemirror/view@npm:^6.17.0, @codemirror/view@npm:^6.23.0, @codemirror/view@npm:^6.27.0, @codemirror/view@npm:^6.35.0, @codemirror/view@npm:^6.37.0, @codemirror/view@npm:^6.39.11":
-  version: 6.39.11
-  resolution: "@codemirror/view@npm:6.39.11"
+"@codemirror/view@npm:^6.0.0, @codemirror/view@npm:^6.17.0, @codemirror/view@npm:^6.23.0, @codemirror/view@npm:^6.27.0, @codemirror/view@npm:^6.35.0, @codemirror/view@npm:^6.37.0, @codemirror/view@npm:^6.39.12":
+  version: 6.39.12
+  resolution: "@codemirror/view@npm:6.39.12"
   dependencies:
     "@codemirror/state": "npm:^6.5.0"
     crelt: "npm:^1.0.6"
     style-mod: "npm:^4.1.0"
     w3c-keyname: "npm:^2.2.4"
-  checksum: 10c0/832c240d9efcdc1df7e60686e471517059bc3e1f8d6083216d98f2ea15550d29d861ca5b82e4b9d61cbd3d71b0abb9e39f58608a373e3c5bc10e7a2e325aeff2
+  checksum: 10c0/b5584fbe3f642fb3c5b35a7e1e36be9432b2967b5a937d31f89d311e83b3f9190c2bbdacfedeb6c10b294b2d9d8c3c54d49eb23790e5ff9193b438e6d21f1a2b
   languageName: node
   linkType: hard
 
@@ -2675,7 +2675,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:^38.7.2":
+"electron@npm:^38.8.0":
   version: 38.8.0
   resolution: "electron@npm:38.8.0"
   dependencies:
@@ -3270,7 +3270,7 @@ __metadata:
     "@biomejs/biome": "npm:^2.3.13"
     "@codemirror/search": "npm:^6.6.0"
     "@codemirror/theme-one-dark": "npm:^6.1.3"
-    "@codemirror/view": "npm:^6.39.11"
+    "@codemirror/view": "npm:^6.39.12"
     "@fontsource/inter": "npm:^5.2.8"
     "@huggingface/gguf": "npm:^0.3.3"
     "@mantine/core": "npm:^8.3.13"
@@ -3283,7 +3283,7 @@ __metadata:
     "@uiw/react-codemirror": "npm:^4.25.4"
     "@vitejs/plugin-react": "npm:^5.1.2"
     cross-env: "npm:^10.1.0"
-    electron: "npm:^38.7.2"
+    electron: "npm:^38.8.0"
     electron-builder: "npm:^26.4.0"
     electron-updater: "npm:^6.7.3"
     electron-vite: "npm:^5.0.0"

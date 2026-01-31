@@ -34,6 +34,7 @@ const UI_COVERED_ARGS = new Set([
   '--websearch',
   '--noshift',
   '--flashattention',
+  '--noflashattention',
   '--noavx2',
   '--failsafe',
   '--usemmap',
@@ -41,7 +42,6 @@ const UI_COVERED_ARGS = new Set([
   '--moecpu',
   '--usecuda',
   '--usevulkan',
-  '--useclblast',
   '--tensorsplit',
   '--sdt5xxl',
   '--sdclipl',
@@ -60,6 +60,7 @@ const UI_COVERED_ARGS = new Set([
   '--lowvram',
   '--smartcache',
   '--pipelineparallel',
+  '--nopipelineparallel',
   '--quantkv',
   '--usecpu',
   '--autofit',
@@ -85,6 +86,11 @@ const IGNORED_ARGS = new Set([
   '--sdnotile',
   '--testmemory',
   '--forceversion',
+  '--sdgendefaults',
+  '--pipelineparallel',
+  '--flashattention',
+  '--flash-attn',
+  '-fa',
 ] as const) as ReadonlySet<string>;
 
 const COMMAND_LINE_ARGUMENTS = [
@@ -594,6 +600,14 @@ const COMMAND_LINE_ARGUMENTS = [
     category: 'Image Generation',
   },
   {
+    flag: '--sdupscaler',
+    description:
+      'You can use ESRGAN as an upscaling model to resize images. Leave blank if unused.',
+    metavar: '[filename]',
+    default: '',
+    category: 'Image Generation',
+  },
+  {
     flag: '--sdloramult',
     description: 'Multiplier for the image LORA model to be applied.',
     metavar: '[amount]',
@@ -680,6 +694,23 @@ const COMMAND_LINE_ARGUMENTS = [
     type: 'int',
     default: 0,
     category: 'Embeddings',
+  },
+  {
+    flag: '--mcpfile',
+    description:
+      'Specify path to mcp.json which contains the Cladue Desktop compatible MCP server config.',
+    metavar: '[mcp json file]',
+    default: '',
+    category: 'Advanced',
+  },
+  {
+    flag: '--device',
+    aliases: ['-dev'],
+    description:
+      'Set llama.cpp compatible device selection override. Comma separated. Overrides normal device choices.',
+    metavar: '<dev1,dev2,..>',
+    default: '',
+    category: 'Advanced',
   },
 ] as const;
 

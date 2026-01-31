@@ -1,4 +1,4 @@
-import { GPUDevice } from './hardware';
+import type { GPUDevice } from './hardware';
 
 export interface ConfigFile {
   name: string;
@@ -93,7 +93,6 @@ export interface AccelerationOption extends SelectOption {
 export interface AccelerationSupport {
   rocm: boolean;
   vulkan: boolean;
-  clblast: boolean;
   noavx2: boolean;
   failsafe: boolean;
   cuda: boolean;

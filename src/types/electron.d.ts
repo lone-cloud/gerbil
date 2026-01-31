@@ -1,20 +1,20 @@
-import type {
-  CPUCapabilities,
-  GPUCapabilities,
-  BasicGPUInfo,
-  GPUMemoryInfo,
-  SystemMemoryInfo,
-} from '@/types/hardware';
+import type { MantineColorScheme } from '@mantine/core';
+import type { CpuMetrics, GpuMetrics, MemoryMetrics } from '@/main/modules/monitoring';
 import type {
   Acceleration,
   AccelerationOption,
   AccelerationSupport,
-  Screen,
-  ModelAnalysis,
   CachedModel,
+  ModelAnalysis,
+  Screen,
 } from '@/types';
-import type { MantineColorScheme } from '@mantine/core';
-import type { CpuMetrics, MemoryMetrics, GpuMetrics } from '@/main/modules/monitoring';
+import type {
+  BasicGPUInfo,
+  CPUCapabilities,
+  GPUCapabilities,
+  GPUMemoryInfo,
+  SystemMemoryInfo,
+} from '@/types/hardware';
 import type { KoboldCrashInfo } from '@/types/ipc';
 
 export interface GitHubAsset {
@@ -99,7 +99,6 @@ export interface KoboldConfig {
   debugmode?: boolean;
   usecuda?: boolean;
   usevulkan?: boolean;
-  useclblast?: boolean | [number, number];
   gpuDeviceSelection?: string;
   tensorSplit?: string;
   gpuPlatform?: number;

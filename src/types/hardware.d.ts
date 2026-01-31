@@ -32,10 +32,6 @@ export interface GPUCapabilities {
     readonly devices: readonly GPUDevice[];
     readonly version?: string;
   };
-  clblast: {
-    readonly devices: readonly GPUDevice[];
-    readonly version?: string;
-  };
 }
 
 export interface BasicGPUInfo {

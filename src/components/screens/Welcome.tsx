@@ -75,7 +75,7 @@ export const WelcomeScreen = ({ onGetStarted }: WelcomeScreenProps) => (
                   <Text component="span" fw={500}>
                     Hardware acceleration
                   </Text>{' '}
-                  - Supports CUDA, ROCm, Vulkan and CLBlast backends
+                  - Supports CUDA, ROCm and Vulkan backends
                 </Text>
               </List.Item>
             </List>

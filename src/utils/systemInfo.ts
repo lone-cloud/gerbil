@@ -89,13 +89,6 @@ export const createDriverItems = (hardwareInfo: HardwareInfo) => {
     });
   }
 
-  if (gpuCapabilities.clblast.devices.length > 0) {
-    items.push({
-      label: 'CLBlast',
-      value: gpuCapabilities.clblast.version ? gpuCapabilities.clblast.version : 'Available',
-    });
-  }
-
   return items;
 };
 
@@ -132,11 +125,6 @@ export const createHardwareItems = (hardwareInfo: HardwareInfo) => [
     if (hardwareInfo.gpuCapabilities.rocm.devices.length > 0) {
       discreteGPUs.push(
         ...hardwareInfo.gpuCapabilities.rocm.devices.filter((gpu) => !gpu.isIntegrated)
-      );
-    }
-    if (hardwareInfo.gpuCapabilities.clblast.devices.length > 0) {
-      discreteGPUs.push(
-        ...hardwareInfo.gpuCapabilities.clblast.devices.filter((gpu) => !gpu.isIntegrated)
       );
     }
 

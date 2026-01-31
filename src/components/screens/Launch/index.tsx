@@ -172,7 +172,6 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     pipelineparallel,
     usecuda: acceleration === 'cuda' || acceleration === 'rocm',
     usevulkan: acceleration === 'vulkan',
-    useclblast: acceleration === 'clblast',
     gpuDeviceSelection,
     tensorSplit,
     sdmodel,

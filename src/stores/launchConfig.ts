@@ -349,11 +349,6 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
         }
       } else if (configData.usevulkan === true) {
         updates.acceleration = 'vulkan';
-      } else if (Array.isArray(configData.useclblast) && configData.useclblast.length === 2) {
-        updates.acceleration = 'clblast';
-        const [deviceIndex, platformIndex] = configData.useclblast;
-        updates.gpuDeviceSelection = deviceIndex.toString();
-        updates.gpuPlatform = platformIndex;
       } else {
         updates.acceleration = 'cpu';
       }

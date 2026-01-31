@@ -136,7 +136,7 @@ export const AccelerationSelector = () => {
             <Text size="sm" fw={500}>
               Acceleration
             </Text>
-            <InfoTooltip label="Select an acceleration mode to run LLMs. CUDA runs on NVIDIA GPUs and is much faster. ROCm is the AMD equivalent. Vulkan and CLBlast work on all GPUs." />
+            <InfoTooltip label="Select an acceleration mode to run LLMs. CUDA runs on NVIDIA GPUs and is much faster. ROCm is the AMD equivalent. Vulkan works on all GPUs." />
           </Group>
           <Select
             placeholder={
