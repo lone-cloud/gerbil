@@ -122,59 +122,30 @@ jobs:
             echo "📋 This will be marked as a full release"
           fi
 
-      - name: Create Release
+      - name: Create Release with all assets
         run: |
+          # Collect all assets
+          assets=()
+          for file in artifacts/macos-release/*.dmg artifacts/macos-release/latest-mac.yml \
+                      artifacts/windows-release/*.exe artifacts/windows-release/latest.yml \
+                      artifacts/linux-release/*.AppImage artifacts/linux-release/latest-linux.yml; do
+            if [ -f "$file" ]; then
+              assets+=("$file")
+            fi
+          done
+          
+          # Create release with all assets at once
           if [ "${{ steps.release_type.outputs.is_prerelease }}" = "true" ]; then
             gh release create ${{ steps.tag.outputs.tag }} \
               --title "Gerbil ${{ steps.tag.outputs.tag }}" \
               --generate-notes \
-              --prerelease
+              --prerelease \
+              "${assets[@]}"
           else
             gh release create ${{ steps.tag.outputs.tag }} \
               --title "Gerbil ${{ steps.tag.outputs.tag }}" \
-              --generate-notes
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload macOS Release Asset
-        run: |
-          for file in artifacts/macos-release/*.dmg; do
-            if [ -f "$file" ]; then
-              filename=$(basename "$file")
-              gh release upload ${{ steps.tag.outputs.tag }} "$file" --clobber
-            fi
-          done
-          if [ -f "artifacts/macos-release/latest-mac.yml" ]; then
-            gh release upload ${{ steps.tag.outputs.tag }} "artifacts/macos-release/latest-mac.yml" --clobber
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Windows Release Asset
-        run: |
-          for file in artifacts/windows-release/*.exe; do
-            if [ -f "$file" ]; then
-              filename=$(basename "$file")
-              gh release upload ${{ steps.tag.outputs.tag }} "$file" --clobber
-            fi
-          done
-          if [ -f "artifacts/windows-release/latest.yml" ]; then
-            gh release upload ${{ steps.tag.outputs.tag }} "artifacts/windows-release/latest.yml" --clobber
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Linux Release Asset
-        run: |
-          for file in artifacts/linux-release/*.AppImage; do
-            if [ -f "$file" ]; then
-              filename=$(basename "$file")
-              gh release upload ${{ steps.tag.outputs.tag }} "$file" --clobber
-            fi
-          done
-          if [ -f "artifacts/linux-release/latest-linux.yml" ]; then
-            gh release upload ${{ steps.tag.outputs.tag }} "artifacts/linux-release/latest-linux.yml" --clobber
+              --generate-notes \
+              "${assets[@]}"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
