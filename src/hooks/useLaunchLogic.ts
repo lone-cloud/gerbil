@@ -173,26 +173,6 @@ const buildCudaArgs = (launchArgs: LaunchArgs) => {
 
 const buildVulkanArgs = () => ['--usevulkan'];
 
-const buildClblastArgs = (launchArgs: LaunchArgs) => {
-  const clblastArgs = ['--useclblast'];
-
-  if (
-    typeof launchArgs.gpuDeviceSelection === 'string' &&
-    launchArgs.gpuDeviceSelection.includes(':')
-  ) {
-    const parsed = parseCLBlastDevice(launchArgs.gpuDeviceSelection);
-    if (parsed) {
-      clblastArgs.push(parsed.platformIndex.toString(), parsed.deviceIndex.toString());
-    } else {
-      clblastArgs.push(launchArgs.gpuPlatform.toString(), '0');
-    }
-  } else {
-    clblastArgs.push(launchArgs.gpuPlatform.toString(), launchArgs.gpuDeviceSelection || '0');
-  }
-
-  return clblastArgs;
-};
-
 const addTensorSplitArgs = (args: string[], launchArgs: LaunchArgs) => {
   if (launchArgs.tensorSplit?.trim()) {
     const tensorValues = launchArgs.tensorSplit
@@ -238,23 +218,10 @@ const buildBackendArgs = (launchArgs: LaunchArgs, platform: string) => {
     if (launchArgs.gpuDeviceSelection === 'all' && isTensorSplitSupported) {
       addTensorSplitArgs(args, launchArgs);
     }
-  } else if (launchArgs.acceleration === 'clblast') {
-    args.push(...buildClblastArgs(launchArgs));
   }
 
   return args;
 };
-
-function parseCLBlastDevice(deviceString: string) {
-  const match = deviceString.match(/\[(\d+),(\d+)\]$/);
-  if (match) {
-    return {
-      deviceIndex: parseInt(match[1], 10),
-      platformIndex: parseInt(match[2], 10),
-    };
-  }
-  return null;
-}
 
 export const useLaunchLogic = ({ model, sdmodel, onLaunch }: UseLaunchLogicProps) => {
   const [isLaunching, setIsLaunching] = useState(false);

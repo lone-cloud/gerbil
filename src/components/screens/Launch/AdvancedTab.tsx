@@ -74,7 +74,7 @@ export const AdvancedTab = () => {
             tooltip={
               !backendSupport?.failsafe && !isLoading
                 ? 'This binary does not support failsafe mode.'
-                : 'Use failsafe mode, extremely slow CPU only compatibility mode that should work on all devices. Can be combined with useclblast if your device supports OpenCL.'
+                : 'Use failsafe mode, extremely slow CPU only compatibility mode that should work on all devices.'
             }
             disabled={isLoading || !backendSupport?.failsafe}
           />

@@ -44,7 +44,6 @@ interface GpuCapabilities {
   cuda: { devices: readonly string[] };
   rocm: { devices: readonly GPUDevice[] };
   vulkan: { devices: readonly GPUDevice[] };
-  clblast: { devices: readonly GPUDevice[] };
 }
 
 interface GpuInfo {
@@ -89,7 +88,7 @@ const checkGpuWarnings = async (
 
 const checkVramWarnings = async (acceleration: string): Promise<Warning[]> => {
   const warnings: Warning[] = [];
-  const isGpuAcceleration = ['cuda', 'rocm', 'vulkan', 'clblast'].includes(acceleration);
+  const isGpuAcceleration = ['cuda', 'rocm', 'vulkan'].includes(acceleration);
 
   if (isGpuAcceleration) {
     const gpuMemoryInfo = await window.electronAPI.kobold.detectGPUMemory();

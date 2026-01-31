@@ -18,8 +18,6 @@ function getAccelerationOverhead(acceleration: Acceleration) {
       return { multiplier: 1.05, computeBufferGB: 0.2, headroomGB: 0.1 };
     case 'rocm':
       return { multiplier: 1.15, computeBufferGB: 0.4, headroomGB: 0.2 };
-    case 'clblast':
-      return { multiplier: 1.2, computeBufferGB: 0.5, headroomGB: 0.3 };
     // assuming metal on macOS which we refer to as "cpu" acceleration
     case 'cpu':
       return { multiplier: 1.05, computeBufferGB: 0.2, headroomGB: 0.1 };

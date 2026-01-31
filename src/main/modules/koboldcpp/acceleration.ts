@@ -20,7 +20,6 @@ async function detectAccelerationSupportFromPath(koboldBinaryPath: string) {
   const support: AccelerationSupport = {
     rocm: false,
     vulkan: false,
-    clblast: false,
     noavx2: false,
     failsafe: false,
     cuda: false,
@@ -48,10 +47,9 @@ async function detectAccelerationSupportFromPath(koboldBinaryPath: string) {
       }
     };
 
-    const [rocm, vulkan, clblast, noavx2, failsafe, cuda] = await Promise.all([
+    const [rocm, vulkan, noavx2, failsafe, cuda] = await Promise.all([
       hasKoboldCppLib('koboldcpp_hipblas'),
       hasKoboldCppLib('koboldcpp_vulkan'),
-      hasKoboldCppLib('koboldcpp_clblast'),
       hasKoboldCppLib('koboldcpp_noavx2'),
       hasKoboldCppLib('koboldcpp_failsafe'),
       hasKoboldCppLib('koboldcpp_cublas'),
@@ -59,7 +57,6 @@ async function detectAccelerationSupportFromPath(koboldBinaryPath: string) {
 
     support.rocm = rocm;
     support.vulkan = vulkan;
-    support.clblast = clblast;
     support.noavx2 = noavx2;
     support.failsafe = failsafe;
     support.cuda = cuda;
@@ -142,21 +139,6 @@ export async function getAvailableAccelerations(includeDisabled = false) {
           value: 'vulkan',
           label: 'Vulkan',
           devices: hardwareCapabilities.vulkan.devices,
-          disabled: includeDisabled ? !isSupported : undefined,
-        });
-      }
-    }
-
-    if (accelerationSupport.clblast) {
-      const discreteDevices = hardwareCapabilities.clblast.devices.filter(
-        (device) => typeof device === 'string' || !device.isIntegrated
-      );
-      const isSupported = discreteDevices.length > 0;
-      if (isSupported || includeDisabled) {
-        accelerations.push({
-          value: 'clblast',
-          label: 'CLBlast',
-          devices: hardwareCapabilities.clblast.devices,
           disabled: includeDisabled ? !isSupported : undefined,
         });
       }

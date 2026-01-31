@@ -24,7 +24,7 @@ Gerbil provides a graphical interface for running Large Language Models locally.
 - **Run LLMs locally** - Powered by [KoboldCpp](https://github.com/LostRuins/koboldcpp), a fork of [llama.cpp](https://github.com/ggml-org/llama.cpp)
 - **Cross-platform** - Native support for Windows, macOS, and Linux (including Wayland)
 - **Offline capable** - Import pre-downloaded KoboldCpp binaries and run entirely without an internet connection
-- **Flexible hardware support** - Works on CPU-only systems while also supporting GPU acceleration (CUDA, ROCm, Vulkan, CLBlast, Metal)
+- **Flexible hardware support** - Works on CPU-only systems while also supporting GPU acceleration (CUDA, ROCm, Vulkan, Metal)
 - **Image generation** - Built-in presets for Flux, Chroma, Qwen Image, and Z-Image workflows
 - **Integrated HuggingFace search** - Browse models, view model cards, and download GGUF files directly from the app
 - **SillyTavern integration** - Launch SillyTavern for advanced character interactions (requires [Node.js](https://nodejs.org/))
