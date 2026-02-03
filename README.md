@@ -130,6 +130,16 @@ https://github.com/user-attachments/assets/9e7ecfb3-3576-443c-8cef-a14e06ab5b60
 
 <!-- markdownlint-enable MD033 MD022 -->
 
+## Advanced Configuration
+
+Gerbil provides access to 70+ KoboldCpp command line arguments through a built-in modal. While the GUI covers common settings, the command line arguments modal exposes additional advanced options.
+
+<div align="center">
+  <img src="assets/screenshot-cli-args.webp" alt="Command Line Arguments Modal" width="800">
+</div>
+
+Access the modal from the Launch screen's Advanced tab -"Additional Arguments" field to browse all available options with descriptions, default values, and usage examples organized by category.
+
 ## CLI Mode
 
 The `--cli` argument allows you to run Gerbil in the terminal without the UI. This will run the same backend that the GUI was using.
