@@ -132,7 +132,7 @@ https://github.com/user-attachments/assets/9e7ecfb3-3576-443c-8cef-a14e06ab5b60
 
 ## Advanced Configuration
 
-Gerbil provides access to 70+ KoboldCpp command line arguments through a built-in modal. While the GUI covers common settings, the command line arguments modal exposes additional advanced options.
+Gerbil provides access to 80 KoboldCpp command line arguments through a built-in modal. While the GUI covers common settings, the command line arguments modal exposes 70+ additional advanced options.
 
 <div align="center">
   <img src="assets/screenshot-cli-args.webp" alt="Command Line Arguments Modal" width="800">
