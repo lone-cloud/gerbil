@@ -121,8 +121,8 @@ const COMMAND_LINE_ARGUMENTS = [
     category: 'Advanced',
   },
   {
-    flag: '--blasbatchsize',
-    aliases: ['--batchsize', '--batch-size', '-b'],
+    flag: '--batchsize',
+    aliases: ['--blasbatchsize', '--batch-size', '-b'],
     description:
       'Sets the batch size used in batched processing (default 512). Setting it to -1 disables batched mode, but keeps other benefits like GPU offload.',
     type: 'int',
@@ -710,6 +710,22 @@ const COMMAND_LINE_ARGUMENTS = [
       'Set llama.cpp compatible device selection override. Comma separated. Overrides normal device choices.',
     metavar: '<dev1,dev2,..>',
     default: '',
+    category: 'Advanced',
+  },
+  {
+    flag: '--downloaddir',
+    description:
+      'Specify a directory that models will be downloaded to or searched from, if unset uses the working directory.',
+    metavar: '[directory]',
+    default: '',
+    category: 'Advanced',
+  },
+  {
+    flag: '--autofitpadding',
+    description:
+      "How much spare allowance in MB should autofit reserve? If it's too little, the load might fail.",
+    metavar: '[padding in MB]',
+    type: 'int',
     category: 'Advanced',
   },
 ] as const;
