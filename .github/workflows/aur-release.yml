@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.tag }}
           fetch-depth: 0
@@ -51,7 +51,7 @@ jobs:
 
       - name: Get release information
         id: release_info
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
@@ -311,7 +311,7 @@ jobs:
           EOF
 
       - name: Publish to AUR
-        uses: KSXGitHub/github-actions-deploy-aur@v2.7.2
+        uses: KSXGitHub/github-actions-deploy-aur@v4.1.1
         with:
           pkgname: gerbil
           pkgbuild: ./PKGBUILD
