@@ -1,4 +1,5 @@
-import { Group, Slider, Stack, Text, TextInput, Transition } from '@mantine/core';
+import { Group, Slider, Stack, Text, TextInput, Tooltip, Transition } from '@mantine/core';
+import { useEffect, useState } from 'react';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { AccelerationSelector } from '@/components/screens/Launch/GeneralTab/AccelerationSelector';
 import { ModelFileField } from '@/components/screens/Launch/ModelFileField';
@@ -11,6 +12,23 @@ interface GeneralTabProps {
 export const GeneralTab = ({ configLoaded = true }: GeneralTabProps) => {
   const { model, contextSize, setModel, selectFile, setContextSizeWithStep } =
     useLaunchConfigStore();
+  const [isSliding, setIsSliding] = useState(false);
+
+  useEffect(() => {
+    if (!isSliding) {
+      return;
+    }
+
+    const handlePointerUp = () => setIsSliding(false);
+
+    window.addEventListener('pointerup', handlePointerUp);
+    window.addEventListener('pointercancel', handlePointerUp);
+
+    return () => {
+      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('pointercancel', handlePointerUp);
+    };
+  }, [isSliding]);
 
   return (
     <Transition mounted={configLoaded} transition="fade" duration={100} timingFunction="ease-out">
@@ -47,20 +65,33 @@ export const GeneralTab = ({ configLoaded = true }: GeneralTabProps) => {
                 onChange={(event) => setContextSizeWithStep(Number(event.target.value) || 256)}
                 type="number"
                 min={256}
-                max={131072}
+                max={262144}
                 step={256}
                 size="sm"
                 w={100}
               />
             </Group>
-            <Slider
-              value={contextSize}
-              min={256}
-              max={131072}
-              step={1}
-              onChange={setContextSizeWithStep}
-              style={{ marginBottom: '0.5rem' }}
-            />
+            <div onPointerDown={() => setIsSliding(true)}>
+              <Slider
+                value={contextSize}
+                min={256}
+                max={262144}
+                step={256}
+                onChange={setContextSizeWithStep}
+                label={null}
+                thumbChildren={
+                  <Tooltip
+                    label={contextSize.toLocaleString()}
+                    position="top"
+                    withArrow
+                    withinPortal
+                    opened={isSliding ? true : undefined}
+                  >
+                    <span style={{ display: 'block', width: '100%', height: '100%' }} />
+                  </Tooltip>
+                }
+              />
+            </div>
           </div>
         </Stack>
       )}

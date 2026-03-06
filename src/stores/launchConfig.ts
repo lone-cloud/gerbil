@@ -465,7 +465,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
 
   setContextSizeWithStep: (size: number) => {
     const rounded = Math.round(size / 256) * 256;
-    set({ contextSize: Math.max(256, Math.min(131072, rounded)) });
+    set({ contextSize: Math.max(256, Math.min(262144, rounded)) });
   },
 
   applyPreset: (presetName: string) => {
