@@ -1560,12 +1560,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^25.3.4":
-  version: 25.3.4
-  resolution: "@types/node@npm:25.3.4"
+"@types/node@npm:*, @types/node@npm:^25.3.5":
+  version: 25.3.5
+  resolution: "@types/node@npm:25.3.5"
   dependencies:
     undici-types: "npm:~7.18.0"
-  checksum: 10c0/85957e8368d366022586dd10cbb8265a0d1e394d0c8ba21955b6c6c4538a33919fe1bc3560e49945102f897305460d23d686b5690726b8e0e0e075a1d1ae2e86
+  checksum: 10c0/4cf0834a6f6933bf0aca6afead117ae3db3b8f02a5f7187a24f871db0fb9344e5e46573ba387bc53b7505e1e219c4c535cbe67221ced95bb5ad98573223b19d0
   languageName: node
   linkType: hard
 
@@ -3348,7 +3348,7 @@ __metadata:
     "@mantine/core": "npm:^8.3.16"
     "@mantine/hooks": "npm:^8.3.16"
     "@types/mime-types": "npm:^3.0.1"
-    "@types/node": "npm:^25.3.4"
+    "@types/node": "npm:^25.3.5"
     "@types/react": "npm:^19.2.14"
     "@types/react-dom": "npm:^19.2.3"
     "@types/yauzl": "npm:^2.10.3"
