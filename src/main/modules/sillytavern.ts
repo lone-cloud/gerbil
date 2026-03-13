@@ -2,7 +2,7 @@ import type { ChildProcess } from 'node:child_process';
 import { spawn } from 'node:child_process';
 import { createServer, request, type Server } from 'node:http';
 import { join } from 'node:path';
-import { on, platform } from 'node:process';
+import { platform } from 'node:process';
 import { SERVER_READY_SIGNALS, SILLYTAVERN } from '@/constants';
 import { PROXY } from '@/constants/proxy';
 import { pathExists, readJsonFile, writeJsonFile } from '@/utils/node/fs';
@@ -18,11 +18,11 @@ let proxyServer: Server | null = null;
 
 const SILLYTAVERN_BASE_ARGS = ['--listen', '--browserLaunchEnabled', 'false', '--disableCsrf'];
 
-on('SIGINT', () => {
+process.on('SIGINT', () => {
   void stopFrontend();
 });
 
-on('SIGTERM', () => {
+process.on('SIGTERM', () => {
   void stopFrontend();
 });
 
