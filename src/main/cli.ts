@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process';
-import { exit, on, platform, stderr, stdin, stdout } from 'node:process';
+import { exit, platform, stderr, stdin, stdout } from 'node:process';
 import { pathExists, readJsonFile } from '@/utils/node/fs';
 import { getConfigDir } from '@/utils/node/path';
 import { terminateProcess } from '@/utils/node/process';
@@ -80,10 +80,10 @@ export async function handleCliMode(args: string[]) {
       }
     };
 
-    on('SIGINT', () => void handleSignal());
-    on('SIGTERM', () => void handleSignal());
+    process.on('SIGINT', () => void handleSignal());
+    process.on('SIGTERM', () => void handleSignal());
     if (platform === 'win32') {
-      on('SIGBREAK', () => void handleSignal());
+      process.on('SIGBREAK', () => void handleSignal());
     }
   });
 }

@@ -1,7 +1,7 @@
 import type { ChildProcess } from 'node:child_process';
 import { spawn } from 'node:child_process';
 import { join } from 'node:path';
-import { on } from 'node:process';
+
 import { app } from 'electron';
 import { OPENWEBUI, SERVER_READY_SIGNALS } from '@/constants';
 import { PROXY } from '@/constants/proxy';
@@ -17,11 +17,11 @@ let openWebUIProcess: ChildProcess | null = null;
 const OPENWEBUI_VERSION = '0.6.41';
 const OPENWEBUI_BASE_ARGS = ['--python', '3.11', `open-webui@${OPENWEBUI_VERSION}`, 'serve'];
 
-on('SIGINT', () => {
+process.on('SIGINT', () => {
   void stopFrontend();
 });
 
-on('SIGTERM', () => {
+process.on('SIGTERM', () => {
   void stopFrontend();
 });
 
