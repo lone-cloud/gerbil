@@ -29,6 +29,7 @@
     "release": "node --no-warnings scripts/release.ts"
   },
   "dependencies": {
+    "@codemirror/commands": "^6.10.3",
     "@codemirror/search": "^6.6.0",
     "@codemirror/theme-one-dark": "^6.1.3",
     "@codemirror/view": "^6.40.0",
