@@ -35,24 +35,23 @@ jobs:
           echo "node-version=$NODE_VERSION" >> $GITHUB_OUTPUT
           echo "📦 Using Node.js $NODE_VERSION from .nvmrc"
 
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: ${{ steps.versions.outputs.node-version }}
-
-      - name: Enable Corepack and prepare Yarn
-        run: |
-          corepack enable
-          corepack prepare yarn@4.9.4 --activate
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: yarn
+        run: pnpm install
 
       - name: Run type check and linter
-        run: yarn check
+        run: pnpm check
 
       - name: Build Electron app
-        run: yarn package
+        run: pnpm package
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

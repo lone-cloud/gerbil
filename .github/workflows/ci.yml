@@ -31,13 +31,13 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ steps.versions.outputs.node-version }}
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: yarn
+        run: pnpm install
 
       - name: Run checks (format, lint, type check)
-        run: yarn check
+        run: pnpm check
 
       - name: Test build
-        run: yarn build
+        run: pnpm build
