@@ -30,7 +30,9 @@ const escapeHtmlExceptLinks = (text: string) => {
 };
 
 export const processTerminalContent = (content: string) => {
-  if (!content) return '';
+  if (!content) {
+    return '';
+  }
 
   return escapeHtmlExceptLinks(content);
 };

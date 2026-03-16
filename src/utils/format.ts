@@ -1,7 +1,9 @@
 import { ROCM } from '@/constants';
 
 export const formatDownloadSize = (size: number, url?: string) => {
-  if (!size) return '';
+  if (!size) {
+    return '';
+  }
 
   const isApproximateSize = url?.includes(ROCM.LINUX.DOWNLOAD_URL);
 
@@ -9,7 +11,9 @@ export const formatDownloadSize = (size: number, url?: string) => {
 };
 
 const formatFileSizeInMB = (bytes: number) => {
-  if (bytes === 0) return '0 MB';
+  if (bytes === 0) {
+    return '0 MB';
+  }
   const mb = bytes / (1024 * 1024);
   return `${parseFloat(mb.toFixed(1))} MB`;
 };
@@ -47,8 +51,12 @@ export const formatDeviceName = (deviceName: string) =>
 export const stripFileExtension = (filename: string) => filename.replace(/\.[^/.]+$/, '');
 
 export const formatDownloads = (count: number) => {
-  if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1)}M`;
-  if (count >= 1_000) return `${(count / 1_000).toFixed(1)}K`;
+  if (count >= 1_000_000) {
+    return `${(count / 1_000_000).toFixed(1)}M`;
+  }
+  if (count >= 1000) {
+    return `${(count / 1000).toFixed(1)}K`;
+  }
   return count.toString();
 };
 
@@ -57,10 +65,20 @@ export const formatDate = (date: Date) => {
   const diff = now.getTime() - date.getTime();
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-  if (days === 0) return 'today';
-  if (days === 1) return 'yesterday';
-  if (days < 7) return `${days}d ago`;
-  if (days < 30) return `${Math.floor(days / 7)}w ago`;
-  if (days < 365) return `${Math.floor(days / 30)}mo ago`;
+  if (days === 0) {
+    return 'today';
+  }
+  if (days === 1) {
+    return 'yesterday';
+  }
+  if (days < 7) {
+    return `${days}d ago`;
+  }
+  if (days < 30) {
+    return `${Math.floor(days / 7)}w ago`;
+  }
+  if (days < 365) {
+    return `${Math.floor(days / 30)}mo ago`;
+  }
   return `${Math.floor(days / 365)}y ago`;
 };

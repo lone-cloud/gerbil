@@ -1,4 +1,4 @@
-import { Button, Group, rem, Stack, Text, TextInput } from '@mantine/core';
+import { Button, Group, Stack, Text, TextInput, rem } from '@mantine/core';
 import { ExternalLink, Folder, FolderOpen, Monitor } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -44,12 +44,12 @@ export const TroubleshootingTab = () => {
             readOnly
             placeholder="Default installation directory"
             style={{ flex: 1 }}
-            leftSection={<Folder style={{ width: rem(16), height: rem(16) }} />}
+            leftSection={<Folder style={{ height: rem(16), width: rem(16) }} />}
           />
           <Button
             variant="outline"
             onClick={() => void handleSelectInstallDir()}
-            leftSection={<FolderOpen style={{ width: rem(16), height: rem(16) }} />}
+            leftSection={<FolderOpen style={{ height: rem(16), width: rem(16) }} />}
           >
             Browse
           </Button>
@@ -57,7 +57,7 @@ export const TroubleshootingTab = () => {
             variant="outline"
             onClick={() => void handleOpenInstallDir()}
             disabled={!installDir}
-            leftSection={<ExternalLink style={{ width: rem(16), height: rem(16) }} />}
+            leftSection={<ExternalLink style={{ height: rem(16), width: rem(16) }} />}
           >
             Open
           </Button>
@@ -75,7 +75,7 @@ export const TroubleshootingTab = () => {
           <Button
             variant="outline"
             size="compact-sm"
-            leftSection={<FolderOpen style={{ width: rem(16), height: rem(16) }} />}
+            leftSection={<FolderOpen style={{ height: rem(16), width: rem(16) }} />}
             onClick={() => void window.electronAPI.app.showLogsFolder()}
           >
             Show Logs
@@ -83,7 +83,7 @@ export const TroubleshootingTab = () => {
           <Button
             variant="outline"
             size="compact-sm"
-            leftSection={<Monitor style={{ width: rem(16), height: rem(16) }} />}
+            leftSection={<Monitor style={{ height: rem(16), width: rem(16) }} />}
             onClick={() => void window.electronAPI.app.viewConfigFile()}
           >
             View Config

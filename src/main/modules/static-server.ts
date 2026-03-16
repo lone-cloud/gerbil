@@ -1,7 +1,10 @@
 import { readFile } from 'node:fs/promises';
-import { createServer, type Server } from 'node:http';
+import { createServer } from 'node:http';
+import type { Server } from 'node:http';
 import { join, normalize, resolve as resolvePath, sep } from 'node:path';
+
 import { lookup } from 'mime-types';
+
 import { pathExists } from '@/utils/node/fs';
 
 let server: Server | null = null;
@@ -40,7 +43,7 @@ export const startStaticServer = (distPath: string) =>
             res.writeHead(404);
             res.end('Not found');
           }
-        })()
+        })(),
     );
 
     server.listen(0, 'localhost', () => {

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+
 import { GITHUB_API } from '@/constants';
 import type {
   DownloadItem,
@@ -25,8 +26,8 @@ const transformReleaseToDownloadItems = (release: GitHubRelease, platform: strin
 
   return platformAssets.map((asset) => ({
     name: asset.name,
-    url: asset.browser_download_url,
     size: asset.size,
+    url: asset.browser_download_url,
     version,
   }));
 };
@@ -74,45 +75,48 @@ const fetchDownloads = async (platform: string) => {
 };
 
 export const useKoboldBackendsStore = create<KoboldBackendsState>((set, get) => ({
-  platform: '',
   availableDownloads: [],
-  loadingPlatform: true,
-  loadingRemote: true,
-  downloading: null,
   downloadProgress: {},
+  downloading: null,
+  getLatestReleaseWithDownloadStatus: async () =>
+    safeExecute(async () => {
+      const [response, installedBackends] = await Promise.all([
+        fetch(GITHUB_API.LATEST_RELEASE_URL),
+        window.electronAPI.kobold.getInstalledBackends(),
+      ]);
 
-  initialize: async () => {
-    set({ loadingPlatform: true, loadingRemote: true });
+      if (!response.ok) return null;
 
-    try {
-      const platform = await window.electronAPI.kobold.getPlatform();
-      set({ platform, loadingPlatform: false });
+      const latestRelease = await response.json();
+      if (!latestRelease) return null;
 
-      const downloads = await fetchDownloads(platform);
-      set({ availableDownloads: downloads });
-    } catch (err) {
-      logError('Failed to initialize store:', err as Error);
-      set({ availableDownloads: [] });
-    } finally {
-      set({ loadingRemote: false });
-    }
-  },
+      const availableAssets = latestRelease.assets.map((asset: GitHubAsset) => {
+        const installedBackend = installedBackends.find((b: InstalledBackend) => {
+          const pathParts = b.path.split(/[/\\]/);
+          const launcherIndex = pathParts.findIndex(
+            (part: string) => part === 'koboldcpp-launcher' || part === 'koboldcpp-launcher.exe',
+          );
 
-  refreshDownloads: async () => {
-    const { platform } = get();
+          if (launcherIndex > 0) {
+            const directoryName = pathParts[launcherIndex - 1];
+            return directoryName === asset.name;
+          }
 
-    set({ loadingRemote: true });
+          return false;
+        });
 
-    try {
-      const downloads = await fetchDownloads(platform);
-      set({ availableDownloads: downloads });
-    } catch (err) {
-      logError('Failed to refresh downloads:', err as Error);
-    } finally {
-      set({ loadingRemote: false });
-    }
-  },
+        return {
+          asset,
+          isDownloaded: !!installedBackend,
+          installedBackendVersion: installedBackend?.version,
+        };
+      });
 
+      return {
+        release: latestRelease,
+        availableAssets,
+      };
+    }, 'Failed to fetch latest release with status:'),
   handleDownload: async (params: HandleDownloadParams) => {
     const { item, isUpdate = false, wasCurrentBinary = false, oldBackendPath } = params;
     const { downloading } = get();
@@ -143,46 +147,43 @@ export const useKoboldBackendsStore = create<KoboldBackendsState>((set, get) => 
     progressCleanup();
     set({ downloading: null, downloadProgress: {} });
   },
+  initialize: async () => {
+    set({ loadingPlatform: true, loadingRemote: true });
 
-  getLatestReleaseWithDownloadStatus: async () =>
-    safeExecute(async () => {
-      const [response, installedBackends] = await Promise.all([
-        fetch(GITHUB_API.LATEST_RELEASE_URL),
-        window.electronAPI.kobold.getInstalledBackends(),
-      ]);
+    try {
+      const platform = await window.electronAPI.kobold.getPlatform();
+      set({ platform, loadingPlatform: false });
 
-      if (!response.ok) return null;
+      const downloads = await fetchDownloads(platform);
+      set({ availableDownloads: downloads });
+    } catch (error) {
+      logError('Failed to initialize store:', error as Error);
+      set({ availableDownloads: [] });
+    } finally {
+      set({ loadingRemote: false });
+    }
+  },
 
-      const latestRelease = await response.json();
-      if (!latestRelease) return null;
+  loadingPlatform: true,
 
-      const availableAssets = latestRelease.assets.map((asset: GitHubAsset) => {
-        const installedBackend = installedBackends.find((b: InstalledBackend) => {
-          const pathParts = b.path.split(/[/\\]/);
-          const launcherIndex = pathParts.findIndex(
-            (part: string) => part === 'koboldcpp-launcher' || part === 'koboldcpp-launcher.exe'
-          );
+  loadingRemote: true,
 
-          if (launcherIndex > 0) {
-            const directoryName = pathParts[launcherIndex - 1];
-            return directoryName === asset.name;
-          }
+  platform: '',
 
-          return false;
-        });
+  refreshDownloads: async () => {
+    const { platform } = get();
 
-        return {
-          asset,
-          isDownloaded: !!installedBackend,
-          installedBackendVersion: installedBackend?.version,
-        };
-      });
+    set({ loadingRemote: true });
 
-      return {
-        release: latestRelease,
-        availableAssets,
-      };
-    }, 'Failed to fetch latest release with status:'),
+    try {
+      const downloads = await fetchDownloads(platform);
+      set({ availableDownloads: downloads });
+    } catch (error) {
+      logError('Failed to refresh downloads:', error as Error);
+    } finally {
+      set({ loadingRemote: false });
+    }
+  },
 }));
 
 void useKoboldBackendsStore.getState().initialize();

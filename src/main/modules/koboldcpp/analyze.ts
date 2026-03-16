@@ -1,5 +1,7 @@
 import { stat } from 'node:fs/promises';
+
 import { gguf } from '@huggingface/gguf';
+
 import { formatBytes } from '@/utils/format';
 import { logError } from '@/utils/node/logging';
 
@@ -17,23 +19,39 @@ function estimateMemoryRequirements(fileSize: number) {
 }
 
 function estimateVramPerLayer(fileSize: number, layers?: number) {
-  if (!layers || layers === 0) return undefined;
+  if (!layers || layers === 0) {
+    return undefined;
+  }
   const perLayer = fileSize / layers;
   return formatBytes(perLayer);
 }
 
 function formatParameterCount(params?: number) {
-  if (!params) return undefined;
-  if (params >= 1e9) return `${(params / 1e9).toFixed(1)}B`;
-  if (params >= 1e6) return `${(params / 1e6).toFixed(1)}M`;
-  if (params >= 1e3) return `${(params / 1e3).toFixed(1)}K`;
+  if (!params) {
+    return undefined;
+  }
+  if (params >= 1e9) {
+    return `${(params / 1e9).toFixed(1)}B`;
+  }
+  if (params >= 1e6) {
+    return `${(params / 1e6).toFixed(1)}M`;
+  }
+  if (params >= 1e3) {
+    return `${(params / 1e3).toFixed(1)}K`;
+  }
   return params.toString();
 }
 
 function formatContextLength(length?: number) {
-  if (!length) return undefined;
-  if (length >= 1e6) return `${(length / 1e6).toFixed(1)}M`;
-  if (length >= 1e3) return `${(length / 1e3).toFixed(0)}K`;
+  if (!length) {
+    return undefined;
+  }
+  if (length >= 1e6) {
+    return `${(length / 1e6).toFixed(1)}M`;
+  }
+  if (length >= 1e3) {
+    return `${(length / 1e3).toFixed(0)}K`;
+  }
   return length.toString();
 }
 
@@ -82,29 +100,30 @@ export async function analyzeGGUFModel(filePath: string) {
     const vramPerLayer = estimateVramPerLayer(fileSize, blockCount);
 
     return {
-      general: {
-        architecture,
-        name,
-        fileSize: formatBytes(fileSize),
-        parameterCount: formatParameterCount(paramCount),
-      },
-      context: {
-        maxContextLength: formatContextLength(contextLength),
-      },
       architecture: {
         layers: blockCount,
         expertCount,
+      },
+      context: {
+        maxContextLength: formatContextLength(contextLength),
       },
       estimates: {
         fullGpuVram: memoryEstimates.fullGpuVram,
         systemRam: memoryEstimates.systemRam,
         vramPerLayer,
       },
+      general: {
+        architecture,
+        name,
+        fileSize: formatBytes(fileSize),
+        parameterCount: formatParameterCount(paramCount),
+      },
     };
   } catch (error) {
     logError('Error analyzing GGUF model:', error as Error);
     throw new Error(
-      `Failed to analyze model: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Failed to analyze model: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      { cause: error },
     );
   }
 }

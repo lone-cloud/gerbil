@@ -4,12 +4,16 @@ import path from 'node:path';
 import { arch, platform } from 'node:process';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { execa, type ResultPromise } from 'execa';
+
+import { execa } from 'execa';
+import type { ResultPromise } from 'execa';
+
 import { GITHUB_API, OPENWEBUI, SILLYTAVERN } from '@/constants';
 import { PROXY } from '@/constants/proxy';
 import { getInstallDir } from '@/main/modules/config';
 import type { FrontendPreference } from '@/types';
 import { logError } from '@/utils/node/logging';
+
 import { sendKoboldOutput, sendToRenderer } from '../window';
 
 let activeTunnel: ResultPromise | null = null;
@@ -51,7 +55,6 @@ const downloadCloudflared = async (binPath: string) => {
     throw new Error(`Failed to download cloudflared: ${response.statusText}`);
   }
 
-  // biome-ignore lint/suspicious/noExplicitAny: Node.js stream types are incompatible with web streams
   await pipeline(Readable.fromWeb(response.body as any), createWriteStream(binPath));
 
   if (platform !== 'win32') {
@@ -63,16 +66,19 @@ const downloadCloudflared = async (binPath: string) => {
 
 const getTunnelTarget = (frontendPreference: FrontendPreference) => {
   switch (frontendPreference) {
-    case 'sillytavern':
+    case 'sillytavern': {
       return `http://${SILLYTAVERN.HOST}:${SILLYTAVERN.PROXY_PORT}`;
-    case 'openwebui':
+    }
+    case 'openwebui': {
       return `http://${OPENWEBUI.HOST}:${OPENWEBUI.PORT}`;
-    default:
+    }
+    default: {
       return `http://${PROXY.HOST}:${PROXY.PORT}`;
+    }
   }
 };
 
-const waitForBackend = async (url: string, timeoutMs = 30000) => {
+const waitForBackend = async (url: string, timeoutMs = 30_000) => {
   const startTime = Date.now();
 
   while (Date.now() - startTime < timeoutMs) {
@@ -104,7 +110,7 @@ export const startTunnel = async (frontendPreference: FrontendPreference = 'kobo
 
     if (!backendReady) {
       throw new Error(
-        'Backend not ready after 30 seconds. Start your backend first before enabling tunnel.'
+        'Backend not ready after 30 seconds. Start your backend first before enabling tunnel.',
       );
     }
 
@@ -147,7 +153,7 @@ export const startTunnel = async (frontendPreference: FrontendPreference = 'kobo
           : 'Tunnel connection timed out';
         tunnel.kill();
         reject(new Error(message));
-      }, 30000);
+      }, 30_000);
 
       const checkForUrl = () => {
         const match = output.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/);

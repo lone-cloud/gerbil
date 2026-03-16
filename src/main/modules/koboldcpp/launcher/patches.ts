@@ -1,5 +1,6 @@
 import { copyFile, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+
 import { pathExists } from '@/utils/node/fs';
 import { tryExecute } from '@/utils/node/logging';
 import { getAssetPath } from '@/utils/node/path';
@@ -81,7 +82,7 @@ export const patchKliteEmbd = (unpackedDir: string) =>
       if (content.includes('gerbil-css-override')) {
         patchedContent = patchedContent.replace(
           /<style id="gerbil-css-override">[\s\S]*?<\/style>\s*/g,
-          ''
+          '',
         );
       }
 

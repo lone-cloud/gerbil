@@ -1,6 +1,8 @@
 import { ActionIcon, Tooltip } from '@mantine/core';
 import { CircleFadingArrowUp, Download } from 'lucide-react';
-import { type MouseEvent, useState } from 'react';
+import { useState } from 'react';
+import type { MouseEvent } from 'react';
+
 import { TITLEBAR_HEIGHT } from '@/constants';
 import { useAppUpdateChecker } from '@/hooks/useAppUpdateChecker';
 
@@ -17,7 +19,9 @@ export const UpdateButton = () => {
 
   const [showDownload, setShowDownload] = useState(false);
 
-  if (!hasUpdate) return null;
+  if (!hasUpdate) {
+    return null;
+  }
 
   let color: 'green' | 'blue' | 'orange' = 'orange';
   let label = 'Update available';

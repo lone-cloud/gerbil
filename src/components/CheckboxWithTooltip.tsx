@@ -1,4 +1,5 @@
 import { Checkbox, Group } from '@mantine/core';
+
 import { InfoTooltip } from '@/components/InfoTooltip';
 
 interface CheckboxWithTooltipProps {

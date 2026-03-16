@@ -1,11 +1,12 @@
 import { Group, Text, TextInput } from '@mantine/core';
+
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { Select } from '@/components/Select';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 import type { AccelerationOption } from '@/types';
 
-const GPU_ACCELERATIONS = ['cuda', 'rocm', 'vulkan'];
-const TENSOR_SPLIT_ACCELERATIONS = ['cuda', 'rocm', 'vulkan'];
+const GPU_ACCELERATIONS = new Set(['cuda', 'rocm', 'vulkan']);
+const TENSOR_SPLIT_ACCELERATIONS = new Set(['cuda', 'rocm', 'vulkan']);
 
 interface GpuDeviceSelectorProps {
   availableAccelerations: AccelerationOption[];
@@ -16,13 +17,15 @@ export const GpuDeviceSelector = ({ availableAccelerations }: GpuDeviceSelectorP
     useLaunchConfigStore();
 
   const selectedAcceleration = availableAccelerations.find((a) => a.value === acceleration);
-  const isGpuAcceleration = GPU_ACCELERATIONS.includes(acceleration);
+  const isGpuAcceleration = GPU_ACCELERATIONS.has(acceleration);
 
   const getDiscreteDeviceCount = () => {
-    if (!selectedAcceleration?.devices) return 0;
+    if (!selectedAcceleration?.devices) {
+      return 0;
+    }
     if (acceleration === 'vulkan' || acceleration === 'rocm') {
       return selectedAcceleration.devices.filter(
-        (device) => typeof device === 'string' || !device.isIntegrated
+        (device) => typeof device === 'string' || !device.isIntegrated,
       ).length;
     }
     return selectedAcceleration.devices.length;
@@ -30,7 +33,7 @@ export const GpuDeviceSelector = ({ availableAccelerations }: GpuDeviceSelectorP
 
   const hasMultipleDevices = getDiscreteDeviceCount() > 1;
   const showTensorSplit =
-    TENSOR_SPLIT_ACCELERATIONS.includes(acceleration) &&
+    TENSOR_SPLIT_ACCELERATIONS.has(acceleration) &&
     hasMultipleDevices &&
     gpuDeviceSelection === 'all';
 
@@ -39,7 +42,9 @@ export const GpuDeviceSelector = ({ availableAccelerations }: GpuDeviceSelectorP
   }
 
   const deviceOptions = (() => {
-    if (!selectedAcceleration?.devices) return [];
+    if (!selectedAcceleration?.devices) {
+      return [];
+    }
 
     if (acceleration === 'vulkan' || acceleration === 'rocm') {
       const discreteDeviceOptions = selectedAcceleration.devices
@@ -49,17 +54,17 @@ export const GpuDeviceSelector = ({ availableAccelerations }: GpuDeviceSelectorP
           }
           const deviceName = typeof device === 'string' ? device : device.name;
           return {
-            value: index.toString(),
             label: `GPU ${index}: ${deviceName}`,
+            value: index.toString(),
           };
         })
         .filter((option): option is NonNullable<typeof option> => option !== null);
 
-      return [{ value: 'all', label: 'All GPUs' }, ...discreteDeviceOptions];
+      return [{ label: 'All GPUs', value: 'all' }, ...discreteDeviceOptions];
     }
 
     return [
-      { value: 'all', label: 'All GPUs' },
+      { label: 'All GPUs', value: 'all' },
       ...selectedAcceleration.devices.map((device, index) => {
         const deviceName =
           typeof device === 'string'
@@ -68,8 +73,8 @@ export const GpuDeviceSelector = ({ availableAccelerations }: GpuDeviceSelectorP
               ? device.name
               : String(device);
         return {
-          value: index.toString(),
           label: `GPU ${index}: ${deviceName}`,
+          value: index.toString(),
         };
       }),
     ];

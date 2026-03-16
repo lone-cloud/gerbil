@@ -1,5 +1,7 @@
 import { stat } from 'node:fs/promises';
+
 import { gguf } from '@huggingface/gguf';
+
 import type { Acceleration } from '@/types';
 
 interface VramCalculationParams {
@@ -12,17 +14,22 @@ interface VramCalculationParams {
 
 function getAccelerationOverhead(acceleration: Acceleration) {
   switch (acceleration) {
-    case 'cuda':
+    case 'cuda': {
       return { multiplier: 1.05, computeBufferGB: 0.2, headroomGB: 0.1 };
-    case 'vulkan':
+    }
+    case 'vulkan': {
       return { multiplier: 1.05, computeBufferGB: 0.2, headroomGB: 0.1 };
-    case 'rocm':
+    }
+    case 'rocm': {
       return { multiplier: 1.15, computeBufferGB: 0.4, headroomGB: 0.2 };
-    // assuming metal on macOS which we refer to as "cpu" acceleration
-    case 'cpu':
+    }
+    // Assuming metal on macOS which we refer to as "cpu" acceleration
+    case 'cpu': {
       return { multiplier: 1.05, computeBufferGB: 0.2, headroomGB: 0.1 };
-    default:
+    }
+    default: {
       return { multiplier: 1.1, computeBufferGB: 0.3, headroomGB: 0.15 };
+    }
   }
 }
 
@@ -30,7 +37,7 @@ function estimateContextVram(
   contextSize: number,
   layers: number,
   kvDim: number,
-  flashAttention: boolean
+  flashAttention: boolean,
 ) {
   const bytesPerElement = 2;
   let kvCacheSizeBytes = 2 * contextSize * layers * kvDim * bytesPerElement;
@@ -111,11 +118,11 @@ export async function calculateOptimalGpuLayers({
   const contextVramGB = estimateContextVram(contextSize, recommendedLayers, kvDim, flashAttention);
 
   return {
+    contextVramGB,
+    estimatedVramUsageGB: modelVramGB + contextVramGB + computeBufferGB,
+    headroomGB,
+    modelVramGB,
     recommendedLayers,
     totalLayers,
-    estimatedVramUsageGB: modelVramGB + contextVramGB + computeBufferGB,
-    modelVramGB,
-    contextVramGB,
-    headroomGB,
   };
 }

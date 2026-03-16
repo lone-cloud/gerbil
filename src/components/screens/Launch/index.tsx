@@ -1,5 +1,6 @@
 import { Button, Card, Container, Group, Stack, Tabs } from '@mantine/core';
 import { useCallback, useEffect, useRef, useState } from 'react';
+
 import { AdvancedTab } from '@/components/screens/Launch/AdvancedTab';
 import { ConfigFileManager } from '@/components/screens/Launch/ConfigFileManager';
 import { GeneralTab } from '@/components/screens/Launch/GeneralTab/index';
@@ -74,15 +75,15 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
 
   const { isLaunching, handleLaunch } = useLaunchLogic({
     model,
-    sdmodel,
     onLaunch,
+    sdmodel,
   });
 
   const { warnings: combinedWarnings } = useWarnings({
-    model,
-    sdmodel,
     acceleration,
     configLoaded,
+    model,
+    sdmodel,
   });
 
   const setHappyDefaults = useCallback(async () => {
@@ -100,14 +101,14 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
         defaultsSetRef.current = true;
       }
     },
-    [setModel]
+    [setModel],
   );
 
   useEffect(() => {
     if (configLoaded && !defaultsSetRef.current) {
       void setHappyDefaults();
       if (!model.trim() && !sdmodel.trim()) {
-        void setInitialDefaults(model, sdmodel);
+        setInitialDefaults(model, sdmodel);
       }
     }
   }, [configLoaded, setHappyDefaults, model, sdmodel, setInitialDefaults]);
@@ -147,50 +148,50 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
   };
 
   const buildConfigData = () => ({
-    autoGpuLayers,
-    gpulayers: gpuLayers,
-    contextsize: contextSize,
-    model,
     additionalArguments,
-    preLaunchCommands: preLaunchCommands.filter((cmd) => cmd.trim() !== ''),
-    port,
-    host,
-    multiuser: multiuser ? 1 : 0,
-    multiplayer,
-    remotetunnel,
-    nocertify,
-    websearch,
-    noshift,
-    flashattention,
-    noavx2,
-    failsafe,
-    usemmap,
+    autoGpuLayers,
+    contextsize: contextSize,
     debugmode,
+    failsafe,
+    flashattention,
+    gpuDeviceSelection,
+    gpulayers: gpuLayers,
+    host,
+    model,
     moecpu,
     moeexperts,
-    smartcache,
+    multiplayer,
+    multiuser: multiuser ? 1 : 0,
+    noavx2,
+    nocertify,
+    noshift,
     pipelineparallel,
-    usecuda: acceleration === 'cuda' || acceleration === 'rocm',
-    usevulkan: acceleration === 'vulkan',
-    gpuDeviceSelection,
-    tensorSplit,
-    sdmodel,
-    sdt5xxl,
-    sdclipl,
+    port,
+    preLaunchCommands: preLaunchCommands.filter((cmd) => cmd.trim() !== ''),
+    remotetunnel,
     sdclipg,
-    sdphotomaker,
-    sdvae,
-    sdlora,
-    sdconvdirect,
-    sdvaecpu,
     sdclipgpu,
+    sdclipl,
+    sdconvdirect,
+    sdlora,
+    sdmodel,
+    sdphotomaker,
+    sdt5xxl,
+    sdvae,
+    sdvaecpu,
+    smartcache,
+    tensorSplit,
+    usecuda: acceleration === 'cuda' || acceleration === 'rocm',
+    usemmap,
+    usevulkan: acceleration === 'vulkan',
+    websearch,
   });
 
   const handleCreateNewConfig = async (configName: string) => {
     const fullConfigName = `${configName}.json`;
     const saveSuccess = await window.electronAPI.kobold.saveConfigFile(
       fullConfigName,
-      buildConfigData()
+      buildConfigData(),
     );
 
     if (saveSuccess) {
@@ -210,7 +211,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
 
     const saveSuccess = await window.electronAPI.kobold.saveConfigFile(
       selectedFile,
-      buildConfigData()
+      buildConfigData(),
     );
 
     if (!saveSuccess) {
@@ -260,43 +261,43 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
 
   const handleLaunchClick = useCallback(() => {
     void handleLaunch({
-      autoGpuLayers,
-      gpuLayers,
-      contextSize,
-      port: port ?? 5001,
-      host,
-      multiuser,
-      multiplayer,
-      remotetunnel,
-      nocertify,
-      websearch,
-      noshift,
-      flashattention,
-      noavx2,
-      failsafe,
       acceleration,
-      lowvram,
-      gpuDeviceSelection,
-      gpuPlatform,
-      tensorSplit,
-      quantmatmul,
-      usemmap,
-      debugmode,
       additionalArguments,
-      preLaunchCommands,
-      sdt5xxl,
-      sdclipl,
-      sdclipg,
-      sdphotomaker,
-      sdvae,
-      sdlora,
-      sdconvdirect,
-      sdvaecpu,
-      sdclipgpu,
+      autoGpuLayers,
+      contextSize,
+      debugmode,
+      failsafe,
+      flashattention,
+      gpuDeviceSelection,
+      gpuLayers,
+      gpuPlatform,
+      host,
+      lowvram,
       moecpu,
       moeexperts,
-      smartcache,
+      multiplayer,
+      multiuser,
+      noavx2,
+      nocertify,
+      noshift,
       pipelineparallel,
+      port: port ?? 5001,
+      preLaunchCommands,
+      quantmatmul,
+      remotetunnel,
+      sdclipg,
+      sdclipgpu,
+      sdclipl,
+      sdconvdirect,
+      sdlora,
+      sdphotomaker,
+      sdt5xxl,
+      sdvae,
+      sdvaecpu,
+      smartcache,
+      tensorSplit,
+      usemmap,
+      websearch,
     });
   }, [
     handleLaunch,
@@ -358,16 +359,16 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
               value={activeTab}
               onChange={setActiveTab}
               styles={{
-                root: {
-                  maxHeight: '51vh',
-                  display: 'flex',
-                  flexDirection: 'column',
-                },
                 panel: {
                   flex: 1,
                   overflow: 'auto',
                   paddingTop: '1rem',
                   paddingRight: '0.5rem',
+                },
+                root: {
+                  maxHeight: '51vh',
+                  display: 'flex',
+                  flexDirection: 'column',
                 },
               }}
             >
@@ -410,12 +411,12 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
                   variant="filled"
                   color="blue"
                   style={{
-                    fontWeight: 600,
                     fontSize: '1em',
-                    padding: '0.75rem 1.75rem',
-                    minWidth: '7.5rem',
-                    textTransform: 'uppercase',
+                    fontWeight: 600,
                     letterSpacing: '0.03125rem',
+                    minWidth: '7.5rem',
+                    padding: '0.75rem 1.75rem',
+                    textTransform: 'uppercase',
                   }}
                 >
                   Launch

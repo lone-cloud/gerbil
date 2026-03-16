@@ -3,8 +3,11 @@ import { search } from '@codemirror/search';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { EditorView, highlightActiveLine, keymap } from '@codemirror/view';
 import { Box } from '@mantine/core';
-import CodeMirror, { type ReactCodeMirrorRef } from '@uiw/react-codemirror';
-import { type MouseEvent, useCallback, useEffect, useRef, useState } from 'react';
+import CodeMirror from '@uiw/react-codemirror';
+import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { MouseEvent } from 'react';
+
 import { useNotepadStore } from '@/stores/notepad';
 import { usePreferencesStore } from '@/stores/preferences';
 import type { NotepadTab } from '@/types/electron';
@@ -34,7 +37,7 @@ export const NotepadEditor = ({ tab }: NotepadEditorProps) => {
 
       setSaveTimeout(timeout);
     },
-    [tab.title, saveTabContent, saveTimeout]
+    [tab.title, saveTabContent, saveTimeout],
   );
 
   const handleEditorContextMenu = (e: MouseEvent) => {
@@ -57,7 +60,7 @@ export const NotepadEditor = ({ tab }: NotepadEditorProps) => {
         clearTimeout(saveTimeout);
       }
     },
-    [saveTimeout]
+    [saveTimeout],
   );
 
   const extensions = [
@@ -81,9 +84,9 @@ export const NotepadEditor = ({ tab }: NotepadEditorProps) => {
       onClick={handleBoxClick}
       onContextMenu={handleEditorContextMenu}
       style={{
-        overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
+        overflow: 'hidden',
       }}
     >
       <CodeMirror
@@ -93,20 +96,20 @@ export const NotepadEditor = ({ tab }: NotepadEditorProps) => {
         theme={theme}
         extensions={extensions}
         basicSetup={{
-          lineNumbers: showLineNumbers,
-          foldGutter: false,
-          dropCursor: false,
           allowMultipleSelections: false,
-          indentOnInput: true,
+          autocompletion: true,
           bracketMatching: true,
           closeBrackets: true,
-          autocompletion: true,
+          dropCursor: false,
+          foldGutter: false,
           highlightSelectionMatches: false,
+          indentOnInput: true,
+          lineNumbers: showLineNumbers,
           searchKeymap: true,
         }}
         style={{
-          height: '100%',
           flex: '1 1 0',
+          height: '100%',
           minHeight: '0',
         }}
       />

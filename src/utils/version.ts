@@ -3,7 +3,7 @@ import type { InstalledBackend } from '@/types/electron';
 export const getDisplayNameFromPath = (installedBackend: InstalledBackend) => {
   const pathParts = installedBackend.path.split(/[/\\]/);
   const launcherIndex = pathParts.findIndex(
-    (part: string) => part === 'koboldcpp-launcher' || part === 'koboldcpp-launcher.exe'
+    (part: string) => part === 'koboldcpp-launcher' || part === 'koboldcpp-launcher.exe',
   );
 
   if (launcherIndex > 0) {
@@ -19,9 +19,9 @@ export const stripAssetExtensions = (assetName: string) =>
 const stripVersionSuffix = (displayName: string) =>
   displayName.replace(/-(\d+\.\d+(?:\.\d+)?(?:\.[a-zA-Z0-9]+)*(?:-[a-zA-Z0-9]+)*)$/, '');
 
-export const compareVersions = (versionA: string, versionB: string) => {
-  const cleanVersion = (version: string) => version.replace(/^v/, '').replace(/[^0-9.]/g, '');
+const cleanVersion = (version: string) => version.replace(/^v/, '').replace(/[^0-9.]/g, '');
 
+export const compareVersions = (versionA: string, versionB: string) => {
   const parseVersion = (version: string) =>
     cleanVersion(version)
       .split('.')

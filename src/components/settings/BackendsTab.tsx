@@ -1,6 +1,7 @@
 import { Anchor, Card, Center, Group, Loader, Stack, Text } from '@mantine/core';
 import { ExternalLink } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
 import { DownloadCard } from '@/components/DownloadCard';
 import { ImportBackendLink } from '@/components/ImportBackendLink';
 import { useKoboldBackendsStore } from '@/stores/koboldBackends';
@@ -75,35 +76,35 @@ export const BackendsTab = () => {
       });
 
       const isCurrent = Boolean(
-        installedBackend && currentBackend && currentBackend.path === installedBackend.path
+        installedBackend && currentBackend && currentBackend.path === installedBackend.path,
       );
 
       if (installedBackend) {
         processedInstalled.add(installedBackend.path);
 
         const hasUpdate =
-          compareVersions(download.version || 'unknown', installedBackend.version) > 0;
+          compareVersions(download.version ?? 'unknown', installedBackend.version) > 0;
 
         backends.push({
-          name: download.name,
-          version: installedBackend.version,
-          size: undefined,
-          isInstalled: true,
-          isCurrent,
-          downloadUrl: download.url,
-          installedPath: installedBackend.path,
-          hasUpdate,
-          newerVersion: hasUpdate ? download.version : undefined,
           actualVersion: installedBackend.actualVersion,
+          downloadUrl: download.url,
+          hasUpdate,
+          installedPath: installedBackend.path,
+          isCurrent,
+          isInstalled: true,
+          name: download.name,
+          newerVersion: hasUpdate ? download.version : undefined,
+          size: undefined,
+          version: installedBackend.version,
         });
       } else {
         backends.push({
-          name: download.name,
-          version: download.version || 'unknown',
-          size: download.size,
-          isInstalled: false,
-          isCurrent: false,
           downloadUrl: download.url,
+          isCurrent: false,
+          isInstalled: false,
+          name: download.name,
+          size: download.size,
+          version: download.version ?? 'unknown',
         });
       }
     });
@@ -114,20 +115,24 @@ export const BackendsTab = () => {
         const isCurrent = Boolean(currentBackend && currentBackend.path === installed.path);
 
         backends.push({
-          name: displayName,
-          version: installed.version,
-          size: undefined,
-          isInstalled: true,
-          isCurrent,
-          installedPath: installed.path,
           actualVersion: installed.actualVersion,
+          installedPath: installed.path,
+          isCurrent,
+          isInstalled: true,
+          name: displayName,
+          size: undefined,
+          version: installed.version,
         });
       }
     });
 
-    return backends.sort((a, b) => {
-      if (a.isInstalled && !b.isInstalled) return -1;
-      if (!a.isInstalled && b.isInstalled) return 1;
+    return backends.toSorted((a, b) => {
+      if (a.isInstalled && !b.isInstalled) {
+        return -1;
+      }
+      if (!a.isInstalled && b.isInstalled) {
+        return 1;
+      }
 
       return 0;
     });
@@ -144,11 +149,13 @@ export const BackendsTab = () => {
 
   const handleDownload = async (backend: BackendInfo) => {
     const download = availableDownloads.find((d) => d.name === backend.name);
-    if (!download) return;
+    if (!download) {
+      return;
+    }
 
     await handleDownloadFromStore({
-      item: download,
       isUpdate: false,
+      item: download,
       wasCurrentBinary: false,
     });
 
@@ -157,13 +164,15 @@ export const BackendsTab = () => {
 
   const handleUpdate = async (backend: BackendInfo) => {
     const download = availableDownloads.find((d) => d.name === backend.name);
-    if (!download) return;
+    if (!download) {
+      return;
+    }
 
     await handleDownloadFromStore({
-      item: download,
       isUpdate: true,
-      wasCurrentBinary: backend.isCurrent,
+      item: download,
       oldBackendPath: backend.installedPath,
+      wasCurrentBinary: backend.isCurrent,
     });
 
     await loadInstalledBackends();
@@ -171,20 +180,24 @@ export const BackendsTab = () => {
 
   const handleRedownload = async (backend: BackendInfo) => {
     const download = availableDownloads.find((d) => d.name === backend.name);
-    if (!download) return;
+    if (!download) {
+      return;
+    }
 
     await handleDownloadFromStore({
-      item: download,
       isUpdate: true,
-      wasCurrentBinary: backend.isCurrent,
+      item: download,
       oldBackendPath: backend.installedPath,
+      wasCurrentBinary: backend.isCurrent,
     });
 
     await loadInstalledBackends();
   };
 
   const handleDelete = async (backend: BackendInfo) => {
-    if (!backend.installedPath || backend.isCurrent) return;
+    if (!backend.installedPath || backend.isCurrent) {
+      return;
+    }
 
     const result = await window.electronAPI.kobold.deleteRelease(backend.installedPath);
     if (result.success) {
@@ -193,7 +206,9 @@ export const BackendsTab = () => {
   };
 
   const makeCurrent = (backend: BackendInfo) => {
-    if (!backend.installedPath) return;
+    if (!backend.installedPath) {
+      return;
+    }
 
     const targetBackend = installedBackends.find((b) => b.path === backend.installedPath);
     if (targetBackend) {

@@ -1,6 +1,8 @@
+import icon from '/icon.png';
 import { ActionIcon, AppShell, Box, Group, Image, Tooltip } from '@mantine/core';
 import { Copy, Minus, Settings, Square, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+
 import { UpdateButton } from '@/components/App/UpdateButton';
 import { Select } from '@/components/Select';
 import { SettingsModal } from '@/components/settings/SettingsModal';
@@ -10,7 +12,6 @@ import { useLaunchConfigStore } from '@/stores/launchConfig';
 import { usePreferencesStore } from '@/stores/preferences';
 import type { InterfaceTab, Screen, SelectOption } from '@/types';
 import { getAvailableInterfaceOptions } from '@/utils/interface';
-import icon from '/icon.png';
 
 interface TitleBarProps {
   currentScreen: Screen;
@@ -18,6 +19,18 @@ interface TitleBarProps {
   onEject: () => void;
   onTabChange: (tab: InterfaceTab) => void;
 }
+
+const renderOption = ({ option }: { option: SelectOption }) => (
+  <Box
+    style={{
+      color: option.value === 'eject' ? 'var(--mantine-color-red-6)' : undefined,
+      fontWeight: option.value === 'eject' ? 600 : undefined,
+      textAlign: 'center',
+    }}
+  >
+    {option.label}
+  </Box>
+);
 
 export const TitleBar = ({ currentScreen, currentTab, onEject, onTabChange }: TitleBarProps) => {
   const {
@@ -40,18 +53,6 @@ export const TitleBar = ({ currentScreen, currentTab, onEject, onTabChange }: Ti
     }
   };
 
-  const renderOption = ({ option }: { option: SelectOption }) => (
-    <Box
-      style={{
-        textAlign: 'center',
-        color: option.value === 'eject' ? 'var(--mantine-color-red-6)' : undefined,
-        fontWeight: option.value === 'eject' ? 600 : undefined,
-      }}
-    >
-      {option.label}
-    </Box>
-  );
-
   useEffect(() => {
     const initializeState = async () => {
       const currentMaximizedState = await window.electronAPI.app.isMaximized();
@@ -61,27 +62,27 @@ export const TitleBar = ({ currentScreen, currentTab, onEject, onTabChange }: Ti
     void initializeState();
 
     const cleanup = window.electronAPI.app.onWindowStateToggle(() =>
-      setIsMaximized((prev) => !prev)
+      setIsMaximized((prev) => !prev),
     );
 
     return cleanup;
   }, []);
 
   return (
-    <AppShell.Header style={{ display: 'flex', flexDirection: 'column', border: 'none' }}>
+    <AppShell.Header style={{ border: 'none', display: 'flex', flexDirection: 'column' }}>
       <Box
         style={{
-          height: TITLEBAR_HEIGHT,
-          padding: '0.125rem 0 0.125rem 0.5rem',
-          display: 'flex',
+          WebkitAppRegion: isSelectOpen ? 'no-drag' : 'drag',
           alignItems: 'center',
-          justifyContent: 'space-between',
           backgroundColor:
             colorScheme === 'dark' ? 'var(--mantine-color-dark-6)' : 'var(--mantine-color-gray-1)',
           border: '1px solid var(--mantine-color-default-border)',
-          WebkitAppRegion: isSelectOpen ? 'no-drag' : 'drag',
-          userSelect: 'none',
+          display: 'flex',
+          height: TITLEBAR_HEIGHT,
+          justifyContent: 'space-between',
+          padding: '0.125rem 0 0.125rem 0.5rem',
           position: 'relative',
+          userSelect: 'none',
         }}
       >
         <Group gap="0.5rem" align="center" style={{ WebkitAppRegion: 'no-drag' }}>
@@ -97,10 +98,10 @@ export const TitleBar = ({ currentScreen, currentTab, onEject, onTabChange }: Ti
 
         <Box
           style={{
-            position: 'absolute',
-            left: '50%',
-            transform: 'translateX(-50%)',
             WebkitAppRegion: 'no-drag',
+            left: '50%',
+            position: 'absolute',
+            transform: 'translateX(-50%)',
           }}
         >
           {currentScreen === 'interface' && (
@@ -113,19 +114,19 @@ export const TitleBar = ({ currentScreen, currentTab, onEject, onTabChange }: Ti
               data={getAvailableInterfaceOptions({
                 frontendPreference,
                 imageGenerationFrontendPreference,
-                isTextMode,
                 isImageGenerationMode,
+                isTextMode,
               })}
               renderOption={renderOption}
               variant="unstyled"
-              style={{ textAlign: 'center', minWidth: '7.5rem' }}
+              style={{ minWidth: '7.5rem', textAlign: 'center' }}
               styles={{
                 input: {
-                  textAlign: 'center',
                   backgroundColor: 'transparent',
                   border: 'none',
-                  userSelect: 'none',
                   cursor: 'pointer',
+                  textAlign: 'center',
+                  userSelect: 'none',
                 },
               }}
             />
@@ -152,34 +153,34 @@ export const TitleBar = ({ currentScreen, currentTab, onEject, onTabChange }: Ti
 
           <Box
             style={{
-              width: '0.1rem',
-              height: '1.25rem',
               backgroundColor:
                 colorScheme === 'dark'
                   ? 'var(--mantine-color-dark-3)'
                   : 'var(--mantine-color-gray-4)',
+              height: '1.25rem',
               margin: '0 0.25rem',
+              width: '0.1rem',
             }}
           />
 
           {[
             {
+              color: undefined,
               icon: <Minus size="1rem" />,
-              onClick: () => void window.electronAPI.app.minimizeWindow(),
-              color: undefined,
               label: 'Minimize window',
+              onClick: () => void window.electronAPI.app.minimizeWindow(),
             },
             {
-              icon: isMaximized ? <Copy size="1rem" /> : <Square size="1rem" />,
-              onClick: () => void window.electronAPI.app.maximizeWindow(),
               color: undefined,
+              icon: isMaximized ? <Copy size="1rem" /> : <Square size="1rem" />,
               label: isMaximized ? 'Restore window' : 'Maximize window',
+              onClick: () => void window.electronAPI.app.maximizeWindow(),
             },
             {
-              icon: <X size="1.25rem" />,
-              onClick: () => void window.electronAPI.app.closeWindow(),
               color: 'red' as const,
+              icon: <X size="1.25rem" />,
               label: 'Close window',
+              onClick: () => void window.electronAPI.app.closeWindow(),
             },
           ].map((button, index) => (
             <ActionIcon

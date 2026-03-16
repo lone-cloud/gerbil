@@ -1,9 +1,12 @@
 import { ActionIcon, Box, Paper } from '@mantine/core';
 import { Minus } from 'lucide-react';
-import { type MouseEvent, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { MouseEvent } from 'react';
+
 import { NOTEPAD_MIN_HEIGHT, NOTEPAD_MIN_WIDTH } from '@/constants/notepad';
 import { useNotepadStore } from '@/stores/notepad';
 import { usePreferencesStore } from '@/stores/preferences';
+
 import { CloseConfirmModal } from './CloseConfirmModal.tsx';
 import { NotepadEditor } from './Editor.tsx';
 import { NotepadTabs } from './Tabs.tsx';
@@ -41,7 +44,9 @@ export const NotepadContainer = () => {
 
   const handleTabCloseRequest = (title: string) => {
     const tab = tabs.find((t) => t.title === title);
-    if (!tab) return;
+    if (!tab) {
+      return;
+    }
 
     if (tab.content.trim().length > 0) {
       setConfirmCloseModal({
@@ -71,7 +76,9 @@ export const NotepadContainer = () => {
     const handleMouseMove = (e: globalThis.MouseEvent) => {
       if (resizeDirection) {
         const rect = containerRef.current?.getBoundingClientRect();
-        if (!rect) return;
+        if (!rect) {
+          return;
+        }
 
         let newWidth = position.width;
         let newHeight = position.height;
@@ -85,8 +92,8 @@ export const NotepadContainer = () => {
 
         setPosition({
           ...position,
-          width: newWidth,
           height: newHeight,
+          width: newWidth,
         });
       }
     };
@@ -106,7 +113,9 @@ export const NotepadContainer = () => {
     }
   }, [resizeDirection, position, setPosition]);
 
-  if (!isLoaded || !isVisible) return null;
+  if (!isLoaded || !isVisible) {
+    return null;
+  }
 
   return (
     <Paper
@@ -114,52 +123,52 @@ export const NotepadContainer = () => {
       shadow="lg"
       withBorder
       style={{
-        position: 'fixed',
-        left: 0,
-        bottom: 24,
-        width: position.width,
-        height: position.height,
-        zIndex: 100,
         backgroundColor:
           resolvedColorScheme === 'dark'
             ? 'var(--mantine-color-dark-6)'
             : 'var(--mantine-color-white)',
+        bottom: 24,
         cursor: 'default',
+        height: position.height,
+        left: 0,
+        position: 'fixed',
         userSelect: 'none',
+        width: position.width,
+        zIndex: 100,
       }}
     >
       <Box
         style={{
+          cursor: 'ns-resize',
+          height: 4,
+          left: 0,
           position: 'absolute',
           top: -2,
-          left: 0,
           width: '100%',
-          height: 4,
-          cursor: 'ns-resize',
         }}
         onMouseDown={handleResizeStart('top')}
       />
 
       <Box
         style={{
-          position: 'absolute',
-          top: 0,
-          right: -2,
-          width: 4,
-          height: '100%',
           cursor: 'ew-resize',
+          height: '100%',
+          position: 'absolute',
+          right: -2,
+          top: 0,
+          width: 4,
         }}
         onMouseDown={handleResizeStart('right')}
       />
 
       <Box
         style={{
-          position: 'absolute',
-          top: -2,
-          right: -2,
-          width: 12,
-          height: 12,
           cursor: 'ne-resize',
+          height: 12,
+          position: 'absolute',
+          right: -2,
+          top: -2,
+          width: 12,
         }}
         onMouseDown={handleResizeStart('top-right')}
       />
@@ -167,12 +176,6 @@ export const NotepadContainer = () => {
       {resizeDirection && (
         <Box
           style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            zIndex: 9999,
             backgroundColor: 'transparent',
             cursor:
               resizeDirection.includes('right') && resizeDirection.includes('top')
@@ -180,6 +183,12 @@ export const NotepadContainer = () => {
                 : resizeDirection.includes('right')
                   ? 'ew-resize'
                   : 'ns-resize',
+            height: '100vh',
+            left: 0,
+            position: 'fixed',
+            top: 0,
+            width: '100vw',
+            zIndex: 9999,
           }}
         />
       )}
@@ -187,14 +196,14 @@ export const NotepadContainer = () => {
       <Box h="100%" style={{ display: 'flex', flexDirection: 'column' }}>
         <Box
           style={{
-            display: 'flex',
-            justifyContent: 'space-between',
             alignItems: 'center',
             borderBottom: `1px solid ${
               resolvedColorScheme === 'dark'
                 ? 'var(--mantine-color-dark-4)'
                 : 'var(--mantine-color-gray-3)'
             }`,
+            display: 'flex',
+            justifyContent: 'space-between',
             minHeight: 28,
           }}
         >
@@ -203,10 +212,10 @@ export const NotepadContainer = () => {
           <Box
             style={{
               display: 'flex',
+              flexShrink: 0,
               gap: 4,
               paddingLeft: 8,
               paddingRight: 8,
-              flexShrink: 0,
             }}
           >
             <ActionIcon variant="subtle" size="xs" onClick={() => setVisible(false)}>

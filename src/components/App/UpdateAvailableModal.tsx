@@ -1,6 +1,7 @@
 import { Anchor, Button, Card, Group, Loader, Progress, Stack, Text } from '@mantine/core';
 import { Download, ExternalLink, X } from 'lucide-react';
 import { useState } from 'react';
+
 import { Modal } from '@/components/Modal';
 import { GITHUB_API } from '@/constants';
 import type { BinaryUpdateInfo } from '@/hooks/useUpdateChecker';
@@ -30,7 +31,7 @@ export const UpdateAvailableModal = ({
   const availableUpdate = updateInfo?.availableUpdate;
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const isDownloading = !!availableUpdate && downloading === availableUpdate.name;
+  const isDownloading = Boolean(availableUpdate) && downloading === availableUpdate?.name;
   const currentProgress = availableUpdate ? downloadProgress[availableUpdate.name] || 0 : 0;
 
   const handleUpdate = async () => {

@@ -1,5 +1,6 @@
 import { AppShell, Center, Loader, Stack, Text, useMantineColorScheme } from '@mantine/core';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+
 import { BackendCrashModal } from '@/components/App/BackendCrashModal';
 import { EjectConfirmModal } from '@/components/App/EjectConfirmModal';
 import { ErrorBoundary } from '@/components/App/ErrorBoundary';
@@ -41,10 +42,10 @@ export const App = () => {
       getDefaultInterfaceTab({
         frontendPreference,
         imageGenerationFrontendPreference,
-        isTextMode,
         isImageGenerationMode,
+        isTextMode,
       }),
-    [frontendPreference, imageGenerationFrontendPreference, isTextMode, isImageGenerationMode]
+    [frontendPreference, imageGenerationFrontendPreference, isTextMode, isImageGenerationMode],
   );
 
   useEffect(() => {
@@ -66,13 +67,13 @@ export const App = () => {
     const updateTray = async () => {
       const config = await window.electronAPI.kobold.getSelectedConfig();
       const displayModel = model || sdmodel || null;
-      const modelName = displayModel ? displayModel.split('/').pop() || displayModel : null;
+      const modelName = displayModel ? (displayModel.split('/').pop() ?? displayModel) : null;
 
       void window.electronAPI.app.updateTrayState({
-        screen: currentScreen,
+        config: config ?? null,
         model: modelName,
-        config: config || null,
         monitoringEnabled: systemMonitoringEnabled,
+        screen: currentScreen,
       });
     };
 
@@ -141,11 +142,15 @@ export const App = () => {
   }, [determineScreen]);
 
   useEffect(() => {
-    if (loadingRemote || !hasInitialized) return;
+    if (loadingRemote || !hasInitialized) {
+      return;
+    }
 
     const runUpdateCheck = async () => {
       const currentBackend = await window.electronAPI.kobold.getCurrentBackend();
-      if (!currentBackend) return;
+      if (!currentBackend) {
+        return;
+      }
 
       void checkForUpdates();
     };
@@ -158,7 +163,7 @@ export const App = () => {
       () => {
         void runUpdateCheck();
       },
-      6 * 60 * 60 * 1000
+      6 * 60 * 60 * 1000,
     );
 
     return () => {
@@ -171,10 +176,10 @@ export const App = () => {
     const currentBackend = await window.electronAPI.kobold.getCurrentBackend();
 
     await handleDownload({
-      item: download,
       isUpdate: true,
-      wasCurrentBinary: true,
+      item: download,
       oldBackendPath: currentBackend?.path,
+      wasCurrentBinary: true,
     });
 
     closeModal();
@@ -217,7 +222,7 @@ export const App = () => {
       padding={isInterfaceScreen ? 0 : 'md'}
     >
       <TitleBar
-        currentScreen={currentScreen || 'launch'}
+        currentScreen={currentScreen ?? 'launch'}
         currentTab={activeInterfaceTab}
         onEject={() => void handleEject()}
         onTabChange={setActiveInterfaceTab}
@@ -228,12 +233,12 @@ export const App = () => {
         style={{
           height: `calc(100vh - ${TITLEBAR_HEIGHT} - ${STATUSBAR_HEIGHT})`,
           minHeight: `calc(100vh - ${TITLEBAR_HEIGHT} - ${STATUSBAR_HEIGHT})`,
-          position: 'relative',
           overflow: 'auto',
-          paddingTop: 0,
           paddingBottom: 0,
           paddingLeft: isInterfaceScreen ? 0 : '.5rem',
           paddingRight: isInterfaceScreen ? 0 : '.5rem',
+          paddingTop: 0,
+          position: 'relative',
           top: TITLEBAR_HEIGHT,
         }}
       >
@@ -254,17 +259,17 @@ export const App = () => {
               activeInterfaceTab={activeInterfaceTab}
               isServerReady={isServerReady}
               onWelcomeComplete={() => void handleWelcomeComplete()}
-              onDownloadComplete={() => void handleDownloadComplete()}
+              onDownloadComplete={() => handleDownloadComplete()}
               onLaunch={handleLaunch}
             />
           )}
         </ErrorBoundary>
 
         <UpdateAvailableModal
-          opened={showUpdateModal && !!binaryUpdateInfo}
+          opened={showUpdateModal && Boolean(binaryUpdateInfo)}
           onClose={closeModal}
           onSkip={skipUpdate}
-          updateInfo={binaryUpdateInfo || undefined}
+          updateInfo={binaryUpdateInfo ?? undefined}
           onUpdate={handleBinaryUpdate}
         />
       </AppShell.Main>

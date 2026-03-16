@@ -1,13 +1,17 @@
 export const getPlatformDisplayName = (platform: string) => {
   switch (platform) {
-    case 'win32':
+    case 'win32': {
       return 'Windows';
-    case 'darwin':
+    }
+    case 'darwin': {
       return 'macOS';
-    case 'linux':
+    }
+    case 'linux': {
       return 'Linux';
-    default:
+    }
+    default: {
       return platform;
+    }
   }
 };
 
@@ -15,14 +19,18 @@ export const isAssetCompatibleWithPlatform = (assetName: string, platform: strin
   const name = assetName.toLowerCase();
 
   switch (platform) {
-    case 'win32':
+    case 'win32': {
       return name.includes('windows') || name.includes('win') || name.includes('.exe');
-    case 'darwin':
+    }
+    case 'darwin': {
       return name.includes('macos') || name.includes('mac') || name.includes('darwin');
-    case 'linux':
+    }
+    case 'linux': {
       return name.includes('linux') || name.includes('ubuntu');
-    default:
+    }
+    default: {
       return true;
+    }
   }
 };
 

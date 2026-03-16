@@ -1,8 +1,9 @@
 import { Group, Stack } from '@mantine/core';
 import { useState } from 'react';
+
 import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
-import { SelectWithTooltip } from '@/components/SelectWithTooltip';
 import { ModelFileField } from '@/components/screens/Launch/ModelFileField';
+import { SelectWithTooltip } from '@/components/SelectWithTooltip';
 import { IMAGE_MODEL_PRESETS } from '@/constants/imageModelPresets';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 
@@ -41,8 +42,8 @@ export const ImageGenerationTab = () => {
         tooltip="Quick presets for popular image generation models with pre-configured encoders."
         placeholder="Choose a preset..."
         data={IMAGE_MODEL_PRESETS.map((preset) => ({
-          value: preset.name,
           label: preset.name,
+          value: preset.name,
         }))}
         value={selectedPreset ?? ''}
         onChange={(value) => {
@@ -70,8 +71,8 @@ export const ImageGenerationTab = () => {
         onChange={setSdmodel}
         onSelectFile={() => void selectFile('sdmodel', 'Select Image Model')}
         searchParams={{
-          pipelineTag: 'text-to-image',
           filter: 'gguf',
+          pipelineTag: 'text-to-image',
           sort: 'trendingScore',
         }}
         showAnalyze
@@ -86,8 +87,8 @@ export const ImageGenerationTab = () => {
         onChange={setSdt5xxl}
         onSelectFile={() => void selectFile('sdt5xxl', 'Select T5XXL Model')}
         searchParams={{
-          search: 't5xxl',
           filter: 'safetensors',
+          search: 't5xxl',
           sort: 'trendingScore',
         }}
         paramType="sdt5xxl"
@@ -101,8 +102,8 @@ export const ImageGenerationTab = () => {
         onChange={setSdclipl}
         onSelectFile={() => void selectFile('sdclipl', 'Select CLIP-L Model')}
         searchParams={{
-          search: 'clip',
           filter: 'safetensors',
+          search: 'clip',
           sort: 'trendingScore',
         }}
         paramType="sdclipl"
@@ -116,8 +117,8 @@ export const ImageGenerationTab = () => {
         onChange={setSdclipg}
         onSelectFile={() => void selectFile('sdclipg', 'Select CLIP-G Model')}
         searchParams={{
-          search: 'clip',
           filter: 'gguf',
+          search: 'clip',
           sort: 'trendingScore',
         }}
         paramType="sdclipg"
@@ -131,8 +132,8 @@ export const ImageGenerationTab = () => {
         onChange={setSdphotomaker}
         onSelectFile={() => void selectFile('sdphotomaker', 'Select PhotoMaker Model')}
         searchParams={{
-          search: 'photomaker',
           filter: 'safetensors',
+          search: 'photomaker',
           sort: 'trendingScore',
         }}
         paramType="sdphotomaker"
@@ -146,8 +147,8 @@ export const ImageGenerationTab = () => {
         onChange={setSdvae}
         onSelectFile={() => void selectFile('sdvae', 'Select VAE Model')}
         searchParams={{
-          search: 'vae',
           filter: 'safetensors',
+          search: 'vae',
           sort: 'trendingScore',
         }}
         paramType="sdvae"
@@ -161,8 +162,8 @@ export const ImageGenerationTab = () => {
         onChange={setSdlora}
         onSelectFile={() => void selectFile('sdlora', 'Select LoRA Model')}
         searchParams={{
-          search: 'lora',
           filter: 'safetensors',
+          search: 'lora',
           sort: 'trendingScore',
         }}
         paramType="sdlora"
@@ -178,9 +179,9 @@ export const ImageGenerationTab = () => {
           }
         }}
         data={[
-          { value: 'off', label: 'Off' },
-          { value: 'vaeonly', label: 'VAE Only' },
-          { value: 'full', label: 'Full' },
+          { label: 'Off', value: 'off' },
+          { label: 'VAE Only', value: 'vaeonly' },
+          { label: 'Full', value: 'full' },
         ]}
       />
 

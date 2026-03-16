@@ -1,5 +1,7 @@
 import { platform } from 'node:process';
+
 import { safeExecute } from '@/utils/node/logging';
+
 import { detectGPU } from './hardware';
 
 export interface PlatformGPUInfo {
@@ -25,7 +27,7 @@ export async function getPlatformGPUInfo(): Promise<PlatformGPUInfo> {
   }, 'Failed to detect platform GPU information');
 
   return (
-    result || {
+    result ?? {
       hasAMD: false,
       hasNVIDIA: false,
       isWindows: platform === 'win32',

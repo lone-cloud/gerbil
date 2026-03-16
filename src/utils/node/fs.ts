@@ -13,7 +13,7 @@ export const pathExists = async (path: string) => {
 
 export const readJsonFile = async <T = unknown>(path: string) => {
   try {
-    const content = await readFile(path, 'utf-8');
+    const content = await readFile(path, 'utf8');
     return JSON.parse(content) as T;
   } catch {
     return null;
@@ -26,7 +26,7 @@ export const writeJsonFile = async (path: string, data: unknown) => {
   await ensureDir(dir);
 
   const content = JSON.stringify(data, null, 2);
-  await writeFile(path, content, 'utf-8');
+  await writeFile(path, content, 'utf8');
 };
 
 export const ensureDir = async (path: string) => {

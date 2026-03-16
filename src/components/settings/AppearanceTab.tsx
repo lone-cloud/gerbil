@@ -1,15 +1,8 @@
-import {
-  Group,
-  type MantineColorScheme,
-  rem,
-  SegmentedControl,
-  Slider,
-  Stack,
-  Text,
-  TextInput,
-} from '@mantine/core';
+import { Group, rem, SegmentedControl, Slider, Stack, Text, TextInput } from '@mantine/core';
+import type { MantineColorScheme } from '@mantine/core';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
+
 import { FrontendInterfaceSelector } from '@/components/settings/FrontendInterfaceSelector';
 import { ZOOM } from '@/constants';
 import { usePreferencesStore } from '@/stores/preferences';
@@ -82,19 +75,19 @@ export const AppearanceTab = ({ isOnInterfaceScreen = false }: AppearanceTabProp
           value={rawColorScheme}
           onChange={handleColorSchemeChange}
           styles={(theme) => ({
-            root: {
-              border: `0.5px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[4]}`,
-            },
             indicator: {
               backgroundColor: isDark ? theme.colors.dark[5] : theme.colors.gray[2],
               border: `1px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[4]}`,
+            },
+            root: {
+              border: `0.5px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[4]}`,
             },
           })}
           data={[
             {
               label: (
                 <Group gap="xs" justify="center">
-                  <Sun style={{ width: rem(16), height: rem(16) }} />
+                  <Sun style={{ height: rem(16), width: rem(16) }} />
                   <span>Light</span>
                 </Group>
               ),
@@ -103,7 +96,7 @@ export const AppearanceTab = ({ isOnInterfaceScreen = false }: AppearanceTabProp
             {
               label: (
                 <Group gap="xs" justify="center">
-                  <Moon style={{ width: rem(16), height: rem(16) }} />
+                  <Moon style={{ height: rem(16), width: rem(16) }} />
                   <span>Dark</span>
                 </Group>
               ),
@@ -112,7 +105,7 @@ export const AppearanceTab = ({ isOnInterfaceScreen = false }: AppearanceTabProp
             {
               label: (
                 <Group gap="xs" justify="center">
-                  <Monitor style={{ width: rem(16), height: rem(16) }} />
+                  <Monitor style={{ height: rem(16), width: rem(16) }} />
                   <span>System</span>
                 </Group>
               ),
@@ -133,7 +126,7 @@ export const AppearanceTab = ({ isOnInterfaceScreen = false }: AppearanceTabProp
             value={zoomPercentage}
             onChange={(event) => handleZoomPercentageChange(event.currentTarget.value)}
             onBlur={(event) => {
-              const value = event.currentTarget.value;
+              const { value } = event.currentTarget;
               const numValue = Number(value);
               if (Number.isNaN(numValue) || !isValidZoomPercentage(numValue)) {
                 setZoomPercentage(zoomLevelToPercentage(zoomLevel).toString());

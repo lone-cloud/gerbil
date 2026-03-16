@@ -1,6 +1,7 @@
+import { resolve } from 'path';
+
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'electron-vite';
-import { resolve } from 'path';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({

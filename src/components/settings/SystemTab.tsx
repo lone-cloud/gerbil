@@ -1,5 +1,6 @@
 import { Center, Stack, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
+
 import { InfoCard } from '@/components/InfoCard';
 import type { SystemVersionInfo } from '@/types/electron';
 import type { HardwareInfo } from '@/types/hardware';
@@ -22,7 +23,7 @@ export const SystemTab = () => {
         ]);
 
         setVersionInfo(info);
-        setKoboldVersion(currentBackend?.version || null);
+        setKoboldVersion(currentBackend?.version ?? null);
 
         const [cpu, gpu, gpuCapabilities, gpuMemory, systemMemory] = await Promise.all([
           window.electronAPI.kobold.detectCPU(),

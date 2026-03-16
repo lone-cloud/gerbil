@@ -133,7 +133,7 @@ jobs:
               assets+=("$file")
             fi
           done
-          
+
           # Create release with all assets at once
           if [ "${{ steps.release_type.outputs.is_prerelease }}" = "true" ]; then
             gh release create ${{ steps.tag.outputs.tag }} \

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+
 import type { AccelerationOption, AccelerationSupport } from '@/types';
 import type { CPUCapabilities, GPUDevice } from '@/types/hardware';
 
@@ -24,16 +25,16 @@ const checkModelWarnings = (model: string, sdmodel: string, configLoaded: boolea
 
   if (showModelPriorityWarning) {
     warnings.push({
-      type: 'info',
       message:
         'Both text and image generation models are selected. This may load both models into VRAM simultaneously, which requires significant memory (typically 16GB+ VRAM recommended). Ensure your system has sufficient VRAM to avoid crashes or poor performance.',
+      type: 'info',
     });
   }
 
   if (showNoModelWarning) {
     warnings.push({
-      type: 'info',
       message: 'Select a model in the General or Image Generation tab to enable launch.',
+      type: 'info',
     });
   }
 
@@ -54,15 +55,15 @@ interface GpuInfo {
 const checkGpuWarnings = async (
   accelerationSupport: AccelerationSupport,
   gpuCapabilities: GpuCapabilities,
-  gpuInfo: GpuInfo
+  gpuInfo: GpuInfo,
 ) => {
   const warnings: Warning[] = [];
 
   if (accelerationSupport.cuda && gpuCapabilities.cuda.devices.length === 0 && gpuInfo.hasNVIDIA) {
     warnings.push({
-      type: 'warning',
       message:
         'Your binary supports CUDA and you have an NVIDIA GPU, but CUDA runtime is not detected on your system.',
+      type: 'warning',
     });
   }
 
@@ -78,8 +79,8 @@ const checkGpuWarnings = async (
     }
 
     warnings.push({
-      type: 'info',
       message,
+      type: 'info',
     });
   }
 
@@ -96,10 +97,10 @@ const checkVramWarnings = async (acceleration: string): Promise<Warning[]> => {
     if (gpuMemoryInfo) {
       const lowVramThreshold = 8;
       const validGpus = gpuMemoryInfo.filter(
-        (gpu) => gpu.totalMemoryGB !== null && gpu.totalMemoryGB !== ''
+        (gpu) => gpu.totalMemoryGB !== null && gpu.totalMemoryGB !== '',
       );
       const lowVramGpus = validGpus.filter(
-        (gpu) => parseFloat(gpu.totalMemoryGB ?? '0') < lowVramThreshold
+        (gpu) => parseFloat(gpu.totalMemoryGB ?? '0') < lowVramThreshold,
       );
 
       if (validGpus.length > 0 && lowVramGpus.length === validGpus.length) {
@@ -108,8 +109,8 @@ const checkVramWarnings = async (acceleration: string): Promise<Warning[]> => {
           .join(', ');
 
         warnings.push({
-          type: 'warning',
           message: `Low VRAM detected (${memoryDetails}). Consider using smaller models, reducing GPU layers, or enabling the "Low VRAM" option on the Advanced tab.`,
+          type: 'warning',
         });
       }
     }
@@ -125,11 +126,11 @@ const checkCpuWarnings = (acceleration: string, availableAccelerations: Accelera
     return warnings;
   }
 
-  if (availableAccelerations.length > 0 && availableAccelerations.some((a) => a.value === 'cpu')) {
+  if (availableAccelerations.some((a) => a.value === 'cpu')) {
     warnings.push({
-      type: 'info',
       message:
         "LLMs run significantly faster on GPU-accelerated systems. Consider using NVIDIA's CUDA, AMD's ROCm or Vulkan backends for optimal performance.",
+      type: 'info',
     });
   }
 
@@ -181,7 +182,7 @@ export const useWarnings = ({
 
   const modelWarnings = useMemo(
     () => checkModelWarnings(model, sdmodel, configLoaded),
-    [model, sdmodel, configLoaded]
+    [model, sdmodel, configLoaded],
   );
 
   const updateBackendWarnings = useCallback(async () => {
@@ -197,8 +198,8 @@ export const useWarnings = ({
 
     const result = await checkBackendWarnings({
       acceleration,
-      cpuCapabilities: cpuCapabilitiesResult,
       availableAccelerations,
+      cpuCapabilities: cpuCapabilitiesResult,
     });
 
     setBackendWarnings(result);
@@ -210,7 +211,7 @@ export const useWarnings = ({
 
   const allWarnings = useMemo(
     () => [...modelWarnings, ...backendWarnings],
-    [modelWarnings, backendWarnings]
+    [modelWarnings, backendWarnings],
   );
 
   return {

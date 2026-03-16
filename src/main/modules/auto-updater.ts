@@ -1,8 +1,11 @@
 import { platform } from 'node:process';
+
 import { app } from 'electron';
 import { autoUpdater } from 'electron-updater';
+
 import { isDevelopment } from '@/utils/node/environment';
 import { logError, safeExecute } from '@/utils/node/logging';
+
 import { getAURVersion, isWindowsPortableInstallation } from './dependencies';
 
 export interface UpdateInfo {
@@ -67,7 +70,9 @@ export function quitAndInstall() {
 export const isUpdateDownloaded = () => updateDownloaded;
 
 export const canAutoUpdate = async () => {
-  if (!app.isPackaged) return false;
+  if (!app.isPackaged) {
+    return false;
+  }
 
   if (platform === 'linux' && (await getAURVersion()) !== null) {
     return false;

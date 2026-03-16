@@ -1,11 +1,7 @@
-import { type CSSVariablesResolver, createTheme } from '@mantine/core';
+import { createTheme } from '@mantine/core';
+import type { CSSVariablesResolver } from '@mantine/core';
 
 export const theme = createTheme({
-  fontFamily: 'Inter, sans-serif',
-  headings: {
-    fontFamily: 'Inter, sans-serif',
-  },
-  white: '#fafafa',
   black: '#101113',
   colors: {
     gray: [
@@ -56,17 +52,22 @@ export const theme = createTheme({
       },
     },
   },
+  fontFamily: 'Inter, sans-serif',
+  headings: {
+    fontFamily: 'Inter, sans-serif',
+  },
+  white: '#fafafa',
 });
 
 export const cssVariablesResolver: CSSVariablesResolver = () => ({
-  variables: {},
+  dark: {
+    '--mantine-color-body': '#0f0f0f',
+    '--mantine-color-default-border': '#2a2a2a',
+  },
   light: {
     '--mantine-color-body': '#fafafa',
     '--mantine-color-white': '#fafafa',
     '--mantine-color-default-border': '#dee2e6',
   },
-  dark: {
-    '--mantine-color-body': '#0f0f0f',
-    '--mantine-color-default-border': '#2a2a2a',
-  },
+  variables: {},
 });

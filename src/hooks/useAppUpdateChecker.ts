@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+
 import { GITHUB_API } from '@/constants';
 import { compareVersions } from '@/utils/version';
 
@@ -30,7 +31,9 @@ export const useAppUpdateChecker = () => {
   }, []);
 
   const downloadUpdate = useCallback(async () => {
-    if (!canAutoUpdate) return;
+    if (!canAutoUpdate) {
+      return;
+    }
 
     setIsDownloading(true);
 
@@ -59,7 +62,7 @@ export const useAppUpdateChecker = () => {
       const currentVersion = await window.electronAPI.app.getVersion();
 
       const response = await fetch(
-        `${GITHUB_API.BASE_URL}/repos/${GITHUB_API.GERBIL_REPO}/releases/latest`
+        `${GITHUB_API.BASE_URL}/repos/${GITHUB_API.GERBIL_REPO}/releases/latest`,
       );
 
       if (!response.ok) {
@@ -67,7 +70,7 @@ export const useAppUpdateChecker = () => {
       }
 
       const release = await response.json();
-      const latestVersion = release.tag_name?.replace(/^v/, '') || '';
+      const latestVersion = release.tag_name?.replace(/^v/, '') ?? '';
 
       if (!latestVersion) {
         throw new Error('Invalid release data');
@@ -75,18 +78,18 @@ export const useAppUpdateChecker = () => {
 
       const hasUpdate = compareVersions(latestVersion, currentVersion) > 0;
 
-      const updateInfo: AppUpdateInfo = {
+      const info: AppUpdateInfo = {
         currentVersion,
+        hasUpdate,
         latestVersion,
         releaseUrl: release.html_url,
-        hasUpdate,
       };
 
-      setUpdateInfo(updateInfo);
+      setUpdateInfo(info);
     } catch (error) {
       window.electronAPI.logs.logError(
         'Failed to check for app updates',
-        error instanceof Error ? error : undefined
+        error instanceof Error ? error : undefined,
       );
     }
   }, []);
@@ -96,12 +99,12 @@ export const useAppUpdateChecker = () => {
   }, [checkForAppUpdates]);
 
   return {
-    releaseUrl: updateInfo?.releaseUrl,
-    hasUpdate: updateInfo?.hasUpdate || false,
     canAutoUpdate,
-    isUpdateDownloaded,
-    isDownloading,
     downloadUpdate,
+    hasUpdate: updateInfo?.hasUpdate ?? false,
     installUpdate,
+    isDownloading,
+    isUpdateDownloaded,
+    releaseUrl: updateInfo?.releaseUrl,
   };
 };

@@ -20,7 +20,9 @@ const audioCache = new Map<string, HTMLAudioElement>();
 let audioInitialized = false;
 
 export const initializeAudio = async () => {
-  if (audioInitialized) return;
+  if (audioInitialized) {
+    return;
+  }
 
   try {
     const allSounds = [soundAssets.elephant, ...soundAssets.mouseSqueaks];

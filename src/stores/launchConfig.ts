@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+
 import { DEFAULT_AUTO_GPU_LAYERS, DEFAULT_CONTEXT_SIZE } from '@/constants';
 import { IMAGE_MODEL_PRESETS } from '@/constants/imageModelPresets';
 import type { Acceleration, ConfigFile, SdConvDirectMode } from '@/types';
@@ -89,7 +90,7 @@ interface LaunchConfigState {
   parseAndApplyConfigFile: (configPath: string) => Promise<void>;
   loadConfigFromFile: (
     configFiles: ConfigFile[],
-    savedConfig: string | null
+    savedConfig: string | null,
   ) => Promise<string | null>;
   selectFile: (
     field:
@@ -101,109 +102,68 @@ interface LaunchConfigState {
       | 'sdphotomaker'
       | 'sdvae'
       | 'sdlora',
-    title: string
+    title: string,
   ) => Promise<void>;
   setContextSizeWithStep: (size: number) => void;
   applyPreset: (presetName: string) => void;
 }
 
 export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
-  gpuLayers: 0,
+  acceleration: '' as Acceleration,
+  additionalArguments: '',
+  applyPreset: (presetName: string) => {
+    const preset = IMAGE_MODEL_PRESETS.find((p) => p.name === presetName);
+    if (preset) {
+      set({
+        sdmodel: preset.sdmodel,
+        isImageGenerationMode: Boolean(preset.sdmodel?.trim()),
+        sdt5xxl: preset.sdt5xxl,
+        sdclipl: preset.sdclipl,
+        sdclipg: preset.sdclipg || '',
+        sdvae: preset.sdvae,
+        model: '',
+        isTextMode: false,
+      });
+    }
+  },
   autoGpuLayers: DEFAULT_AUTO_GPU_LAYERS,
   contextSize: DEFAULT_CONTEXT_SIZE,
-  model: '',
-  additionalArguments: '',
-  preLaunchCommands: [''],
-  port: undefined,
-  host: '',
-  multiuser: false,
-  multiplayer: false,
-  remotetunnel: false,
-  nocertify: false,
-  websearch: false,
-  noshift: false,
-  flashattention: true,
-  noavx2: false,
-  failsafe: false,
-  lowvram: false,
-  quantmatmul: true,
-  usemmap: true,
   debugmode: false,
-  acceleration: '' as Acceleration,
+  failsafe: false,
+  flashattention: true,
   gpuDeviceSelection: '0',
-  tensorSplit: '',
+  gpuLayers: 0,
   gpuPlatform: 0,
-  sdmodel: '',
-  sdt5xxl: '',
-  sdclipl: '',
-  sdclipg: '',
-  sdphotomaker: '',
-  sdvae: '',
-  sdlora: '',
-  sdconvdirect: 'off' as const,
-  sdvaecpu: false,
-  sdclipgpu: false,
-  moecpu: 0,
-  moeexperts: -1,
-  smartcache: false,
-  pipelineparallel: false,
-
+  host: '',
   isImageGenerationMode: false,
   isTextMode: false,
+  loadConfigFromFile: async (configFiles: ConfigFile[], savedConfig: string | null) => {
+    let currentSelectedFile = null;
 
-  setGpuLayers: (layers) => set({ gpuLayers: layers }),
-  setAutoGpuLayers: (auto) => set({ autoGpuLayers: auto }),
-  setContextSize: (size) => set({ contextSize: size }),
-  setModel: (path) =>
-    set({
-      model: path,
-      isTextMode: Boolean(path?.trim()),
-    }),
-  setAdditionalArguments: (args) => set({ additionalArguments: args }),
-  setPort: (port) => set({ port }),
-  setHost: (host) => set({ host }),
-  setMultiuser: (multiuser) => set({ multiuser }),
-  setMultiplayer: (multiplayer) => set({ multiplayer }),
-  setRemotetunnel: (remotetunnel) => set({ remotetunnel }),
-  setNocertify: (nocertify) => set({ nocertify }),
-  setWebsearch: (websearch) => set({ websearch }),
-  setNoshift: (noshift) => set({ noshift }),
-  setFlashattention: (flashattention) => set({ flashattention }),
-  setNoavx2: (noavx2) => set({ noavx2 }),
-  setFailsafe: (failsafe) => set({ failsafe }),
-  setLowvram: (lowvram) => set({ lowvram }),
-  setQuantmatmul: (quantmatmul) => set({ quantmatmul }),
-  setUsemmap: (usemmap) => set({ usemmap }),
-  setDebugmode: (debugmode) => set({ debugmode }),
-  setPreLaunchCommands: (commands) => set({ preLaunchCommands: commands }),
-  setAcceleration: (acceleration) =>
-    set({
-      acceleration,
-      gpuDeviceSelection: '0',
-      tensorSplit: '',
-    }),
-  setGpuDeviceSelection: (selection) => set({ gpuDeviceSelection: selection }),
-  setTensorSplit: (split) => set({ tensorSplit: split }),
-  setGpuPlatform: (platform) => set({ gpuPlatform: platform }),
-  setSdmodel: (model) =>
-    set({
-      sdmodel: model,
-      isImageGenerationMode: Boolean(model?.trim()),
-    }),
-  setSdt5xxl: (model) => set({ sdt5xxl: model }),
-  setSdclipl: (model) => set({ sdclipl: model }),
-  setSdclipg: (model) => set({ sdclipg: model }),
-  setSdphotomaker: (model) => set({ sdphotomaker: model }),
-  setSdvae: (vae) => set({ sdvae: vae }),
-  setSdlora: (loraModel) => set({ sdlora: loraModel }),
-  setSdconvdirect: (mode) => set({ sdconvdirect: mode }),
-  setSdvaecpu: (enabled) => set({ sdvaecpu: enabled }),
-  setSdclipgpu: (enabled) => set({ sdclipgpu: enabled }),
-  setMoecpu: (moeCpu) => set({ moecpu: moeCpu }),
-  setMoeexperts: (moeExperts) => set({ moeexperts: moeExperts }),
-  setSmartcache: (smartcache) => set({ smartcache }),
-  setPipelineparallel: (pipelineparallel) => set({ pipelineparallel }),
+    if (savedConfig) {
+      currentSelectedFile = configFiles.find((f) => f.name === savedConfig);
+    }
 
+    if (!currentSelectedFile && configFiles.length > 0) {
+      currentSelectedFile = configFiles[0];
+    }
+
+    if (currentSelectedFile) {
+      await get().parseAndApplyConfigFile(currentSelectedFile.path);
+      return currentSelectedFile.name;
+    }
+
+    return null;
+  },
+  lowvram: false,
+  model: '',
+  moecpu: 0,
+  moeexperts: -1,
+  multiplayer: false,
+  multiuser: false,
+  noavx2: false,
+  nocertify: false,
+  noshift: false,
   parseAndApplyConfigFile: async (configPath: string) => {
     const configData = await window.electronAPI.kobold.parseConfigFile(configPath);
 
@@ -244,7 +204,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
 
       if (Array.isArray(configData.preLaunchCommands)) {
         const filteredCommands = configData.preLaunchCommands.filter(
-          (cmd): cmd is string => typeof cmd === 'string'
+          (cmd): cmd is string => typeof cmd === 'string',
         );
         updates.preLaunchCommands = filteredCommands.length === 0 ? [''] : filteredCommands;
       } else {
@@ -344,7 +304,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
         if (Array.isArray(configData.usecuda) && configData.usecuda.length >= 3) {
           const [vramMode, deviceId, mmqMode] = configData.usecuda;
           updates.lowvram = vramMode === 'lowvram';
-          updates.gpuDeviceSelection = deviceId || '0';
+          updates.gpuDeviceSelection = deviceId ?? '0';
           updates.quantmatmul = mmqMode === 'mmq';
         }
       } else if (configData.usevulkan === true) {
@@ -435,26 +395,22 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
       set(updates);
     }
   },
+  pipelineparallel: false,
+  port: undefined,
+  preLaunchCommands: [''],
+  quantmatmul: true,
+  remotetunnel: false,
+  sdclipg: '',
+  sdclipgpu: false,
+  sdclipl: '',
+  sdconvdirect: 'off' as const,
+  sdlora: '',
+  sdmodel: '',
+  sdphotomaker: '',
+  sdt5xxl: '',
+  sdvae: '',
 
-  loadConfigFromFile: async (configFiles: ConfigFile[], savedConfig: string | null) => {
-    let currentSelectedFile = null;
-
-    if (savedConfig) {
-      currentSelectedFile = configFiles.find((f) => f.name === savedConfig);
-    }
-
-    if (!currentSelectedFile && configFiles.length > 0) {
-      currentSelectedFile = configFiles[0];
-    }
-
-    if (currentSelectedFile) {
-      await get().parseAndApplyConfigFile(currentSelectedFile.path);
-      return currentSelectedFile.name;
-    }
-
-    return null;
-  },
-
+  sdvaecpu: false,
   selectFile: async (field, title) => {
     const result = await window.electronAPI.kobold.selectModelFile(title);
     if (!result) return;
@@ -463,24 +419,69 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
     else set({ [field]: result });
   },
 
+  setAcceleration: (acceleration) =>
+    set({
+      acceleration,
+      gpuDeviceSelection: '0',
+      tensorSplit: '',
+    }),
+  setAdditionalArguments: (args) => set({ additionalArguments: args }),
+  setAutoGpuLayers: (auto) => set({ autoGpuLayers: auto }),
+  setContextSize: (size) => set({ contextSize: size }),
   setContextSizeWithStep: (size: number) => {
     const rounded = Math.round(size / 256) * 256;
-    set({ contextSize: Math.max(256, Math.min(262144, rounded)) });
+    set({ contextSize: Math.max(256, Math.min(262_144, rounded)) });
   },
+  setDebugmode: (debugmode) => set({ debugmode }),
+  setFailsafe: (failsafe) => set({ failsafe }),
+  setFlashattention: (flashattention) => set({ flashattention }),
+  setGpuDeviceSelection: (selection) => set({ gpuDeviceSelection: selection }),
+  setGpuLayers: (layers) => set({ gpuLayers: layers }),
+  setGpuPlatform: (platform) => set({ gpuPlatform: platform }),
+  setHost: (host) => set({ host }),
+  setLowvram: (lowvram) => set({ lowvram }),
+  setModel: (path) =>
+    set({
+      model: path,
+      isTextMode: Boolean(path?.trim()),
+    }),
+  setMoecpu: (moeCpu) => set({ moecpu: moeCpu }),
+  setMoeexperts: (moeExperts) => set({ moeexperts: moeExperts }),
+  setMultiplayer: (multiplayer) => set({ multiplayer }),
+  setMultiuser: (multiuser) => set({ multiuser }),
+  setNoavx2: (noavx2) => set({ noavx2 }),
+  setNocertify: (nocertify) => set({ nocertify }),
+  setNoshift: (noshift) => set({ noshift }),
+  setPipelineparallel: (pipelineparallel) => set({ pipelineparallel }),
+  setPort: (port) => set({ port }),
+  setPreLaunchCommands: (commands) => set({ preLaunchCommands: commands }),
+  setQuantmatmul: (quantmatmul) => set({ quantmatmul }),
+  setRemotetunnel: (remotetunnel) => set({ remotetunnel }),
+  setSdclipg: (model) => set({ sdclipg: model }),
+  setSdclipgpu: (enabled) => set({ sdclipgpu: enabled }),
+  setSdclipl: (model) => set({ sdclipl: model }),
+  setSdconvdirect: (mode) => set({ sdconvdirect: mode }),
+  setSdlora: (loraModel) => set({ sdlora: loraModel }),
+  setSdmodel: (model) =>
+    set({
+      sdmodel: model,
+      isImageGenerationMode: Boolean(model?.trim()),
+    }),
+  setSdphotomaker: (model) => set({ sdphotomaker: model }),
+  setSdt5xxl: (model) => set({ sdt5xxl: model }),
+  setSdvae: (vae) => set({ sdvae: vae }),
+  setSdvaecpu: (enabled) => set({ sdvaecpu: enabled }),
+  setSmartcache: (smartcache) => set({ smartcache }),
+  setTensorSplit: (split) => set({ tensorSplit: split }),
+  setUsemmap: (usemmap) => set({ usemmap }),
 
-  applyPreset: (presetName: string) => {
-    const preset = IMAGE_MODEL_PRESETS.find((p) => p.name === presetName);
-    if (preset) {
-      set({
-        sdmodel: preset.sdmodel,
-        isImageGenerationMode: Boolean(preset.sdmodel?.trim()),
-        sdt5xxl: preset.sdt5xxl,
-        sdclipl: preset.sdclipl,
-        sdclipg: preset.sdclipg || '',
-        sdvae: preset.sdvae,
-        model: '',
-        isTextMode: false,
-      });
-    }
-  },
+  setWebsearch: (websearch) => set({ websearch }),
+
+  smartcache: false,
+
+  tensorSplit: '',
+
+  usemmap: true,
+
+  websearch: false,
 }));

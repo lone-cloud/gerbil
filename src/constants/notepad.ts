@@ -1,6 +1,6 @@
 export const DEFAULT_NOTEPAD_POSITION = {
-  width: 400,
   height: 400,
+  width: 400,
 };
 
 export const NOTEPAD_MIN_WIDTH = 300;

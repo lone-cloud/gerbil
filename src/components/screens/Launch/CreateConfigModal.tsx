@@ -1,5 +1,6 @@
 import { Button, Group, Stack, TextInput } from '@mantine/core';
 import { useState } from 'react';
+
 import { Modal } from '@/components/Modal';
 
 interface CreateConfigModalProps {
@@ -49,7 +50,7 @@ export const CreateConfigModal = ({
             Cancel
           </Button>
           <Button
-            disabled={!trimmedConfigName || !!configNameExists}
+            disabled={!trimmedConfigName || Boolean(configNameExists)}
             onClick={() => void handleSubmit()}
           >
             Create

@@ -1,5 +1,7 @@
-import { type ChildProcess, spawn } from 'node:child_process';
+import type { ChildProcess } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { platform } from 'node:process';
+
 import { SERVER_READY_SIGNALS } from '@/constants';
 import { get as getConfig, getCurrentKoboldBinary, getInstallDir } from '@/main/modules/config';
 import { startFrontend as startOpenWebUIFrontend } from '@/main/modules/openwebui';
@@ -15,6 +17,7 @@ import { pathExists } from '@/utils/node/fs';
 import { parseKoboldConfig } from '@/utils/node/kobold';
 import { logError, safeExecute } from '@/utils/node/logging';
 import { terminateProcess } from '@/utils/node/process';
+
 import { getCurrentBackend } from '../backend';
 import { abortActiveDownloads, resolveModelPath } from '../model-download';
 import { startProxy, stopProxy } from '../proxy';
@@ -32,15 +35,17 @@ function spawnPreLaunchCommands(commands: string[]) {
   const shellFlag = platform === 'win32' ? '/c' : '-c';
 
   for (const command of commands) {
-    if (!command.trim()) continue;
+    if (!command.trim()) {
+      continue;
+    }
 
     sendKoboldOutput(`Running: ${command}\n`);
 
     try {
       const child = spawn(shell, [shellFlag, command], {
         cwd: installDir,
-        stdio: ['ignore', 'pipe', 'pipe'],
         detached: false,
+        stdio: ['ignore', 'pipe', 'pipe'],
       });
 
       preLaunchProcesses.add(child);
@@ -68,14 +73,14 @@ function spawnPreLaunchCommands(commands: string[]) {
       });
     } catch (error) {
       sendKoboldOutput(
-        `Failed to start "${command}": ${error instanceof Error ? error.message : String(error)}\n`
+        `Failed to start "${command}": ${error instanceof Error ? error.message : String(error)}\n`,
       );
     }
   }
 }
 
 async function stopPreLaunchProcesses() {
-  const terminations = Array.from(preLaunchProcesses).map((process) => terminateProcess(process));
+  const terminations = [...preLaunchProcesses].map((process) => terminateProcess(process));
 
   await Promise.all(terminations);
   preLaunchProcesses.clear();
@@ -83,7 +88,7 @@ async function stopPreLaunchProcesses() {
 
 async function resolveModelPaths(args: string[]) {
   const resolvedArgs: string[] = [];
-  const modelParams = [
+  const modelParams = new Set([
     '--model',
     '--sdmodel',
     '--sdt5xxl',
@@ -98,12 +103,12 @@ async function resolveModelPaths(args: string[]) {
     '--ttsmodel',
     '--ttswavtokenizer',
     '--embeddingsmodel',
-  ];
+  ]);
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
 
-    if (modelParams.includes(arg) && i + 1 < args.length) {
+    if (modelParams.has(arg) && i + 1 < args.length) {
       resolvedArgs.push(arg);
       const urlOrPath = args[i + 1];
       try {
@@ -132,7 +137,7 @@ export async function launchKoboldCpp(
   args: string[] = [],
   frontendPreference: FrontendPreference = 'koboldcpp',
   imageGenerationFrontendPreference?: ImageGenerationFrontendPreference,
-  preLaunchCommands: string[] = []
+  preLaunchCommands: string[] = [],
 ) {
   try {
     if (koboldProcess) {
@@ -154,12 +159,12 @@ export async function launchKoboldCpp(
         : 'No backend configured';
 
       logError(
-        `Launch failed: ${error}. Raw config path: "${rawPath}", Current backend: ${JSON.stringify(currentBackend)}`
+        `Launch failed: ${error}. Raw config path: "${rawPath}", Current backend: ${JSON.stringify(currentBackend)}`,
       );
 
       return {
-        success: false,
         error,
+        success: false,
       };
     }
 
@@ -196,8 +201,8 @@ export async function launchKoboldCpp(
 
     const child = spawn(currentBackend.path, finalArgs, {
       cwd: binaryDir,
-      stdio: ['pipe', 'pipe', 'pipe'],
       detached: false,
+      stdio: ['pipe', 'pipe', 'pipe'],
     });
 
     koboldProcess = child;
@@ -234,7 +239,7 @@ export async function launchKoboldCpp(
         sendToRenderer('server-ready');
       }
 
-      readyResolve?.({ success: true, pid: child.pid });
+      readyResolve?.({ pid: child.pid, success: true });
     };
 
     const handleOutput = (data: Buffer) => {
@@ -281,7 +286,7 @@ export async function launchKoboldCpp(
 
       if (!isReady) {
         readyReject?.(
-          new Error(`Process exited before ready signal (code: ${code}, signal: ${signal})`)
+          new Error(`Process exited before ready signal (code: ${code}, signal: ${signal})`),
         );
       }
     });
@@ -294,9 +299,9 @@ export async function launchKoboldCpp(
 
       if (isReady) {
         const crashInfo: KoboldCrashInfo = {
+          errorMessage: error.message,
           exitCode: null,
           signal: null,
-          errorMessage: error.message,
         };
         sendToRenderer('kobold-crashed', crashInfo);
       }
@@ -306,18 +311,18 @@ export async function launchKoboldCpp(
       }
     });
 
-    return readyPromise;
+    return await readyPromise;
   } catch (error) {
     const errorMessage = (error as Error).message;
     logError(`Failed to launch: ${errorMessage}`, error as Error);
-    return { success: false, error: errorMessage };
+    return { error: errorMessage, success: false };
   }
 }
 
 export async function stopKoboldCpp() {
   abortActiveDownloads();
   void stopProxy();
-  void stopTunnel();
+  stopTunnel();
   void stopPreLaunchProcesses();
   isIntentionalStop = true;
   return terminateProcess(koboldProcess);
@@ -325,7 +330,7 @@ export async function stopKoboldCpp() {
 
 export const launchKoboldCppWithCustomFrontends = async (
   args: string[] = [],
-  preLaunchCommands: string[] = []
+  preLaunchCommands: string[] = [],
 ) =>
   safeExecute(async () => {
     const frontendPreference = getConfig('frontendPreference');
@@ -337,7 +342,7 @@ export const launchKoboldCppWithCustomFrontends = async (
       args,
       frontendPreference,
       imageGenerationFrontendPreference,
-      preLaunchCommands
+      preLaunchCommands,
     );
 
     if (
@@ -351,14 +356,14 @@ export const launchKoboldCppWithCustomFrontends = async (
       startSillyTavernFrontend(args).catch((error) => {
         logError('Failed to start SillyTavern frontend:', error);
         sendKoboldOutput(
-          `Failed to start SillyTavern: ${error instanceof Error ? error.message : String(error)}`
+          `Failed to start SillyTavern: ${error instanceof Error ? error.message : String(error)}`,
         );
       });
     } else if (frontendPreference === 'openwebui') {
       startOpenWebUIFrontend(args).catch((error) => {
         logError('Failed to start OpenWebUI frontend:', error);
         sendKoboldOutput(
-          `Failed to start OpenWebUI: ${error instanceof Error ? error.message : String(error)}`
+          `Failed to start OpenWebUI: ${error instanceof Error ? error.message : String(error)}`,
         );
       });
     }

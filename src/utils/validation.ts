@@ -8,7 +8,9 @@ const isValidUrl = (string: string) => {
 };
 
 const isValidFilePath = (path: string) => {
-  if (!path.trim()) return false;
+  if (!path.trim()) {
+    return false;
+  }
 
   const validExtensions = ['.gguf'];
   const hasValidExtension = validExtensions.some((ext) => path.toLowerCase().endsWith(ext));
@@ -17,13 +19,19 @@ const isValidFilePath = (path: string) => {
 };
 
 export const getInputValidationState = (path: string) => {
-  if (!path.trim()) return 'neutral';
+  if (!path.trim()) {
+    return 'neutral';
+  }
 
   const isUrl = isValidUrl(path);
   const isFile = isValidFilePath(path);
 
-  if (isUrl) return 'valid';
-  if (isFile) return 'local';
+  if (isUrl) {
+    return 'valid';
+  }
+  if (isFile) {
+    return 'local';
+  }
 
   return 'invalid';
 };

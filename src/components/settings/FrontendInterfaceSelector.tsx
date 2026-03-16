@@ -1,6 +1,7 @@
-import { Anchor, Box, Button, Group, rem, Stack, Text } from '@mantine/core';
+import { Anchor, Box, Button, Group, Stack, Text, rem } from '@mantine/core';
 import { Image, Monitor } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+
 import { Modal } from '@/components/Modal';
 import { Select } from '@/components/Select';
 import { FRONTENDS } from '@/constants';
@@ -41,16 +42,16 @@ export const FrontendInterfaceSelector = ({
   const frontendConfigs: FrontendConfig[] = useMemo(
     () => [
       {
-        value: 'llamacpp',
         label: FRONTENDS.LLAMA_CPP,
+        value: 'llamacpp',
       },
       {
-        value: 'koboldcpp',
         label: FRONTENDS.KOBOLDAI_LITE,
+        value: 'koboldcpp',
       },
       {
-        value: 'sillytavern',
         label: FRONTENDS.SILLYTAVERN,
+        requirementCheck: () => window.electronAPI.dependencies.isNpxAvailable(),
         requirements: [
           {
             id: 'nodejs',
@@ -58,11 +59,11 @@ export const FrontendInterfaceSelector = ({
             url: 'https://nodejs.org/',
           },
         ],
-        requirementCheck: () => window.electronAPI.dependencies.isNpxAvailable(),
+        value: 'sillytavern',
       },
       {
-        value: 'openwebui',
         label: FRONTENDS.OPENWEBUI,
+        requirementCheck: () => window.electronAPI.dependencies.isUvAvailable(),
         requirements: [
           {
             id: 'uv',
@@ -70,10 +71,10 @@ export const FrontendInterfaceSelector = ({
             url: 'https://docs.astral.sh/uv/getting-started/installation/',
           },
         ],
-        requirementCheck: () => window.electronAPI.dependencies.isUvAvailable(),
+        value: 'openwebui',
       },
     ],
-    []
+    [],
   );
 
   const checkAllFrontendRequirements = useCallback(async () => {
@@ -91,7 +92,7 @@ export const FrontendInterfaceSelector = ({
     setFrontendRequirements(requirementResults);
 
     const currentFrontendConfig = frontendConfigs.find(
-      (config) => config.value === frontendPreference
+      (config) => config.value === frontendPreference,
     );
     if (currentFrontendConfig && !requirementResults.get(frontendPreference)) {
       setFrontendPreference('llamacpp');
@@ -103,7 +104,9 @@ export const FrontendInterfaceSelector = ({
 
   const getUnmetRequirements = () => {
     const selectedConfig = getSelectedFrontendConfig();
-    if (!selectedConfig || !selectedConfig.requirements) return [];
+    if (!selectedConfig || !selectedConfig.requirements) {
+      return [];
+    }
 
     const isAvailable = frontendRequirements.get(selectedConfig.value) ?? true;
     return isAvailable ? [] : selectedConfig.requirements;
@@ -111,7 +114,9 @@ export const FrontendInterfaceSelector = ({
 
   const getUnmetRequirementsForFrontend = (frontendValue: string) => {
     const config = frontendConfigs.find((c) => c.value === frontendValue);
-    if (!config || !config.requirements) return [];
+    if (!config || !config.requirements) {
+      return [];
+    }
 
     const isAvailable = frontendRequirements.get(frontendValue) ?? true;
     return isAvailable ? [] : config.requirements;
@@ -135,7 +140,7 @@ export const FrontendInterfaceSelector = ({
 
   const renderDisabledFrontendWarnings = () => {
     const disabledFrontends = frontendConfigs.filter(
-      (config) => !isFrontendAvailable(config.value)
+      (config) => !isFrontendAvailable(config.value),
     );
 
     if (disabledFrontends.length === 0) {
@@ -155,12 +160,12 @@ export const FrontendInterfaceSelector = ({
 
     return (
       <Box mt="sm">
-        {Array.from(requirementGroups.entries()).map(([reqKey, frontendLabels]) => {
+        {[...requirementGroups.entries()].map(([reqKey, frontendLabels]) => {
           const firstDisabledFrontend = disabledFrontends.find(
             (config) =>
               getUnmetRequirementsForFrontend(config.value)
                 .map((req) => req.id)
-                .join(',') === reqKey
+                .join(',') === reqKey,
           );
           const unmetReqs = firstDisabledFrontend
             ? getUnmetRequirementsForFrontend(firstDisabledFrontend.value)
@@ -253,11 +258,11 @@ export const FrontendInterfaceSelector = ({
             onChange={handleFrontendPreferenceChange}
             disabled={isOnInterfaceScreen}
             data={frontendConfigs.map((config) => ({
-              value: config.value,
-              label: config.label,
               disabled: !isFrontendAvailable(config.value),
+              label: config.label,
+              value: config.value,
             }))}
-            leftSection={<Monitor style={{ width: rem(16), height: rem(16) }} />}
+            leftSection={<Monitor style={{ height: rem(16), width: rem(16) }} />}
             style={{ flex: 1 }}
           />
 
@@ -322,10 +327,10 @@ export const FrontendInterfaceSelector = ({
           onChange={handleImageGenerationFrontendChange}
           disabled={isOnInterfaceScreen}
           data={[
-            { value: 'match', label: 'Match Frontend' },
-            { value: 'builtin', label: 'Built-in' },
+            { label: 'Match Frontend', value: 'match' },
+            { label: 'Built-in', value: 'builtin' },
           ]}
-          leftSection={<Image style={{ width: rem(16), height: rem(16) }} />}
+          leftSection={<Image style={{ height: rem(16), width: rem(16) }} />}
         />
       </div>
     </>

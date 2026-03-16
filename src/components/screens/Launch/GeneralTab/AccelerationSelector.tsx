@@ -1,9 +1,10 @@
 import { Checkbox, Group, Text, TextInput } from '@mantine/core';
 import { useEffect, useRef, useState } from 'react';
+
 import { InfoTooltip } from '@/components/InfoTooltip';
-import { Select } from '@/components/Select';
 import { AccelerationSelectItem } from '@/components/screens/Launch/GeneralTab/AccelerationSelectItem';
 import { GpuDeviceSelector } from '@/components/screens/Launch/GeneralTab/GpuDeviceSelector';
+import { Select } from '@/components/Select';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 import type { Acceleration, AccelerationOption } from '@/types';
 
@@ -57,7 +58,7 @@ export const AccelerationSelector = () => {
   useEffect(() => {
     if (availableAccelerations.length > 0 && acceleration) {
       const isAccelerationAvailable = availableAccelerations.some(
-        (a) => a.value === acceleration && !a.disabled
+        (a) => a.value === acceleration && !a.disabled,
       );
 
       if (!isAccelerationAvailable) {
@@ -104,7 +105,7 @@ export const AccelerationSelector = () => {
           contextSize,
           availableVramGB,
           flashattention,
-          acceleration
+          acceleration,
         );
 
         setGpuLayers(result.recommendedLayers);
@@ -153,9 +154,9 @@ export const AccelerationSelector = () => {
               }
             }}
             data={availableAccelerations.map((a) => ({
-              value: a.value,
-              label: a.label,
               disabled: a.disabled,
+              label: a.label,
+              value: a.value,
             }))}
             disabled={isLoadingAccelerations || availableAccelerations.length === 0}
             renderOption={({ option }) => {
@@ -163,7 +164,7 @@ export const AccelerationSelector = () => {
 
               return (
                 <AccelerationSelectItem
-                  label={accelerationData?.label || option.label.split(' (')[0]}
+                  label={accelerationData?.label ?? option.label.split(' (')[0]}
                   devices={accelerationData?.devices}
                   disabled={accelerationData?.disabled}
                 />

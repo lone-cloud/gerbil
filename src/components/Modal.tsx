@@ -4,11 +4,11 @@ import type { ReactNode } from 'react';
 const TITLEBAR_HEIGHT = '2.5rem';
 
 const MODAL_STYLES_WITH_TITLEBAR = {
-  overlay: {
-    top: TITLEBAR_HEIGHT,
-  },
   content: {
     marginTop: TITLEBAR_HEIGHT,
+  },
+  overlay: {
+    top: TITLEBAR_HEIGHT,
   },
 } as const;
 
@@ -39,10 +39,10 @@ export const Modal = ({
   const content = tallContent ? (
     <div
       style={{
-        height: '75vh',
-        padding: 0,
         display: 'flex',
         flexDirection: 'column',
+        height: '75vh',
+        padding: 0,
         position: 'relative',
       }}
     >
@@ -54,10 +54,10 @@ export const Modal = ({
       {showCloseButton && (
         <Box
           style={{
-            padding: '1rem 0',
             display: 'flex',
-            justifyContent: 'flex-end',
             flexShrink: 0,
+            justifyContent: 'flex-end',
+            padding: '1rem 0',
           }}
         >
           <Button onClick={onClose} variant="filled">

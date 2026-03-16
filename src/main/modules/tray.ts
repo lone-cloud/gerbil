@@ -1,11 +1,16 @@
 import { join } from 'node:path';
 import { platform, resourcesPath } from 'node:process';
-import { app, Menu, type MenuItemConstructorOptions, nativeImage, Tray } from 'electron';
+
+import type { MenuItemConstructorOptions } from 'electron';
+import { app, Menu, nativeImage, Tray } from 'electron';
+
 import { PRODUCT_NAME } from '@/constants';
 import type { Screen } from '@/types';
 import { stripFileExtension } from '@/utils/format';
+
 import { getEnableSystemTray } from './config';
 import type { CpuMetrics, GpuMetrics, MemoryMetrics } from './monitoring';
+import { setTrayActive } from './tray-active';
 import { getMainWindow } from './window';
 
 let tray: Tray | null = null;
@@ -15,8 +20,8 @@ let currentMetrics: {
   gpu: GpuMetrics | null;
 } = {
   cpu: null,
-  memory: null,
   gpu: null,
+  memory: null,
 };
 
 interface TrayAppState {
@@ -27,9 +32,9 @@ interface TrayAppState {
 }
 
 const appState: TrayAppState = {
+  currentConfig: null,
   currentScreen: null,
   isLaunched: false,
-  currentConfig: null,
   monitoringEnabled: false,
 };
 
@@ -58,9 +63,9 @@ export function updateTrayState(state: {
 export function updateMetrics(
   cpu: CpuMetrics | null,
   memory: MemoryMetrics | null,
-  gpu: GpuMetrics | null
+  gpu: GpuMetrics | null,
 ) {
-  currentMetrics = { cpu, memory, gpu };
+  currentMetrics = { cpu, gpu, memory };
   updateTrayTooltip();
 }
 
@@ -120,15 +125,15 @@ function buildContextMenu() {
 
   if (isVisible) {
     menuTemplate.push({
-      label: 'Hide Gerbil',
       click: () => {
         mainWindow.hide();
       },
+      label: 'Hide Gerbil',
     });
   } else {
     menuTemplate.push({
-      label: 'Show Gerbil',
       click: () => showAndFocusWindow(),
+      label: 'Show Gerbil',
     });
   }
 
@@ -137,28 +142,27 @@ function buildContextMenu() {
   if (appState.isLaunched && appState.currentScreen === 'interface') {
     if (appState.currentConfig) {
       menuTemplate.push({
-        label: `Running: ${stripFileExtension(appState.currentConfig || '')}`,
         enabled: false,
+        label: `Running: ${stripFileExtension(appState.currentConfig || '')}`,
       });
     }
 
     menuTemplate.push({
-      label: 'Eject Model',
       click: () => {
-        const mainWindow = getMainWindow();
-        mainWindow.webContents.send('tray:eject');
+        getMainWindow().webContents.send('tray:eject');
       },
+      label: 'Eject Model',
     });
   }
 
   menuTemplate.push(
     { type: 'separator' },
     {
-      label: 'Quit',
       click: () => {
         app.quit();
       },
-    }
+      label: 'Quit',
+    },
   );
 
   return Menu.buildFromTemplate(menuTemplate);
@@ -179,7 +183,8 @@ export function createTray() {
     return;
   }
 
-  tray = new Tray(icon.resize({ width: 16, height: 16 }));
+  tray = new Tray(icon.resize({ height: 16, width: 16 }));
+  setTrayActive(true);
 
   updateTrayTooltip();
   tray.setContextMenu(buildContextMenu());
@@ -218,7 +223,8 @@ export function destroyTray() {
   if (tray && platform !== 'linux') {
     tray.destroy();
     tray = null;
+    setTrayActive(false);
   }
 }
 
-export const isTrayActive = () => tray !== null;
+export { isTrayActive } from './tray-active';

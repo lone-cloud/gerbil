@@ -1,5 +1,7 @@
 import { platform } from 'node:process';
+
 import { app } from 'electron';
+
 import { PRODUCT_NAME } from '@/constants';
 import { setupIPCHandlers } from '@/main/ipc';
 import {
@@ -77,7 +79,7 @@ export async function initializeApp(options?: { startMinimized?: boolean }) {
       const timeoutPromise = new Promise<void>((resolve) => {
         setTimeout(() => {
           resolve();
-        }, 10000);
+        }, 10_000);
       });
 
       await Promise.race([Promise.all(cleanupPromises), timeoutPromise]);

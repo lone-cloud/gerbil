@@ -28,5 +28,5 @@ export function parseKoboldConfig(args: string[]) {
   const isImageMode = hasSdModel;
   const isTextMode = hasTextModel;
 
-  return { host, port, isImageMode, isTextMode, debugmode, remotetunnel };
+  return { debugmode, host, isImageMode, isTextMode, port, remotetunnel };
 }

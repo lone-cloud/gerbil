@@ -2,20 +2,23 @@ import { createWriteStream } from 'node:fs';
 import { chmod, copyFile, mkdir, rename, rm, unlink } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import { platform } from 'node:process';
+
 import { dialog } from 'electron';
 import { execa } from 'execa';
+
 import type { DownloadReleaseOptions, GitHubAsset } from '@/types/electron';
 import { pathExists } from '@/utils/node/fs';
 import { logError } from '@/utils/node/logging';
 import { getLauncherPath } from '@/utils/node/path';
 import { stripAssetExtensions } from '@/utils/version';
+
 import { getCurrentKoboldBinary, getInstallDir, setCurrentKoboldBinary } from '../config';
 import { getMainWindow, sendToRenderer } from '../window';
 import { clearBackendVersionCache, getVersionFromBinary } from './backend';
 
 async function removeDirectoryWithRetry(dirPath: string, maxRetries = 3, currentRetry = 0) {
   try {
-    await rm(dirPath, { recursive: true, force: true });
+    await rm(dirPath, { force: true, recursive: true });
   } catch (error) {
     if (currentRetry < maxRetries) {
       const delay = 2 ** currentRetry * 1000;
@@ -39,7 +42,7 @@ async function downloadFile(asset: GitHubAsset, tempPackedFilePath: string) {
     throw new Error(`Failed to download: ${response.statusText}`);
   }
 
-  const totalBytes = parseInt(response.headers.get('content-length') || '0', 10);
+  const totalBytes = parseInt(response.headers.get('content-length') ?? '0', 10);
   const reader = response.body.getReader();
 
   const pump = async () => {
@@ -81,7 +84,7 @@ async function downloadFile(asset: GitHubAsset, tempPackedFilePath: string) {
             }
           }
           resolve();
-        })()
+        })(),
     );
     writer.on('error', reject);
   });
@@ -122,8 +125,8 @@ async function unpackKoboldCpp(packedPath: string, unpackDir: string) {
   try {
     await mkdir(unpackDir, { recursive: true });
     await execa(packedPath, ['--unpack', unpackDir], {
-      timeout: 60000,
       stdio: ['ignore', 'pipe', 'pipe'],
+      timeout: 60_000,
     });
   } catch (error) {
     const execaError = error as {
@@ -131,8 +134,8 @@ async function unpackKoboldCpp(packedPath: string, unpackDir: string) {
       stdout?: string;
       message: string;
     };
-    const errorMessage = execaError.stderr || execaError.stdout || execaError.message;
-    throw new Error(`Unpack failed: ${errorMessage}`);
+    const errorMessage = execaError.stderr ?? execaError.stdout ?? execaError.message;
+    throw new Error(`Unpack failed: ${errorMessage}`, { cause: error });
   }
 }
 
@@ -199,21 +202,20 @@ export async function downloadRelease(asset: GitHubAsset, options: DownloadRelea
     await downloadFile(asset, tempPackedFilePath);
 
     await installBackend({
+      isUpdate: options.isUpdate,
+      oldBackendPath: options.oldBackendPath,
       packedFilePath: tempPackedFilePath,
       unpackedDirPath,
-      isUpdate: options.isUpdate,
       wasCurrentBinary: options.wasCurrentBinary,
-      oldBackendPath: options.oldBackendPath,
     });
   } catch (error) {
     logError('Failed to download or unpack binary:', error as Error);
-    throw new Error('Failed to download or unpack binary');
+    throw new Error('Failed to download or unpack binary', { cause: error });
   }
 }
 
 export async function importLocalBackend() {
   const result = await dialog.showOpenDialog(getMainWindow(), {
-    title: 'Select Backend Executable',
     filters:
       platform === 'win32'
         ? [
@@ -222,6 +224,7 @@ export async function importLocalBackend() {
           ]
         : [{ name: 'All Files', extensions: ['*'] }],
     properties: ['openFile'],
+    title: 'Select Backend Executable',
   });
 
   if (result.canceled || result.filePaths.length === 0) {
@@ -239,12 +242,12 @@ export async function importLocalBackend() {
 
     if (!backendVersion || backendVersion.version === 'unknown') {
       return {
-        success: false,
         error: 'Invalid backend executable. Could not determine version information.',
+        success: false,
       };
     }
 
-    const version = backendVersion.actualVersion || backendVersion.version;
+    const version = backendVersion.actualVersion ?? backendVersion.version;
     const filename = basename(selectedPath);
     const baseFilename = stripAssetExtensions(filename);
     const folderName = `${baseFilename}-${version}`;
@@ -255,13 +258,13 @@ export async function importLocalBackend() {
 
     await installBackend({
       packedFilePath,
-      unpackedDirPath: installDir,
       skipUnpackError: true,
+      unpackedDirPath: installDir,
     });
 
     return { success: true };
   } catch (error) {
     logError('Failed to import local backend:', error as Error);
-    return { success: false, error: (error as Error).message };
+    return { error: (error as Error).message, success: false };
   }
 }

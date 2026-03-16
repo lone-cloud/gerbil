@@ -1,5 +1,6 @@
 import { Box, Stack, Text } from '@mantine/core';
 import { useMemo } from 'react';
+
 import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 import { usePreferencesStore } from '@/stores/preferences';
@@ -24,18 +25,18 @@ export const ServerTab = ({ isServerReady, activeTab }: ServerTabProps) => {
         imageGenerationFrontendPreference,
         isImageGenerationMode: effectiveImageMode,
       }),
-    [frontendPreference, imageGenerationFrontendPreference, effectiveImageMode]
+    [frontendPreference, imageGenerationFrontendPreference, effectiveImageMode],
   );
 
   if (!isServerReady) {
     return (
       <Box
         style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
           alignItems: 'center',
+          display: 'flex',
+          height: '100%',
           justifyContent: 'center',
+          width: '100%',
         }}
       >
         <Stack align="center" gap="md" mt="xl">
@@ -54,21 +55,22 @@ export const ServerTab = ({ isServerReady, activeTab }: ServerTabProps) => {
   return (
     <Box
       style={{
-        width: '100%',
         height: `calc(100vh - ${TITLEBAR_HEIGHT} - ${STATUSBAR_HEIGHT})`,
         overflow: 'hidden',
+        width: '100%',
       }}
     >
       <iframe
         src={iframeUrl}
         title={title}
         style={{
-          width: '100%',
-          height: '100%',
           border: 'none',
           borderRadius: 'inherit',
+          height: '100%',
+          width: '100%',
         }}
         allow="clipboard-read; clipboard-write; fullscreen; microphone; geolocation; camera; autoplay"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
       />
     </Box>
   );

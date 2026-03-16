@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+
 import type { SdConvDirectMode } from '@/types';
 
 interface UseLaunchLogicProps {
@@ -134,7 +135,9 @@ const buildConfigArgs = (isImageMode: boolean, launchArgs: LaunchArgs) => {
   flagMappings.forEach(([condition, flag, value]) => {
     if (condition) {
       args.push(flag);
-      if (value) args.push(value);
+      if (value) {
+        args.push(value);
+      }
     }
   });
 
@@ -259,17 +262,17 @@ export const useLaunchLogic = ({ model, sdmodel, onLaunch }: UseLaunchLogicProps
       if (result.success) {
         onLaunch();
       } else {
-        const errorMessage = result.error || 'Unknown launch error';
+        const errorMessage = result.error ?? 'Unknown launch error';
         window.electronAPI.logs.logError('Launch failed:', new Error(errorMessage));
       }
 
       setIsLaunching(false);
     },
-    [model, sdmodel, isLaunching, onLaunch]
+    [model, sdmodel, isLaunching, onLaunch],
   );
 
   return {
-    isLaunching,
     handleLaunch,
+    isLaunching,
   };
 };

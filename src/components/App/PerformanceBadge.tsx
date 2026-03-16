@@ -8,20 +8,20 @@ interface PerformanceBadgeProps {
   iconOnly?: boolean;
 }
 
+const handlePerformanceClick = async () => {
+  const result = await window.electronAPI.app.openPerformanceManager();
+
+  if (!result.success) {
+    window.electronAPI.logs.logError(`Failed to open performance manager: ${result.error}`);
+  }
+};
+
 export const PerformanceBadge = ({
   label,
   value,
   tooltipLabel,
   iconOnly = false,
 }: PerformanceBadgeProps) => {
-  const handlePerformanceClick = async () => {
-    const result = await window.electronAPI.app.openPerformanceManager();
-
-    if (!result.success) {
-      window.electronAPI.logs.logError(`Failed to open performance manager: ${result.error}`);
-    }
-  };
-
   if (iconOnly) {
     return (
       <Tooltip label={tooltipLabel} position="top">
@@ -38,14 +38,14 @@ export const PerformanceBadge = ({
         size="xs"
         variant="light"
         style={{
-          minWidth: '5rem',
-          textAlign: 'center',
-          height: 'auto',
-          padding: '0.25rem 0.5rem',
-          margin: '0.125rem 0',
           borderRadius: '0.75rem',
           fontSize: '0.7em',
           fontWeight: 500,
+          height: 'auto',
+          margin: '0.125rem 0',
+          minWidth: '5rem',
+          padding: '0.25rem 0.5rem',
+          textAlign: 'center',
         }}
         onClick={() => void handlePerformanceClick()}
       >
