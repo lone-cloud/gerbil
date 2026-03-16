@@ -9,6 +9,7 @@ import {
 } from '@mantine/core';
 import { File, Info, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
+
 import { LabelWithTooltip } from '@/components/LabelWithTooltip';
 import { HuggingFaceSearchModal } from '@/components/screens/Launch/HuggingFaceSearchModal';
 import { ModelAnalysisModal } from '@/components/screens/Launch/ModelAnalysisModal';
@@ -66,7 +67,9 @@ export const ModelFileField = ({
   ));
 
   const getHelperText = () => {
-    if (validationState === 'neutral') return undefined;
+    if (validationState === 'neutral') {
+      return undefined;
+    }
 
     if (validationState === 'invalid') {
       return 'Enter a valid URL or file path';
@@ -76,7 +79,9 @@ export const ModelFileField = ({
   };
 
   const handleAnalyzeModel = async () => {
-    if (validationState === 'neutral' || validationState === 'invalid') return;
+    if (validationState === 'neutral' || validationState === 'invalid') {
+      return;
+    }
 
     setAnalysisModalOpened(true);
     setAnalysisLoading(true);

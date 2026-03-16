@@ -8,6 +8,5 @@ release/
 Thumbs.db
 .VSCodeCounter/
 
-# Yarn
-.yarn/
-.pnp.*
+# pnpm
+pnpm-debug.log*

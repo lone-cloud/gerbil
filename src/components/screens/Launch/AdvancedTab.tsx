@@ -1,6 +1,7 @@
 import { ActionIcon, Button, Group, SimpleGrid, Stack, Text, TextInput } from '@mantine/core';
 import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+
 import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { CommandLineArgumentsModal } from '@/components/screens/Launch/CommandLineArgumentsModal';
@@ -38,11 +39,11 @@ export const AdvancedTab = () => {
 
       if (support) {
         setBackendSupport({
-          noavx2: support.noavx2,
           failsafe: support.failsafe,
+          noavx2: support.noavx2,
         });
       } else {
-        setBackendSupport({ noavx2: false, failsafe: false });
+        setBackendSupport({ failsafe: false, noavx2: false });
       }
 
       setIsLoading(false);

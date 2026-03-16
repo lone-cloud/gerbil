@@ -1,5 +1,6 @@
 import { Group, Slider, Stack, Text, TextInput, Tooltip, Transition } from '@mantine/core';
 import { useEffect, useState } from 'react';
+
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { AccelerationSelector } from '@/components/screens/Launch/GeneralTab/AccelerationSelector';
 import { ModelFileField } from '@/components/screens/Launch/ModelFileField';
@@ -44,8 +45,8 @@ export const GeneralTab = ({ configLoaded = true }: GeneralTabProps) => {
             onChange={setModel}
             onSelectFile={() => void selectFile('model', 'Select Text Model')}
             searchParams={{
-              pipelineTag: 'text-generation',
               filter: 'gguf',
+              pipelineTag: 'text-generation',
               sort: 'trendingScore',
             }}
             showAnalyze
@@ -65,7 +66,7 @@ export const GeneralTab = ({ configLoaded = true }: GeneralTabProps) => {
                 onChange={(event) => setContextSizeWithStep(Number(event.target.value) || 256)}
                 type="number"
                 min={256}
-                max={262144}
+                max={262_144}
                 step={256}
                 size="sm"
                 w={100}
@@ -75,7 +76,7 @@ export const GeneralTab = ({ configLoaded = true }: GeneralTabProps) => {
               <Slider
                 value={contextSize}
                 min={256}
-                max={262144}
+                max={262_144}
                 step={256}
                 onChange={setContextSizeWithStep}
                 label={null}
@@ -87,7 +88,7 @@ export const GeneralTab = ({ configLoaded = true }: GeneralTabProps) => {
                     withinPortal
                     opened={isSliding ? true : undefined}
                   >
-                    <span style={{ display: 'block', width: '100%', height: '100%' }} />
+                    <span style={{ display: 'block', height: '100%', width: '100%' }} />
                   </Tooltip>
                 }
               />

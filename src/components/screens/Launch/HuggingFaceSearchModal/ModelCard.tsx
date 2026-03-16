@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize from 'rehype-sanitize';
 import remarkGfm from 'remark-gfm';
+
 import { HUGGINGFACE_BASE_URL } from '@/constants';
 
 interface ModelCardProps {
@@ -16,7 +17,9 @@ export const ModelCard = ({ modelId }: ModelCardProps) => {
   const [error, setError] = useState<string | null>(null);
 
   const loadReadme = async () => {
-    if (readme !== null) return;
+    if (readme !== null) {
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -57,15 +60,23 @@ export const ModelCard = ({ modelId }: ModelCardProps) => {
               p="md"
               withBorder
               style={{
-                overflow: 'auto',
                 maxWidth: '100%',
+                overflow: 'auto',
               }}
             >
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeRaw, rehypeSanitize]}
                 components={{
-                  img: ({ node, ...props }) => (
+                  code: ({ node: _, ...props }) => (
+                    <code
+                      {...props}
+                      style={{
+                        wordBreak: 'break-word',
+                      }}
+                    />
+                  ),
+                  img: ({ node: _, ...props }) => (
                     <img
                       {...props}
                       style={{
@@ -75,20 +86,12 @@ export const ModelCard = ({ modelId }: ModelCardProps) => {
                       }}
                     />
                   ),
-                  pre: ({ node, ...props }) => (
+                  pre: ({ node: _, ...props }) => (
                     <pre
                       {...props}
                       style={{
                         overflow: 'auto',
                         maxWidth: '100%',
-                      }}
-                    />
-                  ),
-                  code: ({ node, ...props }) => (
-                    <code
-                      {...props}
-                      style={{
-                        wordBreak: 'break-word',
                       }}
                     />
                   ),

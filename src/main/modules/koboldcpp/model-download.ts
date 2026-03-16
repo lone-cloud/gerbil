@@ -4,6 +4,7 @@ import type { IncomingMessage } from 'node:http';
 import { get as httpGet } from 'node:http';
 import { get as httpsGet } from 'node:https';
 import { basename, dirname, join } from 'node:path';
+
 import { getInstallDir } from '@/main/modules/config';
 import { sendKoboldOutput, sendToRenderer } from '@/main/modules/window';
 import type { CachedModel, ModelParamType } from '@/types';
@@ -34,15 +35,15 @@ function parseHuggingFaceUrl(url: string) {
     const pathWithoutQuery = pathWithQuery.split('?')[0];
     return {
       author: hfMatch[1],
-      model: hfMatch[2],
       filename: basename(pathWithoutQuery),
+      model: hfMatch[2],
     };
   }
 
   return {
     author: 'external',
-    model: 'models',
     filename: basename(url.split('?')[0]),
+    model: 'models',
   };
 }
 
@@ -63,7 +64,7 @@ function normalizeUrl(url: string) {
 async function downloadFile(
   url: string,
   outputPath: string,
-  onProgress: (progress: DownloadProgress) => void
+  onProgress: (progress: DownloadProgress) => void,
 ) {
   const normalizedUrl = normalizeUrl(url);
   const outputDir = dirname(outputPath);
@@ -78,11 +79,11 @@ async function downloadFile(
     let isAborted = false;
 
     const cleanup = async () => {
-      await new Promise<void>((resolve) => {
+      await new Promise<void>((done) => {
         if (fileStream) {
-          fileStream.close(() => resolve());
+          fileStream.close(() => done());
         } else {
-          resolve();
+          done();
         }
       });
       await unlink(tempPath).catch(() => void 0);
@@ -101,7 +102,9 @@ async function downloadFile(
     activeDownloads.add(abortController);
 
     const handleRedirect = (requestUrl: string, redirectCount = 0): void => {
-      if (isAborted) return;
+      if (isAborted) {
+        return;
+      }
 
       if (redirectCount > 10) {
         activeDownloads.delete(abortController);
@@ -110,7 +113,9 @@ async function downloadFile(
       }
 
       httpModule(requestUrl, (response) => {
-        if (isAborted) return;
+        if (isAborted) {
+          return;
+        }
         currentRequest = response;
         if (
           response.statusCode === 301 ||
@@ -133,7 +138,7 @@ async function downloadFile(
           return;
         }
 
-        const totalBytes = parseInt(response.headers['content-length'] || '0', 10);
+        const totalBytes = parseInt(response.headers['content-length'] ?? '0', 10);
         let downloadedBytes = 0;
         let lastReportTime = Date.now();
         let lastReportedBytes = 0;
@@ -169,12 +174,12 @@ async function downloadFile(
             sendToRenderer('kobold-output', `\r${progressMsg}`);
 
             onProgress({
-              type: 'progress',
-              percent,
               downloaded: `${downloadedMB}MB`,
-              total: totalBytes ? `${totalMB}MB` : undefined,
-              speed: `${speedMBPerSec}MB/s`,
               eta: totalBytes ? etaStr : undefined,
+              percent,
+              speed: `${speedMBPerSec}MB/s`,
+              total: totalBytes ? `${totalMB}MB` : undefined,
+              type: 'progress',
             });
 
             lastReportTime = now;
@@ -183,15 +188,17 @@ async function downloadFile(
         });
 
         response.on('end', () => {
-          if (isAborted) return;
+          if (isAborted) {
+            return;
+          }
 
           if (totalBytes > 0 && downloadedBytes !== totalBytes) {
             activeDownloads.delete(abortController);
             void cleanup();
             reject(
               new Error(
-                `Incomplete download: received ${downloadedBytes} bytes, expected ${totalBytes} bytes`
-              )
+                `Incomplete download: received ${downloadedBytes} bytes, expected ${totalBytes} bytes`,
+              ),
             );
             return;
           }
@@ -206,11 +213,11 @@ async function downloadFile(
                   sendKoboldOutput('\n');
                   activeDownloads.delete(abortController);
                   resolve(true);
-                } catch (err) {
+                } catch (error) {
                   activeDownloads.delete(abortController);
-                  reject(err instanceof Error ? err : new Error(String(err)));
+                  reject(error instanceof Error ? error : new Error(String(error)));
                 }
-              })()
+              })(),
           );
         });
 
@@ -218,25 +225,31 @@ async function downloadFile(
           'error',
           (err) =>
             void (async () => {
-              if (isAborted) return;
+              if (isAborted) {
+                return;
+              }
               activeDownloads.delete(abortController);
               await cleanup();
               reject(err);
-            })()
+            })(),
         );
 
         fileStream.on(
           'error',
           (err) =>
             void (async () => {
-              if (isAborted) return;
+              if (isAborted) {
+                return;
+              }
               activeDownloads.delete(abortController);
               await cleanup();
               reject(err);
-            })()
+            })(),
         );
       }).on('error', (err) => {
-        if (isAborted) return;
+        if (isAborted) {
+          return;
+        }
         activeDownloads.delete(abortController);
         reject(err);
       });
@@ -263,7 +276,7 @@ function isValidModelUrl(url: string) {
 export async function resolveModelPath(
   urlOrPath: string,
   paramType: ModelParamType,
-  onProgress?: (progress: DownloadProgress) => void
+  onProgress?: (progress: DownloadProgress) => void,
 ) {
   if (!isValidModelUrl(urlOrPath)) {
     return urlOrPath;
@@ -274,32 +287,33 @@ export async function resolveModelPath(
   if (await pathExists(localPath)) {
     sendKoboldOutput(`Using cached model at: ${localPath}`);
     onProgress?.({
-      type: 'complete',
       localPath,
+      type: 'complete',
     });
     return localPath;
   }
 
   sendKoboldOutput(`Downloading model from ${urlOrPath} to ${localPath}...`);
 
-  const progressCallback = onProgress || ((p: DownloadProgress) => p);
+  const progressCallback = onProgress ?? ((p: DownloadProgress) => p);
 
   try {
     await downloadFile(urlOrPath, localPath, progressCallback);
 
     sendKoboldOutput(`Model downloaded successfully to: ${localPath}\n`);
     progressCallback({
-      type: 'complete',
       localPath,
+      type: 'complete',
     });
     return localPath;
   } catch (error) {
     progressCallback({
-      type: 'error',
       error: `Download failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      type: 'error',
     });
     throw new Error(
-      `Failed to download model from ${urlOrPath}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Failed to download model from ${urlOrPath}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      { cause: error },
     );
   }
 }
@@ -337,9 +351,9 @@ export async function getLocalModelsForType(paramType: ModelParamType) {
 
               if (fileStat.isFile()) {
                 models.push({
-                  path: filePath,
                   author,
                   model: modelDir,
+                  path: filePath,
                 });
               }
             }
@@ -355,7 +369,7 @@ export async function getLocalModelsForType(paramType: ModelParamType) {
 }
 
 export function abortActiveDownloads() {
-  const downloads = Array.from(activeDownloads);
+  const downloads = [...activeDownloads];
   for (const controller of downloads) {
     controller.abort();
   }

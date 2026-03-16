@@ -1,4 +1,5 @@
 import type { MantineColorScheme } from '@mantine/core';
+
 import type { CpuMetrics, GpuMetrics, MemoryMetrics } from '@/main/modules/monitoring';
 import type {
   Acceleration,
@@ -142,7 +143,7 @@ export interface KoboldAPI {
   deleteRelease: (binaryPath: string) => Promise<{ success: boolean; error?: string }>;
   launchKoboldCpp: (
     args?: string[],
-    preLaunchCommands?: string[]
+    preLaunchCommands?: string[],
   ) => Promise<{ success: boolean; pid?: number; error?: string }>;
   getConfigFiles: () => Promise<{ name: string; path: string; size: number }[]>;
   saveConfigFile: (configName: string, configData: KoboldConfig) => Promise<boolean>;
@@ -159,7 +160,7 @@ export interface KoboldAPI {
     contextSize: number,
     availableVramGB: number,
     flashAttention: boolean,
-    acceleration: Acceleration
+    acceleration: Acceleration,
   ) => Promise<OptimalLayersResult>;
   stopKoboldCpp: () => void;
   onDownloadProgress: (callback: (progress: number) => void) => () => void;

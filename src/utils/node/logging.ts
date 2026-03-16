@@ -1,8 +1,10 @@
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+
 import { app } from 'electron';
 import { createLogger, format } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
+
 import { isDevelopment } from '@/utils/node/environment';
 
 const ensureLogsDirectory = async (logsDir: string) => {
@@ -19,7 +21,6 @@ const createAppLogger = () => {
   void ensureLogsDirectory(logsDir);
 
   return createLogger({
-    level: isDevelopment ? 'debug' : 'info',
     format: format.combine(
       format.timestamp({
         format: 'YYYY-MM-DD HH:mm:ss.SSS',
@@ -41,8 +42,9 @@ const createAppLogger = () => {
         }
 
         return logEntry;
-      })
+      }),
     ),
+    level: isDevelopment ? 'debug' : 'info',
     transports: [
       new DailyRotateFile({
         filename: join(logsDir, 'gerbil-%DATE%.log'),
@@ -76,7 +78,7 @@ export const getLogsDirectory = () => join(app.getPath('userData'), 'logs');
 
 export const safeExecute = async <T>(operation: () => Promise<T>, errorMessage: string) => {
   try {
-    return operation();
+    return await operation();
   } catch (error) {
     logError(errorMessage, error as Error);
     return null;

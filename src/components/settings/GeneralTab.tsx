@@ -1,5 +1,6 @@
 import { Stack, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
+
 import { Switch } from '@/components/Switch';
 import { usePreferencesStore } from '@/stores/preferences';
 

@@ -1,9 +1,12 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { platform, resourcesPath } from 'node:process';
+
 import { shell } from 'electron';
+
 import { CONFIG_FILE_NAME, PRODUCT_NAME } from '@/constants';
 import { safeExecute } from '@/utils/logger';
+
 import { isDevelopment } from './environment';
 import { pathExists } from './fs';
 
@@ -13,12 +16,15 @@ function getConfigDirPath() {
   const home = homedir();
 
   switch (platform) {
-    case 'win32':
+    case 'win32': {
       return join(home, 'AppData', 'Roaming', PRODUCT_NAME);
-    case 'darwin':
+    }
+    case 'darwin': {
       return join(home, 'Library', 'Application Support', PRODUCT_NAME);
-    default:
+    }
+    default: {
       return join(home, '.config', PRODUCT_NAME);
+    }
   }
 }
 
@@ -44,16 +50,16 @@ export const openPathHandler = async (path: string) =>
   (await safeExecute(async () => {
     await shell.openPath(path);
     return { success: true };
-  }, 'Failed to open path')) || {
-    success: false,
+  }, 'Failed to open path')) ?? {
     error: 'Failed to open path',
+    success: false,
   };
 
 export const openUrl = async (url: string) =>
   (await safeExecute(async () => {
     await shell.openExternal(url);
     return { success: true };
-  }, 'Failed to open external URL')) || {
-    success: false,
+  }, 'Failed to open external URL')) ?? {
     error: 'Failed to open external URL',
+    success: false,
   };

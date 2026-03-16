@@ -1,10 +1,13 @@
 import { readdir, stat, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
+
 import { dialog } from 'electron';
+
 import { PRODUCT_NAME } from '@/constants';
 import type { KoboldConfig } from '@/types/electron';
 import { pathExists, readJsonFile, writeJsonFile } from '@/utils/node/fs';
 import { logError, safeExecute, tryExecute } from '@/utils/node/logging';
+
 import { getInstallDir, setInstallDir } from '../config';
 import { getMainWindow, sendToRenderer } from '../window';
 
@@ -36,7 +39,7 @@ export async function getConfigFiles() {
     logError('Error scanning for config files:', error as Error);
   }
 
-  return configFiles.sort((a, b) => a.name.localeCompare(b.name));
+  return configFiles.toSorted((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function parseConfigFile(filePath: string) {
@@ -74,7 +77,6 @@ export async function selectModelFile(title = 'Select Model File') {
     }
 
     const result = await dialog.showOpenDialog(mainWindow, {
-      title,
       filters: [
         {
           name: 'Model Files',
@@ -83,6 +85,7 @@ export async function selectModelFile(title = 'Select Model File') {
         { name: 'All Files', extensions: ['*'] },
       ],
       properties: ['openFile'],
+      title,
     });
 
     if (result.canceled || result.filePaths.length === 0) {
@@ -95,10 +98,10 @@ export async function selectModelFile(title = 'Select Model File') {
 
 export async function selectInstallDirectory() {
   const result = await dialog.showOpenDialog({
+    buttonLabel: 'Select Directory',
+    defaultPath: getInstallDir(),
     properties: ['openDirectory', 'createDirectory'],
     title: `Select the ${PRODUCT_NAME} Installation Directory`,
-    defaultPath: getInstallDir(),
-    buttonLabel: 'Select Directory',
   });
 
   if (!result.canceled && result.filePaths.length > 0) {

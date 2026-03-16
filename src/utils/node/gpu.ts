@@ -1,6 +1,7 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { platform } from 'node:process';
+
 import { graphics as siGraphics } from 'systeminformation';
 
 interface CachedGPUInfo {
@@ -44,7 +45,7 @@ async function initializeLinuxGPUCache() {
       const drmPath = '/sys/class/drm';
       const entries = await readdir(drmPath);
       const cardEntries = entries.filter(
-        (entry) => entry.startsWith('card') && !entry.includes('-')
+        (entry) => entry.startsWith('card') && !entry.includes('-'),
       );
 
       const gpus = [];
@@ -54,7 +55,7 @@ async function initializeLinuxGPUCache() {
           const memTotalData = await readFile(`${devicePath}/mem_info_vram_total`, 'utf8');
           const memoryTotal = Math.max(
             0,
-            (parseInt(memTotalData.trim(), 10) || 0) / (1024 * 1024 * 1024)
+            (parseInt(memTotalData.trim(), 10) || 0) / (1024 * 1024 * 1024),
           );
 
           if (memoryTotal >= 1) {
@@ -62,14 +63,14 @@ async function initializeLinuxGPUCache() {
             try {
               const busAddress = await readFile(`${devicePath}/uevent`, 'utf8');
               const pciMatch = busAddress.match(
-                /PCI_SLOT_NAME=([0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-9a-f])/i
+                /PCI_SLOT_NAME=([0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-9a-f])/i,
               );
 
               if (pciMatch) {
                 const fullAddress = pciMatch[1];
-                const busAddress = fullAddress.substring(5);
+                const shortAddress = fullAddress.substring(5);
 
-                isDiscrete = isDiscreteBusAddress(busAddress);
+                isDiscrete = isDiscreteBusAddress(shortAddress);
               }
             } catch {}
 
@@ -85,8 +86,8 @@ async function initializeLinuxGPUCache() {
 
               gpus.push({
                 devicePath,
-                memoryTotal,
                 hwmonPath,
+                memoryTotal,
               });
             }
           }
@@ -122,7 +123,7 @@ async function getLinuxGPUData() {
           const usage = Math.max(0, Math.min(100, parseInt(usageData.trim(), 10) || 0));
           const memoryUsed = Math.max(
             0,
-            (parseInt(memUsedData.trim(), 10) || 0) / (1024 * 1024 * 1024)
+            (parseInt(memUsedData.trim(), 10) || 0) / (1024 * 1024 * 1024),
           );
 
           let temperature: number | undefined;
@@ -134,10 +135,10 @@ async function getLinuxGPUData() {
           }
 
           gpus.push({
-            usage,
-            memoryUsed: parseFloat(memoryUsed.toFixed(2)),
             memoryTotal: parseFloat(cachedGPU.memoryTotal.toFixed(2)),
+            memoryUsed: parseFloat(memoryUsed.toFixed(2)),
             temperature,
+            usage,
           });
         } catch {}
       }
@@ -154,7 +155,7 @@ async function getWindowsGPUData() {
     const graphics = await siGraphics();
 
     const discreteControllers = graphics.controllers.filter(
-      (controller) => controller.vram && controller.vram >= 1024
+      (controller) => controller.vram && controller.vram >= 1024,
     );
 
     const gpus: GPUData[] = [];
@@ -163,10 +164,10 @@ async function getWindowsGPUData() {
       if (controller.vram) {
         const vramGB = parseFloat((controller.vram / 1024).toFixed(2));
         gpus.push({
-          usage: 0,
-          memoryUsed: 0,
           memoryTotal: vramGB,
+          memoryUsed: 0,
           temperature: undefined,
+          usage: 0,
         });
       }
     }

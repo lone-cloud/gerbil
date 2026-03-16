@@ -5,7 +5,7 @@ import type { GPUDevice, HardwareInfo } from '@/types/hardware';
 
 export const createSoftwareItems = (
   versionInfo: SystemVersionInfo,
-  koboldVersion?: string | null
+  koboldVersion?: string | null,
 ) => [
   {
     label: PRODUCT_NAME,
@@ -59,7 +59,7 @@ export const createDriverItems = (hardwareInfo: HardwareInfo) => {
   if (gpuCapabilities.cuda.devices.length > 0) {
     items.push({
       label: 'CUDA',
-      value: gpuCapabilities.cuda.version ? gpuCapabilities.cuda.version : 'Available',
+      value: gpuCapabilities.cuda.version ?? 'Available',
     });
   }
 
@@ -73,14 +73,14 @@ export const createDriverItems = (hardwareInfo: HardwareInfo) => {
   if (gpuCapabilities.rocm.devices.length > 0) {
     items.push({
       label: 'ROCm',
-      value: gpuCapabilities.rocm.version ? gpuCapabilities.rocm.version : 'Available',
+      value: gpuCapabilities.rocm.version ?? 'Available',
     });
   }
 
   if (gpuCapabilities.vulkan.devices.length > 0) {
     items.push({
       label: 'Vulkan',
-      value: gpuCapabilities.vulkan.version ? gpuCapabilities.vulkan.version : 'Available',
+      value: gpuCapabilities.vulkan.version ?? 'Available',
     });
   } else {
     items.push({
@@ -112,24 +112,24 @@ export const createHardwareItems = (hardwareInfo: HardwareInfo) => [
     if (hardwareInfo.gpuCapabilities.cuda.devices.length > 0) {
       discreteGPUs.push(
         ...hardwareInfo.gpuCapabilities.cuda.devices.map((name) => ({
-          name,
           isIntegrated: false,
-        }))
+          name,
+        })),
       );
     }
     if (hardwareInfo.gpuCapabilities.vulkan.devices.length > 0) {
       discreteGPUs.push(
-        ...hardwareInfo.gpuCapabilities.vulkan.devices.filter((gpu) => !gpu.isIntegrated)
+        ...hardwareInfo.gpuCapabilities.vulkan.devices.filter((gpu) => !gpu.isIntegrated),
       );
     }
     if (hardwareInfo.gpuCapabilities.rocm.devices.length > 0) {
       discreteGPUs.push(
-        ...hardwareInfo.gpuCapabilities.rocm.devices.filter((gpu) => !gpu.isIntegrated)
+        ...hardwareInfo.gpuCapabilities.rocm.devices.filter((gpu) => !gpu.isIntegrated),
       );
     }
 
     const uniqueDiscreteGPUs = discreteGPUs.filter(
-      (gpu, index, arr) => arr.findIndex((g) => g.name === gpu.name) === index
+      (gpu, index, arr) => arr.findIndex((g) => g.name === gpu.name) === index,
     );
 
     return uniqueDiscreteGPUs.length > 0

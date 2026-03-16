@@ -1,3 +1,4 @@
+import iconUrl from '/icon.png';
 import {
   Button,
   Card,
@@ -11,8 +12,8 @@ import {
   Title,
 } from '@mantine/core';
 import { Check } from 'lucide-react';
+
 import { PRODUCT_NAME } from '@/constants';
-import iconUrl from '/icon.png';
 
 interface WelcomeScreenProps {
   onGetStarted: () => void;

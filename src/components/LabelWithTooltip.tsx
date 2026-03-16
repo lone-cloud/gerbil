@@ -1,4 +1,5 @@
 import { Group, Text } from '@mantine/core';
+
 import { InfoTooltip } from '@/components/InfoTooltip';
 
 interface LabelWithTooltipProps {

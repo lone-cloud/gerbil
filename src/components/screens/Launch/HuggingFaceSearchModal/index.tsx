@@ -14,6 +14,7 @@ import {
 import { useDebouncedValue } from '@mantine/hooks';
 import { ArrowLeft, ExternalLink, Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+
 import { Modal } from '@/components/Modal';
 import { HUGGINGFACE_BASE_URL } from '@/constants';
 import { useHuggingFaceSearch } from '@/hooks/useHuggingFaceSearch';
@@ -23,6 +24,7 @@ import type {
   HuggingFaceSearchParams,
   HuggingFaceSortOption,
 } from '@/types';
+
 import { FilesTable } from './FilesTable';
 import { ModelCard } from './ModelCard';
 import { ModelsTable } from './ModelsTable';
@@ -40,7 +42,7 @@ export const HuggingFaceSearchModal = ({
   onSelect,
   searchParams: initialSearchParams,
 }: HuggingFaceSearchModalProps) => {
-  const [searchQuery, setSearchQuery] = useState(initialSearchParams.search || '');
+  const [searchQuery, setSearchQuery] = useState(initialSearchParams.search ?? '');
   const [debouncedQuery] = useDebouncedValue(searchQuery, 600);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const prevOpenedRef = useRef(false);
@@ -84,7 +86,7 @@ export const HuggingFaceSearchModal = ({
   }, [debouncedQuery, opened, searchModels]);
 
   const handleClose = () => {
-    setSearchQuery(initialSearchParams.search || '');
+    setSearchQuery(initialSearchParams.search ?? '');
     onClose();
   };
 
@@ -93,7 +95,9 @@ export const HuggingFaceSearchModal = ({
   };
 
   const handleFileSelect = (file: HuggingFaceFileInfo) => {
-    if (!selectedModel) return;
+    if (!selectedModel) {
+      return;
+    }
     const url = getFileDownloadUrl(selectedModel.id, file.path);
     onSelect(url);
     handleClose();
@@ -112,8 +116,12 @@ export const HuggingFaceSearchModal = ({
 
   const getFilterBadges = () => {
     const badges: string[] = [];
-    if (searchParams?.filter) badges.push(searchParams.filter.toUpperCase());
-    if (searchParams?.pipelineTag) badges.push(searchParams.pipelineTag.replace('-', ' '));
+    if (searchParams?.filter) {
+      badges.push(searchParams.filter.toUpperCase());
+    }
+    if (searchParams?.pipelineTag) {
+      badges.push(searchParams.pipelineTag.replace('-', ' '));
+    }
     return badges;
   };
 
@@ -187,7 +195,9 @@ export const HuggingFaceSearchModal = ({
           style={{ flex: 1 }}
           onScrollPositionChange={({ y }) => {
             const target = scrollAreaRef.current;
-            if (!target) return;
+            if (!target) {
+              return;
+            }
             const isNearBottom = target.scrollHeight - y <= target.clientHeight + 100;
             if (isNearBottom && hasMore && !loading && !selectedModel) {
               void loadMoreModels();

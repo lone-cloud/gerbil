@@ -31,22 +31,22 @@ export function getAvailableInterfaceOptions({
         frontendPreference === 'sillytavern' ? FRONTENDS.SILLYTAVERN : FRONTENDS.OPENWEBUI;
 
       chatItems.push({
-        value: 'chat-text',
         label,
+        value: 'chat-text',
       });
     }
   } else if (frontendPreference === 'koboldcpp') {
     if (isTextMode) {
       chatItems.push({
-        value: 'chat-text',
         label: FRONTENDS.KOBOLDAI_LITE,
+        value: 'chat-text',
       });
     }
   } else if (frontendPreference === 'llamacpp') {
     if (isTextMode) {
       chatItems.push({
-        value: 'chat-text',
         label: FRONTENDS.LLAMA_CPP,
+        value: 'chat-text',
       });
     }
   }
@@ -54,16 +54,16 @@ export function getAvailableInterfaceOptions({
   if (isImageGenerationMode) {
     if (effectiveImageFrontend === 'koboldcpp' || effectiveImageFrontend === 'llamacpp') {
       chatItems.push({
-        value: 'chat-image',
         label: FRONTENDS.STABLE_UI,
+        value: 'chat-image',
       });
     }
   }
 
   return [
     ...chatItems,
-    { value: 'terminal', label: 'Terminal' },
-    { value: 'eject', label: 'Eject' },
+    { label: 'Terminal', value: 'terminal' },
+    { label: 'Eject', value: 'eject' },
   ] as const;
 }
 
@@ -114,35 +114,35 @@ export function getServerInterfaceInfo({
 
   if (isImageGenerationMode && imageGenerationFrontendPreference === 'builtin') {
     return {
-      url: `${proxyUrl}/sdui`,
       title: FRONTENDS.STABLE_UI,
+      url: `${proxyUrl}/sdui`,
     };
   }
 
   if (frontendPreference === 'sillytavern') {
     return {
-      url: SILLYTAVERN.PROXY_URL,
       title: FRONTENDS.SILLYTAVERN,
+      url: SILLYTAVERN.PROXY_URL,
     };
   }
 
   if (frontendPreference === 'openwebui') {
     return {
-      url: OPENWEBUI.URL,
       title: FRONTENDS.OPENWEBUI,
+      url: OPENWEBUI.URL,
     };
   }
 
   if (frontendPreference === 'llamacpp') {
     return {
-      url: isImageGenerationMode ? `${proxyUrl}/sdui` : `${proxyUrl}/lcpp`,
       title: isImageGenerationMode ? FRONTENDS.STABLE_UI : FRONTENDS.LLAMA_CPP,
+      url: isImageGenerationMode ? `${proxyUrl}/sdui` : `${proxyUrl}/lcpp`,
     };
   }
 
   return {
-    url: isImageGenerationMode ? `${proxyUrl}/sdui` : proxyUrl,
     title: isImageGenerationMode ? FRONTENDS.STABLE_UI : FRONTENDS.KOBOLDAI_LITE,
+    url: isImageGenerationMode ? `${proxyUrl}/sdui` : proxyUrl,
   };
 }
 
@@ -150,7 +150,7 @@ export function getTunnelInterfaceUrl(
   tunnelBaseUrl: string,
   params: Omit<ServerInterfaceParams, 'frontendPreference'> & {
     frontendPreference: Exclude<FrontendPreference, 'sillytavern' | 'openwebui'>;
-  }
+  },
 ) {
   const { frontendPreference, imageGenerationFrontendPreference, isImageGenerationMode } = params;
 

@@ -1,14 +1,17 @@
 import type { ChildProcess } from 'node:child_process';
 import { spawn } from 'node:child_process';
-import { createServer, request, type Server } from 'node:http';
+import { createServer, request } from 'node:http';
+import type { Server } from 'node:http';
 import { join } from 'node:path';
 import { platform } from 'node:process';
+
 import { SERVER_READY_SIGNALS, SILLYTAVERN } from '@/constants';
 import { PROXY } from '@/constants/proxy';
 import { pathExists, readJsonFile, writeJsonFile } from '@/utils/node/fs';
 import { parseKoboldConfig } from '@/utils/node/kobold';
 import { logError, tryExecute } from '@/utils/node/logging';
 import { terminateProcess } from '@/utils/node/process';
+
 import { getInstallDir } from './config';
 import { getNodeEnvironment } from './dependencies';
 import { sendKoboldOutput, sendToRenderer } from './window';
@@ -53,11 +56,11 @@ async function ensureSillyTavernInstalled() {
           platform === 'win32' ? ['/s', '/q', nodeModulesPath] : ['-rf', nodeModulesPath];
 
         spawn(rmCmd, rmArgs, {
-          stdio: 'inherit',
           shell: true,
+          stdio: 'inherit',
         })
           .on('exit', (code) =>
-            code === 0 ? resolve() : reject(new Error(`Failed with code ${code}`))
+            code === 0 ? resolve() : reject(new Error(`Failed with code ${code}`)),
           )
           .on('error', reject);
       });
@@ -83,10 +86,10 @@ async function ensureSillyTavernInstalled() {
         '--silent',
       ],
       {
-        stdio: ['pipe', 'pipe', 'pipe'],
         env,
         shell: platform === 'win32',
-      }
+        stdio: ['pipe', 'pipe', 'pipe'],
+      },
     );
 
     let errorOutput = '';
@@ -121,11 +124,11 @@ async function createNpxProcess(args: string[]) {
   const installDir = getSillyTavernInstallDir();
 
   return spawn('node', [serverJsPath, ...args], {
-    stdio: ['pipe', 'pipe', 'pipe'],
+    cwd: installDir,
     detached: false,
     env,
-    cwd: installDir,
     shell: platform === 'win32',
+    stdio: ['pipe', 'pipe', 'pipe'],
   });
 }
 
@@ -138,7 +141,7 @@ async function ensureSillyTavernSettings() {
   }
 
   sendKoboldOutput(
-    'SillyTavern settings not found, starting SillyTavern briefly to generate config...'
+    'SillyTavern settings not found, starting SillyTavern briefly to generate config...',
   );
 
   const initProcess = await createNpxProcess(SILLYTAVERN_BASE_ARGS);
@@ -189,7 +192,7 @@ async function ensureSillyTavernSettings() {
                   resolve();
                 }
               })(),
-            2000
+            2000,
           );
         }
       });
@@ -223,14 +226,14 @@ async function setupSillyTavernConfig(isImageMode: boolean) {
 
     const proxyUrl = PROXY.URL;
 
-    if (!settings.power_user) settings.power_user = {};
+    settings.power_user ??= {};
     const powerUser = settings.power_user as Record<string, unknown>;
     powerUser.auto_connect = true;
 
-    if (!settings.textgenerationwebui_settings) settings.textgenerationwebui_settings = {};
+    settings.textgenerationwebui_settings ??= {};
     const textgenSettings = settings.textgenerationwebui_settings as Record<string, unknown>;
 
-    if (!textgenSettings.server_urls) textgenSettings.server_urls = {};
+    textgenSettings.server_urls ??= {};
     const serverUrls = textgenSettings.server_urls as Record<string, unknown>;
     serverUrls.koboldcpp = proxyUrl;
 
@@ -246,7 +249,7 @@ async function setupSillyTavernConfig(isImageMode: boolean) {
           `2. Go to 'Extensions' tab and enable 'Image Generation'\n` +
           `3. Set Source to 'Stable Diffusion WebUI (AUTOMATIC1111)'\n` +
           `4. Set API URL to: ${proxyUrl}/sdui\n` +
-          `5. Click 'Connect' to test the connection`
+          `5. Click 'Connect' to test the connection`,
       );
     }
 
@@ -287,17 +290,17 @@ async function waitForSillyTavernToStart() {
 const createProxyServer = (targetPort: number, proxyPort: number) => {
   proxyServer = createServer((req, res) => {
     const options = {
-      hostname: 'localhost',
-      port: targetPort,
-      path: req.url,
-      method: req.method,
       headers: req.headers,
+      hostname: 'localhost',
+      method: req.method,
+      path: req.url,
+      port: targetPort,
     };
 
     const proxyReq = request(options, (proxyRes) => {
       const headers = { ...proxyRes.headers };
       delete headers['x-frame-options'];
-      res.writeHead(proxyRes.statusCode || 200, headers);
+      res.writeHead(proxyRes.statusCode ?? 200, headers);
       proxyRes.pipe(res);
     });
 
@@ -382,7 +385,7 @@ export async function startFrontend(args: string[]) {
   } catch (error) {
     logError(
       `Failed to start SillyTavern: ${error instanceof Error ? error.message : String(error)}`,
-      error as Error
+      error as Error,
     );
     throw error;
   }
@@ -402,7 +405,7 @@ export async function stopFrontend() {
           proxyServer = null;
           resolve();
         });
-      })
+      }),
     );
   }
 

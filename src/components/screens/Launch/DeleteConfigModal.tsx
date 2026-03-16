@@ -1,4 +1,5 @@
 import { Button, Group, Stack, Text } from '@mantine/core';
+
 import { Modal } from '@/components/Modal';
 import { stripFileExtension } from '@/utils/format';
 

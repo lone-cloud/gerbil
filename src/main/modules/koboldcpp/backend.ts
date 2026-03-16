@@ -1,10 +1,13 @@
 import { readdir, rm, stat } from 'node:fs/promises';
 import { join } from 'node:path';
+
 import { execa } from 'execa';
+
 import type { InstalledBackend } from '@/types/electron';
 import { pathExists } from '@/utils/node/fs';
 import { logError } from '@/utils/node/logging';
 import { getLauncherPath } from '@/utils/node/path';
+
 import { getCurrentKoboldBinary, getInstallDir, setCurrentKoboldBinary } from '../config';
 import { sendToRenderer } from '../window';
 
@@ -36,10 +39,10 @@ export async function getInstalledBackends() {
         const launcherPath = await getLauncherPath(itemPath);
         if (launcherPath && (await pathExists(launcherPath))) {
           const launcherStats = await stat(launcherPath);
-          const launcherFilename = launcherPath.split(/[/\\]/).pop() || '';
+          const launcherFilename = launcherPath.split(/[/\\]/).pop() ?? '';
           launchers.push({
-            path: launcherPath,
             filename: launcherFilename,
+            path: launcherPath,
             size: launcherStats.size,
           });
         }
@@ -55,11 +58,11 @@ export async function getInstalledBackends() {
         }
 
         return {
-          version: versionInfo.version,
-          path: launcher.path,
-          filename: launcher.filename,
-          size: launcher.size,
           actualVersion: versionInfo.actualVersion,
+          filename: launcher.filename,
+          path: launcher.path,
+          size: launcher.size,
+          version: versionInfo.version,
         } as InstalledBackend;
       } catch (error) {
         logError(`Could not detect version for ${launcher.filename}:`, error as Error);
@@ -107,8 +110,8 @@ export async function getCurrentBinaryInfo() {
     const filename = pathParts[pathParts.length - 2] || currentBackend.filename;
 
     return {
-      path: currentBackend.path,
       filename,
+      path: currentBackend.path,
     };
   }
 
@@ -130,21 +133,21 @@ export async function setCurrentBackend(binaryPath: string) {
 export async function deleteRelease(binaryPath: string) {
   try {
     if (!(await pathExists(binaryPath))) {
-      return { success: false, error: 'Release not found' };
+      return { error: 'Release not found', success: false };
     }
 
     const currentBinaryPath = getCurrentKoboldBinary();
     if (currentBinaryPath === binaryPath) {
       return {
-        success: false,
         error: 'Cannot delete the currently active release',
+        success: false,
       };
     }
 
     const releaseDir = binaryPath.split(/[/\\]/).slice(0, -1).join('/');
 
     if (await pathExists(releaseDir)) {
-      await rm(releaseDir, { recursive: true, force: true });
+      await rm(releaseDir, { force: true, recursive: true });
 
       clearBackendVersionCache(binaryPath);
       sendToRenderer('versions-updated');
@@ -152,9 +155,9 @@ export async function deleteRelease(binaryPath: string) {
       return { success: true };
     }
 
-    return { success: false, error: 'Release directory not found' };
+    return { error: 'Release directory not found', success: false };
   } catch (error) {
-    return { success: false, error: (error as Error).message };
+    return { error: (error as Error).message, success: false };
   }
 }
 
@@ -174,7 +177,7 @@ export async function getVersionFromBinary(launcherPath: string) {
     const folderName = launcherPath.split(/[/\\]/).slice(-2, -1)[0];
     if (folderName) {
       const versionMatch = folderName.match(
-        /-(\d+\.\d+(?:\.\d+)?(?:\.[a-zA-Z0-9]+)*(?:-[a-zA-Z0-9]+)*)$/
+        /-(\d+\.\d+(?:\.\d+)?(?:\.[a-zA-Z0-9]+)*(?:-[a-zA-Z0-9]+)*)$/,
       );
       if (versionMatch) {
         folderVersion = versionMatch[1];
@@ -183,8 +186,8 @@ export async function getVersionFromBinary(launcherPath: string) {
 
     try {
       const result = await execa(launcherPath, ['--version'], {
-        timeout: 30000,
         stdio: ['ignore', 'pipe', 'pipe'],
+        timeout: 30_000,
       });
 
       const allOutput = (result.stdout + result.stderr).trim();
@@ -193,7 +196,7 @@ export async function getVersionFromBinary(launcherPath: string) {
       if (lines.length > 0) {
         const lastLine = lines[lines.length - 1].trim();
         const versionMatch = lastLine.match(
-          /^(\d+\.\d+(?:\.\d+)?(?:\.[a-zA-Z0-9]+)*(?:-[a-zA-Z0-9]+)*)$/
+          /^(\d+\.\d+(?:\.\d+)?(?:\.[a-zA-Z0-9]+)*(?:-[a-zA-Z0-9]+)*)$/,
         );
         if (versionMatch) {
           actualVersion = versionMatch[1];
@@ -202,11 +205,11 @@ export async function getVersionFromBinary(launcherPath: string) {
     } catch {}
 
     const result = {
-      version: folderVersion || actualVersion || 'unknown',
       actualVersion:
         folderVersion && actualVersion && folderVersion !== actualVersion
           ? actualVersion
           : undefined,
+      version: folderVersion ?? actualVersion ?? 'unknown',
     };
 
     backendVersionCache.set(launcherPath, result);

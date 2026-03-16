@@ -1,19 +1,22 @@
 import { join } from 'node:path';
 import { stripVTControlCharacters } from 'node:util';
+
 import type { BrowserWindowConstructorOptions } from 'electron';
 import { app, BrowserWindow, clipboard, Menu, screen, shell } from 'electron';
+
 import { PRODUCT_NAME } from '@/constants';
 import type { IPCChannel, IPCChannelPayloads } from '@/types/ipc';
 import { isDevelopment } from '@/utils/node/environment';
+
+import type { WindowBounds } from './config';
 import {
   getBackgroundColor,
   getEnableSystemTray,
   getWindowBounds,
   set as setConfig,
-  type WindowBounds,
 } from './config';
 import { startStaticServer } from './static-server';
-import { isTrayActive } from './tray';
+import { isTrayActive } from './tray-active';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -26,17 +29,16 @@ export async function createMainWindow(options?: { startHidden?: boolean }) {
   const defaultHeight = Math.max(minHeight, Math.min(Math.floor(size.height * 0.75), 1000));
 
   const windowOptions = {
-    minWidth: 600,
-    minHeight,
-    width: savedBounds?.width || defaultWidth,
-    height: savedBounds?.height || defaultHeight,
-    frame: false,
-    title: PRODUCT_NAME,
-    show: false,
     backgroundColor: getBackgroundColor(),
+    frame: false,
+    height: savedBounds?.height ?? defaultHeight,
     icon: isDevelopment
       ? join(__dirname, '../../src/assets/icon.png')
       : join(__dirname, '../../assets/icon.png'),
+    minHeight,
+    minWidth: 600,
+    show: false,
+    title: PRODUCT_NAME,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -45,6 +47,7 @@ export async function createMainWindow(options?: { startHidden?: boolean }) {
       offscreen: false,
       spellcheck: true,
     },
+    width: savedBounds?.width ?? defaultWidth,
   } as BrowserWindowConstructorOptions;
 
   if (savedBounds?.x !== undefined && savedBounds?.y !== undefined) {
@@ -58,8 +61,8 @@ export async function createMainWindow(options?: { startHidden?: boolean }) {
       windowOptions.x = savedBounds.x;
       windowOptions.y = savedBounds.y;
     } else {
-      windowOptions.x = Math.floor((size.width - (savedBounds.width || defaultWidth)) / 2);
-      windowOptions.y = Math.floor((size.height - (savedBounds.height || defaultHeight)) / 2);
+      windowOptions.x = Math.floor((size.width - (savedBounds.width ?? defaultWidth)) / 2);
+      windowOptions.y = Math.floor((size.height - (savedBounds.height ?? defaultHeight)) / 2);
     }
   } else {
     windowOptions.x = Math.floor((size.width - defaultWidth) / 2);
@@ -80,11 +83,11 @@ export async function createMainWindow(options?: { startHidden?: boolean }) {
 
       if (!isMaximized) {
         bounds = {
-          x: currentBounds.x,
-          y: currentBounds.y,
-          width: currentBounds.width,
           height: currentBounds.height,
           isMaximized,
+          width: currentBounds.width,
+          x: currentBounds.x,
+          y: currentBounds.y,
         };
       }
 
@@ -130,12 +133,12 @@ export async function createMainWindow(options?: { startHidden?: boolean }) {
   mainWindow.webContents.setWindowOpenHandler(() => ({
     action: 'allow',
     overrideBrowserWindowOptions: {
+      autoHideMenuBar: true,
+      backgroundColor: getBackgroundColor(),
       icon: isDevelopment
         ? join(__dirname, '../../src/assets/icon.png')
         : join(__dirname, '../../assets/icon.png'),
       title: PRODUCT_NAME,
-      backgroundColor: getBackgroundColor(),
-      autoHideMenuBar: true,
     },
   }));
 
@@ -157,13 +160,13 @@ export async function createMainWindow(options?: { startHidden?: boolean }) {
   return mainWindow;
 }
 
-function setupContextMenu(mainWindow: BrowserWindow) {
-  mainWindow.webContents.on('context-menu', (_, params) => {
-    const hasLinkURL = !!params.linkURL;
-    const hasSelection = !!params.selectionText;
-    const isEditable = params.isEditable;
+function setupContextMenu(window: BrowserWindow) {
+  window.webContents.on('context-menu', (_, params) => {
+    const hasLinkURL = Boolean(params.linkURL);
+    const hasSelection = Boolean(params.selectionText);
+    const { isEditable } = params;
     const isDev = isDevelopment;
-    const hasMisspelling = !!params.misspelledWord;
+    const hasMisspelling = Boolean(params.misspelledWord);
 
     const canCut = hasSelection && isEditable;
     const canCopy = hasSelection;
@@ -177,10 +180,10 @@ function setupContextMenu(mainWindow: BrowserWindow) {
 
     if (isDev) {
       menuItems.push({
-        label: 'Inspect Element',
         click: () => {
-          mainWindow.webContents.inspectElement(params.x, params.y);
+          window.webContents.inspectElement(params.x, params.y);
         },
+        label: 'Inspect Element',
       });
     }
 
@@ -191,19 +194,19 @@ function setupContextMenu(mainWindow: BrowserWindow) {
 
       params.dictionarySuggestions.forEach((suggestion) => {
         menuItems.push({
-          label: suggestion,
           click: () => {
-            mainWindow.webContents.replaceMisspelling(suggestion);
+            window.webContents.replaceMisspelling(suggestion);
           },
+          label: suggestion,
         });
       });
 
       menuItems.push({ type: 'separator' as const });
       menuItems.push({
-        label: 'Add to Dictionary',
         click: () => {
-          mainWindow.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord);
+          window.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord);
         },
+        label: 'Add to Dictionary',
       });
 
       if (hasEditOperations) {
@@ -252,27 +255,27 @@ function setupContextMenu(mainWindow: BrowserWindow) {
       }
 
       menuItems.push({
-        label: 'Open Link in Browser',
         click: () => {
           if (params.linkURL) {
             void shell.openExternal(params.linkURL);
           }
         },
+        label: 'Open Link in Browser',
       });
 
       menuItems.push({
-        label: 'Copy Link Address',
         click: () => {
           if (params.linkURL) {
             clipboard.writeText(params.linkURL);
           }
         },
+        label: 'Copy Link Address',
       });
     }
 
     if (menuItems.length > 0) {
       const menu = Menu.buildFromTemplate(menuItems);
-      menu.popup({ window: mainWindow });
+      menu.popup({ window });
     }
   });
 }

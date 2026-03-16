@@ -1,4 +1,5 @@
 import { Button, Group, Stack, Text } from '@mantine/core';
+
 import { Modal } from '@/components/Modal';
 import type { KoboldCrashInfo } from '@/types/ipc';
 
@@ -15,15 +16,15 @@ const getCrashDescription = (crashInfo: KoboldCrashInfo) => {
 
   if (crashInfo.signal) {
     const signalDescriptions: Record<string, string> = {
-      SIGKILL: 'The process was forcefully terminated',
-      SIGSEGV: 'Memory access violation (segmentation fault)',
       SIGABRT: 'The process aborted unexpectedly',
       SIGBUS: 'Bus error (invalid memory access)',
       SIGFPE: 'Floating-point exception',
-      SIGILL: 'Illegal instruction',
-      SIGTERM: 'The process was terminated',
-      SIGSTOP: 'The process was stopped',
       SIGHUP: 'The process lost its controlling terminal',
+      SIGILL: 'Illegal instruction',
+      SIGKILL: 'The process was forcefully terminated',
+      SIGSEGV: 'Memory access violation (segmentation fault)',
+      SIGSTOP: 'The process was stopped',
+      SIGTERM: 'The process was terminated',
     };
 
     return signalDescriptions[crashInfo.signal] || `Terminated by signal ${crashInfo.signal}`;
@@ -37,7 +38,9 @@ const getCrashDescription = (crashInfo: KoboldCrashInfo) => {
 };
 
 export const BackendCrashModal = ({ opened, onClose, crashInfo }: BackendCrashModalProps) => {
-  if (!crashInfo) return null;
+  if (!crashInfo) {
+    return null;
+  }
 
   const description = getCrashDescription(crashInfo);
 

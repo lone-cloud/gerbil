@@ -4,7 +4,7 @@ export const logError = (message: string, error: Error) => {
 
 export const safeExecute = async <T>(operation: () => Promise<T>, errorMessage: string) => {
   try {
-    return operation();
+    return await operation();
   } catch (error) {
     logError(errorMessage, error as Error);
     return null;

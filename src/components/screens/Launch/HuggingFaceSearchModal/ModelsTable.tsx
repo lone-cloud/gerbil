@@ -1,5 +1,6 @@
 import { Badge, Group, Loader, Stack, Table, Text, Tooltip } from '@mantine/core';
 import { Download, Heart, Lock } from 'lucide-react';
+
 import { HUGGINGFACE_BASE_URL } from '@/constants';
 import type { HuggingFaceModelInfo, HuggingFaceSortOption } from '@/types';
 import { formatDate, formatDownloads } from '@/utils/format';
@@ -42,12 +43,12 @@ export const ModelsTable = ({
           <Table.Th>Model</Table.Th>
           <Table.Th style={{ width: 80 }}>Params</Table.Th>
           <Table.Th
-            style={{ width: 120, cursor: 'pointer' }}
+            style={{ cursor: 'pointer', width: 120 }}
             onClick={() => onSortChange('downloads')}
           >
             Downloads{sortBy === 'downloads' && ' ↓'}
           </Table.Th>
-          <Table.Th style={{ width: 90, cursor: 'pointer' }} onClick={() => onSortChange('likes')}>
+          <Table.Th style={{ cursor: 'pointer', width: 90 }} onClick={() => onSortChange('likes')}>
             Likes{sortBy === 'likes' && ' ↓'}
           </Table.Th>
         </Table.Tr>

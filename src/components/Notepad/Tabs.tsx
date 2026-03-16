@@ -1,6 +1,8 @@
 import { ActionIcon, Box } from '@mantine/core';
 import { Plus } from 'lucide-react';
-import { type DragEvent, type MouseEvent, useState } from 'react';
+import type { DragEvent, MouseEvent } from 'react';
+import { useState } from 'react';
+
 import { Tab } from '@/components/Notepad/Tab';
 import { useNotepadStore } from '@/stores/notepad';
 import { usePreferencesStore } from '@/stores/preferences';
@@ -9,6 +11,11 @@ interface NotepadTabsProps {
   onCreateNewTab: () => Promise<void>;
   onCloseTab: (title: string) => void;
 }
+
+const handleDragOver = (e: DragEvent) => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+};
 
 export const NotepadTabs = ({ onCreateNewTab, onCloseTab }: NotepadTabsProps) => {
   const {
@@ -51,11 +58,6 @@ export const NotepadTabs = ({ onCreateNewTab, onCloseTab }: NotepadTabsProps) =>
     e.dataTransfer.effectAllowed = 'move';
   };
 
-  const handleDragOver = (e: DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  };
-
   const handleDragEnter = (index: number) => {
     setDragOverIndex(index);
   };
@@ -85,8 +87,8 @@ export const NotepadTabs = ({ onCreateNewTab, onCloseTab }: NotepadTabsProps) =>
             : 'var(--mantine-color-gray-3)'
         }`,
         display: 'flex',
-        overflow: 'hidden',
         minHeight: '2rem',
+        overflow: 'hidden',
       }}
     >
       {tabs.map((tab, index) => (
@@ -117,8 +119,8 @@ export const NotepadTabs = ({ onCreateNewTab, onCloseTab }: NotepadTabsProps) =>
         size="xs"
         onClick={() => void onCreateNewTab()}
         style={{
-          margin: '0.25rem',
           alignSelf: 'center',
+          margin: '0.25rem',
         }}
       >
         <Plus size="0.75rem" />

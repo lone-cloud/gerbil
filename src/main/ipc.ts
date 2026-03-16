@@ -1,6 +1,8 @@
 import { join } from 'node:path';
 import { platform } from 'node:process';
+
 import { app, ipcMain } from 'electron';
+
 import {
   canAutoUpdate,
   checkForUpdates,
@@ -78,7 +80,7 @@ export function setupIPCHandlers() {
   const mainWindow = getMainWindow();
 
   ipcMain.handle('kobold:downloadRelease', async (_, asset, options) =>
-    downloadRelease(asset, options)
+    downloadRelease(asset, options),
   );
 
   ipcMain.handle('kobold:getInstalledBackends', () => getInstalledBackends());
@@ -88,7 +90,7 @@ export function setupIPCHandlers() {
   ipcMain.handle('kobold:getConfigFiles', () => getConfigFiles());
 
   ipcMain.handle('kobold:saveConfigFile', async (_, configName, configData) =>
-    saveConfigFile(configName, configData)
+    saveConfigFile(configName, configData),
   );
 
   ipcMain.handle('kobold:deleteConfigFile', async (_, configName) => deleteConfigFile(configName));
@@ -96,7 +98,7 @@ export function setupIPCHandlers() {
   ipcMain.handle('kobold:getSelectedConfig', () => getSelectedConfig());
 
   ipcMain.handle('kobold:setSelectedConfig', (_, configName) =>
-    setConfig('selectedConfig', configName)
+    setConfig('selectedConfig', configName),
   );
 
   ipcMain.handle('kobold:setCurrentBackend', (_, version) => setCurrentBackend(version));
@@ -120,13 +122,13 @@ export function setupIPCHandlers() {
   ipcMain.handle('kobold:detectAccelerationSupport', () => detectAccelerationSupport());
 
   ipcMain.handle('kobold:getAvailableAccelerations', (_, includeDisabled = false) =>
-    getAvailableAccelerations(includeDisabled)
+    getAvailableAccelerations(includeDisabled),
   );
 
   ipcMain.handle('kobold:getPlatform', () => platform);
 
   ipcMain.handle('kobold:launchKoboldCpp', (_, args, preLaunchCommands) =>
-    launchKoboldCppWithCustomFrontends(args, preLaunchCommands)
+    launchKoboldCppWithCustomFrontends(args, preLaunchCommands),
   );
 
   ipcMain.handle('kobold:deleteRelease', (_, binaryPath) => deleteRelease(binaryPath));
@@ -144,7 +146,7 @@ export function setupIPCHandlers() {
   ipcMain.handle('kobold:importLocalBackend', () => importLocalBackend());
 
   ipcMain.handle('kobold:getLocalModels', (_, paramType: string) =>
-    getLocalModelsForType(paramType as Parameters<typeof getLocalModelsForType>[0])
+    getLocalModelsForType(paramType as Parameters<typeof getLocalModelsForType>[0]),
   );
 
   ipcMain.handle('kobold:analyzeModel', async (_, filePath: string) => analyzeGGUFModel(filePath));
@@ -157,15 +159,15 @@ export function setupIPCHandlers() {
       contextSize: number,
       availableVramGB: number,
       flashAttention: boolean,
-      acceleration: Acceleration
+      acceleration: Acceleration,
     ) =>
       calculateOptimalGpuLayers({
-        modelPath,
-        contextSize,
-        availableVramGB,
-        flashAttention,
         acceleration,
-      })
+        availableVramGB,
+        contextSize,
+        flashAttention,
+        modelPath,
+      }),
   );
 
   ipcMain.handle('config:get', (_, key) => getConfig(key));
@@ -179,7 +181,7 @@ export function setupIPCHandlers() {
   ipcMain.handle('app:openPath', async (_, path) => openPathHandler(path));
 
   ipcMain.handle('app:showLogsFolder', () =>
-    openPathHandler(join(app.getPath('userData'), 'logs'))
+    openPathHandler(join(app.getPath('userData'), 'logs')),
   );
 
   ipcMain.handle('app:viewConfigFile', () => openPathHandler(getConfigDir()));
@@ -208,7 +210,7 @@ export function setupIPCHandlers() {
   ipcMain.handle('app:getColorScheme', () => getColorScheme());
 
   ipcMain.handle('app:setColorScheme', async (_, colorScheme) =>
-    setConfig('colorScheme', colorScheme)
+    setConfig('colorScheme', colorScheme),
   );
 
   ipcMain.handle('app:getEnableSystemTray', () => getEnableSystemTray());
@@ -237,10 +239,10 @@ export function setupIPCHandlers() {
         model?: string | null;
         config?: string | null;
         monitoringEnabled?: boolean;
-      }
+      },
     ) => {
       updateTrayState(state);
-    }
+    },
   );
 
   ipcMain.handle('app:openExternal', async (_, url) => openUrl(url));
@@ -264,11 +266,11 @@ export function setupIPCHandlers() {
     const { rm } = await import('node:fs/promises');
     const openWebUIDataDir = join(getInstallDir(), 'openwebui-data');
     try {
-      await rm(openWebUIDataDir, { recursive: true, force: true });
+      await rm(openWebUIDataDir, { force: true, recursive: true });
       return { success: true };
     } catch (error) {
       logError('Failed to clear Open WebUI data:', error as Error);
-      return { success: false, error: (error as Error).message };
+      return { error: (error as Error).message, success: false };
     }
   });
 

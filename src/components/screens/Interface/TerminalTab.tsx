@@ -1,6 +1,7 @@
 import { ActionIcon, Box, ScrollArea } from '@mantine/core';
 import { ChevronDown } from 'lucide-react';
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+
 import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
 import { usePreferencesStore } from '@/stores/preferences';
 import { handleTerminalOutput, processTerminalContent } from '@/utils/terminal';
@@ -28,7 +29,9 @@ export const TerminalTab = forwardRef<TerminalTabRef>((_props, ref) => {
   }, []);
 
   const handleScroll = ({ y }: { y: number }) => {
-    if (!viewportRef.current) return;
+    if (!viewportRef.current) {
+      return;
+    }
 
     const { scrollHeight, clientHeight } = viewportRef.current;
     const isAtBottomNow = y + clientHeight >= scrollHeight - 10;
@@ -83,14 +86,14 @@ export const TerminalTab = forwardRef<TerminalTabRef>((_props, ref) => {
   return (
     <Box
       style={{
-        height: `calc(100vh - ${TITLEBAR_HEIGHT} - ${STATUSBAR_HEIGHT})`,
-        display: 'flex',
-        flexDirection: 'column',
         backgroundColor:
           colorScheme === 'dark'
             ? 'var(--mantine-color-dark-filled)'
             : 'var(--mantine-color-gray-0)',
         borderRadius: 'inherit',
+        display: 'flex',
+        flexDirection: 'column',
+        height: `calc(100vh - ${TITLEBAR_HEIGHT} - ${STATUSBAR_HEIGHT})`,
         position: 'relative',
       }}
     >
@@ -110,19 +113,19 @@ export const TerminalTab = forwardRef<TerminalTabRef>((_props, ref) => {
         <Box p="md">
           <div
             style={{
-              margin: 0,
-              fontFamily:
-                'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-              fontSize: '0.875em',
-              lineHeight: 1.4,
               color:
                 colorScheme === 'dark'
                   ? 'var(--mantine-color-gray-0)'
                   : 'var(--mantine-color-dark-filled)',
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
+              fontFamily:
+                'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+              fontSize: '0.875em',
+              lineHeight: 1.4,
+              margin: 0,
               opacity: isVisible ? 1 : 0,
               transition: 'opacity 0.2s ease-in-out',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
             }}
             dangerouslySetInnerHTML={{
               __html: processTerminalContent(terminalContent),
@@ -139,11 +142,11 @@ export const TerminalTab = forwardRef<TerminalTabRef>((_props, ref) => {
           radius="xl"
           onClick={scrollToBottom}
           style={{
-            position: 'absolute',
             bottom: '1.25rem',
+            boxShadow: '0 0.125rem 0.5rem rgba(0, 0, 0, 0.3)',
+            position: 'absolute',
             right: '1.25rem',
             zIndex: 10,
-            boxShadow: '0 0.125rem 0.5rem rgba(0, 0, 0, 0.3)',
           }}
           aria-label="Scroll to bottom"
         >

@@ -1,13 +1,8 @@
 import { ActionIcon, Box, Text, TextInput } from '@mantine/core';
 import { X } from 'lucide-react';
-import {
-  type DragEvent,
-  type KeyboardEvent,
-  type MouseEvent,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { DragEvent, KeyboardEvent, MouseEvent } from 'react';
+
 import { usePreferencesStore } from '@/stores/preferences';
 
 interface TabProps {
@@ -109,7 +104,7 @@ export const Tab = ({
       onDragOver={onDragOver}
       onDrop={(e) => onDrop(e, index)}
       style={{
-        padding: '0.375rem 0.5rem',
+        alignItems: 'center',
         backgroundColor: isActive
           ? resolvedColorScheme === 'dark'
             ? 'var(--mantine-color-dark-4)'
@@ -126,11 +121,11 @@ export const Tab = ({
         }`,
         cursor: isEditing ? 'default' : 'pointer',
         display: 'flex',
-        alignItems: 'center',
         gap: '0.25rem',
-        minWidth: 0,
         maxWidth: '7.5rem',
+        minWidth: 0,
         opacity: isDragOver ? 0.5 : 1,
+        padding: '0.375rem 0.5rem',
       }}
     >
       {isEditing ? (
@@ -149,10 +144,10 @@ export const Tab = ({
           styles={{
             input: {
               fontSize: 'var(--mantine-font-size-xs)',
-              padding: 0,
-              minHeight: 'auto',
               height: 'auto',
               lineHeight: 1,
+              minHeight: 'auto',
+              padding: 0,
             },
           }}
         />
@@ -168,10 +163,10 @@ export const Tab = ({
             setShowLineNumbers(!showLineNumbers);
           }}
           style={{
+            flex: 1,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
-            flex: 1,
           }}
         >
           {title}

@@ -1,11 +1,13 @@
 import { ActionIcon, AppShell, CopyButton, Group, Tooltip } from '@mantine/core';
 import { Check, Globe, NotepadText } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+
 import type { CpuMetrics, GpuMetrics, MemoryMetrics } from '@/main/modules/monitoring';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 import { useNotepadStore } from '@/stores/notepad';
 import { usePreferencesStore } from '@/stores/preferences';
 import { getTunnelInterfaceUrl } from '@/utils/interface';
+
 import { PerformanceBadge } from './PerformanceBadge';
 
 export const StatusBar = () => {
@@ -23,7 +25,9 @@ export const StatusBar = () => {
   const { isImageGenerationMode } = useLaunchConfigStore();
 
   const tunnelUrl = useMemo(() => {
-    if (!tunnelBaseUrl) return null;
+    if (!tunnelBaseUrl) {
+      return null;
+    }
     if (frontendPreference === 'sillytavern' || frontendPreference === 'openwebui') {
       return tunnelBaseUrl;
     }
@@ -42,17 +46,23 @@ export const StatusBar = () => {
     let isMounted = true;
 
     const handleCpuMetrics = (metrics: CpuMetrics) => {
-      if (!isMounted) return;
+      if (!isMounted) {
+        return;
+      }
       setCpuMetrics(metrics);
     };
 
     const handleMemoryMetrics = (metrics: MemoryMetrics) => {
-      if (!isMounted) return;
+      if (!isMounted) {
+        return;
+      }
       setMemoryMetrics(metrics);
     };
 
     const handleGpuMetrics = (metrics: GpuMetrics) => {
-      if (!isMounted) return;
+      if (!isMounted) {
+        return;
+      }
       setGpuMetrics(metrics);
     };
 

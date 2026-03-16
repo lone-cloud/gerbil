@@ -2,8 +2,10 @@ import { access, readdir, readlink } from 'node:fs/promises';
 import { homedir, release } from 'node:os';
 import { join } from 'node:path';
 import { arch, platform, env as processEnv, versions } from 'node:process';
+
 import { app } from 'electron';
 import { execa } from 'execa';
+
 import { PRODUCT_NAME } from '@/constants';
 
 const PATH_SEPARATOR = platform === 'win32' ? ';' : ':';
@@ -31,15 +33,15 @@ async function executeCommand(
   command: string,
   args: string[],
   env: Record<string, string | undefined>,
-  timeout = 5000
+  timeout = 5000,
 ) {
   try {
     const { stdout } = await execa(command, args, {
       env,
-      timeout,
       reject: false,
+      timeout,
     });
-    return { success: true, output: stdout.trim() };
+    return { output: stdout.trim(), success: true };
   } catch {
     return { success: false };
   }
@@ -68,7 +70,7 @@ export async function getSystemNodeVersion() {
 
 export async function isUvAvailable() {
   const env = await getUvEnvironment();
-  const result = await executeCommand('uv', ['--version'], env, 10000);
+  const result = await executeCommand('uv', ['--version'], env, 10_000);
   return result.success;
 }
 
@@ -89,7 +91,7 @@ export async function getUvEnvironment() {
   }
 
   if (platform === 'win32') {
-    env.PYTHONIOENCODING = 'utf-8';
+    env.PYTHONIOENCODING = 'utf8';
     env.PYTHONLEGACYWINDOWSSTDIO = '1';
     env.PYTHONUTF8 = '1';
     env.CHCP = '65001';
@@ -169,7 +171,7 @@ async function tryVersionManagerPath(basePath: string, env: Record<string, strin
 
   try {
     const entries = await readdir(basePath);
-    const nodeVersions = entries.filter((v) => v.startsWith('v')).sort();
+    const nodeVersions = entries.filter((v) => v.startsWith('v')).toSorted();
     const latestVersion = nodeVersions.pop();
 
     if (latestVersion) {
@@ -198,8 +200,8 @@ export async function getAURVersion() {
 
   try {
     const { stdout } = await execa('pacman', ['-Q', packageName], {
-      timeout: 1000,
       reject: false,
+      timeout: 1000,
     });
     const trimmed = stdout.trim();
     if (trimmed.length > 0) {
@@ -226,16 +228,16 @@ export async function getVersionInfo() {
 
   return {
     appVersion: app.getVersion(),
-    electronVersion: versions.electron,
-    nodeVersion: versions.node,
+    arch,
+    aurPackageVersion,
     chromeVersion: versions.chrome,
-    v8Version: versions.v8,
+    electronVersion: versions.electron,
+    nodeJsSystemVersion,
+    nodeVersion: versions.node,
     osVersion: release(),
     platform,
-    arch,
-    nodeJsSystemVersion,
     uvVersion,
-    aurPackageVersion,
+    v8Version: versions.v8,
   };
 }
 
@@ -265,7 +267,7 @@ export function isWindowsPortableInstallation() {
       execPath.toLowerCase().includes('\\temp\\') || execPath.toLowerCase().includes('\\tmp\\');
 
     const isInProgramFiles = execPath.toLowerCase().includes('program files');
-    const isInAppDataPrograms = execPath.toLowerCase().includes('appdata\\local\\programs');
+    const isInAppDataPrograms = execPath.toLowerCase().includes(String.raw`appdata\local\programs`);
 
     windowsPortableInstallationCache = isInTemp && !isInProgramFiles && !isInAppDataPrograms;
 

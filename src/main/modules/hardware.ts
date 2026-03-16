@@ -1,6 +1,8 @@
 import { platform } from 'node:process';
+
 import { execa } from 'execa';
 import { cpu as siCpu, mem as siMem, memLayout as siMemLayout } from 'systeminformation';
+
 import type {
   BasicGPUInfo,
   CPUCapabilities,
@@ -14,8 +16,8 @@ import { safeExecute } from '@/utils/node/logging';
 import { detectGPUViaVulkan, getVulkanInfo } from '@/utils/node/vulkan';
 
 const COMMON_EXEC_OPTIONS = {
-  timeout: 3000,
   reject: false,
+  timeout: 3000,
 };
 
 let cpuCapabilitiesCache: CPUCapabilities | null = null;
@@ -36,8 +38,8 @@ export async function detectCPU() {
       const name = formatDeviceName(cpu.brand);
 
       devices.push({
-        name,
         detailedName: `${name} (${cpu.cores} cores) @ ${cpu.speed} GHz`,
+        name,
       });
     }
 
@@ -49,7 +51,7 @@ export async function detectCPU() {
     return capabilities;
   }, 'CPU detection failed');
 
-  cpuCapabilitiesCache = result || {
+  cpuCapabilitiesCache = result ?? {
     devices: [],
   };
 
@@ -64,12 +66,12 @@ export async function detectGPU() {
   const result = await safeExecute(() => detectGPUViaVulkan(), 'GPU detection failed');
 
   const fallbackGPUInfo = {
+    gpuInfo: [],
     hasAMD: false,
     hasNVIDIA: false,
-    gpuInfo: [],
   };
 
-  basicGPUInfoCache = result || fallbackGPUInfo;
+  basicGPUInfoCache = result ?? fallbackGPUInfo;
   return basicGPUInfoCache;
 }
 
@@ -92,17 +94,17 @@ async function detectVulkan() {
     const devices: GPUDevice[] = [];
 
     for (const gpu of vulkanInfo.allGPUs) {
-      const isIntegrated = gpu.isIntegrated;
+      const { isIntegrated } = gpu;
 
       devices.push({
-        name: isIntegrated ? gpu.name : formatDeviceName(gpu.name),
         isIntegrated,
+        name: isIntegrated ? gpu.name : formatDeviceName(gpu.name),
       });
     }
 
     return {
       devices,
-      version: vulkanInfo.apiVersion || 'Unknown',
+      version: vulkanInfo.apiVersion ?? 'Unknown',
     };
   } catch {
     return { devices: [], version: 'Unknown' };
@@ -114,7 +116,7 @@ async function detectCUDA() {
     const { stdout } = await execa(
       'nvidia-smi',
       ['--query-gpu=name,driver_version', '--format=csv,noheader'],
-      COMMON_EXEC_OPTIONS
+      COMMON_EXEC_OPTIONS,
     );
 
     if (stdout.trim()) {
@@ -127,7 +129,7 @@ async function detectCUDA() {
       ];
 
       const hasError = errorPatterns.some((pattern) =>
-        stdout.toLowerCase().includes(pattern.toLowerCase())
+        stdout.toLowerCase().includes(pattern.toLowerCase()),
       );
 
       if (hasError) {
@@ -194,7 +196,7 @@ export async function detectROCm() {
               '-Command',
               `Get-CimInstance -ClassName Win32_VideoController | Where-Object { $_.Name -like '*AMD*' -or $_.Name -like '*Radeon*' } | Select-Object -First 1 -ExpandProperty DriverVersion`,
             ],
-            COMMON_EXEC_OPTIONS
+            COMMON_EXEC_OPTIONS,
           );
 
           if (driverOutput.trim()) {
@@ -214,8 +216,8 @@ export async function detectROCm() {
 
       return {
         devices,
-        version,
         driverVersion,
+        version,
       };
     }
 
@@ -248,7 +250,7 @@ function parseRocmOutput(output: string, vulkanInfo: { allGPUs: GPUDevice[] }) {
   }
 
   if (currentDevice?.name) {
-    devices.push(createDevice(currentDevice.name, currentDevice.isIntegrated || false));
+    devices.push(createDevice(currentDevice.name, currentDevice.isIntegrated ?? false));
   }
 
   return devices;
@@ -257,11 +259,11 @@ function parseRocmOutput(output: string, vulkanInfo: { allGPUs: GPUDevice[] }) {
 function handleHipInfoLine(
   trimmedLine: string,
   currentDevice: Partial<GPUDevice> | null,
-  devices: GPUDevice[]
+  devices: GPUDevice[],
 ) {
   if (trimmedLine.startsWith('device#')) {
     if (currentDevice?.name) {
-      devices.push(createDevice(currentDevice.name, currentDevice.isIntegrated || false));
+      devices.push(createDevice(currentDevice.name, currentDevice.isIntegrated ?? false));
     }
     return true;
   }
@@ -283,21 +285,25 @@ function parseRocmInfoDevice(
   line: string,
   lines: string[],
   index: number,
-  vulkanInfo: { allGPUs: GPUDevice[] }
+  vulkanInfo: { allGPUs: GPUDevice[] },
 ) {
   const name = line.split('Marketing Name:')[1]?.trim();
-  if (!name) return null;
+  if (!name) {
+    return null;
+  }
 
   const deviceType = findDeviceType(lines, index);
-  if (deviceType === 'CPU') return null;
+  if (deviceType === 'CPU') {
+    return null;
+  }
 
   const isIntegrated = determineIfIntegrated(name, vulkanInfo);
   return createDevice(name, isIntegrated);
 }
 
 const createDevice = (name: string, isIntegrated: boolean) => ({
-  name: isIntegrated ? name : formatDeviceName(name),
   isIntegrated,
+  name: isIntegrated ? name : formatDeviceName(name),
 });
 
 function findDeviceType(lines: string[], startIndex: number) {
@@ -316,7 +322,7 @@ function findDeviceType(lines: string[], startIndex: number) {
 function determineIfIntegrated(name: string, vulkanInfo: { allGPUs: GPUDevice[] }) {
   try {
     const matchingGPU = vulkanInfo.allGPUs.find(
-      (gpu) => gpu.name.includes(name) || name.includes(gpu.name)
+      (gpu) => gpu.name.includes(name) || name.includes(gpu.name),
     );
     return matchingGPU ? matchingGPU.isIntegrated : false;
   } catch {
@@ -341,14 +347,14 @@ export async function detectGPUMemory() {
       }
 
       memoryInfo.push({
-        totalMemoryGB: vram?.toFixed(2) || null,
+        totalMemoryGB: vram?.toFixed(2) ?? null,
       });
     }
 
     return memoryInfo;
   }, 'GPU memory detection failed');
 
-  gpuMemoryInfoCache = result || [];
+  gpuMemoryInfoCache = result ?? [];
   return gpuMemoryInfoCache;
 }
 
@@ -365,7 +371,7 @@ export const detectSystemMemory = async () => {
       const populatedSlot = memLayout.find(
         (slot) =>
           slot.size > 0 &&
-          ((slot.clockSpeed && slot.clockSpeed > 0) || (slot.type && slot.type !== ''))
+          ((slot.clockSpeed && slot.clockSpeed > 0) ?? (slot.type && slot.type !== '')),
       );
 
       if (populatedSlot) {
@@ -378,13 +384,14 @@ export const detectSystemMemory = async () => {
     }
 
     return {
-      totalGB,
       speed,
+      totalGB,
       type,
     };
   } catch {
+    const mem = await siMem();
     return {
-      totalGB: ((await siMem()).total / 1024 ** 3).toFixed(2),
+      totalGB: (mem.total / 1024 ** 3).toFixed(2),
     };
   }
 };

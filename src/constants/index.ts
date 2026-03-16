@@ -10,8 +10,8 @@ export const HUGGINGFACE_BASE_URL = 'https://huggingface.co';
 
 export const SERVER_READY_SIGNALS = {
   KOBOLDCPP: 'Please connect to custom endpoint at',
-  SILLYTAVERN: 'SillyTavern is listening on',
   OPENWEBUI: 'Started server process',
+  SILLYTAVERN: 'SillyTavern is listening on',
 } as const;
 
 export const DEFAULT_CONTEXT_SIZE = 4096;
@@ -24,11 +24,11 @@ export const SILLYTAVERN = {
   HOST: 'localhost',
   PORT: 3000,
   PROXY_PORT: 3001,
-  get URL() {
-    return `http://${this.HOST}:${this.PORT}` as const;
-  },
   get PROXY_URL() {
     return `http://${this.HOST}:${this.PROXY_PORT}` as const;
+  },
+  get URL() {
+    return `http://${this.HOST}:${this.PORT}` as const;
   },
 } as const;
 
@@ -41,29 +41,29 @@ export const OPENWEBUI = {
 } as const;
 
 export const GITHUB_API = {
-  BASE_URL: 'https://api.github.com',
-  GITHUB_BASE_URL: 'https://github.com',
-  KOBOLDCPP_REPO: 'LostRuins/koboldcpp',
-  KOBOLDCPP_ROCM_REPO: 'YellowRoseCx/koboldcpp-rocm',
-  GERBIL_REPO: 'lone-cloud/gerbil',
-  CLOUDFLARED_REPO: 'cloudflare/cloudflared',
-  get LATEST_RELEASE_URL() {
-    return `${this.BASE_URL}/repos/${this.KOBOLDCPP_REPO}/releases/latest` as const;
-  },
   get ALL_RELEASES_URL() {
     return `${this.BASE_URL}/repos/${this.KOBOLDCPP_REPO}/releases` as const;
   },
-  get ROCM_LATEST_RELEASE_URL() {
-    return `${this.BASE_URL}/repos/${this.KOBOLDCPP_ROCM_REPO}/releases/latest` as const;
+  BASE_URL: 'https://api.github.com',
+  get CLOUDFLARED_LATEST_RELEASE_URL() {
+    return `${this.BASE_URL}/repos/${this.CLOUDFLARED_REPO}/releases/latest` as const;
   },
+  CLOUDFLARED_REPO: 'cloudflare/cloudflared',
   get GERBIL_GITHUB_URL() {
     return `${this.GITHUB_BASE_URL}/${this.GERBIL_REPO}` as const;
   },
   get GERBIL_LATEST_RELEASE_URL() {
     return `${this.BASE_URL}/repos/${this.GERBIL_REPO}/releases/latest` as const;
   },
-  get CLOUDFLARED_LATEST_RELEASE_URL() {
-    return `${this.BASE_URL}/repos/${this.CLOUDFLARED_REPO}/releases/latest` as const;
+  GERBIL_REPO: 'lone-cloud/gerbil',
+  GITHUB_BASE_URL: 'https://github.com',
+  KOBOLDCPP_REPO: 'LostRuins/koboldcpp',
+  KOBOLDCPP_ROCM_REPO: 'YellowRoseCx/koboldcpp-rocm',
+  get LATEST_RELEASE_URL() {
+    return `${this.BASE_URL}/repos/${this.KOBOLDCPP_REPO}/releases/latest` as const;
+  },
+  get ROCM_LATEST_RELEASE_URL() {
+    return `${this.BASE_URL}/repos/${this.KOBOLDCPP_ROCM_REPO}/releases/latest` as const;
   },
   getCloudflaredDownloadUrl(version: string, filename: string) {
     return `${this.GITHUB_BASE_URL}/${this.CLOUDFLARED_REPO}/releases/download/${version}/${filename}` as const;
@@ -71,9 +71,9 @@ export const GITHUB_API = {
 } as const;
 
 export const ASSET_SUFFIXES = {
-  ROCM: 'rocm',
   NOCUDA: 'nocuda',
   OLDPC: 'oldpc',
+  ROCM: 'rocm',
 } as const;
 
 export const ROCM = {
@@ -87,16 +87,16 @@ export const ROCM = {
 export const FRONTENDS = {
   KOBOLDAI_LITE: 'KoboldAI Lite',
   LLAMA_CPP: 'llama.cpp',
-  STABLE_UI: 'Stable UI',
-  SILLYTAVERN: 'SillyTavern',
   OPENWEBUI: 'Open WebUI',
+  SILLYTAVERN: 'SillyTavern',
+  STABLE_UI: 'Stable UI',
 } as const;
 
 export const ZOOM = {
-  MIN_LEVEL: -3,
-  MAX_LEVEL: 3,
-  MIN_PERCENTAGE: 25,
-  MAX_PERCENTAGE: 300,
   DEFAULT_LEVEL: 0,
   DEFAULT_PERCENTAGE: 100,
+  MAX_LEVEL: 3,
+  MAX_PERCENTAGE: 300,
+  MIN_LEVEL: -3,
+  MIN_PERCENTAGE: 25,
 } as const;

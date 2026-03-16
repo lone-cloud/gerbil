@@ -1,8 +1,10 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { platform } from 'node:process';
+
 import type { MantineColorScheme } from '@mantine/core';
 import { nativeTheme } from 'electron';
+
 import { PRODUCT_NAME } from '@/constants';
 import type {
   DismissedUpdate,
@@ -43,11 +45,11 @@ let config: AppConfig = {};
 let configPath: string;
 
 async function loadConfig() {
-  const config = await safeExecute(
+  const loaded = await safeExecute(
     () => readJsonFile<AppConfig>(configPath),
-    'Error loading config'
+    'Error loading config',
   );
-  return config || {};
+  return loaded ?? {};
 }
 
 async function saveConfig() {
@@ -71,16 +73,19 @@ function getDefaultInstallDir() {
   const home = homedir();
 
   switch (platform) {
-    case 'win32':
+    case 'win32': {
       return join(home, PRODUCT_NAME);
-    case 'darwin':
+    }
+    case 'darwin': {
       return join(home, 'Applications', PRODUCT_NAME);
-    default:
+    }
+    default: {
       return join(home, '.local', 'share', PRODUCT_NAME);
+    }
   }
 }
 
-export const getInstallDir = () => config.installDir || getDefaultInstallDir();
+export const getInstallDir = () => config.installDir ?? getDefaultInstallDir();
 
 export async function setInstallDir(dir: string) {
   config.installDir = dir;
@@ -99,7 +104,7 @@ export async function setCurrentKoboldBinary(binaryPath: string) {
 
 export const getSelectedConfig = () => config.selectedConfig;
 
-export const getColorScheme = () => config.colorScheme || 'auto';
+export const getColorScheme = () => config.colorScheme ?? 'auto';
 
 export function getBackgroundColor() {
   const colorScheme = getColorScheme();

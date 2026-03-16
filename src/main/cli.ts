@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
 import { exit, platform, stderr, stdin, stdout } from 'node:process';
+
 import { pathExists, readJsonFile } from '@/utils/node/fs';
 import { getConfigDir } from '@/utils/node/path';
 import { terminateProcess } from '@/utils/node/process';
@@ -12,7 +13,7 @@ async function getCurrentKoboldBinary() {
     }
 
     const config = await readJsonFile<{ currentKoboldBinary?: string }>(configPath);
-    return config?.currentKoboldBinary || null;
+    return config?.currentKoboldBinary ?? null;
   } catch {
     return null;
   }
@@ -36,8 +37,8 @@ export async function handleCliMode(args: string[]) {
     const isWindows = platform === 'win32';
 
     const child = spawn(currentBinary, args, {
-      stdio: isWindows ? 'pipe' : 'inherit',
       detached: false,
+      stdio: isWindows ? 'pipe' : 'inherit',
     });
 
     if (isWindows) {

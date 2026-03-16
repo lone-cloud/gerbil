@@ -1,9 +1,11 @@
 import { Button, Group, Stack, Text, Tooltip } from '@mantine/core';
 import { Check, File, Plus, Save, Trash2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
+
 import { Select } from '@/components/Select';
 import type { ConfigFile } from '@/types';
 import { stripFileExtension } from '@/utils/format';
+
 import { CreateConfigModal } from './CreateConfigModal';
 import { DeleteConfigModal } from './DeleteConfigModal';
 
@@ -31,7 +33,7 @@ export const ConfigFileManager = ({
   const [configToDelete, setConfigToDelete] = useState<string | null>(null);
 
   const existingConfigNames = configFiles.map((file) =>
-    stripFileExtension(file.name).toLowerCase()
+    stripFileExtension(file.name).toLowerCase(),
   );
 
   const handleOpenConfigModal = () => {
@@ -77,13 +79,13 @@ export const ConfigFileManager = ({
   };
 
   const selectData = configFiles.map((file) => {
-    const extension = file.name.split('.').pop() || '';
+    const extension = file.name.split('.').pop() ?? '';
     const nameWithoutExtension = stripFileExtension(file.name);
 
     return {
-      value: file.name,
-      label: nameWithoutExtension,
       extension: `.${extension}`,
+      label: nameWithoutExtension,
+      value: file.name,
     };
   });
 
@@ -138,7 +140,7 @@ export const ConfigFileManager = ({
               onClick={handleDeleteClick}
               disabled={!selectedFile}
               color="red"
-              style={{ width: '2.5rem', padding: '0 0.5rem' }}
+              style={{ padding: '0 0.5rem', width: '2.5rem' }}
             >
               <Trash2 size={16} />
             </Button>

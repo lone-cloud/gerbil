@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+
 import { HUGGINGFACE_BASE_URL } from '@/constants';
 import type {
   HuggingFaceFileInfo,
@@ -49,7 +50,7 @@ const extractParamSize = (name: string) => {
 
 const extractBaseModelId = (tags: string[]) => {
   const baseModelTag = tags.find(
-    (tag) => tag.startsWith('base_model:') && !tag.includes('quantized')
+    (tag) => tag.startsWith('base_model:') && !tag.includes('quantized'),
   );
   return baseModelTag?.replace('base_model:', '');
 };
@@ -69,7 +70,9 @@ const formatParamCount = (paramCount: number) => {
 const fetchBaseModelParams = async (baseModelId: string) => {
   try {
     const response = await fetch(`${HF_API_BASE}/models/${baseModelId}`);
-    if (!response.ok) return undefined;
+    if (!response.ok) {
+      return undefined;
+    }
     const data: HFApiBaseModel = await response.json();
     return data.safetensors?.total;
   } catch {
@@ -109,9 +112,15 @@ export const useHuggingFaceSearch = (initialParams: HuggingFaceSearchParams) => 
         const searchQuery = query !== undefined ? query.trim() || undefined : searchParams.search;
 
         const params = new URLSearchParams();
-        if (searchQuery) params.set('search', searchQuery);
-        if (searchParams.pipelineTag) params.set('pipeline_tag', searchParams.pipelineTag);
-        if (searchParams.filter) params.set('filter', searchParams.filter);
+        if (searchQuery) {
+          params.set('search', searchQuery);
+        }
+        if (searchParams.pipelineTag) {
+          params.set('pipeline_tag', searchParams.pipelineTag);
+        }
+        if (searchParams.filter) {
+          params.set('filter', searchParams.filter);
+        }
         params.set('sort', sort);
         params.set('limit', String(MODELS_PER_PAGE));
         params.set('full', 'false');
@@ -142,16 +151,16 @@ export const useHuggingFaceSearch = (initialParams: HuggingFaceSearchParams) => 
             }
 
             return {
-              id: model.id,
-              name,
               author,
               downloads: model.downloads ?? 0,
-              likes: model.likes ?? 0,
-              updatedAt: new Date(model.lastModified),
               gated: model.gated ?? false,
+              id: model.id,
+              likes: model.likes ?? 0,
+              name,
               paramSize,
+              updatedAt: new Date(model.lastModified),
             };
-          })
+          }),
         );
 
         setModels(results);
@@ -165,18 +174,20 @@ export const useHuggingFaceSearch = (initialParams: HuggingFaceSearchParams) => 
         setLoading(false);
       }
     },
-    [searchParams, sortBy]
+    [searchParams, sortBy],
   );
 
   const changeSortOrder = useCallback(
     (sort: HuggingFaceSortOption, query?: string) => {
       void searchModels(query, true, sort);
     },
-    [searchModels]
+    [searchModels],
   );
 
   const loadMoreModels = useCallback(async () => {
-    if (loading || !hasMore) return;
+    if (loading || !hasMore) {
+      return;
+    }
 
     setLoading(true);
 
@@ -187,9 +198,15 @@ export const useHuggingFaceSearch = (initialParams: HuggingFaceSearchParams) => 
           : searchParams.search;
 
       const params = new URLSearchParams();
-      if (searchQuery) params.set('search', searchQuery);
-      if (searchParams.pipelineTag) params.set('pipeline_tag', searchParams.pipelineTag);
-      if (searchParams.filter) params.set('filter', searchParams.filter);
+      if (searchQuery) {
+        params.set('search', searchQuery);
+      }
+      if (searchParams.pipelineTag) {
+        params.set('pipeline_tag', searchParams.pipelineTag);
+      }
+      if (searchParams.filter) {
+        params.set('filter', searchParams.filter);
+      }
       params.set('sort', sortBy);
       params.set('limit', String(MODELS_PER_PAGE));
       params.set('skip', String(pageRef.current * MODELS_PER_PAGE));
@@ -220,16 +237,16 @@ export const useHuggingFaceSearch = (initialParams: HuggingFaceSearchParams) => 
           }
 
           return {
-            id: model.id,
-            name,
             author,
             downloads: model.downloads ?? 0,
-            likes: model.likes ?? 0,
-            updatedAt: new Date(model.lastModified),
             gated: model.gated ?? false,
+            id: model.id,
+            likes: model.likes ?? 0,
+            name,
             paramSize,
+            updatedAt: new Date(model.lastModified),
           };
-        })
+        }),
       );
 
       setModels((prev) => [...prev, ...results]);
@@ -283,13 +300,13 @@ export const useHuggingFaceSearch = (initialParams: HuggingFaceSearchParams) => 
         setLoadingFiles(false);
       }
     },
-    [searchParams?.filter]
+    [searchParams?.filter],
   );
 
   const getFileDownloadUrl = useCallback(
     (modelId: string, filePath: string) =>
       `${HUGGINGFACE_BASE_URL}/${modelId}/resolve/main/${filePath}`,
-    []
+    [],
   );
 
   const reset = useCallback(() => {
@@ -302,31 +319,34 @@ export const useHuggingFaceSearch = (initialParams: HuggingFaceSearchParams) => 
   }, []);
 
   return {
-    models,
+    changeSortOrder,
+    error,
     files,
+    getFileDownloadUrl,
+    hasMore,
+    loadModelFiles,
+    loadMoreModels,
     loading,
     loadingFiles,
-    error,
-    hasMore,
+    models,
+    reset,
+    searchModels,
+    searchParams,
     selectedModel,
     sortBy,
-    searchParams,
-    searchModels,
-    loadMoreModels,
-    loadModelFiles,
-    changeSortOrder,
-    getFileDownloadUrl,
-    reset,
   };
 };
 
 const getExtensionsForLibrary = (filter?: string) => {
   switch (filter) {
-    case 'gguf':
+    case 'gguf': {
       return ['.gguf'];
-    case 'safetensors':
+    }
+    case 'safetensors': {
       return ['.safetensors'];
-    default:
+    }
+    default: {
       return ['.gguf', '.safetensors', '.bin', '.pt', '.pth'];
+    }
   }
 };

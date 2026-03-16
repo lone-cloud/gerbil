@@ -1,8 +1,7 @@
-#!/usr/bin/env tsx
-
 import { execSync } from 'child_process';
 import { readFileSync } from 'fs';
-import { join } from 'path';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
 interface PackageJson {
   version: string;
@@ -10,7 +9,7 @@ interface PackageJson {
 }
 
 const packageJson: PackageJson = JSON.parse(
-  readFileSync(join(__dirname, '..', 'package.json'), 'utf8')
+  readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json'), 'utf8'),
 );
 const currentVersion = packageJson.version;
 
@@ -22,7 +21,7 @@ try {
   const gitStatus = execSync('git status --porcelain', { encoding: 'utf8' });
   if (gitStatus.trim() !== '') {
     console.error(
-      'Error: There are uncommitted changes. Please commit or stash them before creating a release.'
+      'Error: There are uncommitted changes. Please commit or stash them before creating a release.',
     );
     process.exit(1);
   }

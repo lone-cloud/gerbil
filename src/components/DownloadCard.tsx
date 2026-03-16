@@ -1,6 +1,7 @@
-import { Badge, Button, Card, Group, Loader, Progress, rem, Stack, Text } from '@mantine/core';
+import { Badge, Button, Card, Group, Loader, Progress, Stack, Text, rem } from '@mantine/core';
 import { Download, Trash2 } from 'lucide-react';
 import type { MouseEvent } from 'react';
+
 import { useKoboldBackendsStore } from '@/stores/koboldBackends';
 import { usePreferencesStore } from '@/stores/preferences';
 import type { BackendInfo } from '@/types';
@@ -35,7 +36,7 @@ export const DownloadCard = ({
   const isLoading = downloading === backend.name;
   const currentProgress = isLoading ? Math.min(downloadProgress[backend.name], 100) || 0 : 0;
   const hasVersionMismatch = Boolean(
-    backend.version && backend.actualVersion && backend.version !== backend.actualVersion
+    backend.version && backend.actualVersion && backend.version !== backend.actualVersion,
   );
 
   const renderActionButtons = () => {
@@ -54,7 +55,7 @@ export const DownloadCard = ({
             isLoading ? (
               <Loader size="1rem" />
             ) : (
-              <Download style={{ width: rem(14), height: rem(14) }} />
+              <Download style={{ height: rem(14), width: rem(14) }} />
             )
           }
         >
@@ -73,7 +74,7 @@ export const DownloadCard = ({
           disabled={disabled}
         >
           Make Current
-        </Button>
+        </Button>,
       );
     }
 
@@ -91,12 +92,12 @@ export const DownloadCard = ({
             isLoading ? (
               <Loader size="1rem" />
             ) : (
-              <Download style={{ width: rem(14), height: rem(14) }} />
+              <Download style={{ height: rem(14), width: rem(14) }} />
             )
           }
         >
           {isLoading ? 'Updating...' : `Update to ${backend.newerVersion}`}
-        </Button>
+        </Button>,
       );
     }
 
@@ -114,12 +115,12 @@ export const DownloadCard = ({
             isLoading ? (
               <Loader size="1rem" />
             ) : (
-              <Download style={{ width: rem(14), height: rem(14) }} />
+              <Download style={{ height: rem(14), width: rem(14) }} />
             )
           }
         >
           {isLoading ? 'Re-downloading...' : 'Re-download'}
-        </Button>
+        </Button>,
       );
     }
 
@@ -137,12 +138,12 @@ export const DownloadCard = ({
             isLoading ? (
               <Loader size="1rem" />
             ) : (
-              <Trash2 style={{ width: rem(14), height: rem(14) }} />
+              <Trash2 style={{ height: rem(14), width: rem(14) }} />
             )
           }
         >
           {isLoading ? 'Deleting...' : 'Delete'}
-        </Button>
+        </Button>,
       );
     }
 
@@ -155,8 +156,8 @@ export const DownloadCard = ({
       radius="sm"
       padding="sm"
       {...(backend.isCurrent && {
-        bg: colorScheme === 'dark' ? 'dark.6' : 'gray.0',
         bd: `2px solid var(--mantine-color-${colorScheme === 'dark' ? 'blue-4' : 'blue-6'})`,
+        bg: colorScheme === 'dark' ? 'dark.6' : 'gray.0',
       })}
     >
       <Group justify="space-between" align="center">

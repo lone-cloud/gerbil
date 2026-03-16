@@ -1,14 +1,16 @@
 import { readdir, readFile, rename, unlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+
 import { DEFAULT_NOTEPAD_POSITION, DEFAULT_TAB_CONTENT } from '@/constants/notepad';
 import type { SavedNotepadState } from '@/types/electron';
 import { pathExists } from '@/utils/node/fs';
+
 import { get, getInstallDir, set } from './config';
 
 const DEFAULT_NOTEPAD_STATE: SavedNotepadState = {
   activeTabId: null,
-  position: DEFAULT_NOTEPAD_POSITION,
   isVisible: false,
+  position: DEFAULT_NOTEPAD_POSITION,
 };
 
 const getNotepadDir = () => join(getInstallDir(), 'notepad');
@@ -50,7 +52,7 @@ export const saveTabContent = async (title: string, content: string) => {
     const notepadDir = getNotepadDir();
     const filePath = join(notepadDir, `${title}.txt`);
 
-    await writeFile(filePath, content, 'utf-8');
+    await writeFile(filePath, content, 'utf8');
     return true;
   } catch {
     return false;
@@ -60,7 +62,7 @@ export const saveTabContent = async (title: string, content: string) => {
 export const loadTabContent = async (title: string) => {
   try {
     const notepadDir = getNotepadDir();
-    return readFile(join(notepadDir, `${title}.txt`), 'utf-8');
+    return await readFile(join(notepadDir, `${title}.txt`), 'utf8');
   } catch {
     return '';
   }
@@ -72,14 +74,14 @@ export const saveNotepadState = async (state: SavedNotepadState) => {
 };
 
 export const loadNotepadState = async () => {
-  const stored = get('notepad') || DEFAULT_NOTEPAD_STATE;
+  const stored = get('notepad') ?? DEFAULT_NOTEPAD_STATE;
   const tabs = await getTabsFromStorage();
   const activeTabId =
     stored.activeTabId && tabs.some((tab) => tab.title === stored.activeTabId)
       ? stored.activeTabId
       : tabs[0]?.title || null;
 
-  return { ...stored, tabs, activeTabId };
+  return { ...stored, activeTabId, tabs };
 };
 
 export const deleteTabFile = async (title: string) => {
@@ -98,16 +100,19 @@ export const createNewTab = async (title?: string) => {
       .map((tab) => tab.title.match(/^Note (\d+)$/)?.[1])
       .filter(Boolean)
       .map(Number)
-      .sort((a, b) => a - b);
+      .toSorted((a, b) => a - b);
 
     let counter = 1;
     for (const num of noteNumbers) {
-      if (num === counter) counter++;
-      else break;
+      if (num === counter) {
+        counter++;
+      } else {
+        break;
+      }
     }
     title = `Note ${counter}`;
   }
 
   await saveTabContent(title, DEFAULT_TAB_CONTENT);
-  return { title, content: DEFAULT_TAB_CONTENT };
+  return { content: DEFAULT_TAB_CONTENT, title };
 };

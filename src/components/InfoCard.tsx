@@ -1,5 +1,6 @@
-import { ActionIcon, Card, Group, rem, Stack, Text, Tooltip } from '@mantine/core';
+import { ActionIcon, Card, Group, Stack, Text, Tooltip, rem } from '@mantine/core';
 import { Copy } from 'lucide-react';
+
 import { safeExecute } from '@/utils/logger';
 
 export interface InfoItem {
@@ -19,7 +20,7 @@ export const InfoCard = ({ title, items, loading = false }: InfoCardProps) => {
 
     await safeExecute(
       () => navigator.clipboard.writeText(info),
-      `Failed to copy ${title.toLowerCase()}`
+      `Failed to copy ${title.toLowerCase()}`,
     );
   };
 
@@ -46,12 +47,12 @@ export const InfoCard = ({ title, items, loading = false }: InfoCardProps) => {
           aria-label={`Copy ${title}`}
           style={{
             position: 'absolute',
-            top: 8,
             right: 8,
+            top: 8,
             zIndex: 1,
           }}
         >
-          <Copy style={{ width: rem(14), height: rem(14) }} />
+          <Copy style={{ height: rem(14), width: rem(14) }} />
         </ActionIcon>
       </Tooltip>
 
@@ -69,8 +70,8 @@ export const InfoCard = ({ title, items, loading = false }: InfoCardProps) => {
               size="sm"
               ff="monospace"
               style={{
-                wordBreak: 'break-all',
                 flex: 1,
+                wordBreak: 'break-all',
               }}
             >
               {item.value}

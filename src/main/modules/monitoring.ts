@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
 import { platform } from 'node:process';
+
 import type { BrowserWindow } from 'electron';
 import {
   cpuTemperature,
@@ -8,8 +9,10 @@ import {
   powerShellRelease,
   powerShellStart,
 } from 'systeminformation';
+
 import { getGPUData } from '@/utils/node/gpu';
 import { safeExecute, tryExecute } from '@/utils/node/logging';
+
 import { detectGPU } from './hardware';
 import { isTrayActive, updateMetrics } from './tray';
 
@@ -65,7 +68,9 @@ let latestMemoryMetrics: MemoryMetrics | null = null;
 let latestGpuMetrics: GpuMetrics | null = null;
 
 export function startMonitoring(window: BrowserWindow) {
-  if (isRunning) return;
+  if (isRunning) {
+    return;
+  }
 
   mainWindow = window;
   isRunning = true;
@@ -148,9 +153,9 @@ async function collectAndSendMemoryMetrics() {
     const usedBytes = memData.active || memData.used;
     const totalBytes = memData.total;
     const metrics: MemoryMetrics = {
-      used: usedBytes / (1024 * 1024 * 1024),
       total: totalBytes / (1024 * 1024 * 1024),
       usage: Math.round((usedBytes / totalBytes) * 100),
+      used: usedBytes / (1024 * 1024 * 1024),
     };
 
     latestMemoryMetrics = metrics;
@@ -166,16 +171,13 @@ async function collectAndSendGpuMetrics() {
   await tryExecute(async () => {
     const [gpuData, gpuInfo] = await Promise.all([getGPUData(), detectGPU()]);
     const metrics: GpuMetrics = {
-      gpus: gpuData.map((gpuData, index) => ({
+      gpus: gpuData.map((gpu, index) => ({
+        memoryTotal: gpu.memoryTotal,
+        memoryUsage: gpu.memoryTotal > 0 ? Math.round((gpu.memoryUsed / gpu.memoryTotal) * 100) : 0,
+        memoryUsed: gpu.memoryUsed,
         name: gpuInfo.gpuInfo[index] || `GPU ${index}`,
-        usage: Math.round(gpuData.usage),
-        memoryUsed: gpuData.memoryUsed,
-        memoryTotal: gpuData.memoryTotal,
-        memoryUsage:
-          gpuData.memoryTotal > 0
-            ? Math.round((gpuData.memoryUsed / gpuData.memoryTotal) * 100)
-            : 0,
-        temperature: gpuData.temperature,
+        temperature: gpu.temperature,
+        usage: Math.round(gpu.usage),
       })),
     };
 
@@ -258,17 +260,17 @@ export const openPerformanceManager = async () =>
       case 'darwin': {
         const success = await tryLaunchCommand('open', ['-a', 'Activity Monitor']);
         if (success) {
-          return { success: true, app: 'Activity Monitor' };
+          return { app: 'Activity Monitor', success: true };
         }
-        return { success: false, error: 'Could not open Activity Monitor' };
+        return { error: 'Could not open Activity Monitor', success: false };
       }
 
       case 'win32': {
         const success = await tryLaunchCommand('taskmgr');
         if (success) {
-          return { success: true, app: 'Task Manager' };
+          return { app: 'Task Manager', success: true };
         }
-        return { success: false, error: 'Could not open Task Manager' };
+        return { error: 'Could not open Task Manager', success: false };
       }
 
       case 'linux': {
@@ -276,7 +278,7 @@ export const openPerformanceManager = async () =>
         if (app) {
           const success = await tryLaunchCommand(app);
           if (success) {
-            return { success: true, app };
+            return { app, success: true };
           }
           cachedLinuxApp = null;
           linuxAppSearchComplete = false;
@@ -284,24 +286,24 @@ export const openPerformanceManager = async () =>
           if (fallbackApp) {
             const fallbackSuccess = await tryLaunchCommand(fallbackApp);
             if (fallbackSuccess) {
-              return { success: true, app: fallbackApp };
+              return { app: fallbackApp, success: true };
             }
           }
         }
         return {
-          success: false,
           error: `Could not find any performance monitoring app. Tried: ${LINUX_PERFORMANCE_APPS.join(', ')}`,
+          success: false,
         };
       }
 
       default: {
         return {
-          success: false,
           error: `Unsupported platform: ${platform}`,
+          success: false,
         };
       }
     }
-  }, 'Failed to open performance manager')) || {
-    success: false,
+  }, 'Failed to open performance manager')) ?? {
     error: 'Failed to open performance manager',
+    success: false,
   };

@@ -1,5 +1,6 @@
 import { Card, Container, Loader, Stack, Text, Title } from '@mantine/core';
 import { useCallback, useEffect, useRef, useState } from 'react';
+
 import { DownloadCard } from '@/components/DownloadCard';
 import { ImportBackendLink } from '@/components/ImportBackendLink';
 import { useKoboldBackendsStore } from '@/stores/koboldBackends';
@@ -33,8 +34,8 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
       setDownloadingAsset(download.name);
 
       await handleDownloadFromStore({
-        item: download,
         isUpdate: false,
+        item: download,
         wasCurrentBinary: false,
       });
 
@@ -44,7 +45,7 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
         setDownloadingAsset(null);
       }, 200);
     },
-    [handleDownloadFromStore, onDownloadComplete]
+    [handleDownloadFromStore, onDownloadComplete],
   );
 
   useEffect(() => {
@@ -79,13 +80,13 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
                       <div key={download.name} ref={isDownloading ? downloadingItemRef : null}>
                         <DownloadCard
                           backend={{
-                            name: download.name,
-                            version: download.version || '',
-                            size: download.size,
-                            isInstalled: false,
-                            isCurrent: false,
                             downloadUrl: download.url,
                             hasUpdate: false,
+                            isCurrent: false,
+                            isInstalled: false,
+                            name: download.name,
+                            size: download.size,
+                            version: download.version ?? '',
                           }}
                           size={formatDownloadSize(download.size, download.url)}
                           description={getAssetDescription(download.name)}

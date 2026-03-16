@@ -1,5 +1,6 @@
 import type { ComboboxItem } from '@mantine/core';
 import type { CSSProperties } from 'react';
+
 import { LabelWithTooltip } from '@/components/LabelWithTooltip';
 import { Select } from '@/components/Select';
 import type { SelectOption } from '@/types';

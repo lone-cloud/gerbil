@@ -1,5 +1,6 @@
 import type { MantineColorScheme } from '@mantine/core';
 import { create } from 'zustand';
+
 import type { FrontendPreference, ImageGenerationFrontendPreference } from '@/types';
 
 type ResolvedColorScheme = 'light' | 'dark';
@@ -38,9 +39,34 @@ mediaQuery.addEventListener('change', () => {
 export const usePreferencesStore = create<PreferencesStore>((set) => ({
   frontendPreference: 'koboldcpp',
   imageGenerationFrontendPreference: 'match',
+  loadPreferences: async () => {
+    const [frontendPref, imageGenFrontendPref, colorScheme, systemMonitoring] = await Promise.all([
+      window.electronAPI.config.get('frontendPreference') as Promise<FrontendPreference>,
+      window.electronAPI.config.get(
+        'imageGenerationFrontendPreference',
+      ) as Promise<ImageGenerationFrontendPreference>,
+      window.electronAPI.app.getColorScheme(),
+      window.electronAPI.config.get('systemMonitoringEnabled') as Promise<boolean>,
+    ]);
+
+    set({
+      frontendPreference: frontendPref || 'koboldcpp',
+      imageGenerationFrontendPreference: imageGenFrontendPref || 'match',
+      rawColorScheme: colorScheme || 'auto',
+      resolvedColorScheme: resolveColorScheme(colorScheme || 'auto'),
+      systemMonitoringEnabled: systemMonitoring ?? true,
+    });
+  },
   rawColorScheme: 'auto',
   resolvedColorScheme: 'light',
-  systemMonitoringEnabled: true,
+
+  setColorScheme: async (scheme: MantineColorScheme) => {
+    set({
+      rawColorScheme: scheme,
+      resolvedColorScheme: resolveColorScheme(scheme),
+    });
+    await window.electronAPI.app.setColorScheme(scheme);
+  },
 
   setFrontendPreference: (preference: FrontendPreference) => {
     set({ frontendPreference: preference });
@@ -57,32 +83,7 @@ export const usePreferencesStore = create<PreferencesStore>((set) => ({
     window.electronAPI.config.set('systemMonitoringEnabled', enabled);
   },
 
-  setColorScheme: async (scheme: MantineColorScheme) => {
-    set({
-      rawColorScheme: scheme,
-      resolvedColorScheme: resolveColorScheme(scheme),
-    });
-    await window.electronAPI.app.setColorScheme(scheme);
-  },
-
-  loadPreferences: async () => {
-    const [frontendPref, imageGenFrontendPref, colorScheme, systemMonitoring] = await Promise.all([
-      window.electronAPI.config.get('frontendPreference') as Promise<FrontendPreference>,
-      window.electronAPI.config.get(
-        'imageGenerationFrontendPreference'
-      ) as Promise<ImageGenerationFrontendPreference>,
-      window.electronAPI.app.getColorScheme(),
-      window.electronAPI.config.get('systemMonitoringEnabled') as Promise<boolean>,
-    ]);
-
-    set({
-      frontendPreference: frontendPref || 'koboldcpp',
-      imageGenerationFrontendPreference: imageGenFrontendPref || 'match',
-      rawColorScheme: colorScheme || 'auto',
-      resolvedColorScheme: resolveColorScheme(colorScheme || 'auto'),
-      systemMonitoringEnabled: systemMonitoring ?? true,
-    });
-  },
+  systemMonitoringEnabled: true,
 }));
 
 void usePreferencesStore.getState().loadPreferences();

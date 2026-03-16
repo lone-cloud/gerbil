@@ -1,7 +1,9 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import http from 'node:http';
+
 import { PROXY } from '@/constants/proxy';
 import { logError } from '@/utils/node/logging';
+
 import { sendKoboldOutput } from '../window';
 
 let proxyServer: http.Server | null = null;
@@ -18,11 +20,11 @@ const replaceKoboldWithGerbil = (data: string) => {
 
 const proxyRequest = (clientReq: IncomingMessage, clientRes: ServerResponse) => {
   const options = {
-    hostname: koboldCppHost,
-    port: koboldCppPort,
-    path: clientReq.url,
-    method: clientReq.method,
     headers: clientReq.headers,
+    hostname: koboldCppHost,
+    method: clientReq.method,
+    path: clientReq.url,
+    port: koboldCppPort,
   };
 
   const proxyReq = http.request(options, (proxyRes) => {
@@ -38,14 +40,14 @@ const proxyRequest = (clientReq: IncomingMessage, clientRes: ServerResponse) => 
       proxyRes.on('end', () => {
         const modifiedBody = replaceKoboldWithGerbil(body);
 
-        clientRes.writeHead(proxyRes.statusCode || 200, {
+        clientRes.writeHead(proxyRes.statusCode ?? 200, {
           ...proxyRes.headers,
           'content-length': Buffer.byteLength(modifiedBody),
         });
         clientRes.end(modifiedBody);
       });
     } else {
-      clientRes.writeHead(proxyRes.statusCode || 200, proxyRes.headers);
+      clientRes.writeHead(proxyRes.statusCode ?? 200, proxyRes.headers);
       proxyRes.pipe(clientRes);
     }
   });

@@ -21,8 +21,8 @@ export async function getVulkanInfo() {
 
   try {
     const { stdout } = await execa('vulkaninfo', ['--summary'], {
-      timeout: 3000,
       reject: false,
+      timeout: 3000,
     });
 
     const allGPUs: {
@@ -55,10 +55,10 @@ export async function getVulkanInfo() {
           foundGPU = true;
           const isIntegrated = line.includes('PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU');
           currentGPU = {
-            name: '',
             hasAMD: false,
             hasNVIDIA: false,
             isIntegrated,
+            name: '',
           };
         } else if (foundGPU && currentGPU && line.includes('deviceName') && line.includes('=')) {
           const parts = line.split('=');
@@ -84,9 +84,7 @@ export async function getVulkanInfo() {
           const match = line.match(/=\s*(\d+\.\d+(?:\.\d+)?)/);
           if (match) {
             currentGPU.apiVersion = match[1];
-            if (!globalApiVersion) {
-              globalApiVersion = match[1];
-            }
+            globalApiVersion ??= match[1];
           }
         } else if (foundGPU && currentGPU && line.includes('GPU')) {
           if (currentGPU.name) {
@@ -136,15 +134,15 @@ export async function detectGPUViaVulkan() {
     }
 
     return {
+      gpuInfo: gpuInfo.length > 0 ? gpuInfo : [],
       hasAMD,
       hasNVIDIA,
-      gpuInfo: gpuInfo.length > 0 ? gpuInfo : [],
     };
   } catch {
     return {
+      gpuInfo: [],
       hasAMD: false,
       hasNVIDIA: false,
-      gpuInfo: [],
     };
   }
 }

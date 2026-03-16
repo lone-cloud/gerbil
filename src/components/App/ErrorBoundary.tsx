@@ -1,4 +1,4 @@
-import { Alert, Button, Center, rem, Stack, Text } from '@mantine/core';
+import { Alert, Button, Center, Stack, Text, rem } from '@mantine/core';
 import { AlertTriangle, FolderOpen } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary';
@@ -35,7 +35,7 @@ const ErrorFallback = ({
         <Button
           variant="light"
           size="compact-sm"
-          leftSection={<FolderOpen style={{ width: rem(16), height: rem(16) }} />}
+          leftSection={<FolderOpen style={{ height: rem(16), width: rem(16) }} />}
           onClick={() => void window.electronAPI.app.showLogsFolder()}
         >
           Show Logs Folder

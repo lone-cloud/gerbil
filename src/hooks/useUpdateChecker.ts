@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+
 import { useKoboldBackendsStore } from '@/stores/koboldBackends';
 import type { DismissedUpdate } from '@/types';
 import type { DownloadItem, InstalledBackend } from '@/types/electron';
@@ -66,13 +67,13 @@ export const useUpdateChecker = () => {
         const isUpdateDismissed = dismissedUpdates.some(
           (dismissedUpdate) =>
             dismissedUpdate.currentBackendPath === currentBackend.path &&
-            dismissedUpdate.targetVersion === matchingDownload.version
+            dismissedUpdate.targetVersion === matchingDownload.version,
         );
 
         if (!isUpdateDismissed) {
           setUpdateInfo({
-            currentBackend,
             availableUpdate: matchingDownload,
+            currentBackend,
           });
           setShowUpdateModal(true);
         }
@@ -103,11 +104,11 @@ export const useUpdateChecker = () => {
   }, []);
 
   return {
-    updateInfo,
-    showUpdateModal,
-    isChecking,
     checkForUpdates,
-    skipUpdate,
     closeModal,
+    isChecking,
+    showUpdateModal,
+    skipUpdate,
+    updateInfo,
   };
 };

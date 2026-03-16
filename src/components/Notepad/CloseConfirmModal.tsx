@@ -1,4 +1,5 @@
 import { Button, Group, Text } from '@mantine/core';
+
 import { Modal } from '@/components/Modal';
 
 interface CloseConfirmModalProps {

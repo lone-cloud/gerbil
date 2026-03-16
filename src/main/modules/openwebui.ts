@@ -3,11 +3,13 @@ import { spawn } from 'node:child_process';
 import { join } from 'node:path';
 
 import { app } from 'electron';
+
 import { OPENWEBUI, SERVER_READY_SIGNALS } from '@/constants';
 import { PROXY } from '@/constants/proxy';
 import { parseKoboldConfig } from '@/utils/node/kobold';
 import { logError } from '@/utils/node/logging';
 import { terminateProcess } from '@/utils/node/process';
+
 import { getInstallDir } from './config';
 import { getUvEnvironment } from './dependencies';
 import { sendKoboldOutput, sendToRenderer } from './window';
@@ -30,9 +32,9 @@ async function createUvProcess(args: string[], env?: Record<string, string>) {
   const mergedEnv = { ...uvEnv, ...env };
 
   return spawn('uvx', args, {
-    stdio: ['pipe', 'pipe', 'pipe'],
     detached: false,
     env: mergedEnv,
+    stdio: ['pipe', 'pipe', 'pipe'],
   });
 }
 
@@ -41,7 +43,9 @@ async function waitForOpenWebUIToStart() {
     let resolved = false;
 
     const checkForOutput = (data: Buffer) => {
-      if (resolved) return;
+      if (resolved) {
+        return;
+      }
       const output = data.toString();
       if (output.includes(SERVER_READY_SIGNALS.OPENWEBUI)) {
         resolved = true;
@@ -76,7 +80,7 @@ export async function startFrontend(args: string[]) {
     const appVersion = app.getVersion();
 
     sendKoboldOutput(
-      `Preparing Open WebUI to connect at ${koboldHost}:${koboldPort}${isImageMode ? ' (with image generation)' : ''}...`
+      `Preparing Open WebUI to connect at ${koboldHost}:${koboldPort}${isImageMode ? ' (with image generation)' : ''}...`,
     );
 
     const koboldUrl = `http://${koboldHost}:${koboldPort}`;
@@ -85,21 +89,21 @@ export async function startFrontend(args: string[]) {
     const openWebUIArgs = [...OPENWEBUI_BASE_ARGS, '--port', config.port.toString()];
 
     sendKoboldOutput(
-      `Starting Open WebUI with uv${isImageMode ? ' (image generation enabled)' : ''}...`
+      `Starting Open WebUI with uv${isImageMode ? ' (image generation enabled)' : ''}...`,
     );
 
     const installDir = getInstallDir();
     const openWebUIDataDir = join(installDir, 'openwebui-data');
 
     const envConfig: Record<string, string> = {
-      OPENAI_API_BASE_URL: `${proxyUrl}/v1`,
       DATA_DIR: openWebUIDataDir,
+      ENABLE_OLLAMA_API: 'false',
+      ENABLE_VERSION_UPDATE_CHECK: 'false',
+      GLOBAL_LOG_LEVEL: 'warning',
+      OPENAI_API_BASE_URL: `${proxyUrl}/v1`,
+      USER_AGENT: `Gerbil/${appVersion}`,
       WEBUI_AUTH: 'false',
       WEBUI_SECRET_KEY: 'gerbil',
-      ENABLE_OLLAMA_API: 'false',
-      USER_AGENT: `Gerbil/${appVersion}`,
-      GLOBAL_LOG_LEVEL: 'warning',
-      ENABLE_VERSION_UPDATE_CHECK: 'false',
     };
 
     if (isImageMode) {

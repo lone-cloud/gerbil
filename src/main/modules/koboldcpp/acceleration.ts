@@ -1,8 +1,10 @@
 import { dirname, join } from 'node:path';
 import { platform } from 'node:process';
+
 import type { AccelerationOption, AccelerationSupport } from '@/types';
 import { pathExists } from '@/utils/node/fs';
 import { safeExecute, tryExecute } from '@/utils/node/logging';
+
 import { detectCPU, detectGPUCapabilities } from '../hardware';
 import { getCurrentBinaryInfo } from './backend';
 
@@ -18,11 +20,11 @@ async function detectAccelerationSupportFromPath(koboldBinaryPath: string) {
   }
 
   const support: AccelerationSupport = {
+    cuda: false,
+    failsafe: false,
+    noavx2: false,
     rocm: false,
     vulkan: false,
-    noavx2: false,
-    failsafe: false,
-    cuda: false,
   };
 
   await tryExecute(async () => {
@@ -75,11 +77,11 @@ export const detectAccelerationSupport = async () =>
     }
 
     return detectAccelerationSupportFromPath(currentBinaryInfo.path);
-  }, 'Error detecting current binary acceleration support')) || null;
+  }, 'Error detecting current binary acceleration support')) ?? null;
 
 export async function getAvailableAccelerations(includeDisabled = false) {
   if (platform === 'darwin') {
-    return [{ value: 'cpu', label: CPU_LABEL }];
+    return [{ label: CPU_LABEL, value: 'cpu' }];
   }
 
   const result = await safeExecute(async () => {
@@ -90,7 +92,7 @@ export async function getAvailableAccelerations(includeDisabled = false) {
     ]);
 
     if (!currentBinaryInfo?.path) {
-      return [{ value: 'cpu', label: CPU_LABEL }];
+      return [{ label: CPU_LABEL, value: 'cpu' }];
     }
 
     const cacheKey = `${currentBinaryInfo.path}:${includeDisabled}`;
@@ -112,10 +114,10 @@ export async function getAvailableAccelerations(includeDisabled = false) {
       const isSupported = hardwareCapabilities.cuda.devices.length > 0;
       if (isSupported || includeDisabled) {
         accelerations.push({
-          value: 'cuda',
-          label: 'CUDA',
           devices: hardwareCapabilities.cuda.devices,
           disabled: includeDisabled ? !isSupported : undefined,
+          label: 'CUDA',
+          value: 'cuda',
         });
       }
     }
@@ -124,10 +126,10 @@ export async function getAvailableAccelerations(includeDisabled = false) {
       const isSupported = hardwareCapabilities.rocm.devices.length > 0;
       if (isSupported || includeDisabled) {
         accelerations.push({
-          value: 'rocm',
-          label: 'ROCm',
           devices: hardwareCapabilities.rocm.devices,
           disabled: includeDisabled ? !isSupported : undefined,
+          label: 'ROCm',
+          value: 'rocm',
         });
       }
     }
@@ -136,24 +138,26 @@ export async function getAvailableAccelerations(includeDisabled = false) {
       const isSupported = hardwareCapabilities.vulkan.devices.length > 0;
       if (isSupported || includeDisabled) {
         accelerations.push({
-          value: 'vulkan',
-          label: 'Vulkan',
           devices: hardwareCapabilities.vulkan.devices,
           disabled: includeDisabled ? !isSupported : undefined,
+          label: 'Vulkan',
+          value: 'vulkan',
         });
       }
     }
 
     accelerations.push({
-      value: 'cpu',
-      label: CPU_LABEL,
-      devices: cpuCapabilities?.devices.map((device) => device.name) || [],
+      devices: cpuCapabilities?.devices.map((device) => device.name) ?? [],
       disabled: false,
+      label: CPU_LABEL,
+      value: 'cpu',
     });
 
     if (includeDisabled) {
       accelerations.sort((a, b) => {
-        if (a.disabled === b.disabled) return 0;
+        if (a.disabled === b.disabled) {
+          return 0;
+        }
         return a.disabled ? 1 : -1;
       });
     }
@@ -162,5 +166,5 @@ export async function getAvailableAccelerations(includeDisabled = false) {
     return accelerations;
   }, 'Failed to get available accelerations');
 
-  return result || [{ value: 'cpu', label: CPU_LABEL }];
+  return result ?? [{ label: CPU_LABEL, value: 'cpu' }];
 }

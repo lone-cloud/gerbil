@@ -1,4 +1,5 @@
 import { Group, Loader, Table, Text } from '@mantine/core';
+
 import type { HuggingFaceFileInfo } from '@/types';
 import { formatBytes } from '@/utils/format';
 

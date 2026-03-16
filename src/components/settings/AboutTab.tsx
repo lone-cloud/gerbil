@@ -1,11 +1,11 @@
+import icon from '/icon.png';
 import { Badge, Button, Card, Center, Group, Image, rem, Stack, Text } from '@mantine/core';
 import { Github } from 'lucide-react';
 import { useEffect, useState } from 'react';
+
 import { GITHUB_API, PRODUCT_NAME } from '@/constants';
 import { useLogoClickSounds } from '@/hooks/useLogoClickSounds';
 import type { SystemVersionInfo } from '@/types/electron';
-
-import icon from '/icon.png';
 
 export const AboutTab = () => {
   const [versionInfo, setVersionInfo] = useState<SystemVersionInfo | null>(null);
@@ -32,6 +32,7 @@ export const AboutTab = () => {
 
   const actionButtons = [
     {
+      // eslint-disable-next-line typescript/no-deprecated
       icon: Github,
       label: 'GitHub',
       onClick: () => window.electronAPI.app.openExternal(GITHUB_API.GERBIL_GITHUB_URL),
@@ -49,8 +50,8 @@ export const AboutTab = () => {
             h={64}
             onClick={() => void handleLogoClick()}
             style={{
-              minWidth: 64,
               minHeight: 64,
+              minWidth: 64,
               ...getLogoStyles(),
             }}
           />
@@ -72,7 +73,7 @@ export const AboutTab = () => {
                   key={button.label}
                   variant="light"
                   size="compact-sm"
-                  leftSection={<button.icon style={{ width: rem(16), height: rem(16) }} />}
+                  leftSection={<button.icon style={{ height: rem(16), width: rem(16) }} />}
                   onClick={() => void button.onClick()}
                   style={button.label === 'GitHub' ? { textDecoration: 'none' } : undefined}
                 >

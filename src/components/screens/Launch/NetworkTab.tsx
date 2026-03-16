@@ -1,4 +1,5 @@
 import { Group, Stack, Text, TextInput } from '@mantine/core';
+
 import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
@@ -49,7 +50,7 @@ export const NetworkTab = () => {
             placeholder="5001"
             value={port?.toString() ?? ''}
             onChange={(event) => {
-              const value = event.currentTarget.value;
+              const { value } = event.currentTarget;
 
               if (value === '') {
                 setPort(undefined);
@@ -57,13 +58,13 @@ export const NetworkTab = () => {
               }
 
               const numValue = Number(value);
-              if (!Number.isNaN(numValue) && numValue >= 1 && numValue <= 65535) {
+              if (!Number.isNaN(numValue) && numValue >= 1 && numValue <= 65_535) {
                 setPort(numValue);
               }
             }}
             type="number"
             min={1}
-            max={65535}
+            max={65_535}
             w={120}
           />
         </div>

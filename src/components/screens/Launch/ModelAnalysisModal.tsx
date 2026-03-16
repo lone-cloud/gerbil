@@ -1,5 +1,6 @@
-import { Alert, Group, rem, Stack, Text } from '@mantine/core';
+import { Alert, Group, Stack, Text, rem } from '@mantine/core';
 import { Info } from 'lucide-react';
+
 import { Modal } from '@/components/Modal';
 import type { ModelAnalysis } from '@/types';
 
@@ -17,7 +18,9 @@ interface InfoRowProps {
 }
 
 const InfoRow = ({ label, value }: InfoRowProps) => {
-  if (!value) return null;
+  if (!value) {
+    return null;
+  }
 
   return (
     <Group gap="md" wrap="nowrap">
@@ -79,7 +82,7 @@ export const ModelAnalysisModal = ({
         {analysis.architecture.layers && (
           <InfoRow
             label="Full VRAM"
-            value={`${analysis.architecture.layers} x ${analysis.estimates.vramPerLayer || 'N/A'} per layer = ${analysis.estimates.fullGpuVram}`}
+            value={`${analysis.architecture.layers} x ${analysis.estimates.vramPerLayer ?? 'N/A'} per layer = ${analysis.estimates.fullGpuVram}`}
           />
         )}
         {!analysis.architecture.layers && (

@@ -1,4 +1,4 @@
-import { Group, rem, Tabs, Text } from '@mantine/core';
+import { Group, Tabs, Text, rem } from '@mantine/core';
 import {
   GitBranch,
   Info,
@@ -9,6 +9,7 @@ import {
   Wrench,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+
 import { Modal } from '@/components/Modal';
 import { AboutTab } from '@/components/settings/AboutTab';
 import { AppearanceTab } from '@/components/settings/AppearanceTab';
@@ -72,15 +73,15 @@ export const SettingsModal = ({
         orientation="vertical"
         variant="pills"
         styles={{
-          root: {
-            flex: 1,
-            minHeight: 0,
-          },
           panel: {
             height: '100%',
             overflow: 'auto',
             paddingLeft: '1.5rem',
             paddingRight: '1.5rem',
+          },
+          root: {
+            flex: 1,
+            minHeight: 0,
           },
           tabLabel: {
             textAlign: 'left',
@@ -91,39 +92,39 @@ export const SettingsModal = ({
         <Tabs.List>
           <Tabs.Tab
             value="general"
-            leftSection={<SlidersHorizontal style={{ width: rem(16), height: rem(16) }} />}
+            leftSection={<SlidersHorizontal style={{ height: rem(16), width: rem(16) }} />}
           >
             General
           </Tabs.Tab>
           {showBackendsTab && (
             <Tabs.Tab
               value="backends"
-              leftSection={<GitBranch style={{ width: rem(16), height: rem(16) }} />}
+              leftSection={<GitBranch style={{ height: rem(16), width: rem(16) }} />}
             >
               Backends
             </Tabs.Tab>
           )}
           <Tabs.Tab
             value="appearance"
-            leftSection={<Palette style={{ width: rem(16), height: rem(16) }} />}
+            leftSection={<Palette style={{ height: rem(16), width: rem(16) }} />}
           >
             Appearance
           </Tabs.Tab>
           <Tabs.Tab
             value="system"
-            leftSection={<Monitor style={{ width: rem(16), height: rem(16) }} />}
+            leftSection={<Monitor style={{ height: rem(16), width: rem(16) }} />}
           >
             System
           </Tabs.Tab>
           <Tabs.Tab
             value="troubleshooting"
-            leftSection={<Wrench style={{ width: rem(16), height: rem(16) }} />}
+            leftSection={<Wrench style={{ height: rem(16), width: rem(16) }} />}
           >
             Troubleshooting
           </Tabs.Tab>
           <Tabs.Tab
             value="about"
-            leftSection={<Info style={{ width: rem(16), height: rem(16) }} />}
+            leftSection={<Info style={{ height: rem(16), width: rem(16) }} />}
           >
             About
           </Tabs.Tab>
