@@ -520,6 +520,21 @@ const COMMAND_LINE_ARGUMENTS = [
     metavar: '[directory]',
   },
   {
+    category: 'Administration',
+    default: 0,
+    description:
+      'Set an idle timeout in seconds after which KoboldCpp will automatically unload the current model.',
+    flag: '--adminunloadtimeout',
+    type: 'int',
+  },
+  {
+    category: 'Administration',
+    description:
+      'Router mode uses a reverse proxy router, allowing you to easily hotswap models and configs within a single request. Requires admin mode.',
+    flag: '--routermode',
+    type: 'boolean',
+  },
+  {
     category: 'Horde Worker',
     default: '',
     description: 'Sets your AI Horde display model name.',
@@ -596,7 +611,7 @@ const COMMAND_LINE_ARGUMENTS = [
   },
   {
     category: 'Image Generation',
-    description: 'Uses a built-in VAE via TAE SD, which is very fast, and fixed bad VAEs.',
+    description: 'Uses a built-in tiny VAE via TAE SD, which is very fast, and fixed bad VAEs.',
     flag: '--sdvaeauto',
     type: 'boolean',
   },
@@ -610,11 +625,11 @@ const COMMAND_LINE_ARGUMENTS = [
   },
   {
     category: 'Image Generation',
-    default: 1,
-    description: 'Multiplier for the image LORA model to be applied.',
+    default: '1.0',
+    description: 'Multipliers for the image LoRA model to be applied.',
     flag: '--sdloramult',
-    metavar: '[amount]',
-    type: 'float',
+    metavar: '[amounts]',
+    type: 'float[]',
   },
   {
     category: 'Image Generation',
