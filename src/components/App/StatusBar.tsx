@@ -92,7 +92,7 @@ export const StatusBar = () => {
   return (
     <AppShell.Footer
       style={{
-        border: '1px solid var(--mantine-color-default-border)',
+        borderTop: '1px solid var(--mantine-color-default-border)',
       }}
     >
       <Group

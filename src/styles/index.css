@@ -6,14 +6,9 @@
 #root {
   height: 100vh;
   width: 100vw;
-  border-left: 1px solid rgba(0, 0, 0, 0.15);
-  border-right: 1px solid rgba(0, 0, 0, 0.15);
+  border-left: 1px solid light-dark(rgba(0, 0, 0, 0.15), rgba(255, 255, 255, 0.08));
+  border-right: 1px solid light-dark(rgba(0, 0, 0, 0.15), rgba(255, 255, 255, 0.08));
   box-sizing: border-box;
-}
-
-[data-mantine-color-scheme='dark'] #root {
-  border-left: 1px solid rgba(255, 255, 255, 0.15);
-  border-right: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 [data-mantine-color-scheme='light'] .mantine-Select-option:hover {
