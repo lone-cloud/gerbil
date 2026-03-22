@@ -145,6 +145,9 @@ export function filterSpam(output: string) {
     /^Chat Completions Adapter Loaded$/,
     /^Chat completion heuristic:/,
     /^Embedded .* loaded\.$/,
+    /^create_tensor:/,
+    /^done_getting_tensors:/,
+    /^sched_reserve:/,
   ];
 
   return output
