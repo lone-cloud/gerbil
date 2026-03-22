@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import { stripVTControlCharacters } from 'node:util';
 
 import type { BrowserWindowConstructorOptions } from 'electron';
-import { app, BrowserWindow, clipboard, Menu, screen, shell } from 'electron';
+import { app, BrowserWindow, clipboard, Menu, nativeTheme, screen, shell } from 'electron';
 
 import { PRODUCT_NAME } from '@/constants';
 import type { IPCChannel, IPCChannelPayloads } from '@/types/ipc';
@@ -94,6 +94,12 @@ export async function createMainWindow(options?: { startHidden?: boolean }) {
       void setConfig('windowBounds', bounds);
     }
   };
+
+  nativeTheme.on('updated', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.setBackgroundColor(getBackgroundColor());
+    }
+  });
 
   mainWindow.on('maximize', () => {
     sendToRenderer('window-maximized');

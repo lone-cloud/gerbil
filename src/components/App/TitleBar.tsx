@@ -76,7 +76,7 @@ export const TitleBar = ({ currentScreen, currentTab, onEject, onTabChange }: Ti
           alignItems: 'center',
           backgroundColor:
             colorScheme === 'dark' ? 'var(--mantine-color-dark-6)' : 'var(--mantine-color-gray-1)',
-          border: '1px solid var(--mantine-color-default-border)',
+          borderBottom: '1px solid var(--mantine-color-default-border)',
           display: 'flex',
           height: TITLEBAR_HEIGHT,
           justifyContent: 'space-between',

@@ -36,12 +36,15 @@ async function executeCommand(
   timeout = 5000,
 ) {
   try {
-    const { stdout } = await execa(command, args, {
+    const result = await execa(command, args, {
       env,
       reject: false,
       timeout,
     });
-    return { output: stdout.trim(), success: true };
+    if (result.failed) {
+      return { success: false };
+    }
+    return { output: result.stdout.trim(), success: true };
   } catch {
     return { success: false };
   }

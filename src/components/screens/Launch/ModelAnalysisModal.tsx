@@ -81,14 +81,14 @@ export const ModelAnalysisModal = ({
         )}
         {analysis.architecture.layers && (
           <InfoRow
-            label="Full VRAM"
+            label="Model Size (VRAM)"
             value={`${analysis.architecture.layers} x ${analysis.estimates.vramPerLayer ?? 'N/A'} per layer = ${analysis.estimates.fullGpuVram}`}
           />
         )}
         {!analysis.architecture.layers && (
-          <InfoRow label="Full VRAM" value={analysis.estimates.fullGpuVram} />
+          <InfoRow label="Model Size (VRAM)" value={analysis.estimates.fullGpuVram} />
         )}
-        <InfoRow label="Full RAM" value={analysis.estimates.systemRam} />
+        <InfoRow label="Model Size (RAM)" value={analysis.estimates.systemRam} />
       </Stack>
     )}
   </Modal>

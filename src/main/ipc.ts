@@ -11,6 +11,7 @@ import {
   quitAndInstall,
 } from '@/main/modules/auto-updater';
 import {
+  getBackgroundColor,
   getColorScheme,
   get as getConfig,
   getEnableSystemTray,
@@ -209,9 +210,10 @@ export function setupIPCHandlers() {
 
   ipcMain.handle('app:getColorScheme', () => getColorScheme());
 
-  ipcMain.handle('app:setColorScheme', async (_, colorScheme) =>
-    setConfig('colorScheme', colorScheme),
-  );
+  ipcMain.handle('app:setColorScheme', async (_, colorScheme) => {
+    await setConfig('colorScheme', colorScheme);
+    mainWindow.setBackgroundColor(getBackgroundColor());
+  });
 
   ipcMain.handle('app:getEnableSystemTray', () => getEnableSystemTray());
 
