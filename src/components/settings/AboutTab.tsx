@@ -1,7 +1,7 @@
 import icon from '/icon.png';
 import { Badge, Button, Card, Center, Group, Image, rem, Stack, Text } from '@mantine/core';
-import { Github } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { SiGithub } from 'react-icons/si';
 
 import { GITHUB_API, PRODUCT_NAME } from '@/constants';
 import { useLogoClickSounds } from '@/hooks/useLogoClickSounds';
@@ -32,8 +32,7 @@ export const AboutTab = () => {
 
   const actionButtons = [
     {
-      // eslint-disable-next-line typescript/no-deprecated
-      icon: Github,
+      icon: SiGithub,
       label: 'GitHub',
       onClick: () => window.electronAPI.app.openExternal(GITHUB_API.GERBIL_GITHUB_URL),
     },

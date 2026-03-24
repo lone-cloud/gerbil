@@ -148,6 +148,7 @@ export function filterSpam(output: string) {
     /^create_tensor:/,
     /^done_getting_tensors:/,
     /^sched_reserve:/,
+    /^llama_memory_recurrent:/,
   ];
 
   return output
