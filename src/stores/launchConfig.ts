@@ -44,6 +44,7 @@ interface LaunchConfigState {
   moeexperts: number;
   smartcache: boolean;
   pipelineparallel: boolean;
+  quantkv: number;
   isImageGenerationMode: boolean;
   isTextMode: boolean;
 
@@ -86,6 +87,7 @@ interface LaunchConfigState {
   setMoeexperts: (moeexperts: number) => void;
   setSmartcache: (smartcache: boolean) => void;
   setPipelineparallel: (pipelineparallel: boolean) => void;
+  setQuantkv: (quantkv: number) => void;
 
   parseAndApplyConfigFile: (configPath: string) => Promise<void>;
   loadConfigFromFile: (
@@ -392,10 +394,17 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
         updates.pipelineparallel = false;
       }
 
+      if (typeof configData.quantkv === 'number') {
+        updates.quantkv = configData.quantkv;
+      } else {
+        updates.quantkv = 0;
+      }
+
       set(updates);
     }
   },
   pipelineparallel: false,
+  quantkv: 0,
   port: undefined,
   preLaunchCommands: [''],
   quantmatmul: true,
@@ -453,6 +462,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   setNocertify: (nocertify) => set({ nocertify }),
   setNoshift: (noshift) => set({ noshift }),
   setPipelineparallel: (pipelineparallel) => set({ pipelineparallel }),
+  setQuantkv: (quantkv) => set({ quantkv }),
   setPort: (port) => set({ port }),
   setPreLaunchCommands: (commands) => set({ preLaunchCommands: commands }),
   setQuantmatmul: (quantmatmul) => set({ quantmatmul }),

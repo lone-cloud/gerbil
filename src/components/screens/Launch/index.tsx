@@ -67,6 +67,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     moeexperts,
     smartcache,
     pipelineparallel,
+    quantkv,
     parseAndApplyConfigFile,
     loadConfigFromFile,
     setModel,
@@ -185,6 +186,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     usemmap,
     usevulkan: acceleration === 'vulkan',
     websearch,
+    quantkv,
   });
 
   const handleCreateNewConfig = async (configName: string) => {
@@ -298,6 +300,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
       tensorSplit,
       usemmap,
       websearch,
+      quantkv,
     });
   }, [
     handleLaunch,
@@ -338,6 +341,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     moeexperts,
     smartcache,
     pipelineparallel,
+    quantkv,
   ]);
 
   return (

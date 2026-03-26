@@ -46,6 +46,7 @@ interface LaunchArgs {
   moeexperts: number;
   smartcache: boolean;
   pipelineparallel: boolean;
+  quantkv: number;
 }
 
 const buildModelArgs = (model: string, sdmodel: string, launchArgs: LaunchArgs) => {
@@ -155,6 +156,10 @@ const buildConfigArgs = (isImageMode: boolean, launchArgs: LaunchArgs) => {
 
   if (launchArgs.pipelineparallel) {
     args.push('--pipelineparallel');
+  }
+
+  if (launchArgs.quantkv > 0) {
+    args.push('--quantkv', launchArgs.quantkv.toString());
   }
 
   return args;

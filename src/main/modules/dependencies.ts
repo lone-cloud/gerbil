@@ -240,7 +240,6 @@ export async function getVersionInfo() {
     osVersion: release(),
     platform,
     uvVersion,
-    v8Version: versions.v8,
   };
 }
 
