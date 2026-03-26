@@ -1,8 +1,14 @@
-import { Group, NumberInput, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Group, NumberInput, Select, SimpleGrid, Stack, Text } from '@mantine/core';
 
 import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
+
+const KV_QUANT_OPTIONS = [
+  { value: '0', label: 'F16 (off)' },
+  { value: '1', label: 'Q8 (8-bit)' },
+  { value: '2', label: 'Q4 (4-bit)' },
+];
 
 export const PerformanceTab = () => {
   const {
@@ -16,6 +22,7 @@ export const PerformanceTab = () => {
     moeexperts,
     smartcache,
     pipelineparallel,
+    quantkv,
     setNoshift,
     setFlashattention,
     setLowvram,
@@ -25,9 +32,20 @@ export const PerformanceTab = () => {
     setMoeexperts,
     setSmartcache,
     setPipelineparallel,
+    setQuantkv,
   } = useLaunchConfigStore();
 
   const isGpuAcceleration = acceleration === 'cuda' || acceleration === 'rocm';
+  const quantkvActive = quantkv > 0;
+  const quantkvWithoutFlash = quantkvActive && !flashattention;
+
+  const handleQuantkvChange = (value: string | null) => {
+    const level = Number(value ?? '0');
+    setQuantkv(level);
+    if (level > 0) {
+      setFlashattention(true);
+    }
+  };
 
   return (
     <Stack gap="md">
@@ -62,7 +80,11 @@ export const PerformanceTab = () => {
             checked={flashattention}
             onChange={setFlashattention}
             label="Flash Attention"
-            tooltip="Enable flash attention to reduce memory usage and improve performance. May produce incorrect answers for some prompts."
+            tooltip={
+              quantkvActive
+                ? 'Required for KV Cache Quantization. Without it, only the K cache is quantized and VRAM usage may actually increase.'
+                : 'Enable flash attention to reduce memory usage and improve performance. May produce incorrect answers for some prompts.'
+            }
           />
 
           <CheckboxWithTooltip
@@ -112,6 +134,31 @@ export const PerformanceTab = () => {
 
       <div>
         <Stack gap="md">
+          <Group gap="lg" align="flex-start" wrap="nowrap">
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <Group gap="xs" align="center" mb="xs">
+                <Text size="sm" fw={500}>
+                  KV Cache Quantization
+                </Text>
+                <InfoTooltip label="Quantize the KV cache to reduce VRAM usage. Works best with Flash Attention (auto-enabled). May conflict with Context Shifting." />
+              </Group>
+              <Select
+                value={String(quantkv)}
+                onChange={handleQuantkvChange}
+                data={KV_QUANT_OPTIONS}
+                size="sm"
+                allowDeselect={false}
+              />
+              {quantkvWithoutFlash && (
+                <Text size="xs" c="red" mt={4}>
+                  Flash Attention is off. Only K cache will be quantized; performance and VRAM may suffer.
+                </Text>
+              )}
+            </div>
+
+            <div style={{ flex: 1, minWidth: 200 }} />
+          </Group>
+
           <Group gap="lg" align="flex-start" wrap="nowrap">
             <div style={{ flex: 1, minWidth: 200 }}>
               <Group gap="xs" align="center" mb="xs">

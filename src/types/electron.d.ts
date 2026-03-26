@@ -119,6 +119,7 @@ export interface KoboldConfig {
   moeexperts?: number;
   smartcache?: boolean;
   pipelineparallel?: boolean;
+  quantkv?: number;
   autoGpuLayers?: boolean;
   model?: string;
   backend?: string;
@@ -177,7 +178,6 @@ export interface SystemVersionInfo {
   electronVersion: string;
   nodeVersion: string;
   chromeVersion: string;
-  v8Version: string;
   osVersion: string;
   platform: string;
   arch: string;

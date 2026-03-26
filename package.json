@@ -1,6 +1,6 @@
 {
   "name": "gerbil",
-  "version": "1.20.6",
+  "version": "1.21.0",
   "description": "Run Large Language Models locally",
   "keywords": [
     "ai",
@@ -37,10 +37,10 @@
     "@huggingface/gguf": "^0.4.1",
     "@mantine/core": "^8.3.18",
     "@mantine/hooks": "^8.3.18",
-    "@uiw/react-codemirror": "^4.25.8",
+    "@uiw/react-codemirror": "^4.25.9",
     "electron-updater": "^6.8.3",
     "execa": "^9.6.1",
-    "lucide-react": "^1.0.1",
+    "lucide-react": "^1.7.0",
     "mime-types": "^3.0.2",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
@@ -64,13 +64,13 @@
     "@types/yauzl": "^2.10.3",
     "@vitejs/plugin-react": "^6.0.1",
     "cross-env": "^10.1.0",
-    "electron": "^41.0.3",
+    "electron": "^41.0.4",
     "electron-builder": "^26.8.1",
     "electron-vite": "^5.0.0",
     "jiti": "^2.6.1",
-    "oxfmt": "^0.41.0",
-    "oxlint": "^1.56.0",
-    "oxlint-tsgolint": "^0.17.2",
+    "oxfmt": "^0.42.0",
+    "oxlint": "^1.57.0",
+    "oxlint-tsgolint": "^0.17.4",
     "rollup-plugin-visualizer": "^7.0.1",
     "typescript": "^6.0.2",
     "vite": "^8.0.2"
@@ -78,7 +78,7 @@
   "engines": {
     "node": ">=24.0.0"
   },
-  "packageManager": "pnpm@10.32.1",
+  "packageManager": "pnpm@10.33.0",
   "build": {
     "appId": "com.gerbil.app",
     "productName": "Gerbil",

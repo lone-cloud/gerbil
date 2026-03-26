@@ -32,7 +32,6 @@ export const createSoftwareItems = (
         : versionInfo.nodeVersion,
   },
   { label: 'Chromium', value: versionInfo.chromeVersion },
-  { label: 'V8', value: versionInfo.v8Version },
   ...(versionInfo.uvVersion ? [{ label: 'uv', value: versionInfo.uvVersion }] : []),
 ];
 

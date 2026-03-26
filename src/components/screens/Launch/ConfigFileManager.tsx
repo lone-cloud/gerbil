@@ -91,7 +91,7 @@ export const ConfigFileManager = ({
 
   return (
     <>
-      <Stack gap="xs">
+      <Stack gap="xs" mb="sm">
         <Text fw={500} size="sm">
           Configuration
         </Text>
