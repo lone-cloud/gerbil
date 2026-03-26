@@ -151,7 +151,8 @@ export const PerformanceTab = () => {
               />
               {quantkvWithoutFlash && (
                 <Text size="xs" c="red" mt={4}>
-                  Flash Attention is off. Only K cache will be quantized; performance and VRAM may suffer.
+                  Flash Attention is off. Only K cache will be quantized; performance and VRAM may
+                  suffer.
                 </Text>
               )}
             </div>
