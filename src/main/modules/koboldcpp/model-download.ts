@@ -28,7 +28,7 @@ interface DownloadProgress {
 }
 
 function parseHuggingFaceUrl(url: string) {
-  const hfMatch = url.match(/huggingface\.co\/([^/]+)\/([^/]+)\/(?:resolve|blob)\/[^/]+\/(.+)/);
+  const hfMatch = /huggingface\.co\/([^/]+)\/([^/]+)\/(?:resolve|blob)\/[^/]+\/(.+)/.exec(url);
 
   if (hfMatch) {
     const pathWithQuery = hfMatch[3];

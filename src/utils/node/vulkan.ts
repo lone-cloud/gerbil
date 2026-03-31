@@ -42,7 +42,7 @@ export async function getVulkanInfo() {
 
       for (const line of lines) {
         if (!globalApiVersion && line.includes('apiVersion') && line.includes('=')) {
-          const match = line.match(/=\s*(\d+\.\d+(?:\.\d+)?)/);
+          const match = /=\s*(\d+\.\d+(?:\.\d+)?)/.exec(line);
           if (match) {
             globalApiVersion = match[1];
           }
@@ -76,12 +76,12 @@ export async function getVulkanInfo() {
             }
           }
         } else if (foundGPU && currentGPU && line.includes('driverInfo')) {
-          const mesaMatch = line.match(/Mesa\s+(.+)/);
+          const mesaMatch = /Mesa\s+(.+)/.exec(line);
           if (mesaMatch) {
             currentGPU.driverInfo = `Mesa ${mesaMatch[1].trim()}`;
           }
         } else if (foundGPU && currentGPU && line.includes('apiVersion') && line.includes('=')) {
-          const match = line.match(/=\s*(\d+\.\d+(?:\.\d+)?)/);
+          const match = /=\s*(\d+\.\d+(?:\.\d+)?)/.exec(line);
           if (match) {
             currentGPU.apiVersion = match[1];
             globalApiVersion ??= match[1];

@@ -68,7 +68,7 @@ export async function calculateOptimalGpuLayers({
     fileSize = stats.size;
   }
 
-  const multiPartMatch = modelPath.match(/-(\d{5})-of-(\d{5})\./);
+  const multiPartMatch = /-(\d{5})-of-(\d{5})\./.exec(modelPath);
   if (multiPartMatch) {
     const totalParts = parseInt(multiPartMatch[2], 10);
     if (totalParts > 1 && totalParts <= 999) {

@@ -177,7 +177,7 @@ export async function detectROCm() {
 
     try {
       if (hipccOutput.trim()) {
-        const hipVersionMatch = hipccOutput.match(/HIP version:\s*(\d+\.\d+(?:\.\d+)?)/i);
+        const hipVersionMatch = /HIP version:\s*(\d+\.\d+(?:\.\d+)?)/i.exec(hipccOutput);
 
         if (hipVersionMatch) {
           version = hipVersionMatch[1];

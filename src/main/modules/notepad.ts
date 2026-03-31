@@ -97,7 +97,7 @@ export const createNewTab = async (title?: string) => {
   if (!title) {
     const state = await loadNotepadState();
     const noteNumbers = state.tabs
-      .map((tab) => tab.title.match(/^Note (\d+)$/)?.[1])
+      .map((tab) => /^Note (\d+)$/.exec(tab.title)?.[1])
       .filter(Boolean)
       .map(Number)
       .toSorted((a, b) => a - b);

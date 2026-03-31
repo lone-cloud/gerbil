@@ -62,9 +62,8 @@ async function initializeLinuxGPUCache() {
             let isDiscrete = false;
             try {
               const busAddress = await readFile(`${devicePath}/uevent`, 'utf8');
-              const pciMatch = busAddress.match(
-                /PCI_SLOT_NAME=([0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-9a-f])/i,
-              );
+              const pciMatch =
+                /PCI_SLOT_NAME=([0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-9a-f])/i.exec(busAddress);
 
               if (pciMatch) {
                 const fullAddress = pciMatch[1];

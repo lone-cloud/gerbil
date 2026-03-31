@@ -156,7 +156,7 @@ export const startTunnel = async (frontendPreference: FrontendPreference = 'kobo
       }, 30_000);
 
       const checkForUrl = () => {
-        const match = output.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/);
+        const match = /https:\/\/[a-z0-9-]+\.trycloudflare\.com/.exec(output);
         if (match) {
           urlFound = true;
           clearTimeout(timeout);
