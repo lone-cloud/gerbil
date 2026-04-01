@@ -20,7 +20,7 @@ export const AppearanceTab = ({ isOnInterfaceScreen = false }: AppearanceTabProp
   } = usePreferencesStore();
   const isDark = resolvedColorScheme === 'dark';
 
-  const [zoomLevel, setZoomLevel] = useState<number>(ZOOM.DEFAULT_LEVEL);
+  const [zoomLevel, setZoomLevel] = useState(ZOOM.DEFAULT_LEVEL as number);
   const [zoomPercentage, setZoomPercentage] = useState(ZOOM.DEFAULT_PERCENTAGE.toString());
 
   useEffect(() => {

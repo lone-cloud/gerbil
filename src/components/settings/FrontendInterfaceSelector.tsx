@@ -35,7 +35,7 @@ export const FrontendInterfaceSelector = ({
     setImageGenerationFrontendPreference,
   } = usePreferencesStore();
 
-  const [frontendRequirements, setFrontendRequirements] = useState<Map<string, boolean>>(new Map());
+  const [frontendRequirements, setFrontendRequirements] = useState(new Map());
 
   const [showClearDataModal, setShowClearDataModal] = useState(false);
 

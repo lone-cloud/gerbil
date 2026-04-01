@@ -35,7 +35,7 @@
     "systeminformation": "^5.31.5",
     "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0",
-    "yauzl": "^3.2.1"
+    "yauzl": "^3.3.0"
   },
   "devDependencies": {
     "@codemirror/commands": "^6.10.3",
@@ -61,7 +61,7 @@
     "lucide-react": "^1.7.0",
     "oxfmt": "^0.43.0",
     "oxlint": "^1.58.0",
-    "oxlint-tsgolint": "^0.18.1",
+    "oxlint-tsgolint": "^0.19.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-error-boundary": "^6.1.1",

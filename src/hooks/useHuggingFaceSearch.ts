@@ -89,7 +89,7 @@ export const useHuggingFaceSearch = (initialParams: HuggingFaceSearchParams) => 
   const [hasMore, setHasMore] = useState(true);
   const [selectedModel, setSelectedModel] = useState<HuggingFaceModelInfo>();
   const [sortBy, setSortBy] = useState<HuggingFaceSortOption>(initialParams.sort);
-  const [searchParams] = useState<HuggingFaceSearchParams>(initialParams);
+  const [searchParams] = useState(initialParams);
   const pageRef = useRef(0);
   const currentQueryRef = useRef<string | undefined>(undefined);
 
