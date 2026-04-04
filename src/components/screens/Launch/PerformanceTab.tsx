@@ -8,6 +8,7 @@ const KV_QUANT_OPTIONS = [
   { value: '0', label: 'F16 (off)' },
   { value: '1', label: 'Q8 (8-bit)' },
   { value: '2', label: 'Q4 (4-bit)' },
+  { value: '3', label: 'BF16' },
 ];
 
 export const PerformanceTab = () => {

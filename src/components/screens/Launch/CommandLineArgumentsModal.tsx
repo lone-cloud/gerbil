@@ -289,7 +289,7 @@ const COMMAND_LINE_ARGUMENTS = [
     category: 'Advanced',
     default: 'None',
     description:
-      'Enter a password required to use this instance. This key will be required for all text endpoints. Image endpoints are not secured.',
+      'Enter a password required to use this instance. This key will be required for all text endpoints. Image endpoints are not secured. Can also be set with env var KOBOLDCPP_PASSWORD.',
     flag: '--password',
     metavar: '[API key]',
   },
@@ -412,6 +412,15 @@ const COMMAND_LINE_ARGUMENTS = [
     type: 'boolean',
   },
   {
+    aliases: ['--jinja-kwargs', '--jinjakwargs', '--chat-template-kwargs'],
+    category: 'Advanced',
+    default: '',
+    description:
+      'Set additional fields for Jinja JSON template parser, must be a valid JSON object.',
+    flag: '--jinja_kwargs',
+    metavar: '{"parameter":"value",...}',
+  },
+  {
     category: 'Advanced',
     description:
       'Reserving a portion of context to try processing less frequently. Outdated. Not recommended.',
@@ -507,7 +516,7 @@ const COMMAND_LINE_ARGUMENTS = [
     category: 'Administration',
     default: 'None',
     description:
-      'Require a password to access admin functions. You are strongly advised to use one for publically accessible instances!',
+      'Require a password to access admin functions. You are strongly advised to use one for publically accessible instances! Can also be set with env var KOBOLDCPP_ADMINPASSWORD.',
     flag: '--adminpassword',
     metavar: '[password]',
   },
@@ -532,6 +541,13 @@ const COMMAND_LINE_ARGUMENTS = [
     description:
       'Router mode uses a reverse proxy router, allowing you to easily hotswap models and configs within a single request. Requires admin mode.',
     flag: '--routermode',
+    type: 'boolean',
+  },
+  {
+    category: 'Administration',
+    description:
+      'Autoswap mode builds on router mode to allow switching of model types within the same config automatically. Requires admin mode and router mode. All models desired must be defined within the same config.',
+    flag: '--autoswapmode',
     type: 'boolean',
   },
   {
@@ -604,7 +620,7 @@ const COMMAND_LINE_ARGUMENTS = [
     category: 'Image Generation',
     default: 0,
     description:
-      'If specified, limit max image size to curb memory usage. Similar to --sdclamped, but less strict, allows trade-offs between width and height (e.g. 640 would allow 640x640, 512x768 and 768x512 images). Total resolution cannot exceed 1MP.',
+      'If specified, limit max image size to curb memory usage. Similar to --sdclamped, but less strict, allows trade-offs between width and height (e.g. 640 would allow 640x640, 512x768 and 768x512 images).',
     flag: '--sdclampedsoft',
     metavar: '[maxres]',
     type: 'int',
@@ -645,6 +661,14 @@ const COMMAND_LINE_ARGUMENTS = [
     description: 'Offload image weights in RAM to save VRAM, swap into VRAM when needed.',
     flag: '--sdoffloadcpu',
     type: 'boolean',
+  },
+  {
+    category: 'Image Generation',
+    default: -1,
+    description: 'If specified, Image Generation weights will be placed on the selected GPU index',
+    flag: '--sdmaingpu',
+    metavar: '[Device ID]',
+    type: 'int',
   },
   {
     category: 'Audio',
