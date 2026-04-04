@@ -46,7 +46,6 @@ export const GeneralTab = ({ configLoaded = true }: GeneralTabProps) => {
             onSelectFile={() => void selectFile('model', 'Select Text Model')}
             searchParams={{
               filter: 'gguf',
-              pipelineTag: 'text-generation',
               sort: 'trendingScore',
             }}
             showAnalyze
