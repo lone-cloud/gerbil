@@ -1,4 +1,4 @@
-import { createTheme } from '@mantine/core';
+import { createTheme, v8CssVariablesResolver } from '@mantine/core';
 import type { CSSVariablesResolver } from '@mantine/core';
 
 export const theme = createTheme({
@@ -59,15 +59,20 @@ export const theme = createTheme({
   white: '#fafafa',
 });
 
-export const cssVariablesResolver: CSSVariablesResolver = () => ({
-  dark: {
-    '--mantine-color-body': '#0f0f0f',
-    '--mantine-color-default-border': '#2a2a2a',
-  },
-  light: {
-    '--mantine-color-body': '#fafafa',
-    '--mantine-color-white': '#fafafa',
-    '--mantine-color-default-border': '#dee2e6',
-  },
-  variables: {},
-});
+export const cssVariablesResolver: CSSVariablesResolver = (t) => {
+  const v8 = v8CssVariablesResolver(t);
+  return {
+    variables: { ...v8.variables },
+    dark: {
+      ...v8.dark,
+      '--mantine-color-body': '#0f0f0f',
+      '--mantine-color-default-border': '#2a2a2a',
+    },
+    light: {
+      ...v8.light,
+      '--mantine-color-body': '#fafafa',
+      '--mantine-color-white': '#fafafa',
+      '--mantine-color-default-border': '#dee2e6',
+    },
+  };
+};
