@@ -149,6 +149,8 @@ export function filterSpam(output: string) {
     /^done_getting_tensors:/,
     /^sched_reserve:/,
     /^llama_memory_recurrent:/,
+    /^str: cannot properly format tensor name/,
+    /^tensor .+ buffer type overridden to /,
   ];
 
   return output

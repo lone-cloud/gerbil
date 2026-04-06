@@ -47,6 +47,9 @@ interface LaunchArgs {
   smartcache: boolean;
   pipelineparallel: boolean;
   quantkv: number;
+  jinja: boolean;
+  jinjatools: boolean;
+  jinjakwargs: string;
 }
 
 const buildModelArgs = (model: string, sdmodel: string, launchArgs: LaunchArgs) => {
@@ -160,6 +163,16 @@ const buildConfigArgs = (isImageMode: boolean, launchArgs: LaunchArgs) => {
 
   if (launchArgs.quantkv > 0) {
     args.push('--quantkv', launchArgs.quantkv.toString());
+  }
+
+  if (launchArgs.jinjatools) {
+    args.push('--jinja_tools');
+  } else if (launchArgs.jinja) {
+    args.push('--jinja');
+  }
+
+  if ((launchArgs.jinja || launchArgs.jinjatools) && launchArgs.jinjakwargs.trim()) {
+    args.push('--jinja_kwargs', launchArgs.jinjakwargs.trim());
   }
 
   return args;

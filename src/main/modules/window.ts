@@ -148,6 +148,10 @@ export async function createMainWindow(options?: { startHidden?: boolean }) {
     },
   }));
 
+  mainWindow.webContents.on('did-create-window', (popupWindow) => {
+    setupContextMenu(popupWindow);
+  });
+
   mainWindow.on('close', (event) => {
     saveBounds();
     if (getEnableSystemTray() && isTrayActive()) {

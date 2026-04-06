@@ -45,6 +45,9 @@ interface LaunchConfigState {
   smartcache: boolean;
   pipelineparallel: boolean;
   quantkv: number;
+  jinja: boolean;
+  jinjatools: boolean;
+  jinjakwargs: string;
   isImageGenerationMode: boolean;
   isTextMode: boolean;
 
@@ -88,6 +91,9 @@ interface LaunchConfigState {
   setSmartcache: (smartcache: boolean) => void;
   setPipelineparallel: (pipelineparallel: boolean) => void;
   setQuantkv: (quantkv: number) => void;
+  setJinja: (jinja: boolean) => void;
+  setJinjatools: (jinjatools: boolean) => void;
+  setJinjakwargs: (jinjakwargs: string) => void;
 
   parseAndApplyConfigFile: (configPath: string) => Promise<void>;
   loadConfigFromFile: (
@@ -400,11 +406,32 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
         updates.quantkv = 0;
       }
 
+      if (typeof configData.jinja === 'boolean') {
+        updates.jinja = configData.jinja;
+      } else {
+        updates.jinja = false;
+      }
+
+      if (typeof configData.jinjatools === 'boolean') {
+        updates.jinjatools = configData.jinjatools;
+      } else {
+        updates.jinjatools = false;
+      }
+
+      if (typeof configData.jinjakwargs === 'string') {
+        updates.jinjakwargs = configData.jinjakwargs;
+      } else {
+        updates.jinjakwargs = '';
+      }
+
       set(updates);
     }
   },
   pipelineparallel: false,
   quantkv: 0,
+  jinja: false,
+  jinjatools: false,
+  jinjakwargs: '',
   port: undefined,
   preLaunchCommands: [''],
   quantmatmul: true,
@@ -482,6 +509,9 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   setSdvae: (vae) => set({ sdvae: vae }),
   setSdvaecpu: (enabled) => set({ sdvaecpu: enabled }),
   setSmartcache: (smartcache) => set({ smartcache }),
+  setJinja: (jinja) => set({ jinja }),
+  setJinjatools: (jinjatools) => set({ jinjatools }),
+  setJinjakwargs: (jinjakwargs) => set({ jinjakwargs }),
   setTensorSplit: (split) => set({ tensorSplit: split }),
   setUsemmap: (usemmap) => set({ usemmap }),
 
