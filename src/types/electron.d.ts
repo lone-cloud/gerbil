@@ -120,6 +120,9 @@ export interface KoboldConfig {
   smartcache?: boolean;
   pipelineparallel?: boolean;
   quantkv?: number;
+  jinja?: boolean;
+  jinjatools?: boolean;
+  jinjakwargs?: string;
   autoGpuLayers?: boolean;
   model?: string;
   backend?: string;

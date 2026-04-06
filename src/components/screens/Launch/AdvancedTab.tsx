@@ -14,11 +14,17 @@ export const AdvancedTab = () => {
     noavx2,
     failsafe,
     debugmode,
+    jinja,
+    jinjatools,
+    jinjakwargs,
     setAdditionalArguments,
     setPreLaunchCommands,
     setNoavx2,
     setFailsafe,
     setDebugmode,
+    setJinja,
+    setJinjatools,
+    setJinjakwargs,
   } = useLaunchConfigStore();
   const [commandLineModalOpen, setCommandLineModalOpen] = useState(false);
   const [backendSupport, setBackendSupport] = useState<{
@@ -86,11 +92,47 @@ export const AdvancedTab = () => {
             label="Debug Mode"
             tooltip="Shows additional debug info in the terminal."
           />
+
+          <CheckboxWithTooltip
+            checked={jinja}
+            onChange={(val) => {
+              setJinja(val);
+              if (!val) setJinjatools(false);
+            }}
+            label="Use Jinja"
+            tooltip="Enables using jinja chat template formatting for chat completions endpoint."
+          />
+
+          <CheckboxWithTooltip
+            checked={jinjatools}
+            onChange={(val) => {
+              setJinjatools(val);
+              if (val) setJinja(true);
+            }}
+            label="Jinja for Tools"
+            tooltip="Allows jinja even with tool calls. If unchecked, jinja will be disabled when tools are used."
+          />
         </SimpleGrid>
       </div>
 
+      {(jinja || jinjatools) && (
+        <div>
+          <Group>
+            <Text size="sm" fw={500}>
+              Jinja Kwargs
+            </Text>
+            <InfoTooltip label="Set additional fields for the Jinja JSON template parser, must be a valid JSON object." />
+          </Group>
+          <TextInput
+            placeholder='e.g. {"enable_thinking":true}'
+            value={jinjakwargs}
+            onChange={(event) => setJinjakwargs(event.currentTarget.value)}
+          />
+        </div>
+      )}
+
       <div>
-        <Group mb="xs" justify="space-between">
+        <Group justify="space-between">
           <Group>
             <Text size="sm" fw={500}>
               Additional Arguments
@@ -109,7 +151,7 @@ export const AdvancedTab = () => {
       </div>
 
       <div>
-        <Group mb="xs">
+        <Group>
           <Text size="sm" fw={500}>
             Pre-Launch Commands
           </Text>

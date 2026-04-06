@@ -142,6 +142,8 @@ async function downloadFile(
         let downloadedBytes = 0;
         let lastReportTime = Date.now();
         let lastReportedBytes = 0;
+        const speedSamples: number[] = [];
+        const SPEED_WINDOW = 10;
 
         fileStream = createWriteStream(tempPath);
 
@@ -154,7 +156,10 @@ async function downloadFile(
 
           if (timeDiff >= 0.5) {
             const bytesDiff = downloadedBytes - lastReportedBytes;
-            const speedBytesPerSec = bytesDiff / timeDiff;
+            const instantSpeed = bytesDiff / timeDiff;
+            speedSamples.push(instantSpeed);
+            if (speedSamples.length > SPEED_WINDOW) speedSamples.shift();
+            const speedBytesPerSec = speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length;
             const percent = totalBytes ? Math.round((downloadedBytes / totalBytes) * 100) : 0;
             const downloadedMB = (downloadedBytes / 1024 / 1024).toFixed(2);
             const totalMB = (totalBytes / 1024 / 1024).toFixed(2);

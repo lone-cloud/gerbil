@@ -68,6 +68,9 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     smartcache,
     pipelineparallel,
     quantkv,
+    jinja,
+    jinjatools,
+    jinjakwargs,
     parseAndApplyConfigFile,
     loadConfigFromFile,
     setModel,
@@ -187,6 +190,9 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     usevulkan: acceleration === 'vulkan',
     websearch,
     quantkv,
+    jinja,
+    jinjatools,
+    jinjakwargs,
   });
 
   const handleCreateNewConfig = async (configName: string) => {
@@ -301,6 +307,9 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
       usemmap,
       websearch,
       quantkv,
+      jinja,
+      jinjatools,
+      jinjakwargs,
     });
   }, [
     handleLaunch,
@@ -342,6 +351,9 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     smartcache,
     pipelineparallel,
     quantkv,
+    jinja,
+    jinjatools,
+    jinjakwargs,
   ]);
 
   return (

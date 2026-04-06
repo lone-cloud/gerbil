@@ -59,6 +59,9 @@ const UI_COVERED_ARGS = new Set([
   '--tensor_split',
   '--debugmode',
   '--lowvram',
+  '--jinja',
+  '--jinja_tools',
+  '--jinja_kwargs',
   '--smartcache',
   '--pipelineparallel',
   '--nopipelineparallel',
@@ -395,30 +398,6 @@ const COMMAND_LINE_ARGUMENTS = [
       'Select an optional ChatCompletions Adapter JSON file to force custom instruct tags.',
     flag: '--chatcompletionsadapter',
     metavar: '[filename]',
-  },
-  {
-    category: 'Advanced',
-    description:
-      'Enables using jinja chat template formatting for chat completions endpoint. Other endpoints are unaffected. Tool calls are done without jinja.',
-    flag: '--jinja',
-    type: 'boolean',
-  },
-  {
-    aliases: ['--jinja-tools', '--jinjatools'],
-    category: 'Advanced',
-    description:
-      'Enables using jinja chat template formatting for chat completions endpoint. Other endpoints are unaffected. Tool calls are done with jinja.',
-    flag: '--jinja_tools',
-    type: 'boolean',
-  },
-  {
-    aliases: ['--jinja-kwargs', '--jinjakwargs', '--chat-template-kwargs'],
-    category: 'Advanced',
-    default: '',
-    description:
-      'Set additional fields for Jinja JSON template parser, must be a valid JSON object.',
-    flag: '--jinja_kwargs',
-    metavar: '{"parameter":"value",...}',
   },
   {
     category: 'Advanced',
