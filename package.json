@@ -1,6 +1,6 @@
 {
   "name": "gerbil",
-  "version": "1.22.0",
+  "version": "1.22.1",
   "description": "Run Large Language Models locally",
   "keywords": [
     "ai",
@@ -44,8 +44,8 @@
     "@codemirror/view": "^6.41.0",
     "@fontsource/inter": "^5.2.8",
     "@huggingface/gguf": "^0.4.1",
-    "@mantine/core": "^8.3.18",
-    "@mantine/hooks": "^8.3.18",
+    "@mantine/core": "^9.0.1",
+    "@mantine/hooks": "^9.0.1",
     "@types/mime-types": "^3.0.1",
     "@types/node": "^25.5.2",
     "@types/react": "^19.2.14",
@@ -61,7 +61,7 @@
     "lucide-react": "^1.7.0",
     "oxfmt": "^0.43.0",
     "oxlint": "^1.58.0",
-    "oxlint-tsgolint": "^0.19.0",
+    "oxlint-tsgolint": "^0.20.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-error-boundary": "^6.1.1",
@@ -72,7 +72,7 @@
     "remark-gfm": "^4.0.1",
     "rollup-plugin-visualizer": "^7.0.1",
     "typescript": "^6.0.2",
-    "vite": "^8.0.3",
+    "vite": "^8.0.5",
     "zustand": "^5.0.12"
   },
   "engines": {
