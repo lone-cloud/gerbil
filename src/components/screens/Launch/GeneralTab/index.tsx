@@ -17,7 +17,7 @@ export const GeneralTab = ({ configLoaded = true }: GeneralTabProps) => {
 
   useEffect(() => {
     if (!isSliding) {
-      return;
+      return undefined;
     }
 
     const handlePointerUp = () => setIsSliding(false);

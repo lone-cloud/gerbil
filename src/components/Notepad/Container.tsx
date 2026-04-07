@@ -111,6 +111,8 @@ export const NotepadContainer = () => {
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
+
+    return undefined;
   }, [resizeDirection, position, setPosition]);
 
   if (!isLoaded || !isVisible) {

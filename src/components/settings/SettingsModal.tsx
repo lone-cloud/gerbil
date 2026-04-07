@@ -51,6 +51,8 @@ export const SettingsModal = ({
         document.body.style.paddingRight = '';
       };
     }
+
+    return undefined;
   }, [opened]);
 
   return (

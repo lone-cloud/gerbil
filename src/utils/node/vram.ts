@@ -48,7 +48,7 @@ function estimateContextVram(
   layerKvInfo: LayerKvInfo | number,
 ) {
   const bytesPerElement = 2;
-  const flashAttnFactor = flashAttention ? 0.5 : 1.0;
+  const flashAttnFactor = flashAttention ? 0.5 : 1;
 
   if (typeof layerKvInfo === 'number') {
     return (2 * contextSize * layers * layerKvInfo * bytesPerElement * flashAttnFactor) / 1024 ** 3;
