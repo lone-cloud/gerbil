@@ -40,7 +40,7 @@ export const StatusBar = () => {
 
   useEffect(() => {
     if (!systemMonitoringEnabled) {
-      return;
+      return undefined;
     }
 
     let isMounted = true;

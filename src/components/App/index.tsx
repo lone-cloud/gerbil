@@ -143,7 +143,7 @@ export const App = () => {
 
   useEffect(() => {
     if (loadingRemote || !hasInitialized) {
-      return;
+      return undefined;
     }
 
     const runUpdateCheck = async () => {
