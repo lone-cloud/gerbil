@@ -425,7 +425,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
                   onClick={handleLaunchClick}
                   size="lg"
                   variant="filled"
-                  color="blue"
+                  color="brand"
                   style={{
                     fontSize: '1em',
                     fontWeight: 600,

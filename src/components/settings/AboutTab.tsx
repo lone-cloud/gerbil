@@ -59,7 +59,7 @@ export const AboutTab = () => {
               <Text size="xl" fw={600}>
                 {PRODUCT_NAME}
               </Text>
-              <Badge variant="light" color="blue" size="lg" style={{ textTransform: 'none' }}>
+              <Badge variant="light" color="brand" size="lg" style={{ textTransform: 'none' }}>
                 v{versionInfo.appVersion}
               </Badge>
             </Group>
@@ -84,17 +84,17 @@ export const AboutTab = () => {
         </Group>
       </Card>
 
-      <Card withBorder radius="md" p="md">
-        <Text size="lg" fw={500} mb="md">
+      <Stack gap="xs">
+        <Text size="sm" fw={500} c="dimmed">
           About {PRODUCT_NAME}
         </Text>
-        <Text size="sm" c="dimmed" mb="md">
+        <Text size="sm" c="dimmed">
           {PRODUCT_NAME} is a user-friendly desktop application that makes it easy to run large
           language models locally on your machine. Whether you&apos;re looking to chat with AI
           models, generate images, or explore different interfaces like SillyTavern and Open WebUI,{' '}
           {PRODUCT_NAME} provides a streamlined experience for local AI.
         </Text>
-      </Card>
+      </Stack>
     </Stack>
   );
 };

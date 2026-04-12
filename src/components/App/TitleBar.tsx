@@ -33,11 +33,7 @@ const renderOption = ({ option }: { option: SelectOption }) => (
 );
 
 export const TitleBar = ({ currentScreen, currentTab, onEject, onTabChange }: TitleBarProps) => {
-  const {
-    resolvedColorScheme: colorScheme,
-    frontendPreference,
-    imageGenerationFrontendPreference,
-  } = usePreferencesStore();
+  const { frontendPreference, imageGenerationFrontendPreference } = usePreferencesStore();
   const { handleLogoClick, getLogoStyles } = useLogoClickSounds();
   const [isMaximized, setIsMaximized] = useState(false);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
@@ -74,8 +70,7 @@ export const TitleBar = ({ currentScreen, currentTab, onEject, onTabChange }: Ti
         style={{
           WebkitAppRegion: isSelectOpen ? 'no-drag' : 'drag',
           alignItems: 'center',
-          backgroundColor:
-            colorScheme === 'dark' ? 'var(--mantine-color-dark-6)' : 'var(--mantine-color-gray-1)',
+          backgroundColor: 'light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6))',
           borderBottom: '1px solid var(--mantine-color-default-border)',
           display: 'flex',
           height: TITLEBAR_HEIGHT,
@@ -154,9 +149,7 @@ export const TitleBar = ({ currentScreen, currentTab, onEject, onTabChange }: Ti
           <Box
             style={{
               backgroundColor:
-                colorScheme === 'dark'
-                  ? 'var(--mantine-color-dark-3)'
-                  : 'var(--mantine-color-gray-4)',
+                'light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3))',
               height: '1.25rem',
               margin: '0 0.25rem',
               width: '0.1rem',

@@ -1,11 +1,10 @@
 import { ActionIcon, Box } from '@mantine/core';
 import { Plus } from 'lucide-react';
-import type { DragEvent, MouseEvent } from 'react';
+import type { DragEvent, KeyboardEvent, MouseEvent } from 'react';
 import { useState } from 'react';
 
 import { Tab } from '@/components/Notepad/Tab';
 import { useNotepadStore } from '@/stores/notepad';
-import { usePreferencesStore } from '@/stores/preferences';
 
 interface NotepadTabsProps {
   onCreateNewTab: () => Promise<void>;
@@ -27,7 +26,6 @@ export const NotepadTabs = ({ onCreateNewTab, onCloseTab }: NotepadTabsProps) =>
     showLineNumbers,
     setShowLineNumbers,
   } = useNotepadStore();
-  const { resolvedColorScheme } = usePreferencesStore();
   const [draggedTabIndex, setDraggedTabIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
@@ -50,6 +48,19 @@ export const NotepadTabs = ({ onCreateNewTab, onCloseTab }: NotepadTabsProps) =>
 
     if (!showLineNumbers) {
       setShowLineNumbers(true);
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    const currentIndex = tabs.findIndex((t) => t.title === activeTabId);
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      const next = (currentIndex + 1) % tabs.length;
+      setActiveTab(tabs[next].title);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const prev = (currentIndex - 1 + tabs.length) % tabs.length;
+      setActiveTab(tabs[prev].title);
     }
   };
 
@@ -79,13 +90,13 @@ export const NotepadTabs = ({ onCreateNewTab, onCloseTab }: NotepadTabsProps) =>
 
   return (
     <Box
+      role="tablist"
+      aria-label="Notepad tabs"
       onContextMenu={handleTabBarContextMenu}
+      onKeyDown={handleKeyDown}
       style={{
-        borderBottom: `1px solid ${
-          resolvedColorScheme === 'dark'
-            ? 'var(--mantine-color-dark-4)'
-            : 'var(--mantine-color-gray-3)'
-        }`,
+        borderBottom:
+          '1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
         display: 'flex',
         minHeight: '2rem',
         overflow: 'hidden',
@@ -116,7 +127,8 @@ export const NotepadTabs = ({ onCreateNewTab, onCloseTab }: NotepadTabsProps) =>
 
       <ActionIcon
         variant="subtle"
-        size="xs"
+        size="sm"
+        aria-label="New tab"
         onClick={() => void onCreateNewTab()}
         style={{
           alignSelf: 'center',

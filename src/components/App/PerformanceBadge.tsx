@@ -1,6 +1,17 @@
 import { ActionIcon, Button, Tooltip } from '@mantine/core';
 import { Activity } from 'lucide-react';
 
+const BADGE_STYLE = {
+  borderRadius: '0.75rem',
+  fontSize: '0.7em',
+  fontWeight: 500,
+  height: 'auto',
+  margin: '0.125rem 0',
+  minWidth: '5rem',
+  padding: '0.25rem 0.5rem',
+  textAlign: 'center',
+} as const;
+
 interface PerformanceBadgeProps {
   label?: string;
   value?: string;
@@ -25,7 +36,12 @@ export const PerformanceBadge = ({
   if (iconOnly) {
     return (
       <Tooltip label={tooltipLabel} position="top">
-        <ActionIcon size="sm" variant="subtle" onClick={() => void handlePerformanceClick()}>
+        <ActionIcon
+          size="sm"
+          variant="subtle"
+          aria-label="View performance details"
+          onClick={() => void handlePerformanceClick()}
+        >
           <Activity size="1.125rem" />
         </ActionIcon>
       </Tooltip>
@@ -37,16 +53,7 @@ export const PerformanceBadge = ({
       <Button
         size="xs"
         variant="light"
-        style={{
-          borderRadius: '0.75rem',
-          fontSize: '0.7em',
-          fontWeight: 500,
-          height: 'auto',
-          margin: '0.125rem 0',
-          minWidth: '5rem',
-          padding: '0.25rem 0.5rem',
-          textAlign: 'center',
-        }}
+        style={BADGE_STYLE}
         onClick={() => void handlePerformanceClick()}
       >
         {label}: {value}

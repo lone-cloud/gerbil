@@ -15,12 +15,8 @@ export const StatusBar = () => {
   const [memoryMetrics, setMemoryMetrics] = useState<MemoryMetrics | null>(null);
   const [gpuMetrics, setGpuMetrics] = useState<GpuMetrics | null>(null);
   const [tunnelBaseUrl, setTunnelBaseUrl] = useState<string | null>(null);
-  const {
-    resolvedColorScheme: colorScheme,
-    systemMonitoringEnabled,
-    frontendPreference,
-    imageGenerationFrontendPreference,
-  } = usePreferencesStore();
+  const { systemMonitoringEnabled, frontendPreference, imageGenerationFrontendPreference } =
+    usePreferencesStore();
   const { isVisible, setVisible } = useNotepadStore();
   const { isImageGenerationMode } = useLaunchConfigStore();
 
@@ -100,13 +96,16 @@ export const StatusBar = () => {
         gap="xs"
         justify="space-between"
         h="100%"
-        bg={colorScheme === 'dark' ? 'dark.6' : 'gray.1'}
+        style={{
+          backgroundColor: 'light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6))',
+        }}
       >
         <Group gap="xs">
           <Tooltip label="Notepad" disabled={isVisible}>
             <ActionIcon
               variant={isVisible ? 'filled' : 'subtle'}
               size="sm"
+              aria-label="Toggle notepad"
               onClick={() => setVisible(!isVisible)}
             >
               <NotepadText size="1.25rem" />
@@ -120,6 +119,7 @@ export const StatusBar = () => {
                     variant="subtle"
                     size="sm"
                     color={copied ? 'teal' : undefined}
+                    aria-label={copied ? 'Copied!' : 'Copy tunnel URL'}
                     onClick={copy}
                   >
                     {copied ? <Check size="1.25rem" /> : <Globe size="1.25rem" />}

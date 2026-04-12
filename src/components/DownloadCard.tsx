@@ -3,7 +3,6 @@ import { Download, Trash2 } from 'lucide-react';
 import type { MouseEvent } from 'react';
 
 import { useKoboldBackendsStore } from '@/stores/koboldBackends';
-import { usePreferencesStore } from '@/stores/preferences';
 import type { BackendInfo } from '@/types';
 import { isWindowsROCmBuild, pretifyBinName } from '@/utils/assets';
 
@@ -30,7 +29,6 @@ export const DownloadCard = ({
   onRedownload,
   onDelete,
 }: DownloadCardProps) => {
-  const { resolvedColorScheme: colorScheme } = usePreferencesStore();
   const { downloading, downloadProgress } = useKoboldBackendsStore();
 
   const isLoading = downloading === backend.name;
@@ -156,8 +154,10 @@ export const DownloadCard = ({
       radius="sm"
       padding="sm"
       {...(backend.isCurrent && {
-        bd: `2px solid var(--mantine-color-${colorScheme === 'dark' ? 'blue-4' : 'blue-6'})`,
-        bg: colorScheme === 'dark' ? 'dark.6' : 'gray.0',
+        style: {
+          border: 'light-dark(var(--mantine-color-brand-6), var(--mantine-color-brand-4))',
+          backgroundColor: 'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6))',
+        },
       })}
     >
       <Group justify="space-between" align="center">
@@ -167,7 +167,7 @@ export const DownloadCard = ({
               {pretifyBinName(backend.name)}
             </Text>
             {backend.isCurrent && (
-              <Badge variant="light" color="blue" size="sm">
+              <Badge variant="light" color="brand" size="sm">
                 Current
               </Badge>
             )}
@@ -217,8 +217,8 @@ export const DownloadCard = ({
 
       {isLoading && currentProgress !== undefined && (
         <Stack gap="xs" mt="sm">
-          <Progress value={currentProgress} color="blue" radius="xl" />
-          <Text size="xs" c="dimmed" ta="center">
+          <Progress value={currentProgress} color="brand" radius="xl" />
+          <Text size="xs" c="dimmed" ta="center" aria-live="polite">
             {currentProgress === 100
               ? '100.0% complete'
               : `${currentProgress.toFixed(1).padStart(5, ' ')}% complete`}

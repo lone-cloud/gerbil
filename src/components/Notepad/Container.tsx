@@ -5,7 +5,6 @@ import type { MouseEvent } from 'react';
 
 import { NOTEPAD_MIN_HEIGHT, NOTEPAD_MIN_WIDTH } from '@/constants/notepad';
 import { useNotepadStore } from '@/stores/notepad';
-import { usePreferencesStore } from '@/stores/preferences';
 
 import { CloseConfirmModal } from './CloseConfirmModal.tsx';
 import { NotepadEditor } from './Editor.tsx';
@@ -23,7 +22,6 @@ export const NotepadContainer = () => {
     isVisible,
     setVisible,
   } = useNotepadStore();
-  const { resolvedColorScheme } = usePreferencesStore();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [resizeDirection, setResizeDirection] = useState<string | null>(null);
@@ -125,10 +123,7 @@ export const NotepadContainer = () => {
       shadow="lg"
       withBorder
       style={{
-        backgroundColor:
-          resolvedColorScheme === 'dark'
-            ? 'var(--mantine-color-dark-6)'
-            : 'var(--mantine-color-white)',
+        backgroundColor: 'light-dark(var(--mantine-color-white), var(--mantine-color-dark-6))',
         bottom: 24,
         cursor: 'default',
         height: position.height,
@@ -199,11 +194,8 @@ export const NotepadContainer = () => {
         <Box
           style={{
             alignItems: 'center',
-            borderBottom: `1px solid ${
-              resolvedColorScheme === 'dark'
-                ? 'var(--mantine-color-dark-4)'
-                : 'var(--mantine-color-gray-3)'
-            }`,
+            borderBottom:
+              '1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
             display: 'flex',
             justifyContent: 'space-between',
             minHeight: 28,
@@ -220,13 +212,31 @@ export const NotepadContainer = () => {
               paddingRight: 8,
             }}
           >
-            <ActionIcon variant="subtle" size="xs" onClick={() => setVisible(false)}>
+            <ActionIcon
+              variant="subtle"
+              size="sm"
+              aria-label="Minimize notepad"
+              onClick={() => setVisible(false)}
+            >
               <Minus size="1rem" />
             </ActionIcon>
           </Box>
         </Box>
 
-        <Box style={{ flex: 1, position: 'relative' }}>
+        <Box
+          role="tabpanel"
+          id={
+            activeTab
+              ? `notepad-panel-${activeTab.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`
+              : undefined
+          }
+          aria-labelledby={
+            activeTab
+              ? `notepad-tab-${activeTab.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`
+              : undefined
+          }
+          style={{ flex: 1, position: 'relative' }}
+        >
           {activeTab && <NotepadEditor key={activeTab.title} tab={activeTab} />}
         </Box>
       </Box>

@@ -54,7 +54,7 @@ export const UpdateAvailableModal = ({
       closeOnEscape={!isDownloading && !isUpdating}
     >
       <Stack gap="md">
-        <Card withBorder radius="md" p="md" bd="2px solid orange">
+        <Card withBorder radius="md" p="md" bd="2px solid var(--mantine-color-orange-5)">
           <Stack gap="xs">
             <Group gap="md" align="center">
               <div>

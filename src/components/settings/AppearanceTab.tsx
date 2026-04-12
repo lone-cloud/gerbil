@@ -2,6 +2,7 @@ import { Group, rem, SegmentedControl, Slider, Stack, Text, TextInput } from '@m
 import type { MantineColorScheme } from '@mantine/core';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
 
 import { FrontendInterfaceSelector } from '@/components/settings/FrontendInterfaceSelector';
 import { ZOOM } from '@/constants';
@@ -13,13 +14,7 @@ interface AppearanceTabProps {
 }
 
 export const AppearanceTab = ({ isOnInterfaceScreen = false }: AppearanceTabProps) => {
-  const {
-    rawColorScheme,
-    resolvedColorScheme,
-    setColorScheme: setStoreColorScheme,
-  } = usePreferencesStore();
-  const isDark = resolvedColorScheme === 'dark';
-
+  const { rawColorScheme, setColorScheme: setStoreColorScheme } = usePreferencesStore();
   const [zoomLevel, setZoomLevel] = useState(ZOOM.DEFAULT_LEVEL as number);
   const [zoomPercentage, setZoomPercentage] = useState(ZOOM.DEFAULT_PERCENTAGE.toString());
 
@@ -74,15 +69,16 @@ export const AppearanceTab = ({ isOnInterfaceScreen = false }: AppearanceTabProp
           fullWidth
           value={rawColorScheme}
           onChange={handleColorSchemeChange}
-          styles={(theme) => ({
-            indicator: {
-              backgroundColor: isDark ? theme.colors.dark[5] : theme.colors.gray[2],
-              border: `1px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[4]}`,
-            },
-            root: {
-              border: `0.5px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[4]}`,
-            },
-          })}
+          style={
+            {
+              '--sc-indicator-color':
+                'light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5))',
+              '--sc-indicator-border':
+                'light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4))',
+              border:
+                '0.5px solid light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4))',
+            } as CSSProperties
+          }
           data={[
             {
               label: (

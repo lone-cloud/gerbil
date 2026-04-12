@@ -140,7 +140,12 @@ export const ModelFileField = ({
         </Button>
         {searchParams && (
           <Tooltip label="Search Hugging Face">
-            <ActionIcon onClick={() => setSearchModalOpened(true)} variant="outline" size="lg">
+            <ActionIcon
+              onClick={() => setSearchModalOpened(true)}
+              variant="outline"
+              size="lg"
+              aria-label="Search Hugging Face"
+            >
               <Search size={16} />
             </ActionIcon>
           </Tooltip>
@@ -156,9 +161,10 @@ export const ModelFileField = ({
             <ActionIcon
               onClick={() => void handleAnalyzeModel()}
               variant="light"
-              color="blue"
+              color="brand"
               size="lg"
               disabled={validationState === 'neutral' || validationState === 'invalid'}
+              aria-label="Analyze model"
             >
               <Info size={16} />
             </ActionIcon>

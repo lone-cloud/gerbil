@@ -3,7 +3,21 @@ import type { CSSVariablesResolver } from '@mantine/core';
 
 export const theme = createTheme({
   black: '#101113',
+  primaryColor: 'brand',
   colors: {
+    // Steel-blue: technical, enthusiast-grade — vibrant but cooler than Mantine default
+    brand: [
+      '#eef5ff', // 0 — faint wash
+      '#d8eaff', // 1
+      '#b0d0ff', // 2
+      '#7aaff7', // 3
+      '#4890f0', // 4 — dark mode accent
+      '#2b72e0', // 5
+      '#1e5ec8', // 6 — light primary
+      '#184eb0', // 7
+      '#113d88', // 8 — dark primary
+      '#0c2d64', // 9 — deep
+    ],
     gray: [
       '#f8f9fa',
       '#f1f3f4',
@@ -52,9 +66,9 @@ export const theme = createTheme({
       },
     },
   },
-  fontFamily: 'Inter, sans-serif',
+  fontFamily: 'Geist, sans-serif',
   headings: {
-    fontFamily: 'Inter, sans-serif',
+    fontFamily: 'Geist, sans-serif',
   },
   white: '#fafafa',
 });
@@ -65,14 +79,16 @@ export const cssVariablesResolver: CSSVariablesResolver = (t) => {
     variables: { ...v8.variables },
     dark: {
       ...v8.dark,
-      '--mantine-color-body': '#0f0f0f',
-      '--mantine-color-default-border': '#2a2a2a',
+      '--mantine-color-body': 'oklch(12% 0.008 240)',
+      '--mantine-color-default-border': 'oklch(22% 0.008 240)',
+      '--gerbil-link-color': 'var(--mantine-color-brand-4)',
     },
     light: {
       ...v8.light,
       '--mantine-color-body': '#fafafa',
       '--mantine-color-white': '#fafafa',
       '--mantine-color-default-border': '#dee2e6',
+      '--gerbil-link-color': 'var(--mantine-color-brand-5)',
     },
   };
 };

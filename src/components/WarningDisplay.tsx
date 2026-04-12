@@ -29,8 +29,8 @@ export const WarningDisplay = ({ warnings, children }: WarningDisplayProps) => {
               warningMessages[0].message
             ) : (
               <List size="sm" spacing={4}>
-                {warningMessages.map((warning, index) => (
-                  <List.Item key={index}>{warning.message}</List.Item>
+                {warningMessages.map((warning) => (
+                  <List.Item key={warning.message}>{warning.message}</List.Item>
                 ))}
               </List>
             )
@@ -48,8 +48,8 @@ export const WarningDisplay = ({ warnings, children }: WarningDisplayProps) => {
               infoMessages[0].message
             ) : (
               <List size="sm" spacing={4}>
-                {infoMessages.map((info, index) => (
-                  <List.Item key={index}>{info.message}</List.Item>
+                {infoMessages.map((info) => (
+                  <List.Item key={info.message}>{info.message}</List.Item>
                 ))}
               </List>
             )
@@ -57,7 +57,7 @@ export const WarningDisplay = ({ warnings, children }: WarningDisplayProps) => {
           multiline
           maw={320}
         >
-          <Info size={18} color="var(--mantine-color-blue-6)" strokeWidth={2} />
+          <Info size={18} color="var(--mantine-color-brand-5)" strokeWidth={2} />
         </Tooltip>
       )}
       {children}

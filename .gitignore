@@ -3,6 +3,8 @@ dist/
 dist-electron/
 out/
 release/
+.agents/
+.impeccable.md
 *.log
 .DS_Store
 Thumbs.db

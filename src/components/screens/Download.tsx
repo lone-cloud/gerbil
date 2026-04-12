@@ -1,4 +1,4 @@
-import { Card, Container, Loader, Stack, Text, Title } from '@mantine/core';
+import { Container, Loader, Stack, Text, Title } from '@mantine/core';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { DownloadCard } from '@/components/DownloadCard';
@@ -59,66 +59,62 @@ export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
 
   return (
     <Container size="sm" mt="md">
-      <Card withBorder radius="md" shadow="sm">
-        <Stack gap="lg">
-          <Title order={3}>Select a Backend</Title>
+      <Stack gap="lg">
+        <Title order={3}>Select a Backend</Title>
 
-          {loading ? (
-            <Stack align="center" gap="md" py="xl">
-              <Loader color="blue" />
-              <Text c="dimmed">Preparing download options...</Text>
-            </Stack>
-          ) : (
-            <>
-              {availableDownloads.length > 0 ? (
-                <Stack gap="sm">
-                  {availableDownloads.map((download) => {
-                    const isDownloading =
-                      Boolean(downloading) && downloadingAsset === download.name;
+        {loading ? (
+          <Stack align="center" gap="md" py="xl">
+            <Loader color="brand" />
+            <Text c="dimmed">Preparing download options...</Text>
+          </Stack>
+        ) : (
+          <>
+            {availableDownloads.length > 0 ? (
+              <Stack gap="sm">
+                {availableDownloads.map((download) => {
+                  const isDownloading = Boolean(downloading) && downloadingAsset === download.name;
 
-                    return (
-                      <div key={download.name} ref={isDownloading ? downloadingItemRef : null}>
-                        <DownloadCard
-                          backend={{
-                            downloadUrl: download.url,
-                            hasUpdate: false,
-                            isCurrent: false,
-                            isInstalled: false,
-                            name: download.name,
-                            size: download.size,
-                            version: download.version ?? '',
-                          }}
-                          size={formatDownloadSize(download.size, download.url)}
-                          description={getAssetDescription(download.name)}
-                          disabled={
-                            importing ||
-                            (Boolean(downloading) && downloadingAsset !== download.name)
-                          }
-                          onDownload={(e) => {
-                            e.stopPropagation();
-                            void handleDownload(download);
-                          }}
-                        />
-                      </div>
-                    );
-                  })}
-                </Stack>
-              ) : (
-                <Text size="sm" c="dimmed" ta="center">
-                  Unable to fetch downloads for your platform ({getPlatformDisplayName(platform)}).
-                  Check your internet connection and try again.
-                </Text>
-              )}
+                  return (
+                    <div key={download.name} ref={isDownloading ? downloadingItemRef : null}>
+                      <DownloadCard
+                        backend={{
+                          downloadUrl: download.url,
+                          hasUpdate: false,
+                          isCurrent: false,
+                          isInstalled: false,
+                          name: download.name,
+                          size: download.size,
+                          version: download.version ?? '',
+                        }}
+                        size={formatDownloadSize(download.size, download.url)}
+                        description={getAssetDescription(download.name)}
+                        disabled={
+                          importing || (Boolean(downloading) && downloadingAsset !== download.name)
+                        }
+                        onDownload={(e) => {
+                          e.stopPropagation();
+                          void handleDownload(download);
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </Stack>
+            ) : (
+              <Text size="sm" c="dimmed" ta="center">
+                Unable to fetch downloads for your platform ({getPlatformDisplayName(platform)}).
+                Check your internet connection and try again.
+              </Text>
+            )}
 
-              <ImportBackendLink
-                disabled={Boolean(downloading)}
-                onSuccess={onDownloadComplete}
-                onImportingChange={setImporting}
-              />
-            </>
-          )}
-        </Stack>
-      </Card>
+            <ImportBackendLink
+              disabled={Boolean(downloading)}
+              onSuccess={onDownloadComplete}
+              onImportingChange={setImporting}
+            />
+          </>
+        )}
+      </Stack>
     </Container>
   );
 };
