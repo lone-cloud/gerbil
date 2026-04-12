@@ -76,9 +76,10 @@ export const ModelCard = ({ modelId }: ModelCardProps) => {
                       }}
                     />
                   ),
-                  img: ({ node: _, ...props }) => (
+                  img: ({ node: _, alt, ...props }) => (
                     <img
                       {...props}
+                      alt={alt ?? ''}
                       style={{
                         maxWidth: '100%',
                         height: 'auto',

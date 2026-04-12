@@ -3,7 +3,6 @@ import { ChevronDown } from 'lucide-react';
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
 import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
-import { usePreferencesStore } from '@/stores/preferences';
 import { handleTerminalOutput, processTerminalContent } from '@/utils/terminal';
 
 export interface TerminalTabRef {
@@ -11,7 +10,6 @@ export interface TerminalTabRef {
 }
 
 export const TerminalTab = forwardRef<TerminalTabRef>((_props, ref) => {
-  const { resolvedColorScheme: colorScheme } = usePreferencesStore();
   const [terminalContent, setTerminalContent] = useState('');
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
@@ -87,9 +85,7 @@ export const TerminalTab = forwardRef<TerminalTabRef>((_props, ref) => {
     <Box
       style={{
         backgroundColor:
-          colorScheme === 'dark'
-            ? 'var(--mantine-color-dark-filled)'
-            : 'var(--mantine-color-gray-0)',
+          'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-filled))',
         borderRadius: 'inherit',
         display: 'flex',
         flexDirection: 'column',
@@ -101,22 +97,14 @@ export const TerminalTab = forwardRef<TerminalTabRef>((_props, ref) => {
         ref={scrollAreaRef}
         viewportRef={viewportRef}
         onScrollPositionChange={handleScroll}
-        style={{
-          flex: 1,
-          fontFamily: 'Monaco, Menlo, Ubuntu Mono, monospace',
-          fontSize: '0.875em',
-          lineHeight: 1.4,
-        }}
+        style={{ flex: 1 }}
         scrollbarSize={8}
         offsetScrollbars={false}
       >
         <Box p="md">
           <div
             style={{
-              color:
-                colorScheme === 'dark'
-                  ? 'var(--mantine-color-gray-0)'
-                  : 'var(--mantine-color-dark-filled)',
+              color: 'light-dark(var(--mantine-color-dark-filled), var(--mantine-color-gray-0))',
               fontFamily:
                 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
               fontSize: '0.875em',
@@ -137,13 +125,13 @@ export const TerminalTab = forwardRef<TerminalTabRef>((_props, ref) => {
       {isUserScrolling && !shouldAutoScroll && (
         <ActionIcon
           variant="filled"
-          color="blue"
+          color="brand"
           size="lg"
           radius="xl"
           onClick={scrollToBottom}
           style={{
             bottom: '1.25rem',
-            boxShadow: '0 0.125rem 0.5rem rgba(0, 0, 0, 0.3)',
+            boxShadow: 'var(--gerbil-shadow-sm)',
             position: 'absolute',
             right: '1.25rem',
             zIndex: 10,

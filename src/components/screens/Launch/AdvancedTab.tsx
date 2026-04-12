@@ -159,7 +159,7 @@ export const AdvancedTab = () => {
         </Group>
         <Stack gap="xs">
           {preLaunchCommands.map((command, index) => (
-            <Group key={index} gap="xs">
+            <Group key={`cmd-${index}-${command}`} gap="xs">
               <TextInput
                 placeholder="Enter a shell command"
                 value={command}
@@ -174,6 +174,7 @@ export const AdvancedTab = () => {
                 variant="subtle"
                 color="red"
                 disabled={preLaunchCommands.length === 1}
+                aria-label={`Remove command ${index + 1}`}
                 onClick={() => {
                   const newCommands = preLaunchCommands.filter((_, i) => i !== index);
                   setPreLaunchCommands(newCommands.length === 0 ? [''] : newCommands);

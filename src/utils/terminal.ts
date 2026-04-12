@@ -15,7 +15,7 @@ const linkifyText = (text: string) =>
     const cleanUrl = url.replace(/[.,;:!?]+$/, '');
     const trailingPunctuation = url.slice(cleanUrl.length);
 
-    return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" style="color: #339af0; text-decoration: underline; cursor: pointer;">${cleanUrl}</a>${trailingPunctuation}`;
+    return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" style="color: var(--gerbil-link-color, #4f8cc5); text-decoration: underline; cursor: pointer;">${cleanUrl}</a>${trailingPunctuation}`;
   });
 
 const escapeHtmlExceptLinks = (text: string) => {

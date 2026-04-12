@@ -97,7 +97,7 @@ export const ModelsTable = ({
             </Table.Td>
             <Table.Td>
               {model.paramSize && (
-                <Badge size="sm" variant="light" color="blue">
+                <Badge size="sm" variant="light" color="brand">
                   {model.paramSize}
                 </Badge>
               )}

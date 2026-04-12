@@ -244,7 +244,7 @@ export const BackendsTab = () => {
               target="_blank"
               rel="noopener noreferrer"
               size="sm"
-              c="blue"
+              c="brand"
             >
               <Group gap={4} align="center">
                 <span>Release notes</span>

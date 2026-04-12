@@ -72,7 +72,6 @@ export const UpdateButton = () => {
         color={color}
         size={TITLEBAR_HEIGHT}
         aria-label={label}
-        tabIndex={-1}
         onClick={onClick}
         onContextMenu={handleContextMenu}
         style={{

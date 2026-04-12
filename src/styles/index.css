@@ -1,18 +1,32 @@
 @import '@mantine/core/styles.css';
-@import '@fontsource/inter/latin-400.css';
-@import '@fontsource/inter/latin-500.css';
-@import '@fontsource/inter/latin-600.css';
+@import '@fontsource/geist/latin-400.css';
+@import '@fontsource/geist/latin-500.css';
+@import '@fontsource/geist/latin-600.css';
+
+:root {
+  --gerbil-window-border: light-dark(rgba(0, 0, 0, 0.15), rgba(255, 255, 255, 0.08));
+  --gerbil-scrollbar-thumb: rgba(134, 142, 150, 0.5);
+  --gerbil-scrollbar-thumb-hover: rgba(134, 142, 150, 0.8);
+  --gerbil-scrollbar-thumb-active: rgba(73, 80, 87, 0.9);
+  --gerbil-shadow-sm: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.3);
+}
+
+[data-mantine-color-scheme='dark'] {
+  --gerbil-scrollbar-thumb: rgba(173, 181, 189, 0.5);
+  --gerbil-scrollbar-thumb-hover: rgba(173, 181, 189, 0.8);
+  --gerbil-scrollbar-thumb-active: rgba(206, 212, 218, 0.9);
+}
 
 #root {
   height: 100vh;
   width: 100vw;
-  border-left: 1px solid light-dark(rgba(0, 0, 0, 0.15), rgba(255, 255, 255, 0.08));
-  border-right: 1px solid light-dark(rgba(0, 0, 0, 0.15), rgba(255, 255, 255, 0.08));
+  border-left: 1px solid var(--gerbil-window-border);
+  border-right: 1px solid var(--gerbil-window-border);
   box-sizing: border-box;
 }
 
 [data-mantine-color-scheme='light'] .mantine-Select-option:hover {
-  background-color: #e9ecef;
+  background-color: var(--mantine-color-gray-2);
 }
 
 /* Custom scrollbars */
@@ -27,30 +41,30 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(134, 142, 150, 0.5);
+  background: var(--gerbil-scrollbar-thumb);
   border-radius: 0.25rem;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(134, 142, 150, 0.8);
+  background: var(--gerbil-scrollbar-thumb-hover);
 }
 
 ::-webkit-scrollbar-thumb:active {
-  background: rgba(73, 80, 87, 0.9);
+  background: var(--gerbil-scrollbar-thumb-active);
 }
 
 /* Dark mode scrollbar support */
 [data-mantine-color-scheme='dark'] ::-webkit-scrollbar-thumb {
-  background: rgba(173, 181, 189, 0.5);
+  background: var(--gerbil-scrollbar-thumb);
 }
 
 [data-mantine-color-scheme='dark'] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(173, 181, 189, 0.8);
+  background: var(--gerbil-scrollbar-thumb-hover);
 }
 
 [data-mantine-color-scheme='dark'] ::-webkit-scrollbar-thumb:active {
-  background: rgba(206, 212, 218, 0.9);
+  background: var(--gerbil-scrollbar-thumb-active);
 }
 
 /* TitleBar gerbil icon animations */

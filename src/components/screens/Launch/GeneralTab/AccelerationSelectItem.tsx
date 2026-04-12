@@ -36,7 +36,7 @@ export const AccelerationSelectItem = ({
           discreteDevices.length > 0 && (
             <Group gap={4}>
               {discreteDevices.slice(0, 2).map((device, index) => (
-                <Badge key={index} size="md" variant="light" color="blue">
+                <Badge key={index} size="md" variant="light" color="brand">
                   {renderDeviceName(device)}
                 </Badge>
               ))}

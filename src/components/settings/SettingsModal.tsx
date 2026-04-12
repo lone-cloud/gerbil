@@ -8,7 +8,7 @@ import {
   SlidersHorizontal,
   Wrench,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { Modal } from '@/components/Modal';
 import { AboutTab } from '@/components/settings/AboutTab';
@@ -37,23 +37,6 @@ export const SettingsModal = ({
   const showBackendsTab = currentScreen !== 'download' && currentScreen !== 'welcome';
 
   const effectiveActiveTab = !showBackendsTab && activeTab === 'backends' ? 'general' : activeTab;
-
-  useEffect(() => {
-    if (opened) {
-      const originalOverflow = document.body.style.overflow;
-      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-
-      document.body.style.overflow = 'hidden';
-      document.body.style.paddingRight = `${scrollbarWidth}px`;
-
-      return () => {
-        document.body.style.overflow = originalOverflow;
-        document.body.style.paddingRight = '';
-      };
-    }
-
-    return undefined;
-  }, [opened]);
 
   return (
     <Modal

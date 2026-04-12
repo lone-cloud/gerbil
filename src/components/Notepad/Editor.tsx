@@ -20,24 +20,22 @@ export const NotepadEditor = ({ tab }: NotepadEditorProps) => {
   const { saveTabContent, showLineNumbers, setShowLineNumbers } = useNotepadStore();
   const { resolvedColorScheme } = usePreferencesStore();
   const [content, setContent] = useState(() => tab.content);
-  const [saveTimeout, setSaveTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const editorRef = useRef<ReactCodeMirrorRef>(null);
 
   const handleContentChange = useCallback(
     (newContent: string) => {
       setContent(newContent);
 
-      if (saveTimeout) {
-        clearTimeout(saveTimeout);
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
       }
 
-      const timeout = setTimeout(() => {
+      saveTimeoutRef.current = setTimeout(() => {
         void saveTabContent(tab.title, newContent);
       }, 500);
-
-      setSaveTimeout(timeout);
     },
-    [tab.title, saveTabContent, saveTimeout],
+    [tab.title, saveTabContent],
   );
 
   const handleEditorContextMenu = (e: MouseEvent) => {
@@ -56,11 +54,11 @@ export const NotepadEditor = ({ tab }: NotepadEditorProps) => {
 
   useEffect(
     () => () => {
-      if (saveTimeout) {
-        clearTimeout(saveTimeout);
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
       }
     },
-    [saveTimeout],
+    [],
   );
 
   const extensions = [

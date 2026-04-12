@@ -13,12 +13,14 @@ export const ScreenTransition = ({ isActive, shouldAnimate, children }: ScreenTr
     transition="fade"
     duration={shouldAnimate ? 100 : 0}
     timingFunction="ease-out"
+    keepMounted={false}
   >
     {(styles) => (
       <div
         style={{
           ...styles,
         }}
+        inert={!isActive ? true : undefined}
       >
         {children}
       </div>

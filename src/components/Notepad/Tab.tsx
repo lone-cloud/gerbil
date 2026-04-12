@@ -3,8 +3,6 @@ import { X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { DragEvent, KeyboardEvent, MouseEvent } from 'react';
 
-import { usePreferencesStore } from '@/stores/preferences';
-
 interface TabProps {
   title: string;
   index: number;
@@ -34,7 +32,6 @@ export const Tab = ({
   showLineNumbers,
   setShowLineNumbers,
 }: TabProps) => {
-  const { resolvedColorScheme } = usePreferencesStore();
   const [isEditing, setIsEditing] = useState(false);
   const [editingTitle, setEditingTitle] = useState(title);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -97,28 +94,32 @@ export const Tab = ({
 
   return (
     <Box
+      id={`notepad-tab-${title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`}
+      role="tab"
+      aria-selected={isActive}
+      aria-controls={`notepad-panel-${title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`}
+      tabIndex={isActive ? 0 : -1}
       draggable={!isEditing}
       onClick={handleTabClick}
       onMouseDown={handleMouseDown}
+      onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
+        if (!isEditing && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          handleTabClick();
+        }
+      }}
       onDragStart={(e) => onDragStart(e, index)}
       onDragOver={onDragOver}
       onDrop={(e) => onDrop(e, index)}
       style={{
         alignItems: 'center',
         backgroundColor: isActive
-          ? resolvedColorScheme === 'dark'
-            ? 'var(--mantine-color-dark-4)'
-            : 'var(--mantine-color-gray-1)'
+          ? 'light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))'
           : isDragOver
-            ? resolvedColorScheme === 'dark'
-              ? 'var(--mantine-color-dark-5)'
-              : 'var(--mantine-color-gray-2)'
+            ? 'light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5))'
             : 'transparent',
-        borderRight: `1px solid ${
-          resolvedColorScheme === 'dark'
-            ? 'var(--mantine-color-dark-4)'
-            : 'var(--mantine-color-gray-3)'
-        }`,
+        borderRight:
+          '1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
         cursor: isEditing ? 'default' : 'pointer',
         display: 'flex',
         gap: '0.25rem',
@@ -173,7 +174,7 @@ export const Tab = ({
         </Text>
       )}
 
-      <ActionIcon variant="subtle" size="xs" onClick={onClose}>
+      <ActionIcon variant="subtle" size="sm" aria-label="Close tab" onClick={onClose}>
         <X size="0.625rem" />
       </ActionIcon>
     </Box>

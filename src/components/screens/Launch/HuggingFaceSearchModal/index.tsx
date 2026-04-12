@@ -136,7 +136,7 @@ export const HuggingFaceSearchModal = ({
       <Stack gap="md" style={{ height: '100%' }}>
         {selectedModel ? (
           <Group gap="xs" wrap="nowrap">
-            <ActionIcon variant="subtle" onClick={handleBack}>
+            <ActionIcon variant="subtle" aria-label="Back to search results" onClick={handleBack}>
               <ArrowLeft size={18} />
             </ActionIcon>
             <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
@@ -148,7 +148,11 @@ export const HuggingFaceSearchModal = ({
               </Text>
             </Stack>
             <Tooltip label="Open on Hugging Face">
-              <ActionIcon variant="subtle" onClick={handleOpenExternal}>
+              <ActionIcon
+                variant="subtle"
+                aria-label="Open on Hugging Face"
+                onClick={handleOpenExternal}
+              >
                 <ExternalLink size={16} />
               </ActionIcon>
             </Tooltip>

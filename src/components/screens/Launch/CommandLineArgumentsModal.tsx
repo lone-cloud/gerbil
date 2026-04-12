@@ -885,7 +885,11 @@ export const CommandLineArgumentsModal = ({
                       gap="xs"
                       p="sm"
                       style={{
-                        borderLeft: '3px solid var(--mantine-color-blue-4)',
+                        background:
+                          'light-dark(var(--mantine-color-brand-0), var(--mantine-color-dark-6))',
+                        borderRadius: 'var(--mantine-radius-sm)',
+                        border:
+                          '1px solid light-dark(var(--mantine-color-brand-2), var(--mantine-color-dark-4))',
                       }}
                     >
                       <Group gap="xs" wrap="wrap" justify="space-between">
@@ -897,7 +901,7 @@ export const CommandLineArgumentsModal = ({
                             </Code>
                           ))}
                           {arg.type && (
-                            <Badge size="xs" variant="light" color="blue">
+                            <Badge size="xs" variant="light" color="brand">
                               {arg.type}
                             </Badge>
                           )}
