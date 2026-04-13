@@ -5,8 +5,8 @@ export const Switch = (props: SwitchProps) => (
   <MantineSwitch
     {...props}
     styles={{
-      thumb: { transition: 'left 100ms ease, background-color 100ms ease' },
-      track: { transition: 'background-color 100ms ease' },
+      thumb: { transition: 'none' },
+      track: { transition: 'none' },
     }}
   />
 );
