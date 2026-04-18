@@ -17,7 +17,7 @@
 
 <!-- markdownlint-enable MD033 -->
 
-Gerbil provides a graphical interface for running Large Language Models locally. It handles the technical complexity of managing backends, model downloads, and hardware acceleration - letting you focus on using AI rather than configuring it.
+Gerbil is a GUI for running Large Language Models locally.
 
 ## Features
 
@@ -29,14 +29,14 @@ Gerbil provides a graphical interface for running Large Language Models locally.
 - **Integrated HuggingFace search** - Browse models, view model cards, and download GGUF files directly from the app
 - **SillyTavern integration** - Launch SillyTavern for advanced character interactions (requires [Node.js](https://nodejs.org/))
 - **OpenWebUI integration** - Launch OpenWebUI for a modern web-based chat interface (requires [uv](https://docs.astral.sh/uv/getting-started/installation/))
-- **Privacy-focused** - Everything runs locally with no external data transmission or telemetry
+- **Privacy-focused** - No telemetry, no external servers, no accounts
 
 ## Quick Start
 
 1. **[Download Gerbil](https://github.com/lone-cloud/gerbil/releases/latest)** for your platform
 2. **Launch the app** - No installation needed for portable versions
 3. **Download a model** - Use the default model, use the built-in HuggingFace search by clicking on the looking glass icon, or import your own
-4. **Start generating** - Text and image generation is supported
+4. **Start chatting** - Text and image generation both work out of the box
 
 ## Installation
 
@@ -132,13 +132,11 @@ https://github.com/user-attachments/assets/9e7ecfb3-3576-443c-8cef-a14e06ab5b60
 
 ## Advanced Configuration
 
-Gerbil provides access to 80 KoboldCpp command line arguments through a built-in modal. While the GUI covers common settings, the command line arguments modal exposes 70+ additional advanced options.
+The Launch screen's Advanced tab exposes 80+ KoboldCpp arguments with descriptions, defaults, and examples — for when you need more than the GUI covers.
 
 <div align="center">
   <img src="assets/screenshot-cli-args.webp" alt="Command Line Arguments Modal" width="800">
 </div>
-
-Access the modal from the Launch screen's Advanced tab -"Additional Arguments" field to browse all available options with descriptions, default values, and usage examples organized by category.
 
 ## CLI Mode
 
