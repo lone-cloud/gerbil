@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { GITHUB_API } from '@/constants';
+import { withRetry } from '@/utils/logger';
 import { compareVersions } from '@/utils/version';
 
 interface AppUpdateInfo {
@@ -61,8 +62,8 @@ export const useAppUpdateChecker = () => {
     try {
       const currentVersion = await window.electronAPI.app.getVersion();
 
-      const response = await fetch(
-        `${GITHUB_API.BASE_URL}/repos/${GITHUB_API.GERBIL_REPO}/releases/latest`,
+      const response = await withRetry(() =>
+        fetch(`${GITHUB_API.BASE_URL}/repos/${GITHUB_API.GERBIL_REPO}/releases/latest`),
       );
 
       if (!response.ok) {
