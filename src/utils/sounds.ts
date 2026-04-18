@@ -38,14 +38,18 @@ export const initializeAudio = async () => {
         audio.pause();
         audio.currentTime = 0;
         audio.volume = 0.5;
-      } catch {}
+      } catch (err) {
+        window.electronAPI.logs.logError(`Failed to init audio for ${soundUrl}: ${String(err)}`);
+      }
 
       audioCache.set(soundUrl, audio);
     });
 
     await Promise.allSettled(initPromises);
     audioInitialized = true;
-  } catch {}
+  } catch (err) {
+    window.electronAPI.logs.logError(`initializeAudio failed: ${String(err)}`);
+  }
 };
 
 export const playSound = async (soundUrl: string, volume = 0.5) => {
@@ -63,5 +67,7 @@ export const playSound = async (soundUrl: string, volume = 0.5) => {
     audio.volume = volume;
     audio.currentTime = 0;
     await audio.play();
-  } catch {}
+  } catch (err) {
+    window.electronAPI.logs.logError(`playSound failed for ${soundUrl}: ${String(err)}`);
+  }
 };

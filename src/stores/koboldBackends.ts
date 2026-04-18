@@ -9,7 +9,7 @@ import type {
   ReleaseWithStatus,
 } from '@/types/electron';
 import { sortDownloadsByType } from '@/utils/assets';
-import { logError, safeExecute } from '@/utils/logger';
+import { logError, safeExecute, withRetry } from '@/utils/logger';
 import { filterAssetsByPlatform } from '@/utils/platform';
 import { getROCmDownload } from '@/utils/rocm';
 
@@ -154,7 +154,7 @@ export const useKoboldBackendsStore = create<KoboldBackendsState>((set, get) => 
       const platform = await window.electronAPI.kobold.getPlatform();
       set({ platform, loadingPlatform: false });
 
-      const downloads = await fetchDownloads(platform);
+      const downloads = await withRetry(() => fetchDownloads(platform));
       set({ availableDownloads: downloads });
     } catch (error) {
       logError('Failed to initialize store:', error as Error);
