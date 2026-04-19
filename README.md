@@ -4,20 +4,18 @@
 
 # Gerbil
 
-**The simplest way to run Large Language Models on your own hardware**
+**Local text and image generation, on your own hardware**
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)](https://github.com/lone-cloud/gerbil/releases)
 [![GitHub stars](https://img.shields.io/github/stars/lone-cloud/gerbil)](https://github.com/lone-cloud/gerbil/stargazers)
 [![AUR version](https://img.shields.io/aur/version/gerbil)](https://aur.archlinux.org/packages/gerbil)
 
-[Download](https://github.com/lone-cloud/gerbil/releases/latest) • [Features](#features) • [Screenshots](#demo--screenshots) • [Installation](#installation)
+[Download](https://github.com/lone-cloud/gerbil/releases/latest) • [Screenshots](#demo--screenshots) • [Installation](#installation)
 
 </div>
 
 <!-- markdownlint-enable MD033 -->
-
-Gerbil is a GUI for running Large Language Models locally.
 
 ## Features
 
@@ -132,7 +130,7 @@ https://github.com/user-attachments/assets/9e7ecfb3-3576-443c-8cef-a14e06ab5b60
 
 ## Advanced Configuration
 
-The Launch screen's Advanced tab exposes 80+ KoboldCpp arguments with descriptions, defaults, and examples — for when you need more than the GUI covers.
+The Launch screen's Advanced tab exposes 80+ KoboldCpp arguments with descriptions, defaults, and examples, for when you need more than the GUI covers.
 
 <div align="center">
   <img src="assets/screenshot-cli-args.webp" alt="Command Line Arguments Modal" width="800">
