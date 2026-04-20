@@ -161,8 +161,9 @@ const buildConfigArgs = (isImageMode: boolean, launchArgs: LaunchArgs) => {
     args.push('--pipelineparallel');
   }
 
-  if (launchArgs.quantkv > 0) {
-    args.push('--quantkv', launchArgs.quantkv.toString());
+  const quantkvMap: Record<number, string> = { 1: 'q8_0', 2: 'q4_0', 3: 'bf16', 4: 'q5_1' };
+  if (launchArgs.quantkv > 0 && quantkvMap[launchArgs.quantkv]) {
+    args.push('--quantkv', quantkvMap[launchArgs.quantkv]);
   }
 
   if (launchArgs.jinjatools) {

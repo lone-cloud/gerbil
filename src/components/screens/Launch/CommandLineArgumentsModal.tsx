@@ -175,6 +175,15 @@ const COMMAND_LINE_ARGUMENTS = [
   },
   {
     category: 'Advanced',
+    default: 512,
+    description:
+      'How much extra to pad the SWA KV cache, extending the SWA context window by the specified number of tokens. Only active when --useswa is enabled.',
+    flag: '--swapadding',
+    metavar: '[tokens]',
+    type: 'int',
+  },
+  {
+    category: 'Advanced',
     default: '0.0 10000.0',
     description:
       'If set, uses customized RoPE scaling from configured frequency scale and frequency base (e.g. --ropeconfig 0.25 10000). Otherwise, uses NTK-Aware scaling set automatically based on context size. For linear rope, simply set the freq-scale and ignore the freq-base',
@@ -317,6 +326,26 @@ const COMMAND_LINE_ARGUMENTS = [
       'Clamp MMProj vision maximum allowed resolution. Allowed values are between 512 to 2048 px (default 1024).',
     flag: '--visionmaxres',
     metavar: '[max px]',
+    type: 'int',
+  },
+  {
+    aliases: ['--image-min-tokens'],
+    category: 'Multimodal',
+    default: -1,
+    description:
+      'Override the minimum tokens for the MMProj vision embedding (default -1, use model default).',
+    flag: '--visionmintokens',
+    metavar: '[tokens]',
+    type: 'int',
+  },
+  {
+    aliases: ['--image-max-tokens'],
+    category: 'Multimodal',
+    default: -1,
+    description:
+      'Override the maximum tokens for the MMProj vision embedding (default -1, use model default).',
+    flag: '--visionmaxtokens',
+    metavar: '[tokens]',
     type: 'int',
   },
   {
@@ -528,6 +557,14 @@ const COMMAND_LINE_ARGUMENTS = [
       'Autoswap mode builds on router mode to allow switching of model types within the same config automatically. Requires admin mode and router mode. All models desired must be defined within the same config.',
     flag: '--autoswapmode',
     type: 'boolean',
+  },
+  {
+    category: 'Administration',
+    default: '',
+    description:
+      'Specify a base .kcpps config to apply if no custom base config is selected during a model swap. The config will be merged with the config being loaded.',
+    flag: '--baseconfig',
+    metavar: '[filename]',
   },
   {
     category: 'Horde Worker',
@@ -762,6 +799,15 @@ const COMMAND_LINE_ARGUMENTS = [
       'Specify path to mcp.json which contains the Cladue Desktop compatible MCP server config.',
     flag: '--mcpfile',
     metavar: '[mcp json file]',
+  },
+  {
+    aliases: ['--chat-template-file'],
+    category: 'Advanced',
+    default: '',
+    description:
+      "Select a custom Jinja chat template file, overwriting the model's built-in Jinja chat template.",
+    flag: '--jinjatemplate',
+    metavar: '[filename]',
   },
   {
     aliases: ['-dev'],
