@@ -140,6 +140,7 @@ export const ConfigFileManager = ({
               onClick={handleDeleteClick}
               disabled={!selectedFile}
               color="red"
+              aria-label="Delete configuration"
               style={{ padding: '0 0.5rem', width: '2.5rem' }}
             >
               <Trash2 size={16} />

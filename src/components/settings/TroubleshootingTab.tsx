@@ -44,6 +44,7 @@ export const TroubleshootingTab = () => {
             readOnly
             placeholder="Default installation directory"
             style={{ flex: 1 }}
+            aria-label="Installation directory path"
             leftSection={<Folder style={{ height: rem(16), width: rem(16) }} />}
           />
           <Button

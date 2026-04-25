@@ -9,7 +9,7 @@ import { StatusBar } from '@/components/App/StatusBar';
 import { TitleBar } from '@/components/App/TitleBar';
 import { UpdateAvailableModal } from '@/components/App/UpdateAvailableModal';
 import { NotepadContainer } from '@/components/Notepad/Container';
-import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
+import { SERVER_READY_DELAY_MS, STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { useKoboldBackendsStore } from '@/stores/koboldBackends';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
@@ -53,7 +53,7 @@ export const App = () => {
       setTimeout(() => {
         setIsServerReady(true);
         setActiveInterfaceTab(defaultInterfaceTab);
-      }, 3000);
+      }, SERVER_READY_DELAY_MS);
     });
 
     return cleanup;

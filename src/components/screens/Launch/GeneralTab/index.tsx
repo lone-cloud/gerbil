@@ -69,6 +69,7 @@ export const GeneralTab = ({ configLoaded = true }: GeneralTabProps) => {
                 step={256}
                 size="sm"
                 w={100}
+                aria-label="Context size"
               />
             </Group>
             <div onPointerDown={() => setIsSliding(true)}>

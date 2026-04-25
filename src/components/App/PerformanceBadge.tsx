@@ -3,8 +3,9 @@ import { Activity } from 'lucide-react';
 
 const BADGE_STYLE = {
   borderRadius: '0.75rem',
-  fontSize: '0.7em',
-  fontWeight: 500,
+  fontSize: '0.7rem',
+  fontWeight: 600,
+  fontVariantNumeric: 'tabular-nums',
   height: 'auto',
   margin: '0.125rem 0',
   minWidth: '5rem',
@@ -39,7 +40,7 @@ export const PerformanceBadge = ({
         <ActionIcon
           size="sm"
           variant="subtle"
-          aria-label="View performance details"
+          aria-label={tooltipLabel}
           onClick={() => void handlePerformanceClick()}
         >
           <Activity size="1.125rem" />
@@ -52,8 +53,9 @@ export const PerformanceBadge = ({
     <Tooltip label={tooltipLabel} position="top">
       <Button
         size="xs"
-        variant="light"
+        variant="subtle"
         style={BADGE_STYLE}
+        aria-label={tooltipLabel}
         onClick={() => void handlePerformanceClick()}
       >
         {label}: {value}

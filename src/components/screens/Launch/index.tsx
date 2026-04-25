@@ -1,4 +1,4 @@
-import { Button, Card, Container, Group, Stack, Tabs } from '@mantine/core';
+import { Button, Container, Tabs } from '@mantine/core';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { AdvancedTab } from '@/components/screens/Launch/AdvancedTab';
@@ -8,7 +8,7 @@ import { ImageGenerationTab } from '@/components/screens/Launch/ImageGenerationT
 import { NetworkTab } from '@/components/screens/Launch/NetworkTab';
 import { PerformanceTab } from '@/components/screens/Launch/PerformanceTab';
 import { WarningDisplay } from '@/components/WarningDisplay';
-import { DEFAULT_MODEL_URL } from '@/constants';
+import { DEFAULT_MODEL_URL, STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
 import { useLaunchLogic } from '@/hooks/useLaunchLogic';
 import { useWarnings } from '@/hooks/useWarnings';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
@@ -356,92 +356,117 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     jinjakwargs,
   ]);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Enter') return;
+      if ((!model && !sdmodel) || isLaunching) return;
+
+      const target = event.target as HTMLElement;
+      const isInputFocused =
+        ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable;
+
+      // Ctrl/Cmd+Enter always launches; bare Enter only when no input is focused
+      if (isInputFocused && !event.ctrlKey && !event.metaKey) return;
+
+      event.preventDefault();
+      handleLaunchClick();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleLaunchClick, model, sdmodel, isLaunching]);
+
   return (
-    <Container size="sm" mt="md">
-      <Stack gap="md">
-        <Card withBorder radius="md" shadow="sm" p="lg" style={{ position: 'relative' }}>
-          <Stack gap="lg">
-            <ConfigFileManager
-              configFiles={configFiles}
-              selectedFile={selectedFile}
-              onFileSelection={handleFileSelection}
-              onCreateNewConfig={handleCreateNewConfig}
-              onSaveConfig={handleSaveConfig}
-              onDeleteConfig={handleDeleteConfig}
-              onLoadConfigFiles={loadConfigFiles}
-            />
+    <Container
+      size="md"
+      style={{
+        height: `calc(100svh - ${TITLEBAR_HEIGHT} - ${STATUSBAR_HEIGHT})`,
+        display: 'flex',
+        flexDirection: 'column',
+        paddingTop: 'var(--mantine-spacing-md)',
+        gap: 'var(--mantine-spacing-lg)',
+      }}
+    >
+      <ConfigFileManager
+        configFiles={configFiles}
+        selectedFile={selectedFile}
+        onFileSelection={handleFileSelection}
+        onCreateNewConfig={handleCreateNewConfig}
+        onSaveConfig={handleSaveConfig}
+        onDeleteConfig={handleDeleteConfig}
+        onLoadConfigFiles={loadConfigFiles}
+      />
+      <Tabs
+        value={activeTab}
+        onChange={setActiveTab}
+        style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
+        styles={{
+          panel: {
+            flex: 1,
+            overflow: 'auto',
+            paddingTop: '1rem',
+            paddingInline: '0.5rem',
+          },
+        }}
+      >
+        <Tabs.List>
+          <Tabs.Tab value="general">General</Tabs.Tab>
+          <Tabs.Tab value="image">Image Generation</Tabs.Tab>
+          <Tabs.Tab value="performance">Performance</Tabs.Tab>
+          <Tabs.Tab value="network">Network</Tabs.Tab>
+          <Tabs.Tab value="advanced">Advanced</Tabs.Tab>
+        </Tabs.List>
 
-            <Tabs
-              value={activeTab}
-              onChange={setActiveTab}
-              styles={{
-                panel: {
-                  flex: 1,
-                  overflow: 'auto',
-                  paddingTop: '1rem',
-                  paddingRight: '0.5rem',
-                },
-                root: {
-                  maxHeight: '51vh',
-                  display: 'flex',
-                  flexDirection: 'column',
-                },
-              }}
-            >
-              <Tabs.List>
-                <Tabs.Tab value="general">General</Tabs.Tab>
-                <Tabs.Tab value="image">Image Generation</Tabs.Tab>
-                <Tabs.Tab value="performance">Performance</Tabs.Tab>
-                <Tabs.Tab value="network">Network</Tabs.Tab>
-                <Tabs.Tab value="advanced">Advanced</Tabs.Tab>
-              </Tabs.List>
+        <Tabs.Panel value="general">
+          <GeneralTab configLoaded={configLoaded} />
+        </Tabs.Panel>
 
-              <Tabs.Panel value="general">
-                <GeneralTab configLoaded={configLoaded} />
-              </Tabs.Panel>
+        <Tabs.Panel value="image">
+          <ImageGenerationTab />
+        </Tabs.Panel>
 
-              <Tabs.Panel value="image">
-                <ImageGenerationTab />
-              </Tabs.Panel>
+        <Tabs.Panel value="performance">
+          <PerformanceTab />
+        </Tabs.Panel>
 
-              <Tabs.Panel value="performance">
-                <PerformanceTab />
-              </Tabs.Panel>
+        <Tabs.Panel value="network">
+          <NetworkTab />
+        </Tabs.Panel>
 
-              <Tabs.Panel value="network">
-                <NetworkTab />
-              </Tabs.Panel>
-
-              <Tabs.Panel value="advanced">
-                <AdvancedTab />
-              </Tabs.Panel>
-            </Tabs>
-
-            <Group justify="flex-end">
-              <WarningDisplay warnings={combinedWarnings}>
-                <Button
-                  radius="md"
-                  disabled={(!model && !sdmodel) || isLaunching}
-                  onClick={handleLaunchClick}
-                  size="lg"
-                  variant="filled"
-                  color="brand"
-                  style={{
-                    fontSize: '1em',
-                    fontWeight: 600,
-                    letterSpacing: '0.03125rem',
-                    minWidth: '7.5rem',
-                    padding: '0.75rem 1.75rem',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Launch
-                </Button>
-              </WarningDisplay>
-            </Group>
-          </Stack>
-        </Card>
-      </Stack>
+        <Tabs.Panel value="advanced">
+          <AdvancedTab />
+        </Tabs.Panel>
+      </Tabs>
+      <div
+        style={{
+          borderTop: '1px solid var(--mantine-color-default-border)',
+          padding: 'var(--mantine-spacing-md) 0',
+          display: 'flex',
+          justifyContent: 'flex-end',
+          flexShrink: 0,
+        }}
+      >
+        <WarningDisplay warnings={combinedWarnings}>
+          <Button
+            radius="md"
+            disabled={(!model && !sdmodel) || isLaunching}
+            onClick={handleLaunchClick}
+            size="lg"
+            variant="filled"
+            color="brand"
+            style={{
+              fontSize: '1em',
+              fontWeight: 600,
+              letterSpacing: '0.03125rem',
+              minWidth: '7.5rem',
+              padding: '0.75rem 1.75rem',
+              textTransform: 'uppercase',
+            }}
+          >
+            Launch
+          </Button>
+        </WarningDisplay>
+      </div>
     </Container>
   );
 };

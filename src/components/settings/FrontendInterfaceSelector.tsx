@@ -199,10 +199,7 @@ export const FrontendInterfaceSelector = ({
   };
 
   useEffect(() => {
-    const initialize = async () => {
-      await checkAllFrontendRequirements();
-    };
-    void initialize();
+    void checkAllFrontendRequirements();
 
     const handleFocus = () => {
       void checkAllFrontendRequirements();
@@ -210,13 +207,7 @@ export const FrontendInterfaceSelector = ({
 
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [checkAllFrontendRequirements]);
-
-  useEffect(() => {
-    if (frontendPreference) {
-      void checkAllFrontendRequirements();
-    }
-  }, [frontendPreference, checkAllFrontendRequirements]);
+  }, [checkAllFrontendRequirements, frontendPreference]);
 
   return (
     <>

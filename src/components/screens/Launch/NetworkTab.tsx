@@ -36,6 +36,7 @@ export const NetworkTab = () => {
             placeholder="localhost"
             value={host}
             onChange={(event) => setHost(event.currentTarget.value)}
+            aria-label="Host"
           />
         </div>
 
@@ -65,7 +66,8 @@ export const NetworkTab = () => {
             type="number"
             min={1}
             max={65_535}
-            w={120}
+            w="6rem"
+            aria-label="Port"
           />
         </div>
       </Group>

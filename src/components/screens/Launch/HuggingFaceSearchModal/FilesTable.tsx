@@ -31,12 +31,24 @@ export const FilesTable = ({ files, loading, onSelect }: FilesTableProps) => {
       <Table.Thead>
         <Table.Tr>
           <Table.Th>File</Table.Th>
-          <Table.Th style={{ width: 120 }}>Size</Table.Th>
+          <Table.Th style={{ width: '20%' }}>Size</Table.Th>
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>
         {files.map((file) => (
-          <Table.Tr key={file.path} onClick={() => onSelect(file)} style={{ cursor: 'pointer' }}>
+          <Table.Tr
+            key={file.path}
+            onClick={() => onSelect(file)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onSelect(file);
+              }
+            }}
+            tabIndex={0}
+            role="button"
+            style={{ cursor: 'pointer' }}
+          >
             <Table.Td>
               <Text size="sm" lineClamp={1}>
                 {file.path}

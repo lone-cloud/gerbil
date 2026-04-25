@@ -174,7 +174,7 @@ export const Tab = ({
         </Text>
       )}
 
-      <ActionIcon variant="subtle" size="sm" aria-label="Close tab" onClick={onClose}>
+      <ActionIcon variant="subtle" size="md" aria-label="Close tab" onClick={onClose}>
         <X size="0.625rem" />
       </ActionIcon>
     </Box>

@@ -33,12 +33,16 @@ export const useLogoClickSounds = () => {
     } catch {}
   };
 
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   const getLogoStyles = () => ({
-    animation: isElephantMode
-      ? 'elephantShake 1.5s ease-in-out'
-      : isMouseSqueaking
-        ? 'mouseSqueak 0.3s ease-in-out'
-        : 'none',
+    animation: prefersReducedMotion
+      ? 'none'
+      : isElephantMode
+        ? 'elephantShake 1.5s ease-in-out'
+        : isMouseSqueaking
+          ? 'mouseSqueak 0.3s ease-in-out'
+          : 'none',
     cursor: 'pointer',
     transform: isElephantMode ? 'scale(1.3) rotate(5deg)' : 'scale(1) rotate(0deg)',
     transition: 'transform 0.15s ease-in-out',

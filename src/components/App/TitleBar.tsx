@@ -70,7 +70,7 @@ export const TitleBar = ({ currentScreen, currentTab, onEject, onTabChange }: Ti
         style={{
           WebkitAppRegion: isSelectOpen ? 'no-drag' : 'drag',
           alignItems: 'center',
-          backgroundColor: 'light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6))',
+          backgroundColor: 'var(--gerbil-surface-secondary)',
           borderBottom: '1px solid var(--mantine-color-default-border)',
           display: 'flex',
           height: TITLEBAR_HEIGHT,
@@ -175,9 +175,9 @@ export const TitleBar = ({ currentScreen, currentTab, onEject, onTabChange }: Ti
               label: 'Close window',
               onClick: () => void window.electronAPI.app.closeWindow(),
             },
-          ].map((button, index) => (
+          ].map((button) => (
             <ActionIcon
-              key={index}
+              key={button.label}
               variant="subtle"
               size={TITLEBAR_HEIGHT}
               onClick={button.onClick}

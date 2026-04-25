@@ -1,6 +1,6 @@
 import { ActionIcon, Button, Group, SimpleGrid, Stack, Text, TextInput } from '@mantine/core';
 import { Plus, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
 import { InfoTooltip } from '@/components/InfoTooltip';
@@ -33,11 +33,30 @@ export const AdvancedTab = () => {
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const handleAddArgument = (newArgument: string) => {
-    const currentArgs = additionalArguments.trim();
-    const updatedArgs = currentArgs ? `${currentArgs} ${newArgument}` : newArgument;
-    setAdditionalArguments(updatedArgs);
-  };
+  const handleAddArgument = useCallback(
+    (newArgument: string) => {
+      const currentArgs = additionalArguments.trim();
+      const updatedArgs = currentArgs ? `${currentArgs} ${newArgument}` : newArgument;
+      setAdditionalArguments(updatedArgs);
+    },
+    [additionalArguments, setAdditionalArguments],
+  );
+
+  const handleJinjaChange = useCallback(
+    (val: boolean) => {
+      setJinja(val);
+      if (!val) setJinjatools(false);
+    },
+    [setJinja, setJinjatools],
+  );
+
+  const handleJinjatoolsChange = useCallback(
+    (val: boolean) => {
+      setJinjatools(val);
+      if (val) setJinja(true);
+    },
+    [setJinja, setJinjatools],
+  );
 
   useEffect(() => {
     const detectAccelerationSupport = async () => {
@@ -95,20 +114,14 @@ export const AdvancedTab = () => {
 
           <CheckboxWithTooltip
             checked={jinja}
-            onChange={(val) => {
-              setJinja(val);
-              if (!val) setJinjatools(false);
-            }}
+            onChange={handleJinjaChange}
             label="Use Jinja"
             tooltip="Enables using jinja chat template formatting for chat completions endpoint."
           />
 
           <CheckboxWithTooltip
             checked={jinjatools}
-            onChange={(val) => {
-              setJinjatools(val);
-              if (val) setJinja(true);
-            }}
+            onChange={handleJinjatoolsChange}
             label="Jinja for Tools"
             tooltip="Allows jinja even with tool calls. If unchecked, jinja will be disabled when tools are used."
           />
@@ -117,7 +130,7 @@ export const AdvancedTab = () => {
 
       {(jinja || jinjatools) && (
         <div>
-          <Group>
+          <Group mb="xs">
             <Text size="sm" fw={500}>
               Jinja Kwargs
             </Text>
@@ -127,6 +140,7 @@ export const AdvancedTab = () => {
             placeholder='e.g. {"enable_thinking":true}'
             value={jinjakwargs}
             onChange={(event) => setJinjakwargs(event.currentTarget.value)}
+            aria-label="Jinja kwargs"
           />
         </div>
       )}
@@ -144,9 +158,11 @@ export const AdvancedTab = () => {
           </Button>
         </Group>
         <TextInput
+          mt="xs"
           placeholder="Additional command line arguments"
           value={additionalArguments}
           onChange={(event) => setAdditionalArguments(event.currentTarget.value)}
+          aria-label="Additional command line arguments"
         />
       </div>
 
@@ -159,7 +175,7 @@ export const AdvancedTab = () => {
         </Group>
         <Stack gap="xs">
           {preLaunchCommands.map((command, index) => (
-            <Group key={`cmd-${index}-${command}`} gap="xs">
+            <Group key={`cmd-${index}`} gap="xs">
               <TextInput
                 placeholder="Enter a shell command"
                 value={command}
@@ -169,6 +185,7 @@ export const AdvancedTab = () => {
                   setPreLaunchCommands(newCommands);
                 }}
                 style={{ flex: 1 }}
+                aria-label={`Pre-launch command ${index + 1}`}
               />
               <ActionIcon
                 variant="subtle"

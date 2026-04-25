@@ -41,14 +41,35 @@ export const ModelsTable = ({
       <Table.Thead>
         <Table.Tr>
           <Table.Th>Model</Table.Th>
-          <Table.Th style={{ width: 80 }}>Params</Table.Th>
+          <Table.Th style={{ width: '10%' }}>Params</Table.Th>
           <Table.Th
-            style={{ cursor: 'pointer', width: 120 }}
+            style={{ cursor: 'pointer', width: '18%' }}
             onClick={() => onSortChange('downloads')}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onSortChange('downloads');
+              }
+            }}
+            tabIndex={0}
+            role="columnheader"
+            aria-sort={sortBy === 'downloads' ? 'descending' : 'none'}
           >
             Downloads{sortBy === 'downloads' && ' ↓'}
           </Table.Th>
-          <Table.Th style={{ cursor: 'pointer', width: 90 }} onClick={() => onSortChange('likes')}>
+          <Table.Th
+            style={{ cursor: 'pointer', width: '12%' }}
+            onClick={() => onSortChange('likes')}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onSortChange('likes');
+              }
+            }}
+            tabIndex={0}
+            role="columnheader"
+            aria-sort={sortBy === 'likes' ? 'descending' : 'none'}
+          >
             Likes{sortBy === 'likes' && ' ↓'}
           </Table.Th>
         </Table.Tr>
@@ -64,6 +85,18 @@ export const ModelsTable = ({
                 onSelect(model);
               }
             }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if (model.gated) {
+                  void window.electronAPI.app.openExternal(`${HUGGINGFACE_BASE_URL}/${model.id}`);
+                } else {
+                  onSelect(model);
+                }
+              }
+            }}
+            tabIndex={0}
+            role="button"
             style={{
               cursor: 'pointer',
             }}

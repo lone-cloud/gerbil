@@ -112,9 +112,9 @@ export function getBackgroundColor() {
   if (colorScheme === 'light') {
     return '#ffffff';
   } else if (colorScheme === 'dark') {
-    return '#1a1b1e';
+    return '#2a2d33';
   } else {
-    return nativeTheme.shouldUseDarkColors ? '#1a1b1e' : '#ffffff';
+    return nativeTheme.shouldUseDarkColors ? '#2a2d33' : '#ffffff';
   }
 }
 
