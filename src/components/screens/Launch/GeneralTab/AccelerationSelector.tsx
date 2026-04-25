@@ -1,5 +1,5 @@
-import { Checkbox, Group, Text, TextInput } from '@mantine/core';
-import { useEffect, useRef, useState } from 'react';
+import { Group, Switch, Text, TextInput } from '@mantine/core';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { AccelerationSelectItem } from '@/components/screens/Launch/GeneralTab/AccelerationSelectItem';
@@ -32,15 +32,21 @@ export const AccelerationSelector = () => {
     const loadAccelerations = async () => {
       setIsLoadingAccelerations(true);
 
-      const [accelerations, platform] = await Promise.all([
-        window.electronAPI.kobold.getAvailableAccelerations(true),
-        window.electronAPI.kobold.getPlatform(),
-      ]);
+      try {
+        const [accelerations, platform] = await Promise.all([
+          window.electronAPI.kobold.getAvailableAccelerations(true),
+          window.electronAPI.kobold.getPlatform(),
+        ]);
 
-      setAvailableAccelerations(accelerations || []);
-      setIsMac(platform === 'darwin');
-      setIsLoadingAccelerations(false);
-      hasInitialized.current = true;
+        setAvailableAccelerations(accelerations || []);
+        setIsMac(platform === 'darwin');
+        hasInitialized.current = true;
+      } catch (error) {
+        window.electronAPI.logs.logError('Failed to load accelerations', error as Error);
+        setAvailableAccelerations([]);
+      } finally {
+        setIsLoadingAccelerations(false);
+      }
     };
 
     if (!hasInitialized.current) {
@@ -129,10 +135,25 @@ export const AccelerationSelector = () => {
     setGpuLayers,
   ]);
 
+  const renderAccelerationOption = useCallback(
+    ({ option }: { option: { value: string; label: string } }) => {
+      const accelerationData = availableAccelerations.find((a) => a.value === option.value);
+
+      return (
+        <AccelerationSelectItem
+          label={accelerationData?.label ?? option.label.split(' (')[0]}
+          devices={accelerationData?.devices}
+          disabled={accelerationData?.disabled}
+        />
+      );
+    },
+    [availableAccelerations],
+  );
+
   return (
     <div>
       <Group justify="space-between" align="flex-start" mb="xs">
-        <div style={{ flex: 1, marginRight: '1rem' }}>
+        <div style={{ flex: 1, marginRight: 'var(--mantine-spacing-md)' }}>
           <Group gap="xs" align="center" mb="xs">
             <Text size="sm" fw={500}>
               Acceleration
@@ -159,17 +180,7 @@ export const AccelerationSelector = () => {
               value: a.value,
             }))}
             disabled={isLoadingAccelerations || availableAccelerations.length === 0}
-            renderOption={({ option }) => {
-              const accelerationData = availableAccelerations.find((a) => a.value === option.value);
-
-              return (
-                <AccelerationSelectItem
-                  label={accelerationData?.label ?? option.label.split(' (')[0]}
-                  devices={accelerationData?.devices}
-                  disabled={accelerationData?.disabled}
-                />
-              );
-            }}
+            renderOption={renderAccelerationOption}
           />
         </div>
 
@@ -180,16 +191,10 @@ export const AccelerationSelector = () => {
             </Text>
             <InfoTooltip label="The number of layers to offload to your GPU's VRAM. When Auto is enabled, this is calculated based on your model size, context size, available VRAM and flash attention settings." />
           </Group>
-          <Group gap="lg" align="center">
+          <Group gap="xs" align="center">
             <TextInput
-              value={autoGpuLayers ? '' : gpuLayers.toString()}
-              placeholder={
-                autoGpuLayers
-                  ? isCalculatingLayers
-                    ? 'Calculating...'
-                    : gpuLayers.toString()
-                  : undefined
-              }
+              value={gpuLayers.toString()}
+              placeholder={isCalculatingLayers ? 'Calculating...' : undefined}
               onChange={(event) => setGpuLayers(Number(event.target.value) || 0)}
               type="number"
               min={0}
@@ -198,17 +203,15 @@ export const AccelerationSelector = () => {
               size="sm"
               w={80}
               disabled={autoGpuLayers || (acceleration === 'cpu' && !isMac)}
+              aria-label="GPU layers"
             />
-            <Group gap="xs" align="center">
-              <Checkbox
-                label="Auto"
-                checked={autoGpuLayers}
-                onChange={(event) => setAutoGpuLayers(event.currentTarget.checked)}
-                size="sm"
-                disabled={acceleration === 'cpu' && !isMac}
-              />
-              <InfoTooltip label="Automatically calculate optimal GPU layers based on available VRAM. The calculation accounts for model size, context size and flash attention." />
-            </Group>
+            <Switch
+              label="Auto"
+              checked={autoGpuLayers}
+              onChange={(event) => setAutoGpuLayers(event.currentTarget.checked)}
+              size="sm"
+              disabled={acceleration === 'cpu' && !isMac}
+            />
           </Group>
         </div>
       </Group>

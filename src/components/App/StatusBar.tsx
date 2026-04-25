@@ -2,6 +2,7 @@ import { ActionIcon, AppShell, CopyButton, Group, Tooltip } from '@mantine/core'
 import { Check, Globe, NotepadText } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
+import { STATUSBAR_HEIGHT } from '@/constants';
 import type { CpuMetrics, GpuMetrics, MemoryMetrics } from '@/main/modules/monitoring';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 import { useNotepadStore } from '@/stores/notepad';
@@ -97,15 +98,16 @@ export const StatusBar = () => {
         justify="space-between"
         h="100%"
         style={{
-          backgroundColor: 'light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6))',
+          backgroundColor: 'var(--gerbil-surface-secondary)',
         }}
       >
         <Group gap="xs">
           <Tooltip label="Notepad" disabled={isVisible}>
             <ActionIcon
               variant={isVisible ? 'filled' : 'subtle'}
-              size="sm"
-              aria-label="Toggle notepad"
+              size={STATUSBAR_HEIGHT}
+              aria-label={isVisible ? 'Hide notepad' : 'Show notepad'}
+              aria-pressed={isVisible}
               onClick={() => setVisible(!isVisible)}
             >
               <NotepadText size="1.25rem" />
@@ -117,7 +119,7 @@ export const StatusBar = () => {
                 <Tooltip label={copied ? 'Copied!' : 'Copy Tunnel URL'} position="top">
                   <ActionIcon
                     variant="subtle"
-                    size="sm"
+                    size={STATUSBAR_HEIGHT}
                     color={copied ? 'teal' : undefined}
                     aria-label={copied ? 'Copied!' : 'Copy tunnel URL'}
                     onClick={copy}

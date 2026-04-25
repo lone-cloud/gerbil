@@ -1,7 +1,7 @@
 import { Box, Button, Modal as MantineModal } from '@mantine/core';
 import type { ReactNode } from 'react';
 
-const TITLEBAR_HEIGHT = '2.5rem';
+import { TITLEBAR_HEIGHT } from '@/constants';
 
 const MODAL_STYLES_WITH_TITLEBAR = {
   content: {
@@ -41,7 +41,8 @@ export const Modal = ({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        height: '75vh',
+        height: '72vh',
+        overflow: 'hidden',
         padding: 0,
         position: 'relative',
       }}

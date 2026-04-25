@@ -1,6 +1,6 @@
 import { ActionIcon, Box, ScrollArea } from '@mantine/core';
 import { ChevronDown } from 'lucide-react';
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
 import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
 import { handleTerminalOutput, processTerminalContent } from '@/utils/terminal';
@@ -17,6 +17,8 @@ export const TerminalTab = forwardRef<TerminalTabRef>((_props, ref) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const lastScrollTop = useRef(0);
+  const shouldAutoScrollRef = useRef(true);
+  const isUserScrollingRef = useRef(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -37,9 +39,13 @@ export const TerminalTab = forwardRef<TerminalTabRef>((_props, ref) => {
     if (y < lastScrollTop.current) {
       setIsUserScrolling(true);
       setShouldAutoScroll(false);
+      isUserScrollingRef.current = true;
+      shouldAutoScrollRef.current = false;
     } else if (isAtBottomNow) {
       setIsUserScrolling(false);
       setShouldAutoScroll(true);
+      isUserScrollingRef.current = false;
+      shouldAutoScrollRef.current = true;
     }
 
     lastScrollTop.current = y;
@@ -56,7 +62,7 @@ export const TerminalTab = forwardRef<TerminalTabRef>((_props, ref) => {
     const cleanup = window.electronAPI.kobold.onKoboldOutput((data: string) => {
       setTerminalContent((prev) => handleTerminalOutput(prev, data));
 
-      if (shouldAutoScroll && !isUserScrolling && viewportRef.current) {
+      if (shouldAutoScrollRef.current && !isUserScrollingRef.current && viewportRef.current) {
         requestAnimationFrame(() => {
           if (viewportRef.current) {
             viewportRef.current.scrollTop = viewportRef.current.scrollHeight;
@@ -66,16 +72,18 @@ export const TerminalTab = forwardRef<TerminalTabRef>((_props, ref) => {
     });
 
     return cleanup;
-  }, [shouldAutoScroll, isUserScrolling]);
+  }, []);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     if (viewportRef.current) {
       const viewport = viewportRef.current;
       viewport.scrollTop = viewport.scrollHeight;
       setShouldAutoScroll(true);
       setIsUserScrolling(false);
+      shouldAutoScrollRef.current = true;
+      isUserScrollingRef.current = false;
     }
-  };
+  }, []);
 
   useImperativeHandle(ref, () => ({
     scrollToBottom,
@@ -103,6 +111,10 @@ export const TerminalTab = forwardRef<TerminalTabRef>((_props, ref) => {
       >
         <Box p="md">
           <div
+            role="log"
+            aria-live="polite"
+            aria-atomic="false"
+            aria-relevant="additions"
             style={{
               color: 'light-dark(var(--mantine-color-dark-filled), var(--mantine-color-gray-0))',
               fontFamily:

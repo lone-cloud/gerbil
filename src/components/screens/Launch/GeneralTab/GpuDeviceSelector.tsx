@@ -83,7 +83,7 @@ export const GpuDeviceSelector = ({ availableAccelerations }: GpuDeviceSelectorP
   return (
     <div>
       <Group align="flex-start" gap="md">
-        <div style={{ flex: 1, marginRight: '1rem' }}>
+        <div style={{ flex: 1, marginRight: 'var(--mantine-spacing-md)' }}>
           <Group gap="xs" align="center" mb="xs">
             <Text size="sm" fw={500}>
               GPU Device
@@ -116,6 +116,7 @@ export const GpuDeviceSelector = ({ availableAccelerations }: GpuDeviceSelectorP
                 value={tensorSplit}
                 onChange={(event) => setTensorSplit(event.target.value)}
                 size="sm"
+                aria-label="Tensor split"
               />
             </>
           )}

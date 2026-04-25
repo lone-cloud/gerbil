@@ -1,4 +1,6 @@
 import { Group, NumberInput, Select, SimpleGrid, Stack, Text } from '@mantine/core';
+import { useCallback } from 'react';
+import type { CSSProperties } from 'react';
 
 import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
 import { InfoTooltip } from '@/components/InfoTooltip';
@@ -11,6 +13,8 @@ const KV_QUANT_OPTIONS = [
   { value: '3', label: 'BF16' },
   { value: '4', label: 'Q5 (5-bit)' },
 ];
+
+const FLEX_COL: CSSProperties = { flex: 1, minWidth: 200 };
 
 export const PerformanceTab = () => {
   const {
@@ -41,13 +45,16 @@ export const PerformanceTab = () => {
   const quantkvActive = quantkv > 0;
   const quantkvWithoutFlash = quantkvActive && !flashattention;
 
-  const handleQuantkvChange = (value: string | null) => {
-    const level = Number(value ?? '0');
-    setQuantkv(level);
-    if (level > 0) {
-      setFlashattention(true);
-    }
-  };
+  const handleQuantkvChange = useCallback(
+    (value: string | null) => {
+      const level = Number(value ?? '0');
+      setQuantkv(level);
+      if (level > 0) {
+        setFlashattention(true);
+      }
+    },
+    [setQuantkv, setFlashattention],
+  );
 
   return (
     <Stack gap="md">
@@ -61,23 +68,12 @@ export const PerformanceTab = () => {
           />
 
           <CheckboxWithTooltip
-            checked={noshift}
-            onChange={setNoshift}
-            label="No Shift"
-            tooltip="Disable context shifting. May reduce performance but can help with compatibility issues."
-          />
-
-          <CheckboxWithTooltip
             checked={smartcache}
             onChange={setSmartcache}
             label="Smart Cache"
             tooltip="Enables intelligent context switching by saving KV cache snapshots to RAM. Requires fast forwarding."
           />
-        </SimpleGrid>
-      </div>
 
-      <div>
-        <SimpleGrid cols={3} spacing="lg" verticalSpacing="md">
           <CheckboxWithTooltip
             checked={flashattention}
             onChange={setFlashattention}
@@ -136,34 +132,31 @@ export const PerformanceTab = () => {
 
       <div>
         <Stack gap="md">
-          <Group gap="lg" align="flex-start" wrap="nowrap">
-            <div style={{ flex: 1, minWidth: 200 }}>
-              <Group gap="xs" align="center" mb="xs">
-                <Text size="sm" fw={500}>
-                  KV Cache Quantization
-                </Text>
-                <InfoTooltip label="Quantize the KV cache to reduce VRAM usage. Works best with Flash Attention (auto-enabled). May conflict with Context Shifting." />
-              </Group>
-              <Select
-                value={String(quantkv)}
-                onChange={handleQuantkvChange}
-                data={KV_QUANT_OPTIONS}
-                size="sm"
-                allowDeselect={false}
-              />
-              {quantkvWithoutFlash && (
-                <Text size="xs" c="red" mt={4}>
-                  Flash Attention is off. Only K cache will be quantized; performance and VRAM may
-                  suffer.
-                </Text>
-              )}
-            </div>
-
-            <div style={{ flex: 1, minWidth: 200 }} />
-          </Group>
+          <div>
+            <Group gap="xs" align="center" mb="xs">
+              <Text size="sm" fw={500}>
+                KV Cache Quantization
+              </Text>
+              <InfoTooltip label="Quantize the KV cache to reduce VRAM usage. Works best with Flash Attention (auto-enabled). May conflict with Context Shifting." />
+            </Group>
+            <Select
+              value={String(quantkv)}
+              onChange={handleQuantkvChange}
+              data={KV_QUANT_OPTIONS}
+              size="sm"
+              allowDeselect={false}
+              aria-label="KV cache quantization"
+            />
+            {quantkvWithoutFlash && (
+              <Text size="xs" c="red" mt={4}>
+                Flash Attention is off. Only K cache will be quantized; performance and VRAM may
+                suffer.
+              </Text>
+            )}
+          </div>
 
           <Group gap="lg" align="flex-start" wrap="nowrap">
-            <div style={{ flex: 1, minWidth: 200 }}>
+            <div style={FLEX_COL}>
               <Group gap="xs" align="center" mb="xs">
                 <Text size="sm" fw={500}>
                   MoE Experts
@@ -177,10 +170,11 @@ export const PerformanceTab = () => {
                 max={128}
                 step={1}
                 size="sm"
+                aria-label="MoE experts"
               />
             </div>
 
-            <div style={{ flex: 1, minWidth: 200 }}>
+            <div style={FLEX_COL}>
               <Group gap="xs" align="center" mb="xs">
                 <Text size="sm" fw={500}>
                   MoE CPU Layers
@@ -194,6 +188,7 @@ export const PerformanceTab = () => {
                 max={999}
                 step={1}
                 size="sm"
+                aria-label="MoE CPU layers"
               />
             </div>
           </Group>

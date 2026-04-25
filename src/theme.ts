@@ -18,29 +18,30 @@ export const theme = createTheme({
       '#113d88', // 8 — dark primary
       '#0c2d64', // 9 — deep
     ],
+    // OKLCH tinted toward steel-blue hue 240 — creates subconscious cohesion with brand accent
     gray: [
-      '#f8f9fa',
-      '#f1f3f4',
-      '#e9ecef',
-      '#dee2e6',
-      '#ced4da',
-      '#adb5bd',
-      '#6c757d',
-      '#495057',
-      '#343a40',
-      '#212529',
+      'oklch(97.5% 0.005 240)', // 0 — near-white surface
+      'oklch(95% 0.006 240)', //   1 — subtle wash
+      'oklch(92% 0.007 240)', //   2 — light bg
+      'oklch(89% 0.007 240)', //   3 — border
+      'oklch(84% 0.008 240)', //   4 — input border
+      'oklch(73% 0.009 240)', //   5 — secondary text / muted
+      'oklch(50% 0.009 240)', //   6 — mid text
+      'oklch(37% 0.008 240)', //   7 — dark label
+      'oklch(26% 0.007 240)', //   8 — dark text
+      'oklch(18% 0.006 240)', //   9 — near-black
     ],
     dark: [
-      '#c1c2c5',
-      '#a6a7ab',
-      '#909296',
-      '#5c5f66',
-      '#373a40',
-      '#2c2e33',
-      '#25262b',
-      '#1a1b1e',
-      '#141517',
-      '#101113',
+      'oklch(79% 0.008 240)', //   0 — main text
+      'oklch(70% 0.008 240)', //   1 — secondary text
+      'oklch(61% 0.008 240)', //   2 — dimmed
+      'oklch(48% 0.009 240)', //   3 — borders
+      'oklch(40% 0.009 240)', //   4 — input background
+      'oklch(33% 0.009 240)', //   5 — card background
+      'oklch(28% 0.009 240)', //   6 — component background
+      'oklch(24% 0.008 240)', //   7 — raised surface
+      'oklch(21% 0.008 240)', //   8 — body
+      'oklch(18% 0.007 240)', //   9 — deepest
     ],
   },
   components: {
@@ -68,7 +69,13 @@ export const theme = createTheme({
   },
   fontFamily: 'Geist, sans-serif',
   headings: {
-    fontFamily: 'Geist, sans-serif',
+    fontFamily: "'Barlow Semi Condensed', sans-serif",
+    sizes: {
+      h1: { fontWeight: '600', lineHeight: '1.15' },
+      h2: { fontWeight: '600', lineHeight: '1.2' },
+      h3: { fontWeight: '500', lineHeight: '1.25' },
+      h4: { fontWeight: '500', lineHeight: '1.3' },
+    },
   },
   white: '#fafafa',
 });
@@ -79,16 +86,16 @@ export const cssVariablesResolver: CSSVariablesResolver = (t) => {
     variables: { ...v8.variables },
     dark: {
       ...v8.dark,
-      '--mantine-color-body': 'oklch(12% 0.008 240)',
-      '--mantine-color-default-border': 'oklch(22% 0.008 240)',
+      '--mantine-color-body': 'oklch(21% 0.008 240)',
+      '--mantine-color-default-border': 'oklch(48% 0.009 240)',
       '--gerbil-link-color': 'var(--mantine-color-brand-4)',
     },
     light: {
       ...v8.light,
-      '--mantine-color-body': '#fafafa',
+      '--mantine-color-body': 'oklch(97.5% 0.005 240)',
       '--mantine-color-white': '#fafafa',
-      '--mantine-color-default-border': '#dee2e6',
-      '--gerbil-link-color': 'var(--mantine-color-brand-5)',
+      '--mantine-color-default-border': 'oklch(89% 0.007 240)',
+      '--gerbil-link-color': 'var(--mantine-color-brand-6)',
     },
   };
 };

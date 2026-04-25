@@ -27,7 +27,7 @@ export const AppRouter = ({
   const isInterfaceScreen = currentScreen === 'interface';
 
   return (
-    <main style={{ display: 'contents' }}>
+    <div style={{ display: 'contents' }}>
       <ScreenTransition isActive={currentScreen === 'welcome'} shouldAnimate={hasInitialized}>
         <WelcomeScreen onGetStarted={onWelcomeComplete} />
       </ScreenTransition>
@@ -43,6 +43,6 @@ export const AppRouter = ({
       <ScreenTransition isActive={isInterfaceScreen} shouldAnimate={hasInitialized}>
         <InterfaceScreen activeTab={activeInterfaceTab} isServerReady={isServerReady} />
       </ScreenTransition>
-    </main>
+    </div>
   );
 };

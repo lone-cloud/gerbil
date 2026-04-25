@@ -14,6 +14,9 @@ export const SERVER_READY_SIGNALS = {
   SILLYTAVERN: 'SillyTavern is listening on',
 } as const;
 
+/** Buffer after server-ready signal before UI transitions — gives the HTTP server time to accept connections */
+export const SERVER_READY_DELAY_MS = 3000;
+
 export const DEFAULT_CONTEXT_SIZE = 4096;
 
 export const DEFAULT_MODEL_URL = `${HUGGINGFACE_BASE_URL}/MaziyarPanahi/gemma-3-4b-it-GGUF/resolve/main/gemma-3-4b-it.Q8_0.gguf`;

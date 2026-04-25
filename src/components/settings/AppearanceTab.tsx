@@ -135,6 +135,7 @@ export const AppearanceTab = ({ isOnInterfaceScreen = false }: AppearanceTabProp
             }
             size="sm"
             w={80}
+            aria-label="Zoom percentage"
             styles={{
               input: {
                 textAlign: 'center',

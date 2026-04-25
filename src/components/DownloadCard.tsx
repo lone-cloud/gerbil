@@ -155,8 +155,9 @@ export const DownloadCard = ({
       padding="sm"
       {...(backend.isCurrent && {
         style: {
-          border: 'light-dark(var(--mantine-color-brand-6), var(--mantine-color-brand-4))',
-          backgroundColor: 'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6))',
+          border:
+            '1px solid light-dark(var(--mantine-color-brand-6), var(--mantine-color-brand-4))',
+          backgroundColor: 'var(--gerbil-surface-secondary)',
         },
       })}
     >
@@ -192,10 +193,10 @@ export const DownloadCard = ({
               <Text size="xs" c="dimmed">
                 Version {backend.version}
                 {hasVersionMismatch && backend.actualVersion && (
-                  <span style={{ color: 'var(--mantine-color-red-6)' }}>
+                  <Text component="span" c="red">
                     {' '}
                     (actual: {backend.actualVersion})
-                  </span>
+                  </Text>
                 )}
               </Text>
             )}

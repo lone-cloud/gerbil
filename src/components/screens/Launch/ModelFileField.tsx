@@ -45,6 +45,7 @@ export const ModelFileField = ({
   const [modelAnalysis, setModelAnalysis] = useState<ModelAnalysis | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [analysisError, setAnalysisError] = useState<string>();
+  const [analysisCache, setAnalysisCache] = useState<Map<string, ModelAnalysis>>(new Map());
   const [cachedModels, setCachedModels] = useState<CachedModel[]>([]);
   const [searchModalOpened, setSearchModalOpened] = useState(false);
   const combobox = useCombobox();
@@ -84,13 +85,21 @@ export const ModelFileField = ({
     }
 
     setAnalysisModalOpened(true);
-    setAnalysisLoading(true);
     setAnalysisError(undefined);
+
+    const cached = analysisCache.get(value);
+    if (cached) {
+      setModelAnalysis(cached);
+      return;
+    }
+
+    setAnalysisLoading(true);
     setModelAnalysis(null);
 
     try {
       const analysis = await window.electronAPI.kobold.analyzeModel(value);
       setModelAnalysis(analysis);
+      setAnalysisCache((prev) => new Map(prev).set(value, analysis));
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to analyze model';
       setAnalysisError(errorMessage);

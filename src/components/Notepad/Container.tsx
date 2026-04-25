@@ -123,7 +123,7 @@ export const NotepadContainer = () => {
       shadow="lg"
       withBorder
       style={{
-        backgroundColor: 'light-dark(var(--mantine-color-white), var(--mantine-color-dark-6))',
+        backgroundColor: 'var(--gerbil-surface-secondary)',
         bottom: 24,
         cursor: 'default',
         height: position.height,
@@ -214,7 +214,7 @@ export const NotepadContainer = () => {
           >
             <ActionIcon
               variant="subtle"
-              size="sm"
+              size="md"
               aria-label="Minimize notepad"
               onClick={() => setVisible(false)}
             >

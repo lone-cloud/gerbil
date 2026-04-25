@@ -127,7 +127,7 @@ export const NotepadTabs = ({ onCreateNewTab, onCloseTab }: NotepadTabsProps) =>
 
       <ActionIcon
         variant="subtle"
-        size="sm"
+        size="md"
         aria-label="New tab"
         onClick={() => void onCreateNewTab()}
         style={{

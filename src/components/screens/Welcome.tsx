@@ -1,5 +1,5 @@
 import iconUrl from '/icon.png';
-import { Button, Container, Group, Image, List, Stack, Text, Title } from '@mantine/core';
+import { Badge, Box, Button, Group, Stack, Text, Title } from '@mantine/core';
 
 import { PRODUCT_NAME } from '@/constants';
 
@@ -7,53 +7,44 @@ interface WelcomeScreenProps {
   onGetStarted: () => void;
 }
 
+const FEATURES = ['Chat & roleplay', 'Image generation', '100% local', 'CUDA · ROCm · Vulkan'];
+
 export const WelcomeScreen = ({ onGetStarted }: WelcomeScreenProps) => (
-  <Container size="md" mt="md">
-    <Stack gap="lg" maw={560}>
-      <Stack gap="sm">
-        <Group gap="md" align="center">
-          <Image src={iconUrl} alt={PRODUCT_NAME} w={36} h={36} />
+  <Box
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 'calc(100svh - 6rem)',
+    }}
+  >
+    <Stack gap={40} align="center" maw={480} style={{ width: '100%', textAlign: 'center' }}>
+      <Stack gap="lg" align="center">
+        <img src={iconUrl} alt={PRODUCT_NAME} width={64} height={64} />
+        <Stack gap="xs" align="center">
           <Title order={1}>{PRODUCT_NAME}</Title>
-        </Group>
-        <Text size="lg" c="dimmed">
-          Run Large Language Models locally on your hardware.
-        </Text>
+          <Text size="lg" fw={500}>
+            Local LLMs, fully under your control.
+          </Text>
+        </Stack>
       </Stack>
 
-      <List spacing="xs" size="sm">
-        <List.Item>
-          <Text fw={500} component="span">
-            Chat
-          </Text>{' '}
-          — conversations, questions, writing help
-        </List.Item>
-        <List.Item>
-          <Text fw={500} component="span">
-            Image generation
-          </Text>{' '}
-          — artwork and illustrations via LLMs
-        </List.Item>
-        <List.Item>
-          <Text fw={500} component="span">
-            Private
-          </Text>{' '}
-          — everything runs locally, no data leaves the machine
-        </List.Item>
-        <List.Item>
-          <Text fw={500} component="span">
-            Accelerated
-          </Text>{' '}
-          — CUDA, ROCm, and Vulkan backends supported
-        </List.Item>
-      </List>
+      <Group gap="xs" justify="center" wrap="wrap">
+        {FEATURES.map((feature) => (
+          <Badge key={feature} size="lg" variant="light" color="brand" radius="sm">
+            {feature}
+          </Badge>
+        ))}
+      </Group>
 
-      <Text size="xs" c="dimmed">
-        Hardware acceleration requires drivers installed separately (CUDA for NVIDIA, ROCm for AMD).
-      </Text>
-
-      <Button size="md" onClick={onGetStarted} style={{ alignSelf: 'flex-start' }}>
-        Get Started
-      </Button>
+      <Stack gap="xs" align="center">
+        <Button size="lg" onClick={onGetStarted} px="xl">
+          Get Started
+        </Button>
+        <Text size="xs" c="dimmed">
+          GPU acceleration requires CUDA, ROCm or Vulkan drivers.
+        </Text>
+      </Stack>
     </Stack>
-  </Container>
+  </Box>
 );

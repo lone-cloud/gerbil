@@ -1,4 +1,4 @@
-import { Group, List, Tooltip } from '@mantine/core';
+import { Box, Group, List, Tooltip } from '@mantine/core';
 import { AlertTriangle, Info } from 'lucide-react';
 import type { ReactNode } from 'react';
 
@@ -38,7 +38,15 @@ export const WarningDisplay = ({ warnings, children }: WarningDisplayProps) => {
           multiline
           maw={320}
         >
-          <AlertTriangle size={18} color="var(--mantine-color-orange-6)" strokeWidth={2} />
+          <Box
+            component="span"
+            tabIndex={0}
+            role="img"
+            aria-label="Warning"
+            style={{ display: 'inline-flex', cursor: 'default' }}
+          >
+            <AlertTriangle size={18} color="var(--mantine-color-orange-6)" strokeWidth={2} />
+          </Box>
         </Tooltip>
       )}
       {infoMessages.length > 0 && (
@@ -57,7 +65,15 @@ export const WarningDisplay = ({ warnings, children }: WarningDisplayProps) => {
           multiline
           maw={320}
         >
-          <Info size={18} color="var(--mantine-color-brand-5)" strokeWidth={2} />
+          <Box
+            component="span"
+            tabIndex={0}
+            role="img"
+            aria-label="Info"
+            style={{ display: 'inline-flex', cursor: 'default' }}
+          >
+            <Info size={18} color="var(--mantine-color-brand-5)" strokeWidth={2} />
+          </Box>
         </Tooltip>
       )}
       {children}
