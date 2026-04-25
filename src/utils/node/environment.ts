@@ -1,3 +1,3 @@
-import { env } from 'node:process';
+import { app } from 'electron';
 
-export const isDevelopment = env.NODE_ENV === 'development';
+export const isDevelopment = !app.isPackaged;
