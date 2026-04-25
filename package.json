@@ -1,6 +1,6 @@
 {
   "name": "gerbil",
-  "version": "1.23.3",
+  "version": "1.23.4",
   "description": "Run Large Language Models locally",
   "keywords": [
     "ai",
@@ -62,7 +62,7 @@
     "lucide-react": "^1.11.0",
     "oxfmt": "^0.46.0",
     "oxlint": "^1.61.0",
-    "oxlint-tsgolint": "^0.21.1",
+    "oxlint-tsgolint": "^0.22.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-error-boundary": "^6.1.1",
