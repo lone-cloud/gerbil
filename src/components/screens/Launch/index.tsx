@@ -378,7 +378,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
 
   return (
     <Container
-      size="md"
+      size="sm"
       style={{
         height: `calc(100svh - ${TITLEBAR_HEIGHT} - ${STATUSBAR_HEIGHT})`,
         display: 'flex',

@@ -15,6 +15,7 @@ import { stripAssetExtensions } from '@/utils/version';
 import { getCurrentKoboldBinary, getInstallDir, setCurrentKoboldBinary } from '../config';
 import { getMainWindow, sendToRenderer } from '../window';
 import { clearBackendVersionCache, getVersionFromBinary } from './backend';
+import { isKoboldRunning } from './launcher';
 
 async function removeDirectoryWithRetry(dirPath: string, maxRetries = 3, currentRetry = 0) {
   try {
@@ -31,6 +32,10 @@ async function removeDirectoryWithRetry(dirPath: string, maxRetries = 3, current
 }
 
 async function downloadFile(asset: GitHubAsset, tempPackedFilePath: string) {
+  try {
+    await unlink(tempPackedFilePath);
+  } catch {}
+
   const writer = createWriteStream(tempPackedFilePath);
   const mainWindow = getMainWindow();
 
@@ -39,6 +44,7 @@ async function downloadFile(asset: GitHubAsset, tempPackedFilePath: string) {
 
   const response = await fetch(asset.browser_download_url);
   if (!response.ok || !response.body) {
+    writer.destroy();
     throw new Error(`Failed to download: ${response.statusText}`);
   }
 
@@ -193,6 +199,10 @@ async function installBackend({
 }
 
 export async function downloadRelease(asset: GitHubAsset, options: DownloadReleaseOptions) {
+  if (isKoboldRunning()) {
+    throw new Error('KoboldCpp is currently running. Stop it before updating.');
+  }
+
   const tempPackedFilePath = join(getInstallDir(), `${asset.name}.packed`);
   const baseFilename = stripAssetExtensions(asset.name);
   const folderName = asset.version ? `${baseFilename}-${asset.version}` : baseFilename;

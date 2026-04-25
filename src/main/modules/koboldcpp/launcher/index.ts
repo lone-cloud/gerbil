@@ -26,6 +26,8 @@ import { filterSpam, patchKcppSduiEmbd, patchKliteEmbd, patchLcppGzEmbd } from '
 
 let koboldProcess: ChildProcess | null = null;
 let isIntentionalStop = false;
+
+export const isKoboldRunning = () => koboldProcess !== null;
 let hasProcessStartedSuccessfully = false;
 const preLaunchProcesses = new Set<ChildProcess>();
 
