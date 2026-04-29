@@ -13,3 +13,4 @@ Thumbs.db
 
 # pnpm
 pnpm-debug.log*
+flatpak/build-dir

@@ -36,12 +36,12 @@ export const theme = createTheme({
       'oklch(70% 0.008 240)', //   1 — secondary text
       'oklch(61% 0.008 240)', //   2 — dimmed
       'oklch(48% 0.009 240)', //   3 — borders
-      'oklch(40% 0.009 240)', //   4 — input background
-      'oklch(33% 0.009 240)', //   5 — card background
-      'oklch(28% 0.009 240)', //   6 — component background
-      'oklch(24% 0.008 240)', //   7 — raised surface
-      'oklch(21% 0.008 240)', //   8 — body
-      'oklch(18% 0.007 240)', //   9 — deepest
+      'oklch(40% 0.010 240)', //   4 — input background
+      'oklch(32% 0.010 240)', //   5 — card background
+      'oklch(25% 0.009 240)', //   6 — component background
+      'oklch(20% 0.008 240)', //   7 — raised surface
+      'oklch(15% 0.007 240)', //   8 — body
+      'oklch(11% 0.006 240)', //   9 — deepest
     ],
   },
   components: {
@@ -86,7 +86,7 @@ export const cssVariablesResolver: CSSVariablesResolver = (t) => {
     variables: { ...v8.variables },
     dark: {
       ...v8.dark,
-      '--mantine-color-body': 'oklch(21% 0.008 240)',
+      '--mantine-color-body': 'oklch(18% 0.008 240)',
       '--mantine-color-default-border': 'oklch(48% 0.009 240)',
       '--gerbil-link-color': 'var(--mantine-color-brand-4)',
     },

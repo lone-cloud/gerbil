@@ -1,6 +1,6 @@
 {
   "name": "gerbil",
-  "version": "1.23.4",
+  "version": "1.23.45",
   "description": "Run Large Language Models locally",
   "keywords": [
     "ai",
@@ -26,7 +26,12 @@
     "analyze": "cross-env ANALYZE=true electron-vite build && pnpm dlx open-cli dist/stats.html",
     "check": "oxlint && oxfmt --check",
     "fix": "oxlint --fix && oxfmt",
-    "release": "node --no-warnings scripts/release.ts"
+    "release": "node --no-warnings scripts/release.ts",
+    "fp:build": "cd flatpak && flatpak-builder --user --force-clean --state-dir=$HOME/.local/share/flatpak-builder/gerbil build-dir app.lonecloud.gerbil.yml",
+    "fp:install": "cd flatpak && flatpak-builder --user --install --force-clean --state-dir=$HOME/.local/share/flatpak-builder/gerbil build-dir app.lonecloud.gerbil.yml",
+    "fp:run": "flatpak run app.lonecloud.gerbil",
+    "fp:uninstall": "flatpak uninstall --user app.lonecloud.gerbil",
+    "fp:logs": "journalctl -f FLATPAK_ID=app.lonecloud.gerbil"
   },
   "dependencies": {
     "electron-updater": "^6.8.3",
@@ -45,8 +50,8 @@
     "@fontsource/barlow-semi-condensed": "^5.2.7",
     "@fontsource/geist": "^5.2.8",
     "@huggingface/gguf": "^0.4.2",
-    "@mantine/core": "^9.1.0",
-    "@mantine/hooks": "^9.1.0",
+    "@mantine/core": "^9.1.1",
+    "@mantine/hooks": "^9.1.1",
     "@types/mime-types": "^3.0.1",
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
@@ -59,10 +64,10 @@
     "electron-builder": "^26.8.1",
     "electron-vite": "^5.0.0",
     "jiti": "^2.6.1",
-    "lucide-react": "^1.11.0",
-    "oxfmt": "^0.46.0",
-    "oxlint": "^1.61.0",
-    "oxlint-tsgolint": "^0.22.0",
+    "lucide-react": "^1.14.0",
+    "oxfmt": "^0.47.0",
+    "oxlint": "^1.62.0",
+    "oxlint-tsgolint": "^0.22.1",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-error-boundary": "^6.1.1",

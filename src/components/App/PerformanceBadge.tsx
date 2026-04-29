@@ -4,7 +4,7 @@ import { Activity } from 'lucide-react';
 const BADGE_STYLE = {
   borderRadius: '0.75rem',
   fontSize: '0.7rem',
-  fontWeight: 600,
+  fontWeight: 500,
   fontVariantNumeric: 'tabular-nums',
   height: 'auto',
   margin: '0.125rem 0',

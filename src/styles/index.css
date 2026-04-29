@@ -14,6 +14,7 @@
 :root {
   --gerbil-window-border: light-dark(rgba(0, 0, 0, 0.15), rgba(255, 255, 255, 0.08));
   --gerbil-surface-secondary: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+  --gerbil-divider: light-dark(var(--mantine-color-default-border), oklch(30% 0.009 240));
   --gerbil-scrollbar-thumb: color-mix(in srgb, var(--mantine-color-gray-5) 50%, transparent);
   --gerbil-scrollbar-thumb-hover: color-mix(in srgb, var(--mantine-color-gray-5) 80%, transparent);
   --gerbil-scrollbar-thumb-active: color-mix(in srgb, var(--mantine-color-gray-7) 90%, transparent);
