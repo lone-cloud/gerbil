@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process';
-import { platform } from 'node:process';
+import { env as processEnv, platform } from 'node:process';
 
 import type { BrowserWindow } from 'electron';
 import {
@@ -203,9 +203,15 @@ const LINUX_PERFORMANCE_APPS = [
 let cachedLinuxApp: string | null = null;
 let linuxAppSearchComplete = false;
 
+const isInsideFlatpak = () => !!processEnv.FLATPAK_ID;
+
 const tryLaunchCommand = async (command: string, args: string[] = []) =>
   new Promise<boolean>((resolve) => {
-    const child = spawn(command, args, {
+    const [cmd, cmdArgs] = isInsideFlatpak()
+      ? (['flatpak-spawn', ['--host', command, ...args]] as const)
+      : ([command, args] as const);
+
+    const child = spawn(cmd, cmdArgs, {
       detached: true,
       stdio: 'ignore',
     });

@@ -1,0 +1,61 @@
+app-id: app.lonecloud.gerbil
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+base: org.electronjs.Electron2.BaseApp
+base-version: '25.08'
+command: gerbil
+separate-locales: false
+
+finish-args:
+  - --share=network
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=all
+  - --allow=devel
+  - --filesystem=home
+  - --filesystem=host-os
+  - --filesystem=/opt/rocm:ro
+  - --talk-name=org.freedesktop.Notifications
+  - --talk-name=org.freedesktop.Flatpak
+  - --talk-name=org.kde.StatusNotifierWatcher
+  - --talk-name=org.freedesktop.StatusNotifierWatcher
+
+modules:
+  - name: uv
+    buildsystem: simple
+    build-commands:
+      - tar -xzf uv-x86_64-unknown-linux-gnu.tar.gz
+      - install -Dm755 uv-x86_64-unknown-linux-gnu/uv /app/bin/uv
+      - install -Dm755 uv-x86_64-unknown-linux-gnu/uvx /app/bin/uvx
+    sources:
+      - type: file
+        url: https://github.com/astral-sh/uv/releases/download/0.11.8/uv-x86_64-unknown-linux-gnu.tar.gz
+        sha256: 56dd1b66701ecb62fe896abb919444e4b83c5e8645cca953e6ddd496ff8a0feb
+
+  - name: gerbil
+    buildsystem: simple
+    build-commands:
+      - chmod +x Gerbil-*.AppImage
+      - ./Gerbil-*.AppImage --appimage-extract
+      - mkdir -p /app/lib/gerbil
+      - cp -r squashfs-root/. /app/lib/gerbil/
+      - install -Dm755 gerbil-wrapper.sh /app/bin/gerbil
+      - install -Dm644 app.lonecloud.gerbil.desktop /app/share/applications/app.lonecloud.gerbil.desktop
+      - install -Dm644 app.lonecloud.gerbil.metainfo.xml /app/share/metainfo/app.lonecloud.gerbil.metainfo.xml
+      - install -Dm644 squashfs-root/usr/share/icons/hicolor/512x512/apps/gerbil.png /app/share/icons/hicolor/512x512/apps/app.lonecloud.gerbil.png
+    sources:
+      - type: file
+        url: https://github.com/lone-cloud/gerbil/releases/download/v1.23.45/Gerbil-1.23.45.AppImage
+        sha256: b3ea2b4bdbfbf4b44f091a9568deedbdef9cb8cd4d2d5f5be43cbd525b40c16a
+      - type: script
+        dest-filename: gerbil-wrapper.sh
+        commands:
+          - export PATH="/run/host/usr/bin:/run/host/usr/local/bin:$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+          - export VK_DRIVER_FILES="/run/host/usr/share/vulkan/icd.d:/run/host/etc/vulkan/icd.d"
+          - exec /app/lib/gerbil/gerbil --no-sandbox "$@"
+      - type: file
+        path: app.lonecloud.gerbil.desktop
+      - type: file
+        path: app.lonecloud.gerbil.metainfo.xml
