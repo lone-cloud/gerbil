@@ -20,6 +20,14 @@ const COMMON_EXEC_OPTIONS = {
   timeout: 3000,
 };
 
+const ROCM_EXEC_OPTIONS = {
+  ...COMMON_EXEC_OPTIONS,
+  env: {
+    ...process.env,
+    PATH: ['/opt/rocm/bin', process.env.PATH].filter(Boolean).join(':'),
+  },
+};
+
 let cpuCapabilitiesCache: CPUCapabilities | null = null;
 let basicGPUInfoCache: BasicGPUInfo | null = null;
 let gpuCapabilitiesCache: GPUCapabilities | null = null;
@@ -165,10 +173,11 @@ async function detectCUDA() {
 export async function detectROCm() {
   try {
     const rocminfoCommand = platform === 'win32' ? 'hipInfo' : 'rocminfo';
+    const execOptions = platform === 'win32' ? COMMON_EXEC_OPTIONS : ROCM_EXEC_OPTIONS;
     const [rocminfoResult, vulkanInfo, hipccVersion] = await Promise.all([
-      execa(rocminfoCommand, [], COMMON_EXEC_OPTIONS),
+      execa(rocminfoCommand, [], execOptions),
       getVulkanInfo(),
-      execa('hipcc', ['--version'], COMMON_EXEC_OPTIONS),
+      execa('hipcc', ['--version'], execOptions),
     ]);
     const { stdout } = rocminfoResult;
     const { stdout: hipccOutput } = hipccVersion;
@@ -185,9 +194,7 @@ export async function detectROCm() {
       }
     } catch {}
 
-    if (stdout.trim()) {
-      const devices = parseRocmOutput(stdout, vulkanInfo);
-
+    const getDriverVersion = async () => {
       if (platform === 'win32') {
         try {
           const { stdout: driverOutput } = await execa(
@@ -198,27 +205,31 @@ export async function detectROCm() {
             ],
             COMMON_EXEC_OPTIONS,
           );
-
-          if (driverOutput.trim()) {
-            driverVersion = driverOutput.trim();
-          }
+          if (driverOutput.trim()) return driverOutput.trim();
         } catch {}
       } else {
-        try {
-          for (const gpu of vulkanInfo.allGPUs) {
-            if (gpu.driverInfo && !gpu.isIntegrated) {
-              driverVersion = gpu.driverInfo;
-              break;
-            }
-          }
-        } catch {}
+        for (const gpu of vulkanInfo.allGPUs) {
+          if (gpu.driverInfo && !gpu.isIntegrated) return gpu.driverInfo;
+        }
       }
+      return undefined;
+    };
 
-      return {
-        devices,
-        driverVersion,
-        version,
-      };
+    if (stdout.trim()) {
+      const devices = parseRocmOutput(stdout, vulkanInfo);
+      driverVersion = await getDriverVersion();
+      return { devices, driverVersion, version };
+    }
+
+    if (version) {
+      const amdDevices = vulkanInfo.allGPUs
+        .filter((gpu) => gpu.hasAMD && !gpu.isIntegrated)
+        .map((gpu) => ({ isIntegrated: false, name: formatDeviceName(gpu.name) }));
+
+      if (amdDevices.length > 0) {
+        driverVersion = await getDriverVersion();
+        return { devices: amdDevices, driverVersion, version };
+      }
     }
 
     return { devices: [] };
