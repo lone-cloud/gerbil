@@ -201,9 +201,21 @@ export async function launchKoboldCpp(
 
     await startProxy(koboldHost, koboldPort);
 
+    const rocmEnv =
+      platform !== 'win32'
+        ? {
+            HSA_OVERRIDE_GFX_VERSION: process.env.HSA_OVERRIDE_GFX_VERSION,
+            LD_LIBRARY_PATH: ['/opt/rocm/lib', '/opt/rocm/lib64', process.env.LD_LIBRARY_PATH]
+              .filter(Boolean)
+              .join(':'),
+            PATH: ['/opt/rocm/bin', process.env.PATH].filter(Boolean).join(':'),
+          }
+        : {};
+
     const child = spawn(currentBackend.path, finalArgs, {
       cwd: binaryDir,
       detached: false,
+      env: { ...process.env, ...rocmEnv },
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 
@@ -212,10 +224,6 @@ export async function launchKoboldCpp(
     const commandLine = `${currentBackend.path} ${finalArgs.join(' ')}`;
 
     sendKoboldOutput(commandLine);
-
-    if (remotetunnel) {
-      void startTunnel(frontendPreference);
-    }
 
     let readyResolve: ((value: { success: boolean; pid?: number; error?: string }) => void) | null =
       null;
@@ -242,6 +250,10 @@ export async function launchKoboldCpp(
       }
 
       readyResolve?.({ pid: child.pid, success: true });
+
+      if (remotetunnel) {
+        void startTunnel(frontendPreference, true);
+      }
     };
 
     const handleOutput = (data: Buffer) => {

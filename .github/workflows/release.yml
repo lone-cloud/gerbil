@@ -149,6 +149,62 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  update-flatpak:
+    needs: release
+    runs-on: ubuntu-latest
+    if: needs.release.outputs.is_prerelease != 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: master
+
+      - name: Determine tag name
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+            echo "version=${${{ github.event.inputs.tag }}#v}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Compute AppImage sha256
+        id: sha256
+        run: |
+          URL="https://github.com/lone-cloud/gerbil/releases/download/${{ steps.tag.outputs.tag }}/Gerbil-${{ steps.tag.outputs.version }}.AppImage"
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          SHA=$(curl -sL "$URL" | sha256sum | awk '{print $1}')
+          echo "sha256=$SHA" >> $GITHUB_OUTPUT
+
+      - name: Update flatpak manifest
+        run: |
+          sed -i "s|url: https://github.com/lone-cloud/gerbil/releases/download/v[^/]*/Gerbil-.*\.AppImage|url: ${{ steps.sha256.outputs.url }}|" flatpak/app.lonecloud.gerbil.yml
+          # Only replace the sha256 that follows the AppImage url (not the uv one)
+          python3 - <<'EOF'
+          import re, pathlib
+          p = pathlib.Path('flatpak/app.lonecloud.gerbil.yml')
+          txt = p.read_text()
+          txt = re.sub(
+            r'(url: https://github\.com/lone-cloud/gerbil/releases/download/v[^\n]+\n\s+sha256: )[a-f0-9]{64}',
+            r'\g<1>${{ steps.sha256.outputs.sha256 }}',
+            txt
+          )
+          p.write_text(txt)
+          EOF
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add flatpak/app.lonecloud.gerbil.yml
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "chore: update flatpak manifest for ${{ steps.tag.outputs.tag }}"
+          git push origin master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   aur-release:
     needs: release
     if: needs.release.outputs.is_prerelease != 'true'

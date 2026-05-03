@@ -11,6 +11,12 @@
 [![GitHub stars](https://img.shields.io/github/stars/lone-cloud/gerbil)](https://github.com/lone-cloud/gerbil/stargazers)
 [![AUR version](https://img.shields.io/aur/version/gerbil)](https://aur.archlinux.org/packages/gerbil)
 
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;">
+<a href="https://github.com/lone-cloud/gerbil/releases"><img src="assets/badges/github-badge.png" alt="Get it on GitHub" height="50" /></a>
+</div>
+
+<br>
+
 [Download](https://github.com/lone-cloud/gerbil/releases/latest) • [Screenshots](#demo--screenshots) • [Installation](#installation)
 
 </div>

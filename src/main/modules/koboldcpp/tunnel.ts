@@ -36,19 +36,31 @@ const getCloudflaredAssetName = () => {
   }
 };
 
-const getCloudflaredDownloadUrl = async () => {
+const getCloudflaredLatestVersion = async () => {
   const response = await fetch(GITHUB_API.CLOUDFLARED_LATEST_RELEASE_URL);
   if (!response.ok) {
     throw new Error(`Failed to fetch latest cloudflared release: ${response.statusText}`);
   }
-
   const release = (await response.json()) as { tag_name: string };
-  return GITHUB_API.getCloudflaredDownloadUrl(release.tag_name, getCloudflaredAssetName());
+  return release.tag_name;
 };
 
-const downloadCloudflared = async (binPath: string) => {
-  const url = await getCloudflaredDownloadUrl();
-  sendKoboldOutput(`Downloading cloudflared from ${url}...`);
+const getCloudflaredDownloadUrl = (version: string) =>
+  GITHUB_API.getCloudflaredDownloadUrl(version, getCloudflaredAssetName());
+
+const getInstalledCloudflaredVersion = async (binPath: string) => {
+  try {
+    const result = await execa(binPath, ['--version']);
+    const match = /(\d{4}\.\d+\.\d+)/.exec(result.stdout + result.stderr);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+};
+
+const downloadCloudflared = async (binPath: string, version: string) => {
+  const url = getCloudflaredDownloadUrl(version);
+  sendKoboldOutput(`Downloading cloudflared ${version} from ${url}...`);
 
   const response = await fetch(url);
   if (!response.ok || !response.body) {
@@ -61,7 +73,7 @@ const downloadCloudflared = async (binPath: string) => {
     await chmod(binPath, 0o755);
   }
 
-  sendKoboldOutput(`Downloaded cloudflared to ${binPath}`);
+  sendKoboldOutput(`Downloaded cloudflared ${version} to ${binPath}`);
 };
 
 const getTunnelTarget = (frontendPreference: FrontendPreference) => {
@@ -97,7 +109,10 @@ const waitForBackend = async (url: string, timeoutMs = 30_000) => {
   return false;
 };
 
-export const startTunnel = async (frontendPreference: FrontendPreference = 'koboldcpp') => {
+export const startTunnel = async (
+  frontendPreference: FrontendPreference = 'koboldcpp',
+  skipBackendCheck = false,
+) => {
   if (activeTunnel) {
     return tunnelUrl;
   }
@@ -105,28 +120,52 @@ export const startTunnel = async (frontendPreference: FrontendPreference = 'kobo
   try {
     const tunnelTarget = getTunnelTarget(frontendPreference);
 
-    sendKoboldOutput('Waiting for backend to be ready...');
-    const backendReady = await waitForBackend(tunnelTarget);
+    if (!skipBackendCheck) {
+      sendKoboldOutput('Waiting for backend to be ready...');
+      const backendReady = await waitForBackend(tunnelTarget);
 
-    if (!backendReady) {
-      throw new Error(
-        'Backend not ready after 30 seconds. Start your backend first before enabling tunnel.',
-      );
+      if (!backendReady) {
+        throw new Error(
+          'Backend not ready after 30 seconds. Start your backend first before enabling tunnel.',
+        );
+      }
     }
 
-    sendKoboldOutput('Starting Cloudflare tunnel...');
+    sendKoboldOutput(`Starting Cloudflare tunnel → ${tunnelTarget}`);
 
     const bin = getCloudflaredBin();
 
+    const latestVersion = await getCloudflaredLatestVersion();
     const binExists = await access(bin)
       .then(() => true)
       .catch(() => false);
 
-    if (!binExists) {
-      await downloadCloudflared(bin);
+    if (binExists) {
+      const installedVersion = await getInstalledCloudflaredVersion(bin);
+      const normalizedInstalled = installedVersion?.replace(/^(\d{4}\.\d+\.\d+).*$/, '$1');
+      const normalizedLatest = latestVersion.replace(/^[v]?(\d{4}\.\d+\.\d+).*$/, '$1');
+      if (normalizedInstalled !== normalizedLatest) {
+        sendKoboldOutput(
+          `Updating cloudflared ${installedVersion ?? 'unknown'} → ${latestVersion}`,
+        );
+        await downloadCloudflared(bin, latestVersion);
+      } else {
+        sendKoboldOutput(`cloudflared ${installedVersion} is up to date`);
+      }
+    } else {
+      await downloadCloudflared(bin, latestVersion);
     }
 
-    const tunnel = execa(bin, ['tunnel', '--url', tunnelTarget, '--no-autoupdate']);
+    const nullDevice = platform === 'win32' ? 'NUL' : '/dev/null';
+    const tunnel = execa(bin, [
+      'tunnel',
+      '--config',
+      nullDevice,
+      '--url',
+      tunnelTarget,
+      '--no-autoupdate',
+    ]);
+    tunnel.catch(() => {});
 
     activeTunnel = tunnel;
 
@@ -134,19 +173,25 @@ export const startTunnel = async (frontendPreference: FrontendPreference = 'kobo
     let output = '';
     let urlFound = false;
 
-    tunnel.stderr?.on('data', (data: Buffer) => {
-      const text = data.toString();
+    const onTunnelOutput = (text: string) => {
       output += text;
       if (text.includes('429') || text.includes('Too Many Requests')) {
         rateLimited = true;
       }
-    });
+      const match = /https:\/\/[a-z0-9-]+\.trycloudflare\.com/.exec(text);
+      if (match && match[0] !== tunnelUrl) {
+        tunnelUrl = match[0];
+        if (urlFound) {
+          sendKoboldOutput(`Tunnel URL: ${tunnelUrl}`);
+        }
+        sendToRenderer('tunnel-url-changed', tunnelUrl);
+      }
+    };
 
-    tunnel.stdout?.on('data', (data: Buffer) => {
-      output += data.toString();
-    });
+    tunnel.stderr?.on('data', (data: Buffer) => onTunnelOutput(data.toString()));
+    tunnel.stdout?.on('data', (data: Buffer) => onTunnelOutput(data.toString()));
 
-    const url = await new Promise<string>((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => {
         const message = rateLimited
           ? 'Cloudflare rate limit exceeded. Please wait a few minutes and try again.'
@@ -155,17 +200,14 @@ export const startTunnel = async (frontendPreference: FrontendPreference = 'kobo
         reject(new Error(message));
       }, 30_000);
 
-      const checkForUrl = () => {
-        const match = /https:\/\/[a-z0-9-]+\.trycloudflare\.com/.exec(output);
-        if (match) {
+      const checkInterval = setInterval(() => {
+        if (tunnelUrl) {
           urlFound = true;
           clearTimeout(timeout);
           clearInterval(checkInterval);
-          resolve(match[0]);
+          resolve();
         }
-      };
-
-      const checkInterval = setInterval(checkForUrl, 100);
+      }, 100);
 
       tunnel.once('error', (error) => {
         clearTimeout(timeout);
@@ -182,11 +224,7 @@ export const startTunnel = async (frontendPreference: FrontendPreference = 'kobo
       });
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-
-    tunnelUrl = url;
     sendKoboldOutput(`Tunnel ready at ${tunnelUrl}`);
-    sendToRenderer('tunnel-url-changed', tunnelUrl);
 
     tunnel.on('error', (error: Error) => {
       logError(`Tunnel error: ${error.message}`, error);

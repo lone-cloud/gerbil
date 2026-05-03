@@ -20,7 +20,10 @@ const replaceKoboldWithGerbil = (data: string) => {
 
 const proxyRequest = (clientReq: IncomingMessage, clientRes: ServerResponse) => {
   const options = {
-    headers: clientReq.headers,
+    headers: {
+      ...clientReq.headers,
+      host: `${koboldCppHost}:${koboldCppPort}`,
+    },
     hostname: koboldCppHost,
     method: clientReq.method,
     path: clientReq.url,
