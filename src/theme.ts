@@ -86,7 +86,7 @@ export const cssVariablesResolver: CSSVariablesResolver = (t) => {
     variables: { ...v8.variables },
     dark: {
       ...v8.dark,
-      '--mantine-color-body': 'oklch(18% 0.008 240)',
+      '--mantine-color-body': 'oklch(22% 0.008 240)',
       '--mantine-color-default-border': 'oklch(48% 0.009 240)',
       '--gerbil-link-color': 'var(--mantine-color-brand-4)',
     },

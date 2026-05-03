@@ -65,7 +65,7 @@ export const TitleBar = ({ currentScreen, currentTab, onEject, onTabChange }: Ti
   }, []);
 
   return (
-    <AppShell.Header style={{ border: 'none', display: 'flex', flexDirection: 'column' }}>
+    <AppShell.Header>
       <Box
         style={{
           WebkitAppRegion: isSelectOpen ? 'no-drag' : 'drag',

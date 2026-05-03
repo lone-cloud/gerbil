@@ -119,7 +119,7 @@ export const TerminalTab = forwardRef<TerminalTabRef>((_props, ref) => {
               color: 'light-dark(var(--mantine-color-dark-filled), var(--mantine-color-gray-0))',
               fontFamily:
                 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-              fontSize: '0.875em',
+              fontSize: '0.8125em',
               lineHeight: 1.4,
               margin: 0,
               opacity: isVisible ? 1 : 0,

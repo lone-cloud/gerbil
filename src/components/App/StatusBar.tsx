@@ -87,11 +87,7 @@ export const StatusBar = () => {
   const displayGpuMetrics = systemMonitoringEnabled ? gpuMetrics : null;
 
   return (
-    <AppShell.Footer
-      style={{
-        borderTop: '1px solid var(--mantine-color-default-border)',
-      }}
-    >
+    <AppShell.Footer>
       <Group
         px="xs"
         gap="xs"

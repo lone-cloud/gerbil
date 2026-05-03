@@ -439,7 +439,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
       </Tabs>
       <div
         style={{
-          borderTop: '1px solid var(--gerbil-divider)',
+          borderTop: '1px solid var(--mantine-color-default-border)',
           padding: 'var(--mantine-spacing-md) 0',
           display: 'flex',
           justifyContent: 'flex-end',

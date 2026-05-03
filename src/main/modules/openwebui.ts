@@ -97,6 +97,7 @@ export async function startFrontend(args: string[]) {
 
     const envConfig: Record<string, string> = {
       DATA_DIR: openWebUIDataDir,
+      OPENSSL_CONF: '/dev/null',
       ENABLE_OLLAMA_API: 'false',
       ENABLE_VERSION_UPDATE_CHECK: 'false',
       GLOBAL_LOG_LEVEL: 'warning',
