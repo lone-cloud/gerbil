@@ -47,8 +47,8 @@ modules:
       - install -Dm644 squashfs-root/usr/share/icons/hicolor/512x512/apps/gerbil.png /app/share/icons/hicolor/512x512/apps/app.lonecloud.gerbil.png
     sources:
       - type: file
-        url: https://github.com/lone-cloud/gerbil/releases/download/v1.23.45/Gerbil-1.23.45.AppImage
-        sha256: 6a0bea20d7f3633e0693521d83b5dd15ab1f98952504551053bd9f9e6d2a9841
+        url: https://github.com/lone-cloud/gerbil/releases/download/v1.24.0/Gerbil-1.24.0.AppImage
+        sha256: 8a2f797c09c28b524e50041571bf35c1cdb4a0a4f5a597c075173ad0f231a077
       - type: script
         dest-filename: gerbil-wrapper.sh
         commands:
