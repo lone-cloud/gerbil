@@ -61,6 +61,7 @@ let memoryInterval: ReturnType<typeof setInterval> | null = null;
 let gpuInterval: ReturnType<typeof setInterval> | null = null;
 let isRunning = false;
 const updateFrequency = 1000;
+const memoryUpdateFrequency = platform === 'win32' ? 3000 : updateFrequency;
 let mainWindow: BrowserWindow | null = null;
 
 let latestCpuMetrics: CpuMetrics | null = null;
@@ -87,7 +88,7 @@ export function startMonitoring(window: BrowserWindow) {
   void collectAndSendMemoryMetrics();
   memoryInterval = setInterval(() => {
     void collectAndSendMemoryMetrics();
-  }, updateFrequency);
+  }, memoryUpdateFrequency);
 
   if (platform === 'linux') {
     void collectAndSendGpuMetrics();
