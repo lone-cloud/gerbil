@@ -58,7 +58,7 @@
     "electron": "^41.5.0",
     "electron-builder": "^26.8.1",
     "electron-vite": "^5.0.0",
-    "jiti": "^2.6.1",
+    "jiti": "^2.7.0",
     "lucide-react": "^1.14.0",
     "oxfmt": "^0.48.0",
     "oxlint": "^1.63.0",

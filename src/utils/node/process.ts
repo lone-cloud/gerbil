@@ -11,6 +11,16 @@ async function killWindowsProcessTree(pid: number) {
   } catch {}
 }
 
+export async function killProcessByPid(pid: number) {
+  if (platform === 'win32') {
+    await killWindowsProcessTree(pid);
+  } else {
+    try {
+      process.kill(pid, 'SIGKILL');
+    } catch {}
+  }
+}
+
 export async function terminateProcess(childProcess: ChildProcess | null) {
   if (!childProcess?.pid) {
     return;

@@ -42,7 +42,7 @@ export const WelcomeScreen = ({ onGetStarted }: WelcomeScreenProps) => (
           Get Started
         </Button>
         <Text size="xs" c="dimmed">
-          GPU acceleration requires CUDA, ROCm or Vulkan drivers.
+          GPU acceleration requires CUDA, ROCm and Vulkan drivers.
         </Text>
       </Stack>
     </Stack>
