@@ -1,37 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>app.lonecloud.gerbil</id>
-  <metadata_license>MIT</metadata_license>
+  <id>dev.lonecloud.gerbil</id>
+  <metadata_license>CC0-1.0</metadata_license>
   <project_license>AGPL-3.0-or-later</project_license>
 
   <name>Gerbil</name>
-  <summary>A desktop app to easily run Large Language Models locally</summary>
+  <summary>Local LLMs, fully under your control</summary>
   <description>
     <p>
-      Gerbil is a desktop app to easily run Large Language Models locally. Powered by KoboldCpp,
-      it provides a clean cross-platform interface for downloading, managing, and running
-      various language models locally while maintaining complete privacy and control over your data.
+      Gerbil is a desktop app for running large language models and image generation locally.
+      It handles backend downloads, GPU detection, and process management so you can get started
+      without touching the terminal.
     </p>
-    <p>Core Features:</p>
     <ul>
-      <li>Run LLMs locally powered by KoboldCpp (highly modified fork of llama.cpp)</li>
-      <li>Cross-platform desktop app - Native support for Windows, macOS, and Linux (including Wayland)</li>
-      <li>Automatic updates - Download and keep your KoboldCpp binary up-to-date effortlessly</li>
-      <li>Smart process management - Prevents runaway background processes and system resource waste</li>
-      <li>Optimized performance - Automatically unpacks binaries for faster operation and reduced memory usage</li>
-      <li>Image generation support - Built-in presets for Flux and Chroma image generation workflows</li>
-      <li>SillyTavern integration - Seamlessly launch SillyTavern for advanced character interactions</li>
-      <li>OpenWebUI integration - Launch OpenWebUI for a modern web-based chat interface</li>
-      <li>Privacy-focused - Everything runs locally on your machine, no data sent to external servers</li>
+      <li>Automatic backend download and updates</li>
+      <li>GPU auto-detection for CUDA, ROCm, Vulkan and Metal</li>
+      <li>Image generation presets for Flux, Chroma and others</li>
+      <li>HuggingFace model search and download</li>
+      <li>SillyTavern and OpenWebUI as optional frontends</li>
+      <li>Everything runs locally: no data sent to external servers</li>
     </ul>
   </description>
 
-  <launchable type="desktop-id">app.lonecloud.gerbil.desktop</launchable>
+  <launchable type="desktop-id">dev.lonecloud.gerbil.desktop</launchable>
   <provides>
     <binary>gerbil</binary>
   </provides>
 
-  <icon type="stock">app.lonecloud.gerbil</icon>
+  <icon type="stock">dev.lonecloud.gerbil</icon>
 
   <screenshots>
     <screenshot type="default">
@@ -76,9 +72,8 @@
     <keyword>Local</keyword>
     <keyword>Machine Learning</keyword>
     <keyword>Privacy</keyword>
-    <keyword>KoboldCpp</keyword>
-    <keyword>llama.cpp</keyword>
     <keyword>SillyTavern</keyword>
+    <keyword>llama.cpp</keyword>
     <keyword>OpenWebUI</keyword>
     <keyword>Text Generation</keyword>
     <keyword>Image Generation</keyword>
