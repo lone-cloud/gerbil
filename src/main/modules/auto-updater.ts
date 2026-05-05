@@ -6,11 +6,7 @@ import { autoUpdater } from 'electron-updater';
 import { isDevelopment } from '@/utils/node/environment';
 import { logError, safeExecute } from '@/utils/node/logging';
 
-import {
-  getAURVersion,
-  isFlatpakInstallation,
-  isWindowsPortableInstallation,
-} from './dependencies';
+import { getAURVersion, isWindowsPortableInstallation } from './dependencies';
 
 export interface UpdateInfo {
   version: string;
@@ -79,10 +75,6 @@ export const canAutoUpdate = async () => {
   }
 
   if (platform === 'linux' && (await getAURVersion()) !== null) {
-    return false;
-  }
-
-  if (isFlatpakInstallation()) {
     return false;
   }
 
