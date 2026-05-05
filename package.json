@@ -180,6 +180,14 @@
         {
           "from": "assets/gerbil.desktop",
           "to": "assets/gerbil.desktop"
+        },
+        {
+          "from": "flatpak/dev.lonecloud.gerbil.desktop",
+          "to": "flatpak/dev.lonecloud.gerbil.desktop"
+        },
+        {
+          "from": "flatpak/dev.lonecloud.gerbil.metainfo.xml",
+          "to": "flatpak/dev.lonecloud.gerbil.metainfo.xml"
         }
       ],
       "target": [
