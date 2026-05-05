@@ -1,5 +1,6 @@
 import type { ChildProcess } from 'node:child_process';
 import { spawn } from 'node:child_process';
+import { readFile, unlink, writeFile } from 'node:fs/promises';
 import { createServer, request } from 'node:http';
 import type { Server } from 'node:http';
 import { join } from 'node:path';
@@ -10,7 +11,7 @@ import { PROXY } from '@/constants/proxy';
 import { pathExists, readJsonFile, writeJsonFile } from '@/utils/node/fs';
 import { parseKoboldConfig } from '@/utils/node/kobold';
 import { logError, tryExecute } from '@/utils/node/logging';
-import { terminateProcess } from '@/utils/node/process';
+import { killProcessByPid, terminateProcess } from '@/utils/node/process';
 
 import { getInstallDir } from './config';
 import { getNodeEnvironment } from './dependencies';
@@ -38,6 +39,27 @@ const getSillyTavernServerPath = () =>
 
 const getSillyTavernSettingsPath = () =>
   join(getSillyTavernDataDir(), 'default-user', 'settings.json');
+
+const getSillyTavernPidPath = () => join(getSillyTavernInstallDir(), 'sillytavern.pid');
+
+async function saveSillyTavernPid(pid: number) {
+  await writeFile(getSillyTavernPidPath(), String(pid), 'utf8').catch(() => {});
+}
+
+async function clearSillyTavernPid() {
+  await unlink(getSillyTavernPidPath()).catch(() => {});
+}
+
+async function killOrphanedSillyTavern() {
+  const pidPath = getSillyTavernPidPath();
+  if (!(await pathExists(pidPath))) return;
+  const raw = await readFile(pidPath, 'utf8').catch(() => null);
+  const pid = raw ? parseInt(raw.trim(), 10) : NaN;
+  if (!isNaN(pid)) {
+    await killProcessByPid(pid);
+  }
+  await clearSillyTavernPid();
+}
 
 async function ensureSillyTavernInstalled() {
   const serverPath = getSillyTavernServerPath();
@@ -73,49 +95,66 @@ async function ensureSillyTavernInstalled() {
     sendKoboldOutput('Installing SillyTavern via npm...');
   }
 
-  return new Promise<void>((resolve, reject) => {
-    const npmProcess = spawn(
-      'npm',
-      [
-        'install',
-        'sillytavern@latest',
-        '--prefix',
-        installDir,
-        '--no-save',
-        '--install-strategy=nested',
-        '--silent',
-      ],
-      {
-        env,
-        shell: platform === 'win32',
-        stdio: ['pipe', 'pipe', 'pipe'],
-      },
-    );
+  await killOrphanedSillyTavern();
 
-    let errorOutput = '';
+  const runNpmInstall = () =>
+    new Promise<void>((resolve, reject) => {
+      const npmProcess = spawn(
+        'npm',
+        [
+          'install',
+          'sillytavern@latest',
+          '--prefix',
+          installDir,
+          '--no-save',
+          '--install-strategy=nested',
+          '--silent',
+        ],
+        {
+          env,
+          shell: platform === 'win32',
+          stdio: ['pipe', 'pipe', 'pipe'],
+        },
+      );
 
-    if (npmProcess.stderr) {
-      npmProcess.stderr.on('data', (data: Buffer) => {
-        errorOutput += data.toString();
-      });
-    }
+      let errorOutput = '';
 
-    npmProcess.on('exit', (code) => {
-      if (code === 0) {
-        sendKoboldOutput('SillyTavern is ready');
-        resolve();
-      } else {
-        if (errorOutput) {
-          sendKoboldOutput(`npm install error: ${errorOutput.trim()}`);
-        }
-        reject(new Error(`npm install failed with code ${code}`));
+      if (npmProcess.stderr) {
+        npmProcess.stderr.on('data', (data: Buffer) => {
+          errorOutput += data.toString();
+        });
       }
+
+      npmProcess.on('exit', (code) => {
+        if (code === 0) {
+          sendKoboldOutput('SillyTavern is ready');
+          resolve();
+        } else {
+          reject(Object.assign(new Error(`npm install failed with code ${code}`), { errorOutput }));
+        }
+      });
+
+      npmProcess.on('error', reject);
     });
 
-    npmProcess.on('error', (error) => {
-      reject(error);
-    });
-  });
+  try {
+    await runNpmInstall();
+  } catch (err) {
+    const isBusy =
+      err instanceof Error && (err.message.includes('4294963214') || err.message.includes('-4082'));
+
+    if (isBusy && platform === 'win32') {
+      sendKoboldOutput('File busy, retrying npm install...');
+      await new Promise<void>((resolve) => setTimeout(resolve, 2000));
+      await runNpmInstall();
+    } else {
+      const output = (err as { errorOutput?: string }).errorOutput;
+      if (output) {
+        sendKoboldOutput(`npm install error: ${output.trim()}`);
+      }
+      throw err;
+    }
+  }
 }
 
 async function createNpxProcess(args: string[]) {
@@ -289,8 +328,15 @@ async function waitForSillyTavernToStart() {
 
 const createProxyServer = (targetPort: number, proxyPort: number) => {
   proxyServer = createServer((req, res) => {
+    const headers = { ...req.headers };
+    delete headers['x-forwarded-for'];
+    delete headers['x-real-ip'];
+    delete headers['cf-connecting-ip'];
+    delete headers['x-forwarded-host'];
+    delete headers.forwarded;
+
     const options = {
-      headers: req.headers,
+      headers,
       hostname: 'localhost',
       method: req.method,
       path: req.url,
@@ -298,9 +344,9 @@ const createProxyServer = (targetPort: number, proxyPort: number) => {
     };
 
     const proxyReq = request(options, (proxyRes) => {
-      const headers = { ...proxyRes.headers };
-      delete headers['x-frame-options'];
-      res.writeHead(proxyRes.statusCode ?? 200, headers);
+      const responseHeaders = { ...proxyRes.headers };
+      delete responseHeaders['x-frame-options'];
+      res.writeHead(proxyRes.statusCode ?? 200, responseHeaders);
       proxyRes.pipe(res);
     });
 
@@ -341,6 +387,8 @@ export async function startFrontend(args: string[]) {
 
     sendKoboldOutput(`Starting ${config.name} frontend on port ${config.port}...`);
 
+    createProxyServer(config.port, config.proxyPort);
+
     const sillyTavernDataDir = getSillyTavernDataDir();
 
     const sillyTavernArgs = [
@@ -352,6 +400,10 @@ export async function startFrontend(args: string[]) {
     ];
 
     sillyTavernProcess = await createNpxProcess(sillyTavernArgs);
+
+    if (sillyTavernProcess.pid) {
+      void saveSillyTavernPid(sillyTavernProcess.pid);
+    }
 
     if (sillyTavernProcess.stdout) {
       sillyTavernProcess.stdout.on('data', (data: Buffer) => {
@@ -371,6 +423,7 @@ export async function startFrontend(args: string[]) {
         : `SillyTavern exited with code ${code}`;
       sendKoboldOutput(message);
       sillyTavernProcess = null;
+      void clearSillyTavernPid();
     });
 
     sillyTavernProcess.on('error', (error) => {
@@ -381,7 +434,6 @@ export async function startFrontend(args: string[]) {
     });
 
     await waitForSillyTavernToStart();
-    createProxyServer(config.port, config.proxyPort);
   } catch (error) {
     logError(
       `Failed to start SillyTavern: ${error instanceof Error ? error.message : String(error)}`,
@@ -410,4 +462,10 @@ export async function stopFrontend() {
   }
 
   await Promise.all(promises);
+
+  if (platform === 'win32') {
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 1000);
+    });
+  }
 }

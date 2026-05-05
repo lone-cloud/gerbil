@@ -199,6 +199,7 @@ export async function launchKoboldCpp(
     const resolvedArgs = await resolveModelPaths(args);
     const finalArgs = resolvedArgs.filter((arg) => arg !== '--remotetunnel');
 
+    await stopProxy();
     await startProxy(koboldHost, koboldPort);
 
     const rocmEnv =
@@ -251,7 +252,7 @@ export async function launchKoboldCpp(
 
       readyResolve?.({ pid: child.pid, success: true });
 
-      if (remotetunnel) {
+      if (remotetunnel && isKoboldFrontend) {
         void startTunnel(frontendPreference, true);
       }
     };
@@ -350,7 +351,7 @@ export const launchKoboldCppWithCustomFrontends = async (
     const frontendPreference = getConfig('frontendPreference');
     const imageGenerationFrontendPreference = getConfig('imageGenerationFrontendPreference');
 
-    const { isTextMode } = parseKoboldConfig(args);
+    const { isTextMode, remotetunnel } = parseKoboldConfig(args);
 
     const result = await launchKoboldCpp(
       args,
@@ -367,19 +368,31 @@ export const launchKoboldCppWithCustomFrontends = async (
     }
 
     if (frontendPreference === 'sillytavern') {
-      startSillyTavernFrontend(args).catch((error) => {
-        logError('Failed to start SillyTavern frontend:', error);
-        sendKoboldOutput(
-          `Failed to start SillyTavern: ${error instanceof Error ? error.message : String(error)}`,
-        );
-      });
+      startSillyTavernFrontend(args)
+        .then(() => {
+          if (remotetunnel) {
+            void startTunnel(frontendPreference, true);
+          }
+        })
+        .catch((error) => {
+          logError('Failed to start SillyTavern frontend:', error);
+          sendKoboldOutput(
+            `Failed to start SillyTavern: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        });
     } else if (frontendPreference === 'openwebui') {
-      startOpenWebUIFrontend(args).catch((error) => {
-        logError('Failed to start OpenWebUI frontend:', error);
-        sendKoboldOutput(
-          `Failed to start OpenWebUI: ${error instanceof Error ? error.message : String(error)}`,
-        );
-      });
+      startOpenWebUIFrontend(args)
+        .then(() => {
+          if (remotetunnel) {
+            void startTunnel(frontendPreference, true);
+          }
+        })
+        .catch((error) => {
+          logError('Failed to start Open WebUI frontend:', error);
+          sendKoboldOutput(
+            `Failed to start Open WebUI: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        });
     }
 
     return result;

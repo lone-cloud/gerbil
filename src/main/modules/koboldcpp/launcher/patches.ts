@@ -60,6 +60,7 @@ export const patchKliteEmbd = (unpackedDir: string) =>
     const possiblePaths = [
       join(unpackedDir, '_internal', 'embd_res', 'klite.embd'),
       join(unpackedDir, 'embd_res', 'klite.embd'),
+      join(unpackedDir, 'klite.embd'),
     ];
 
     let kliteEmbdPath: string | null = null;
@@ -96,6 +97,7 @@ export const patchKcppSduiEmbd = (unpackedDir: string) =>
   tryExecute(async () => {
     const possiblePaths = [
       join(unpackedDir, '_internal', 'embd_res', 'kcpp_sdui.embd'),
+      join(unpackedDir, 'embd_res', 'kcpp_sdui.embd'),
       join(unpackedDir, 'kcpp_sdui.embd'),
     ];
 
@@ -113,6 +115,7 @@ export const patchLcppGzEmbd = (unpackedDir: string) =>
   tryExecute(async () => {
     const possiblePaths = [
       join(unpackedDir, '_internal', 'embd_res', 'lcpp.gz.embd'),
+      join(unpackedDir, 'embd_res', 'lcpp.gz.embd'),
       join(unpackedDir, 'lcpp.gz.embd'),
     ];
 
