@@ -1,11 +1,13 @@
 {
   "name": "gerbil",
-  "version": "1.24.1",
+  "version": "1.24.2",
   "description": "Run Large Language Models locally",
   "keywords": [
     "ai",
+    "desktop",
     "electron",
-    "koboldcpp",
+    "gguf",
+    "image-generation",
     "language-model",
     "llm",
     "local-ai",

@@ -439,6 +439,7 @@ export async function startFrontend(args: string[]) {
       `Failed to start SillyTavern: ${error instanceof Error ? error.message : String(error)}`,
       error as Error,
     );
+    await stopFrontend();
     throw error;
   }
 }
