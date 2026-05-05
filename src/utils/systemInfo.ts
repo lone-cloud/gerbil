@@ -16,9 +16,7 @@ export const createSoftwareItems = (
             ? `${versionInfo.appVersion} (AUR${pkgrel !== '1' ? ` r${pkgrel}` : ''})`
             : versionInfo.appVersion;
         })()
-      : versionInfo.flatpakAppId
-        ? `${versionInfo.appVersion} (Flatpak)`
-        : versionInfo.appVersion,
+      : versionInfo.appVersion,
   },
   ...(koboldVersion ? [{ label: 'KoboldCpp', value: koboldVersion }] : []),
   {

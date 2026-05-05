@@ -26,12 +26,7 @@
     "analyze": "cross-env ANALYZE=true electron-vite build && pnpm dlx open-cli dist/stats.html",
     "check": "oxlint && oxfmt --check",
     "fix": "oxlint --fix && oxfmt",
-    "release": "node --no-warnings scripts/release.ts",
-    "fp:dev": "pnpm package && pnpm fp:install && pnpm fp:run",
-    "fp:install": "cd flatpak && flatpak-builder --user --install --force-clean --state-dir=$HOME/.local/share/flatpak-builder/gerbil build-dir app.lonecloud.gerbil.yml",
-    "fp:run": "flatpak run app.lonecloud.gerbil",
-    "fp:uninstall": "flatpak uninstall --user app.lonecloud.gerbil",
-    "fp:logs": "journalctl -f FLATPAK_ID=app.lonecloud.gerbil"
+    "release": "node --no-warnings scripts/release.ts"
   },
   "dependencies": {
     "electron-updater": "^6.8.3",
@@ -180,14 +175,6 @@
         {
           "from": "assets/gerbil.desktop",
           "to": "assets/gerbil.desktop"
-        },
-        {
-          "from": "flatpak/dev.lonecloud.gerbil.desktop",
-          "to": "flatpak/dev.lonecloud.gerbil.desktop"
-        },
-        {
-          "from": "flatpak/dev.lonecloud.gerbil.metainfo.xml",
-          "to": "flatpak/dev.lonecloud.gerbil.metainfo.xml"
         }
       ],
       "target": [

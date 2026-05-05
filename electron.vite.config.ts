@@ -4,17 +4,10 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'electron-vite';
 import { visualizer } from 'rollup-plugin-visualizer';
 
-const watchIgnore = [resolve(__dirname, 'flatpak/build-dir')];
-
 export default defineConfig({
   main: {
     build: {
       externalizeDeps: true,
-    },
-    server: {
-      watch: {
-        ignored: watchIgnore,
-      },
     },
     resolve: {
       alias: {
@@ -25,11 +18,6 @@ export default defineConfig({
   preload: {
     build: {
       externalizeDeps: true,
-    },
-    server: {
-      watch: {
-        ignored: watchIgnore,
-      },
     },
     resolve: {
       alias: {
@@ -42,9 +30,6 @@ export default defineConfig({
     publicDir: 'src/assets',
     server: {
       port: 5173,
-      watch: {
-        ignored: watchIgnore,
-      },
     },
     build: {
       outDir: 'dist',

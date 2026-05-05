@@ -187,7 +187,6 @@ export interface SystemVersionInfo {
   nodeJsSystemVersion?: string;
   uvVersion?: string;
   aurPackageVersion?: string;
-  flatpakAppId?: string | null;
 }
 
 export interface AppAPI {
