@@ -222,6 +222,17 @@ export async function isAURInstallation() {
   return aurPackageVersion !== null;
 }
 
+export function getFlatpakAppId() {
+  if (platform !== 'linux') {
+    return null;
+  }
+  return processEnv.FLATPAK_ID ?? null;
+}
+
+export function isFlatpakInstallation() {
+  return getFlatpakAppId() !== null;
+}
+
 export async function getVersionInfo() {
   const [nodeJsSystemVersion, uvVersion, aurPackageVersion] = await Promise.all([
     getSystemNodeVersion(),
@@ -235,6 +246,7 @@ export async function getVersionInfo() {
     aurPackageVersion,
     chromeVersion: versions.chrome,
     electronVersion: versions.electron,
+    flatpakAppId: getFlatpakAppId(),
     nodeJsSystemVersion,
     nodeVersion: versions.node,
     osVersion: release(),
