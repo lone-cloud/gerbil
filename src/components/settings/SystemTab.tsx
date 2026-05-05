@@ -24,7 +24,13 @@ export const SystemTab = () => {
 
         setVersionInfo(info);
         setKoboldVersion(currentBackend?.version ?? null);
+      } catch (error) {
+        window.electronAPI.logs.logError('Failed to load system info', error as Error);
+      } finally {
+        setLoading(false);
+      }
 
+      try {
         const [cpu, gpu, gpuCapabilities, gpuMemory, systemMemory] = await Promise.all([
           window.electronAPI.kobold.detectCPU(),
           window.electronAPI.kobold.detectGPU(),
@@ -41,9 +47,7 @@ export const SystemTab = () => {
           systemMemory,
         });
       } catch (error) {
-        window.electronAPI.logs.logError('Failed to load system info', error as Error);
-      } finally {
-        setLoading(false);
+        window.electronAPI.logs.logError('Failed to load hardware info', error as Error);
       }
     };
 

@@ -151,7 +151,10 @@ async function getLinuxGPUData() {
 
 async function getWindowsGPUData() {
   try {
-    const graphics = await siGraphics();
+    const graphics = await Promise.race([
+      siGraphics(),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
+    ]);
 
     const discreteControllers = graphics.controllers.filter(
       (controller) => controller.vram && controller.vram >= 1024,

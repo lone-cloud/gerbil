@@ -1,7 +1,8 @@
+import { cpus as osCpus, totalmem } from 'node:os';
 import { platform } from 'node:process';
 
 import { execa } from 'execa';
-import { cpu as siCpu, mem as siMem, memLayout as siMemLayout } from 'systeminformation';
+import { memLayout as siMemLayout } from 'systeminformation';
 
 import type {
   BasicGPUInfo,
@@ -33,36 +34,26 @@ let basicGPUInfoCache: BasicGPUInfo | null = null;
 let gpuCapabilitiesCache: GPUCapabilities | null = null;
 let gpuMemoryInfoCache: GPUMemoryInfo[] | null = null;
 
-export async function detectCPU() {
+export function detectCPU() {
   if (cpuCapabilitiesCache) {
     return cpuCapabilitiesCache;
   }
 
-  const result = await safeExecute(async () => {
-    const cpu = await siCpu();
+  const cpuList = osCpus();
+  const brand = cpuList[0]?.model;
+  const cores = cpuList.length;
+  const speed = (cpuList[0]?.speed ?? 0) / 1000;
 
-    const devices: { name: string; detailedName: string }[] = [];
-    if (cpu.brand) {
-      const name = formatDeviceName(cpu.brand);
+  const devices: { name: string; detailedName: string }[] = [];
+  if (brand) {
+    const name = formatDeviceName(brand);
+    devices.push({
+      detailedName: `${name} (${cores} cores) @ ${speed} GHz`,
+      name,
+    });
+  }
 
-      devices.push({
-        detailedName: `${name} (${cpu.cores} cores) @ ${cpu.speed} GHz`,
-        name,
-      });
-    }
-
-    const capabilities = {
-      devices,
-    };
-
-    cpuCapabilitiesCache = capabilities;
-    return capabilities;
-  }, 'CPU detection failed');
-
-  cpuCapabilitiesCache = result ?? {
-    devices: [],
-  };
-
+  cpuCapabilitiesCache = { devices };
   return cpuCapabilitiesCache;
 }
 
@@ -370,10 +361,13 @@ export async function detectGPUMemory() {
 }
 
 export const detectSystemMemory = async () => {
-  try {
-    const [memInfo, memLayout] = await Promise.all([siMem(), siMemLayout()]);
+  const totalGB = (totalmem() / 1024 ** 3).toFixed(2);
 
-    const totalGB = (memInfo.total / 1024 ** 3).toFixed(2);
+  try {
+    const memLayout = await Promise.race([
+      siMemLayout(),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
+    ]);
 
     let speed: number | undefined;
     let type: string | undefined;
@@ -394,15 +388,8 @@ export const detectSystemMemory = async () => {
       }
     }
 
-    return {
-      speed,
-      totalGB,
-      type,
-    };
+    return { speed, totalGB, type };
   } catch {
-    const mem = await siMem();
-    return {
-      totalGB: (mem.total / 1024 ** 3).toFixed(2),
-    };
+    return { totalGB };
   }
 };
