@@ -1,6 +1,6 @@
 {
   "name": "gerbil",
-  "version": "1.24.0",
+  "version": "1.24.1",
   "description": "Run Large Language Models locally",
   "keywords": [
     "ai",
@@ -27,6 +27,7 @@
     "check": "oxlint && oxfmt --check",
     "fix": "oxlint --fix && oxfmt",
     "release": "node --no-warnings scripts/release.ts",
+    "fp:dev": "pnpm package && pnpm fp:install && pnpm fp:run",
     "fp:install": "cd flatpak && flatpak-builder --user --install --force-clean --state-dir=$HOME/.local/share/flatpak-builder/gerbil build-dir app.lonecloud.gerbil.yml",
     "fp:run": "flatpak run app.lonecloud.gerbil",
     "fp:uninstall": "flatpak uninstall --user app.lonecloud.gerbil",
@@ -64,8 +65,8 @@
     "electron-vite": "^5.0.0",
     "jiti": "^2.6.1",
     "lucide-react": "^1.14.0",
-    "oxfmt": "^0.47.0",
-    "oxlint": "^1.62.0",
+    "oxfmt": "^0.48.0",
+    "oxlint": "^1.63.0",
     "oxlint-tsgolint": "^0.22.1",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
@@ -78,12 +79,12 @@
     "rollup-plugin-visualizer": "^7.0.1",
     "typescript": "^6.0.3",
     "vite": "^8.0.10",
-    "zustand": "^5.0.12"
+    "zustand": "^5.0.13"
   },
   "engines": {
     "node": ">=24.0.0"
   },
-  "packageManager": "pnpm@10.33.2",
+  "packageManager": "pnpm@10.33.3",
   "build": {
     "appId": "com.gerbil.app",
     "productName": "Gerbil",
