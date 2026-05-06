@@ -8,7 +8,6 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)](https://github.com/lone-cloud/gerbil/releases)
-[![GitHub stars](https://img.shields.io/github/stars/lone-cloud/gerbil)](https://github.com/lone-cloud/gerbil/stargazers)
 [![AUR version](https://img.shields.io/aur/version/gerbil)](https://aur.archlinux.org/packages/gerbil)
 
 <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;">
