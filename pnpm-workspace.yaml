@@ -2,3 +2,6 @@ allowBuilds:
   electron: true
   electron-winstaller: true
   esbuild: true
+
+overrides:
+  '@codemirror/view': '^6.42.1'
