@@ -8,7 +8,7 @@ import {
   useCombobox,
 } from '@mantine/core';
 import { File, Info, Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { LabelWithTooltip } from '@/components/LabelWithTooltip';
 import { HuggingFaceSearchModal } from '@/components/screens/Launch/HuggingFaceSearchModal';
@@ -48,7 +48,16 @@ export const ModelFileField = ({
   const [analysisCache, setAnalysisCache] = useState<Map<string, ModelAnalysis>>(new Map());
   const [cachedModels, setCachedModels] = useState<CachedModel[]>([]);
   const [searchModalOpened, setSearchModalOpened] = useState(false);
+  const [inputFocused, setInputFocused] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const combobox = useCombobox();
+
+  useEffect(() => {
+    if (inputFocused && inputRef.current) {
+      const len = value.length;
+      inputRef.current.setSelectionRange(len, len);
+    }
+  }, [inputFocused, value.length]);
 
   useEffect(() => {
     void (async () => {
@@ -113,37 +122,59 @@ export const ModelFileField = ({
     <div>
       <LabelWithTooltip label={label} tooltip={tooltip} />
       <Group gap="xs" align="flex-start">
-        <div style={{ flex: 1 }}>
-          <Combobox
-            store={combobox}
-            onOptionSubmit={(val) => {
-              onChange(val);
-              combobox.closeDropdown();
-            }}
-          >
-            <Combobox.Target>
-              <TextInput
-                placeholder={placeholder}
-                value={value}
-                onChange={(event) => {
-                  onChange(event.currentTarget.value);
-                  combobox.openDropdown();
-                }}
-                onFocus={() => combobox.openDropdown()}
-                onBlur={() => combobox.closeDropdown()}
-                error={validationState === 'invalid' ? getHelperText() : undefined}
-                rightSection={<Combobox.Chevron />}
-                rightSectionPointerEvents="none"
-              />
-            </Combobox.Target>
+        <Tooltip
+          label={value}
+          disabled={inputFocused || !value || value.startsWith('http')}
+          position="bottom"
+          withArrow
+          multiline
+          maw={500}
+        >
+          <div style={{ flex: 1 }}>
+            <Combobox
+              store={combobox}
+              onOptionSubmit={(val) => {
+                onChange(val);
+                setInputFocused(false);
+                combobox.closeDropdown();
+                inputRef.current?.blur();
+              }}
+            >
+              <Combobox.Target>
+                <TextInput
+                  ref={inputRef}
+                  placeholder={placeholder}
+                  value={
+                    inputFocused || !value || value.startsWith('http')
+                      ? value
+                      : (value.split(/[\\/]/).pop() ?? value)
+                  }
+                  onChange={(event) => {
+                    onChange(event.currentTarget.value);
+                    combobox.openDropdown();
+                  }}
+                  onFocus={() => {
+                    setInputFocused(true);
+                    combobox.openDropdown();
+                  }}
+                  onBlur={() => {
+                    setInputFocused(false);
+                    combobox.closeDropdown();
+                  }}
+                  error={validationState === 'invalid' ? getHelperText() : undefined}
+                  rightSection={<Combobox.Chevron />}
+                  rightSectionPointerEvents="none"
+                />
+              </Combobox.Target>
 
-            {options.length > 0 && (
-              <Combobox.Dropdown>
-                <Combobox.Options>{options}</Combobox.Options>
-              </Combobox.Dropdown>
-            )}
-          </Combobox>
-        </div>
+              {options.length > 0 && (
+                <Combobox.Dropdown>
+                  <Combobox.Options>{options}</Combobox.Options>
+                </Combobox.Dropdown>
+              )}
+            </Combobox>
+          </div>
+        </Tooltip>
         <Button onClick={onSelectFile} variant="light" leftSection={<File size={16} />}>
           Browse
         </Button>
