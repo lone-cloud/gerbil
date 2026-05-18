@@ -125,6 +125,16 @@ const COMMAND_LINE_ARGUMENTS = [
     type: 'int',
   },
   {
+    aliases: ['-sm', '--split-mode'],
+    category: 'Advanced',
+    choices: ['layer', 'row', 'tensor'],
+    default: 'layer',
+    description:
+      'How to split the model across multiple GPUs. layer=split by layer (default), row=split by row, tensor=experimental tensor split.',
+    flag: '--splitmode',
+    metavar: '[layer/row/tensor]',
+  },
+  {
     aliases: ['--blasbatchsize', '--batch-size', '-b'],
     category: 'Advanced',
     choices: ['-1', '16', '32', '64', '128', '256', '512', '1024', '2048', '4096'],
@@ -550,6 +560,15 @@ const COMMAND_LINE_ARGUMENTS = [
       'Router mode uses a reverse proxy router, allowing you to easily hotswap models and configs within a single request. Requires admin mode.',
     flag: '--routermode',
     type: 'boolean',
+  },
+  {
+    category: 'Administration',
+    default: 600,
+    description:
+      'Timeout in seconds for HTTP requests. Applies to some requests like router mode. Default is 600 (10 minutes).',
+    flag: '--reqtimeout',
+    metavar: '[seconds]',
+    type: 'int',
   },
   {
     category: 'Administration',
