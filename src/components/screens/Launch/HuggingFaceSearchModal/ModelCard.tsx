@@ -7,6 +7,37 @@ import remarkGfm from 'remark-gfm';
 
 import { HUGGINGFACE_BASE_URL } from '@/constants';
 
+const markdownComponents = {
+  code: ({ node: _, ...props }: React.ComponentPropsWithRef<'code'> & { node?: unknown }) => (
+    <code
+      {...props}
+      style={{
+        wordBreak: 'break-word',
+      }}
+    />
+  ),
+  img: ({ node: _, alt, ...props }: React.ComponentPropsWithRef<'img'> & { node?: unknown }) => (
+    <img
+      {...props}
+      alt={alt ?? ''}
+      style={{
+        maxWidth: '100%',
+        height: 'auto',
+        display: 'block',
+      }}
+    />
+  ),
+  pre: ({ node: _, ...props }: React.ComponentPropsWithRef<'pre'> & { node?: unknown }) => (
+    <pre
+      {...props}
+      style={{
+        overflow: 'auto',
+        maxWidth: '100%',
+      }}
+    />
+  ),
+};
+
 interface ModelCardProps {
   modelId: string;
 }
@@ -67,36 +98,7 @@ export const ModelCard = ({ modelId }: ModelCardProps) => {
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeRaw, rehypeSanitize]}
-                components={{
-                  code: ({ node: _, ...props }) => (
-                    <code
-                      {...props}
-                      style={{
-                        wordBreak: 'break-word',
-                      }}
-                    />
-                  ),
-                  img: ({ node: _, alt, ...props }) => (
-                    <img
-                      {...props}
-                      alt={alt ?? ''}
-                      style={{
-                        maxWidth: '100%',
-                        height: 'auto',
-                        display: 'block',
-                      }}
-                    />
-                  ),
-                  pre: ({ node: _, ...props }) => (
-                    <pre
-                      {...props}
-                      style={{
-                        overflow: 'auto',
-                        maxWidth: '100%',
-                      }}
-                    />
-                  ),
-                }}
+                components={markdownComponents}
               >
                 {readme}
               </ReactMarkdown>

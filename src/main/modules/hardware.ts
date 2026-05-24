@@ -2,7 +2,7 @@ import { cpus as osCpus, totalmem } from 'node:os';
 import { platform } from 'node:process';
 
 import { execa } from 'execa';
-import { memLayout as siMemLayout } from 'systeminformation';
+import { graphics as siGraphics, memLayout as siMemLayout } from 'systeminformation';
 
 import type {
   BasicGPUInfo,
@@ -131,34 +131,42 @@ async function detectCUDA() {
         stdout.toLowerCase().includes(pattern.toLowerCase()),
       );
 
-      if (hasError) {
-        return { devices: [] } as const;
-      }
+      if (!hasError) {
+        const lines = stdout.split('\n').filter((line) => line.trim());
+        const devices: string[] = [];
+        let driverVersion: string | undefined;
 
-      const lines = stdout.split('\n').filter((line) => line.trim());
-      const devices: string[] = [];
-      let driverVersion: string | undefined;
-
-      for (const line of lines) {
-        const [name, driver] = line.split(',').map((s) => s.trim());
-        if (name) {
-          devices.push(formatDeviceName(name));
+        for (const line of lines) {
+          const [name, driver] = line.split(',').map((s) => s.trim());
+          if (name) {
+            devices.push(formatDeviceName(name));
+          }
+          if (driver && !driverVersion) {
+            driverVersion = driver;
+          }
         }
-        if (driver && !driverVersion) {
-          driverVersion = driver;
+
+        if (devices.length > 0) {
+          return {
+            devices,
+            driverVersion,
+          } as const;
         }
       }
-
-      return {
-        devices,
-        driverVersion,
-      } as const;
     }
+  } catch {}
 
-    return { devices: [] } as const;
-  } catch {
-    return { devices: [] };
+  if (platform === 'win32') {
+    try {
+      const { controllers } = await siGraphics();
+      const devices = controllers
+        .filter((c) => /nvidia|geforce|rtx|gtx/i.test(c.model ?? ''))
+        .map((c) => formatDeviceName(c.model ?? ''));
+      return { devices };
+    } catch {}
   }
+
+  return { devices: [] };
 }
 
 export async function detectROCm() {

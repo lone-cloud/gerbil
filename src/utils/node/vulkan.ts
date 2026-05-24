@@ -1,4 +1,7 @@
+import { platform } from 'node:process';
+
 import { execa } from 'execa';
+import { graphics as siGraphics } from 'systeminformation';
 
 import { formatDeviceName } from '@/utils/format';
 
@@ -100,18 +103,42 @@ export async function getVulkanInfo() {
       }
     }
 
-    vulkanInfoCache = {
-      allGPUs,
-      apiVersion: globalApiVersion,
-    };
+    if (allGPUs.length > 0) {
+      vulkanInfoCache = {
+        allGPUs,
+        apiVersion: globalApiVersion,
+      };
 
-    return vulkanInfoCache;
-  } catch {
-    vulkanInfoCache = {
-      allGPUs: [],
-    };
-    return vulkanInfoCache;
+      return vulkanInfoCache;
+    }
+  } catch {}
+
+  if (platform === 'win32') {
+    try {
+      const { controllers } = await Promise.race([
+        siGraphics(),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
+      ]);
+      const allGPUs = controllers
+        .filter((c) => c.model)
+        .map((c) => {
+          const name = c.model ?? '';
+          const vendor = (c.vendor ?? '').toLowerCase();
+          const nameLower = name.toLowerCase();
+          const hasNVIDIA =
+            /nvidia|geforce|rtx|gtx/.test(vendor) || /nvidia|geforce|rtx|gtx/.test(nameLower);
+          const hasAMD = /amd|advanced micro|radeon/.test(vendor) || /amd|radeon/.test(nameLower);
+          const isIntegrated = c.vramDynamic;
+          return { hasAMD, hasNVIDIA, isIntegrated, name };
+        })
+        .filter((c) => c.hasNVIDIA || c.hasAMD);
+      vulkanInfoCache = { allGPUs };
+      return vulkanInfoCache;
+    } catch {}
   }
+
+  vulkanInfoCache = { allGPUs: [] };
+  return vulkanInfoCache;
 }
 
 export async function detectGPUViaVulkan() {
