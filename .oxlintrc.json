@@ -12,7 +12,12 @@
   },
   "plugins": ["typescript", "react", "react-perf", "import", "unicorn", "oxc"],
   "rules": {
-    "import/no-cycle": ["error", { "maxDepth": 3 }],
+    "import/no-cycle": [
+      "error",
+      {
+        "maxDepth": 3
+      }
+    ],
     "import/no-absolute-path": "off",
     "import/no-unassigned-import": "off",
     "import/no-named-export": "off",

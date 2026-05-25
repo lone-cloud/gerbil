@@ -1,5 +1,6 @@
 import { Accordion, Group, Loader, Paper, Text } from '@mantine/core';
 import { useState } from 'react';
+import type { ComponentPropsWithRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize from 'rehype-sanitize';
@@ -8,7 +9,7 @@ import remarkGfm from 'remark-gfm';
 import { HUGGINGFACE_BASE_URL } from '@/constants';
 
 const markdownComponents = {
-  code: ({ node: _, ...props }: React.ComponentPropsWithRef<'code'> & { node?: unknown }) => (
+  code: ({ node: _, ...props }: ComponentPropsWithRef<'code'> & { node?: unknown }) => (
     <code
       {...props}
       style={{
@@ -16,7 +17,7 @@ const markdownComponents = {
       }}
     />
   ),
-  img: ({ node: _, alt, ...props }: React.ComponentPropsWithRef<'img'> & { node?: unknown }) => (
+  img: ({ node: _, alt, ...props }: ComponentPropsWithRef<'img'> & { node?: unknown }) => (
     <img
       {...props}
       alt={alt ?? ''}
@@ -27,7 +28,7 @@ const markdownComponents = {
       }}
     />
   ),
-  pre: ({ node: _, ...props }: React.ComponentPropsWithRef<'pre'> & { node?: unknown }) => (
+  pre: ({ node: _, ...props }: ComponentPropsWithRef<'pre'> & { node?: unknown }) => (
     <pre
       {...props}
       style={{
