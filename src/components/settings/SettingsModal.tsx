@@ -63,10 +63,15 @@ export const SettingsModal = ({
             overflow: 'auto',
             paddingLeft: '1.5rem',
             paddingRight: '1.5rem',
+            paddingTop: '0.75rem',
+            paddingBottom: '0.75rem',
           },
           root: {
             flex: 1,
             minHeight: 0,
+          },
+          list: {
+            paddingRight: '0.25rem',
           },
           tabLabel: {
             textAlign: 'left',

@@ -68,7 +68,7 @@
     "oxlint-tsgolint": "^0.23.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "react-error-boundary": "^6.1.1",
+    "react-error-boundary": "^6.1.2",
     "react-icons": "^5.6.0",
     "react-markdown": "^10.1.0",
     "rehype-raw": "^7.0.0",

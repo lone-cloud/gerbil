@@ -2,7 +2,7 @@ import { ActionIcon, Box, ScrollArea } from '@mantine/core';
 import { ChevronDown } from 'lucide-react';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
-import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
+import { FOOTER_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
 import { handleTerminalOutput, processTerminalContent } from '@/utils/terminal';
 
 export interface TerminalTabRef {
@@ -97,7 +97,7 @@ export const TerminalTab = forwardRef<TerminalTabRef>((_props, ref) => {
         borderRadius: 'inherit',
         display: 'flex',
         flexDirection: 'column',
-        height: `calc(100vh - ${TITLEBAR_HEIGHT} - ${STATUSBAR_HEIGHT})`,
+        height: `calc(100vh - ${TITLEBAR_HEIGHT} - ${FOOTER_HEIGHT})`,
         position: 'relative',
       }}
     >

@@ -1,7 +1,7 @@
 import { Box, Stack, Text } from '@mantine/core';
 import { useMemo } from 'react';
 
-import { STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
+import { FOOTER_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 import { usePreferencesStore } from '@/stores/preferences';
 import { getServerInterfaceInfo } from '@/utils/interface';
@@ -55,7 +55,7 @@ export const ServerTab = ({ isServerReady, activeTab }: ServerTabProps) => {
   return (
     <Box
       style={{
-        height: `calc(100vh - ${TITLEBAR_HEIGHT} - ${STATUSBAR_HEIGHT})`,
+        height: `calc(100vh - ${TITLEBAR_HEIGHT} - ${FOOTER_HEIGHT})`,
         overflow: 'hidden',
         width: '100%',
       }}

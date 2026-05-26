@@ -9,7 +9,7 @@ import { StatusBar } from '@/components/App/StatusBar';
 import { TitleBar } from '@/components/App/TitleBar';
 import { UpdateAvailableModal } from '@/components/App/UpdateAvailableModal';
 import { NotepadContainer } from '@/components/Notepad/Container';
-import { SERVER_READY_DELAY_MS, STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
+import { SERVER_READY_DELAY_MS, FOOTER_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { useKoboldBackendsStore } from '@/stores/koboldBackends';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
@@ -218,7 +218,7 @@ export const App = () => {
   return (
     <AppShell
       header={{ height: TITLEBAR_HEIGHT }}
-      footer={{ height: STATUSBAR_HEIGHT }}
+      footer={{ height: FOOTER_HEIGHT }}
       padding={isInterfaceScreen ? 0 : 'md'}
     >
       <TitleBar
@@ -231,8 +231,8 @@ export const App = () => {
       <AppShell.Main
         top={TITLEBAR_HEIGHT}
         style={{
-          height: `calc(100vh - ${TITLEBAR_HEIGHT} - ${STATUSBAR_HEIGHT})`,
-          minHeight: `calc(100vh - ${TITLEBAR_HEIGHT} - ${STATUSBAR_HEIGHT})`,
+          height: `calc(100vh - ${TITLEBAR_HEIGHT} - ${FOOTER_HEIGHT})`,
+          minHeight: `calc(100vh - ${TITLEBAR_HEIGHT} - ${FOOTER_HEIGHT})`,
           overflow: 'auto',
           paddingBottom: 0,
           paddingLeft: isInterfaceScreen ? 0 : '.5rem',

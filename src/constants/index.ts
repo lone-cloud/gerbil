@@ -6,6 +6,8 @@ export const TITLEBAR_HEIGHT = '2.5rem';
 
 export const STATUSBAR_HEIGHT = '1.5rem';
 
+export const FOOTER_HEIGHT = '1.875rem';
+
 export const HUGGINGFACE_BASE_URL = 'https://huggingface.co';
 
 export const SERVER_READY_SIGNALS = {

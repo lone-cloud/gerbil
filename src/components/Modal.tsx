@@ -43,7 +43,7 @@ export const Modal = ({
         flexDirection: 'column',
         height: '72vh',
         overflow: 'hidden',
-        padding: 0,
+        padding: '0.25rem 0.25rem',
         position: 'relative',
       }}
     >

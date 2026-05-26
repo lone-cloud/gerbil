@@ -8,7 +8,7 @@ import { ImageGenerationTab } from '@/components/screens/Launch/ImageGenerationT
 import { NetworkTab } from '@/components/screens/Launch/NetworkTab';
 import { PerformanceTab } from '@/components/screens/Launch/PerformanceTab';
 import { WarningDisplay } from '@/components/WarningDisplay';
-import { DEFAULT_MODEL_URL, STATUSBAR_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
+import { DEFAULT_MODEL_URL, FOOTER_HEIGHT, TITLEBAR_HEIGHT } from '@/constants';
 import { useLaunchLogic } from '@/hooks/useLaunchLogic';
 import { useWarnings } from '@/hooks/useWarnings';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
@@ -380,7 +380,7 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
     <Container
       size="sm"
       style={{
-        height: `calc(100svh - ${TITLEBAR_HEIGHT} - ${STATUSBAR_HEIGHT})`,
+        height: `calc(100svh - ${TITLEBAR_HEIGHT} - ${FOOTER_HEIGHT})`,
         display: 'flex',
         flexDirection: 'column',
         paddingTop: 'var(--mantine-spacing-md)',
