@@ -158,7 +158,10 @@ async function detectCUDA() {
 
   if (platform === 'win32') {
     try {
-      const { controllers } = await siGraphics();
+      const { controllers } = await Promise.race([
+        siGraphics(),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
+      ]);
       const devices = controllers
         .filter((c) => /nvidia|geforce|rtx|gtx/i.test(c.model ?? ''))
         .map((c) => formatDeviceName(c.model ?? ''));

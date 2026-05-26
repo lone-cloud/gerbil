@@ -5,7 +5,7 @@ import { graphics as siGraphics } from 'systeminformation';
 
 import { formatDeviceName } from '@/utils/format';
 
-let vulkanInfoCache: {
+interface VulkanInfo {
   allGPUs: {
     name: string;
     driverInfo?: string;
@@ -15,33 +15,38 @@ let vulkanInfoCache: {
     isIntegrated: boolean;
   }[];
   apiVersion?: string;
-} | null = null;
+}
 
-export async function getVulkanInfo() {
+let vulkanInfoCache: VulkanInfo | null = null;
+
+let vulkanInfoInflight: Promise<VulkanInfo> | null = null;
+
+export function getVulkanInfo(): Promise<VulkanInfo> {
   if (vulkanInfoCache) {
-    return vulkanInfoCache;
+    return Promise.resolve(vulkanInfoCache);
   }
 
+  vulkanInfoInflight ??= fetchVulkanInfo().finally(() => {
+    vulkanInfoInflight = null;
+  });
+
+  return vulkanInfoInflight;
+}
+
+async function fetchVulkanInfo(): Promise<VulkanInfo> {
   try {
     const { stdout } = await execa('vulkaninfo', ['--summary'], {
       reject: false,
       timeout: 3000,
     });
 
-    const allGPUs: {
-      name: string;
-      driverInfo?: string;
-      apiVersion?: string;
-      hasAMD: boolean;
-      hasNVIDIA: boolean;
-      isIntegrated: boolean;
-    }[] = [];
+    const allGPUs: VulkanInfo['allGPUs'] = [];
     let globalApiVersion: string | undefined;
 
     if (stdout.trim()) {
       const lines = stdout.split('\n');
       let foundGPU = false;
-      let currentGPU: (typeof allGPUs)[0] | null = null;
+      let currentGPU: VulkanInfo['allGPUs'][0] | null = null;
 
       for (const line of lines) {
         if (!globalApiVersion && line.includes('apiVersion') && line.includes('=')) {

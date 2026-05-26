@@ -85,11 +85,7 @@ export async function getAvailableAccelerations(includeDisabled = false) {
   }
 
   const result = await safeExecute(async () => {
-    const [currentBinaryInfo, hardwareCapabilities, cpuCapabilities] = await Promise.all([
-      getCurrentBinaryInfo(),
-      detectGPUCapabilities(),
-      includeDisabled ? detectCPU() : Promise.resolve(null),
-    ]);
+    const currentBinaryInfo = await getCurrentBinaryInfo();
 
     if (!currentBinaryInfo?.path) {
       return [{ label: CPU_LABEL, value: 'cpu' }];
@@ -102,7 +98,11 @@ export async function getAvailableAccelerations(includeDisabled = false) {
       return cached;
     }
 
-    const accelerationSupport = await detectAccelerationSupport();
+    const [hardwareCapabilities, cpuCapabilities, accelerationSupport] = await Promise.all([
+      detectGPUCapabilities(),
+      includeDisabled ? detectCPU() : Promise.resolve(null),
+      detectAccelerationSupport(),
+    ]);
 
     if (!accelerationSupport) {
       return [];
