@@ -3,5 +3,8 @@ allowBuilds:
   electron-winstaller: true
   esbuild: true
 
+minimumReleaseAgeExclude:
+  - systeminformation@5.31.7
+
 overrides:
   '@codemirror/view': '^6.43.0'

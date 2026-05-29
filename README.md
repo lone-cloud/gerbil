@@ -207,17 +207,16 @@ You can use the CLI mode on Windows in exactly the same way as in the Linux/macO
    ```bash
    # fnm will auto-install Node.js based on .nvmrc or engines field
    fnm use --install-if-missing
-   npm install -g yarn
-   yarn
+   pnpm install
    ```
 
 4. Start the development server:
 
    ```bash
-   yarn dev
+   pnpm dev
    ```
 
-## My Setup
+## Author's Setup
 
 - OS: [Archlinux](https://archlinux.org/) + KDE + Wayland
 - Gerbil: installed from [AUR](https://aur.archlinux.org/packages/gerbil) via [yay](https://github.com/Jguer/yay)
