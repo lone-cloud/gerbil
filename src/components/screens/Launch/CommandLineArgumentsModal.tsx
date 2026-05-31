@@ -145,6 +145,16 @@ const COMMAND_LINE_ARGUMENTS = [
     type: 'int',
   },
   {
+    aliases: ['--continuous-batching', '--contbatch'],
+    category: 'Advanced',
+    default: 1,
+    description:
+      'Allows multiple requests to be batched and executed in parallel. Only works for basic text generation requests. Experimental. Set to number of simultaneous generations to allow.',
+    flag: '--parallelrequests',
+    metavar: '[slots]',
+    type: 'int',
+  },
+  {
     aliases: ['--batchthreads', '--threadsbatch', '--threads-batch'],
     category: 'Advanced',
     default: 0,
@@ -177,17 +187,18 @@ const COMMAND_LINE_ARGUMENTS = [
     type: 'boolean',
   },
   {
+    aliases: ['--swa-full'],
     category: 'Advanced',
     description:
-      'If set, allows Sliding Window Attention (SWA) KV Cache, which saves memory but cannot be used with context shifting.',
-    flag: '--useswa',
+      'If set, uses full-size SWA KV Cache. Otherwise, SWA will be enabled automatically on models that support it. SWA saves memory but cannot be used with context shifting.',
+    flag: '--noswa',
     type: 'boolean',
   },
   {
     category: 'Advanced',
-    default: 512,
+    default: 0,
     description:
-      'How much extra to pad the SWA KV cache, extending the SWA context window by the specified number of tokens. Only active when --useswa is enabled.',
+      'How much extra to pad the SWA KV cache, this affects the rewind limit before reprocessing is forced.',
     flag: '--swapadding',
     metavar: '[tokens]',
     type: 'int',
@@ -524,6 +535,47 @@ const COMMAND_LINE_ARGUMENTS = [
     metavar: '[tensor name pattern=buffer type]',
   },
   {
+    category: 'RPC',
+    choices: ['disabled', 'connect', 'host'],
+    default: 'disabled',
+    description:
+      'RPC allows GPUs to be shared over the network. connect=access a remote GPU, host=share your GPU.',
+    flag: '--rpcmode',
+    metavar: '[disabled/connect/host]',
+  },
+  {
+    category: 'RPC',
+    default: 5551,
+    description: 'RPC host mode only. Port for RPC server to listen on (default: 5551).',
+    flag: '--rpcport',
+    metavar: '[portnumber]',
+    type: 'int',
+  },
+  {
+    category: 'RPC',
+    default: '0.0.0.0',
+    description:
+      'RPC host mode only. IP address for RPC server to listen on. Use 0.0.0.0 for all interfaces, 127.0.0.1 for localhost only.',
+    flag: '--rpchost',
+    metavar: '[IP address]',
+  },
+  {
+    category: 'RPC',
+    default: '',
+    description:
+      'RPC host mode only. Set specific devices to use for RPC server. Comma separated. Overrides normal RPC device choices.',
+    flag: '--rpcdevice',
+    metavar: '<dev1,dev2,..>',
+  },
+  {
+    category: 'RPC',
+    default: '',
+    description:
+      'RPC connect mode only. Specify a comma separated list of remote RPC endpoints to connect to e.g. 127.0.0.1:5551,127.0.0.1:5552',
+    flag: '--rpctargets',
+    metavar: '[remotehost1:port1,remotehost2:port2]',
+  },
+  {
     category: 'Administration',
     description:
       'Enables admin mode, allowing you to unload and reload different configurations or models.',
@@ -706,6 +758,29 @@ const COMMAND_LINE_ARGUMENTS = [
     type: 'int',
   },
   {
+    category: 'Image Generation',
+    default: 'main',
+    description:
+      "VAE device for image generation. GPU index, -1 or 'main' for the main GPU, or 'CPU' (default: main).",
+    flag: '--sdvaedevice',
+    metavar: '[Device ID]',
+  },
+  {
+    category: 'Image Generation',
+    default: 'CPU',
+    description:
+      "CLIP / T5 / LLM device for image generation. GPU index, -1 or 'main' for the main GPU, or 'CPU' (default: CPU).",
+    flag: '--sdclipdevice',
+    metavar: '[Device ID]',
+  },
+  {
+    category: 'Image Generation',
+    default: '',
+    description: 'Specify an image generation audio VAE for LTX2.3 video generation.',
+    flag: '--sdaudiovae',
+    metavar: '[filename]',
+  },
+  {
     category: 'Audio',
     default: '',
     description: 'Specify a Whisper .bin model to enable Speech-To-Text transcription.',
@@ -827,6 +902,13 @@ const COMMAND_LINE_ARGUMENTS = [
       "Select a custom Jinja chat template file, overwriting the model's built-in Jinja chat template.",
     flag: '--jinjatemplate',
     metavar: '[filename]',
+  },
+  {
+    category: 'Advanced',
+    choices: ['default', 'true', 'false'],
+    default: 'default',
+    description: 'A quick way to enable or disable thinking in the jinja template.',
+    flag: '--jinjathink',
   },
   {
     aliases: ['-dev'],
