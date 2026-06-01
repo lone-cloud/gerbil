@@ -8,7 +8,13 @@ import { pathExists } from '@/utils/node/fs';
 import { logError } from '@/utils/node/logging';
 import { getLauncherPath } from '@/utils/node/path';
 
-import { getCurrentKoboldBinary, getInstallDir, setCurrentKoboldBinary } from '../config';
+import {
+  get as getAppConfig,
+  getCurrentKoboldBinary,
+  getInstallDir,
+  set as setAppConfig,
+  setCurrentKoboldBinary,
+} from '../config';
 import { sendToRenderer } from '../window';
 
 const backendVersionCache = new Map<string, { version: string; actualVersion?: string } | null>();
@@ -57,11 +63,14 @@ export async function getInstalledBackends() {
           return null;
         }
 
+        const localPaths = getAppConfig('localBackendPaths') ?? [];
+
         return {
           actualVersion: versionInfo.actualVersion,
           filename: launcher.filename,
           path: launcher.path,
           size: launcher.size,
+          source: localPaths.includes(launcher.path) ? ('local' as const) : undefined,
           version: versionInfo.version,
         } as InstalledBackend;
       } catch (error) {
@@ -150,6 +159,15 @@ export async function deleteRelease(binaryPath: string) {
       await rm(releaseDir, { force: true, recursive: true });
 
       clearBackendVersionCache(binaryPath);
+
+      const localPaths = getAppConfig('localBackendPaths') ?? [];
+      if (localPaths.includes(binaryPath)) {
+        await setAppConfig(
+          'localBackendPaths',
+          localPaths.filter((p: string) => p !== binaryPath),
+        );
+      }
+
       sendToRenderer('versions-updated');
 
       return { success: true };

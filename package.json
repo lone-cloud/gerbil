@@ -1,6 +1,6 @@
 {
   "name": "gerbil",
-  "version": "1.25.0",
+  "version": "1.25.1",
   "description": "Run Large Language Models locally",
   "keywords": [
     "ai",
@@ -38,7 +38,7 @@
     "systeminformation": "^5.31.7",
     "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0",
-    "yauzl": "^3.3.1"
+    "yauzl": "^3.3.2"
   },
   "devDependencies": {
     "@codemirror/commands": "^6.10.3",

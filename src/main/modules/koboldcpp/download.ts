@@ -12,7 +12,13 @@ import { logError } from '@/utils/node/logging';
 import { getLauncherPath } from '@/utils/node/path';
 import { stripAssetExtensions } from '@/utils/version';
 
-import { getCurrentKoboldBinary, getInstallDir, setCurrentKoboldBinary } from '../config';
+import {
+  get as getAppConfig,
+  getCurrentKoboldBinary,
+  getInstallDir,
+  set as setAppConfig,
+  setCurrentKoboldBinary,
+} from '../config';
 import { getMainWindow, sendToRenderer } from '../window';
 import { clearBackendVersionCache, getVersionFromBinary } from './backend';
 import { isKoboldRunning } from './launcher';
@@ -266,11 +272,16 @@ export async function importLocalBackend() {
 
     await copyFile(selectedPath, packedFilePath);
 
-    await installBackend({
+    const launcherPath = await installBackend({
       packedFilePath,
       skipUnpackError: true,
       unpackedDirPath: installDir,
     });
+
+    const existingPaths = getAppConfig('localBackendPaths') ?? [];
+    if (!existingPaths.includes(launcherPath)) {
+      await setAppConfig('localBackendPaths', [...existingPaths, launcherPath]);
+    }
 
     return { success: true };
   } catch (error) {

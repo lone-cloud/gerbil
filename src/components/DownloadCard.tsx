@@ -76,7 +76,7 @@ export const DownloadCard = ({
       );
     }
 
-    if (backend.hasUpdate && onUpdate) {
+    if (backend.hasUpdate && !backend.isLocal && onUpdate) {
       buttons.push(
         <Button
           key="update"
@@ -99,7 +99,7 @@ export const DownloadCard = ({
       );
     }
 
-    if (hasVersionMismatch && onRedownload) {
+    if (hasVersionMismatch && !backend.isLocal && onRedownload) {
       buttons.push(
         <Button
           key="redownload"
@@ -175,6 +175,11 @@ export const DownloadCard = ({
             {backend.hasUpdate && (
               <Badge variant="light" color="orange" size="sm">
                 Update Available
+              </Badge>
+            )}
+            {backend.isLocal && (
+              <Badge variant="light" color="violet" size="sm">
+                Local
               </Badge>
             )}
             {isWindowsROCmBuild(backend.name) && (

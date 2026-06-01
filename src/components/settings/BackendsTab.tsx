@@ -70,32 +70,44 @@ export const BackendsTab = () => {
     availableDownloads.forEach((download) => {
       const downloadBaseName = stripAssetExtensions(download.name);
 
-      const installedBackend = installedBackends.find((b) => {
+      const matchingBackends = installedBackends.filter((b) => {
         const displayName = getDisplayNameFromPath(b);
         return displayName === downloadBaseName;
       });
 
-      const isCurrent = Boolean(
-        installedBackend && currentBackend && currentBackend.path === installedBackend.path,
-      );
+      if (matchingBackends.length > 0) {
+        const downloadVersion = download.version ?? 'unknown';
+        const hasMultipleVersions = new Set(matchingBackends.map((b) => b.version)).size > 1;
 
-      if (installedBackend) {
-        processedInstalled.add(installedBackend.path);
+        matchingBackends.forEach((installedBackend) => {
+          processedInstalled.add(installedBackend.path);
 
-        const hasUpdate =
-          compareVersions(download.version ?? 'unknown', installedBackend.version) > 0;
+          const isCurrent = Boolean(
+            currentBackend && currentBackend.path === installedBackend.path,
+          );
 
-        backends.push({
-          actualVersion: installedBackend.actualVersion,
-          downloadUrl: download.url,
-          hasUpdate,
-          installedPath: installedBackend.path,
-          isCurrent,
-          isInstalled: true,
-          name: download.name,
-          newerVersion: hasUpdate ? download.version : undefined,
-          size: undefined,
-          version: installedBackend.version,
+          const isLocal =
+            installedBackend.source === 'local' ||
+            (hasMultipleVersions &&
+              installedBackend.version !== downloadVersion &&
+              installedBackend.source !== 'local');
+
+          const hasUpdate =
+            !isLocal && compareVersions(downloadVersion, installedBackend.version) > 0;
+
+          backends.push({
+            actualVersion: installedBackend.actualVersion,
+            downloadUrl: download.url,
+            hasUpdate,
+            installedPath: installedBackend.path,
+            isCurrent,
+            isInstalled: true,
+            isLocal,
+            name: download.name,
+            newerVersion: hasUpdate ? download.version : undefined,
+            size: undefined,
+            version: installedBackend.version,
+          });
         });
       } else {
         backends.push({
@@ -119,6 +131,7 @@ export const BackendsTab = () => {
           installedPath: installed.path,
           isCurrent,
           isInstalled: true,
+          isLocal: installed.source === 'local',
           name: displayName,
           size: undefined,
           version: installed.version,

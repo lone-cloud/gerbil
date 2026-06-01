@@ -48,6 +48,11 @@ export const useUpdateChecker = () => {
       return;
     }
 
+    if (currentBackend.source === 'local') {
+      setIsChecking(false);
+      return;
+    }
+
     const availableDownloads: DownloadItem[] = [...releases];
     if (rocmDownload) {
       availableDownloads.push(rocmDownload);
@@ -64,18 +69,31 @@ export const useUpdateChecker = () => {
       const hasUpdate = compareVersions(matchingDownload.version, currentBackend.version) > 0;
 
       if (hasUpdate) {
-        const isUpdateDismissed = dismissedUpdates.some(
-          (dismissedUpdate) =>
-            dismissedUpdate.currentBackendPath === currentBackend.path &&
-            dismissedUpdate.targetVersion === matchingDownload.version,
+        const installedBackends = await window.electronAPI.kobold.getInstalledBackends();
+
+        const sameNameBackends = installedBackends.filter(
+          (b) => getDisplayNameFromPath(b) === currentDisplayName,
         );
 
-        if (!isUpdateDismissed) {
-          setUpdateInfo({
-            availableUpdate: matchingDownload,
-            currentBackend,
-          });
-          setShowUpdateModal(true);
+        const hasMultipleVersions = new Set(sameNameBackends.map((b) => b.version)).size > 1;
+
+        const looksLocal =
+          hasMultipleVersions && currentBackend.version !== matchingDownload.version;
+
+        if (!looksLocal) {
+          const isUpdateDismissed = dismissedUpdates.some(
+            (dismissedUpdate) =>
+              dismissedUpdate.currentBackendPath === currentBackend.path &&
+              dismissedUpdate.targetVersion === matchingDownload.version,
+          );
+
+          if (!isUpdateDismissed) {
+            setUpdateInfo({
+              availableUpdate: matchingDownload,
+              currentBackend,
+            });
+            setShowUpdateModal(true);
+          }
         }
       }
     }

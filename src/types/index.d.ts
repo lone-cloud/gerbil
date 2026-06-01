@@ -68,6 +68,7 @@ export interface BackendInfo {
   size?: number;
   isInstalled: boolean;
   isCurrent: boolean;
+  isLocal?: boolean;
   downloadUrl?: string;
   installedPath?: string;
   hasUpdate?: boolean;

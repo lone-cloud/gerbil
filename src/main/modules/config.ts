@@ -39,6 +39,7 @@ interface AppConfig {
   notepad?: SavedNotepadState;
   enableSystemTray?: boolean;
   startMinimizedToTray?: boolean;
+  localBackendPaths?: string[];
 }
 
 let config: AppConfig = {};

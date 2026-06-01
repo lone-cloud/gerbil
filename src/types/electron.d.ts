@@ -62,6 +62,7 @@ export interface InstalledBackend {
   filename: string;
   size?: number;
   actualVersion?: string;
+  source?: 'local';
 }
 
 export interface DownloadItem {

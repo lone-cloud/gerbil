@@ -8,6 +8,7 @@
 - **Never create tests, docs, or GitHub workflows**
 - **Never add comments** — code should be self-explanatory; no inline comments, no block comments
 - **Move helper functions** out of component files into `src/utils/`
+- **Keep commit messages short** — one line, no bullet points, no essay
 
 ## What Gerbil Is
 
