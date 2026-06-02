@@ -51,7 +51,7 @@ const getCloudflaredDownloadUrl = (version: string) =>
 const getInstalledCloudflaredVersion = async (binPath: string) => {
   try {
     const result = await execa(binPath, ['--version']);
-    const match = /(\d{4}\.\d+\.\d+)/.exec(result.stdout + result.stderr);
+    const match = /(?<version>\d{4}\.\d+\.\d+)/.exec(result.stdout + result.stderr);
     return match ? match[1] : null;
   } catch {
     return null;
@@ -142,8 +142,11 @@ export const startTunnel = async (
 
     if (binExists) {
       const installedVersion = await getInstalledCloudflaredVersion(bin);
-      const normalizedInstalled = installedVersion?.replace(/^(\d{4}\.\d+\.\d+).*$/, '$1');
-      const normalizedLatest = latestVersion.replace(/^[v]?(\d{4}\.\d+\.\d+).*$/, '$1');
+      const normalizedInstalled = installedVersion?.replace(
+        /^(?<version>\d{4}\.\d+\.\d+).*$/,
+        '$1',
+      );
+      const normalizedLatest = latestVersion.replace(/^[v]?(?<version>\d{4}\.\d+\.\d+).*$/, '$1');
       if (normalizedInstalled !== normalizedLatest) {
         sendKoboldOutput(
           `Updating cloudflared ${installedVersion ?? 'unknown'} → ${latestVersion}`,

@@ -8,7 +8,7 @@ export const handleTerminalOutput = (prevContent: string, newData: string) => {
   return prevContent + newData;
 };
 
-const URL_REGEX = /(https?:\/\/[^\s<>"{}|\\^`[\]]+)/gi;
+const URL_REGEX = /(?<url>https?:\/\/[^\s<>"{}|\\^`[\]]+)/gi;
 
 const escapeHtml = (text: string) =>
   text

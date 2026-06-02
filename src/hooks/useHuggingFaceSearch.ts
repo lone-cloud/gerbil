@@ -44,7 +44,7 @@ interface HFApiBaseModel {
 const isValidModelId = (id: string) => id.includes('/');
 
 const extractParamSize = (name: string) => {
-  const match = /(\d+(?:\.\d+)?[BM])(?!\d)/i.exec(name);
+  const match = /(?<size>\d+(?:\.\d+)?[BM])(?!\d)/i.exec(name);
   return match ? match[1].toUpperCase() : undefined;
 };
 

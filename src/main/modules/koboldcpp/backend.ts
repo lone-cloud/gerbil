@@ -194,9 +194,8 @@ export async function getVersionFromBinary(launcherPath: string) {
 
     const folderName = launcherPath.split(/[/\\]/).slice(-2, -1)[0];
     if (folderName) {
-      const versionMatch = /-(\d+\.\d+(?:\.\d+)?(?:\.[a-zA-Z0-9]+)*(?:-[a-zA-Z0-9]+)*)$/.exec(
-        folderName,
-      );
+      const versionMatch =
+        /-(?<version>\d+\.\d+(?:\.\d+)?(?:\.[a-zA-Z0-9]+)*(?:-[a-zA-Z0-9]+)*)$/.exec(folderName);
       if (versionMatch) {
         folderVersion = versionMatch[1];
       }
@@ -213,9 +212,8 @@ export async function getVersionFromBinary(launcherPath: string) {
 
       if (lines.length > 0) {
         const lastLine = lines[lines.length - 1].trim();
-        const versionMatch = /^(\d+\.\d+(?:\.\d+)?(?:\.[a-zA-Z0-9]+)*(?:-[a-zA-Z0-9]+)*)$/.exec(
-          lastLine,
-        );
+        const versionMatch =
+          /^(?<version>\d+\.\d+(?:\.\d+)?(?:\.[a-zA-Z0-9]+)*(?:-[a-zA-Z0-9]+)*)$/.exec(lastLine);
         if (versionMatch) {
           actualVersion = versionMatch[1];
         }

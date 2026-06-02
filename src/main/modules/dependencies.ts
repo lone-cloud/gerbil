@@ -55,7 +55,7 @@ export async function getUvVersion() {
   const result = await executeCommand('uv', ['--version'], env);
 
   if (result.success && result.output) {
-    const version = /uv\s+(\d+\.\d+\.\d+)/i.exec(result.output);
+    const version = /uv\s+(?<version>\d+\.\d+\.\d+)/i.exec(result.output);
     return version ? version[1] : result.output;
   }
   return null;

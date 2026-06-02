@@ -14,10 +14,10 @@ export const getDisplayNameFromPath = (installedBackend: InstalledBackend) => {
 };
 
 export const stripAssetExtensions = (assetName: string) =>
-  assetName.replace(/\.(tar\.gz|zip|exe|dmg|AppImage)$/i, '');
+  assetName.replace(/\.(?<ext>tar\.gz|zip|exe|dmg|AppImage)$/i, '');
 
 const stripVersionSuffix = (displayName: string) =>
-  displayName.replace(/-(\d+\.\d+(?:\.\d+)?(?:\.[a-zA-Z0-9]+)*(?:-[a-zA-Z0-9]+)*)$/, '');
+  displayName.replace(/-(?<version>\d+\.\d+(?:\.\d+)?(?:\.[a-zA-Z0-9]+)*(?:-[a-zA-Z0-9]+)*)$/, '');
 
 const cleanVersion = (version: string) => version.replace(/^v/, '').replace(/[^0-9.]/g, '');
 
