@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@codemirror/view': ^6.43.0
+  '@codemirror/view': ^6.43.1
 
 importers:
 
@@ -1053,7 +1053,7 @@ packages:
       '@codemirror/lint': '>=6.0.0'
       '@codemirror/search': '>=6.0.0'
       '@codemirror/state': '>=6.0.0'
-      '@codemirror/view': ^6.43.0
+      '@codemirror/view': ^6.43.1
 
   '@uiw/react-codemirror@4.25.10':
     resolution: {integrity: sha512-DzgSMwM5qzB7v1FIb4gEeriYt67iiay756/HIOM9mAbeOVK0MO7rqefHf0O5c0269pJKMW7AH9FjclExD23V9w==}
@@ -1061,7 +1061,7 @@ packages:
       '@babel/runtime': '>=7.11.0'
       '@codemirror/state': '>=6.0.0'
       '@codemirror/theme-one-dark': '>=6.0.0'
-      '@codemirror/view': ^6.43.0
+      '@codemirror/view': ^6.43.1
       codemirror: '>=6.0.0'
       react: '>=17.0.0'
       react-dom: '>=17.0.0'
