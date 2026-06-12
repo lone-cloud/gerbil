@@ -405,6 +405,12 @@ const COMMAND_LINE_ARGUMENTS = [
     type: 'float[]',
   },
   {
+    category: 'Speculative Decoding',
+    description: 'Enables MTP layers to be used for drafting (speculative decoding) if present',
+    flag: '--usemtp',
+    type: 'boolean',
+  },
+  {
     category: 'Performance',
     default: 896,
     description:
@@ -506,6 +512,13 @@ const COMMAND_LINE_ARGUMENTS = [
       'Allow the gendefaults parameters to overwrite the original value in API payloads.',
     flag: '--gendefaultsoverwrite',
     type: 'boolean',
+  },
+  {
+    category: 'Advanced',
+    choices: ['default', 'none', 'low', 'medium', 'high'],
+    default: 'default',
+    description: 'A quick way to set the default reasoning effort. API values override this.',
+    flag: '--reasoningeffort',
   },
   {
     category: 'Advanced',
@@ -755,6 +768,14 @@ const COMMAND_LINE_ARGUMENTS = [
     description: 'If specified, Image Generation weights will be placed on the selected GPU index',
     flag: '--sdmaingpu',
     metavar: '[Device ID]',
+    type: 'int',
+  },
+  {
+    category: 'Image Generation',
+    default: 0,
+    description: 'If set, prevent VRAM usage from image gen from using more than this many MB.',
+    flag: '--sdvramlimit',
+    metavar: '[limit MB]',
     type: 'int',
   },
   {
