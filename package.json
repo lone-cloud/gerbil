@@ -1,6 +1,6 @@
 {
   "name": "gerbil",
-  "version": "1.25.2",
+  "version": "1.25.3",
   "description": "Run Large Language Models locally",
   "keywords": [
     "ai",
@@ -62,7 +62,7 @@
     "electron-builder": "^26.15.3",
     "electron-vite": "6.0.0-beta.1",
     "jiti": "^2.7.0",
-    "lucide-react": "^1.20.0",
+    "lucide-react": "^1.21.0",
     "oxfmt": "^0.55.0",
     "oxlint": "^1.70.0",
     "oxlint-tsgolint": "^0.23.0",
@@ -82,7 +82,7 @@
   "engines": {
     "node": ">=24.0.0"
   },
-  "packageManager": "pnpm@11.7.0",
+  "packageManager": "pnpm@11.8.0",
   "build": {
     "appId": "com.gerbil.app",
     "productName": "Gerbil",

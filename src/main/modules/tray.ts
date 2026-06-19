@@ -13,6 +13,9 @@ import type { CpuMetrics, GpuMetrics, MemoryMetrics } from './monitoring';
 import { setTrayActive } from './tray-active';
 import { getMainWindow } from './window';
 
+const needsMetricsInMenu =
+  platform === 'linux' && /gnome/i.test(process.env.XDG_CURRENT_DESKTOP ?? '');
+
 let tray: Tray | null = null;
 let currentMetrics: {
   cpu: CpuMetrics | null;
@@ -67,6 +70,7 @@ export function updateMetrics(
 ) {
   currentMetrics = { cpu, gpu, memory };
   updateTrayTooltip();
+  updateTrayMenu();
 }
 
 function showAndFocusWindow() {
@@ -117,11 +121,53 @@ function updateTrayTooltip() {
   }
 }
 
+function buildMetricsMenuItems(): MenuItemConstructorOptions[] {
+  if (!appState.monitoringEnabled || !currentMetrics.cpu || !currentMetrics.memory) {
+    return [];
+  }
+
+  const items: MenuItemConstructorOptions[] = [];
+
+  items.push({
+    enabled: false,
+    label: `CPU: ${currentMetrics.cpu.usage}%${currentMetrics.cpu.temperature ? ` · ${currentMetrics.cpu.temperature}°C` : ''}`,
+  });
+
+  items.push({
+    enabled: false,
+    label: `RAM: ${currentMetrics.memory.usage}% · ${currentMetrics.memory.used.toFixed(2)} GB`,
+  });
+
+  if (currentMetrics.gpu?.gpus) {
+    currentMetrics.gpu.gpus.forEach((gpu, index) => {
+      const gpuLabel = (currentMetrics.gpu?.gpus?.length ?? 0) > 1 ? `GPU ${index + 1}` : 'GPU';
+      items.push({
+        enabled: false,
+        label: `${gpuLabel}: ${gpu.usage}%${gpu.temperature ? ` · ${gpu.temperature}°C` : ''}`,
+      });
+
+      const vramLabel = (currentMetrics.gpu?.gpus?.length ?? 0) > 1 ? `VRAM ${index + 1}` : 'VRAM';
+      items.push({
+        enabled: false,
+        label: `${vramLabel}: ${gpu.memoryUsage}% · ${gpu.memoryUsed.toFixed(2)} GB`,
+      });
+    });
+  }
+
+  items.push({ type: 'separator' });
+
+  return items;
+}
+
 function buildContextMenu() {
   const mainWindow = getMainWindow();
   const isVisible = mainWindow.isVisible();
 
   const menuTemplate: MenuItemConstructorOptions[] = [];
+
+  if (needsMetricsInMenu) {
+    menuTemplate.push(...buildMetricsMenuItems());
+  }
 
   if (isVisible) {
     menuTemplate.push({
