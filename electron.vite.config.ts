@@ -6,6 +6,16 @@ import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
   main: {
+    plugins: [
+      {
+        name: 'remove-esm-shim',
+        configResolved(config) {
+          const plugins = config.plugins as { name: string }[];
+          const idx = plugins.findIndex((p) => p.name === 'vite:esm-shim');
+          if (idx >= 0) plugins.splice(idx, 1);
+        },
+      },
+    ],
     build: {
       externalizeDeps: true,
     },
