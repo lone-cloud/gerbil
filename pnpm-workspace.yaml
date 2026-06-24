@@ -4,6 +4,3 @@ allowBuilds:
   esbuild: true
 
 minimumReleaseAge: 0
-
-overrides:
-  '@codemirror/view': '^6.43.1'
