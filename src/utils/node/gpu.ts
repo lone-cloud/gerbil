@@ -121,17 +121,19 @@ async function getLinuxGPUData() {
             readFile(`${cachedGPU.devicePath}/mem_info_vram_used`, 'utf8'),
           ]);
 
-          const usage = Math.max(0, Math.min(100, parseInt(usageData.trim(), 10) || 0));
-          const memoryUsed = Math.max(
-            0,
-            (parseInt(memUsedData.trim(), 10) || 0) / (1024 * 1024 * 1024),
-          );
+          const usageParsed = parseInt(usageData.trim(), 10) || 0;
+          const usage = Math.max(0, Math.min(100, usageParsed));
+
+          const memParsed = parseInt(memUsedData.trim(), 10) || 0;
+          const memGB = memParsed / (1024 * 1024 * 1024);
+          const memoryUsed = Math.max(0, memGB);
 
           let temperature: number | undefined;
           if (cachedGPU.hwmonPath) {
             try {
               const tempData = await readFile(`${cachedGPU.hwmonPath}/temp1_input`, 'utf8');
-              temperature = Math.round(parseInt(tempData.trim(), 10) / 1000);
+              const tempRaw = parseInt(tempData.trim(), 10);
+              temperature = Math.round(tempRaw / 1000);
             } catch {}
           }
 
