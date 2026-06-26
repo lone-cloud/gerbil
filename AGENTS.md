@@ -1,4 +1,26 @@
-# Copilot Instructions for Gerbil
+# gerbil — Local LLM desktop app
+
+Electron desktop app that acts as a launcher and GUI for [KoboldCpp](https://github.com/LostRuins/koboldcpp). It is **not** a new LLM backend — it wraps KoboldCpp and makes it usable without touching the terminal. KoboldCpp is an excellent all-in-one local LLM backend but its own launcher UI is bad. Gerbil replaces and significantly improves that launcher.
+
+**Gerbil vs KoboldCpp's launcher**: Gerbil adds auto binary download, GPU auto-detection (CUDA/ROCm/Vulkan/Metal), image gen presets (FLUX, Chroma, Z-Image, Qwen), HuggingFace model search/download, SillyTavern and OpenWebUI auto-launch, config save/load, real-time system monitoring, Cloudflare tunnel support, and a proper desktop experience.
+
+## Build & Run
+
+```sh
+pnpm dev          # electron-vite dev (hot reload)
+pnpm build        # electron-vite build
+pnpm package      # build + electron-builder (dmg/nsis/AppImage)
+pnpm check        # oxlint + oxfmt --check
+pnpm fix          # oxlint --fix + oxfmt
+pnpm analyze      # bundle analysis
+pnpm release      # release script
+```
+
+No test framework.
+
+## Stack
+
+Electron + React + Zustand + Mantine + TypeScript + pnpm + oxlint. No test framework.
 
 ## Hard Rules
 
@@ -10,24 +32,12 @@
 - **Move helper functions** out of component files into `src/utils/`
 - **Keep commit messages short** — one line, no bullet points, no essay
 
-## What Gerbil Is
-
-Gerbil is an Electron desktop app that acts as a launcher and GUI for [KoboldCpp](https://github.com/LostRuins/koboldcpp). It is **not** a new LLM backend — it wraps KoboldCpp and makes it usable without touching the terminal.
-
-**The problem it solves**: KoboldCpp is an excellent all-in-one local LLM backend (text gen, image gen, multimodal, agents) but its own launcher UI is bad. Gerbil replaces and significantly improves that launcher.
-
-**Gerbil vs KoboldCpp's launcher**: Gerbil adds auto binary download, GPU auto-detection (CUDA/ROCm/Vulkan/Metal), image gen presets (FLUX, Chroma, Z-Image, Qwen), HuggingFace model search/download, SillyTavern and OpenWebUI auto-launch, config save/load, real-time system monitoring, Cloudflare tunnel support, and a proper desktop experience.
-
 ## User Base
 
 - People who want to run LLMs locally with real control over the backend
 - SillyTavern users (roleplay/character AI) — Gerbil auto-launches ST alongside KoboldCpp
 - Image generation users — Gerbil has first-class image gen with 4 presets
 - Power users who want GPU acceleration configured correctly without guesswork
-
-## Stack
-
-Electron + React + Zustand + Mantine + TypeScript + pnpm + oxlint. No test framework.
 
 ## Validation
 
@@ -37,7 +47,7 @@ Always run after making changes:
 pnpm check   # oxlint + oxfmt (lint + format check)
 ```
 
-Fix lint/format issues with `pnpm fix`. No test suite exists.
+Fix lint/format issues with `pnpm fix`.
 
 ## Gerbil's Role: KoboldCpp Orchestrator
 
@@ -59,9 +69,9 @@ Gerbil is a manager and orchestrator for KoboldCpp. It doesn't implement LLM inf
 
 **Supported GPUs**: CUDA, ROCm (via YellowRoseCx fork), Vulkan, Metal (macOS), CPU fallback
 
-**Frontends**: KoboldAI Lite, llama.cpp (embedded in KoboldCpp), SillyTavern (localhost:3000, needs Node.js), OpenWebUI (localhost:8080, needs uv)
+**Frontends**: KoboldAI Lite, llama.cpp (embedded in KoboldCpp), SillyTavern (localhost:3000, needs Node.js), OpenWebUI (localhost:8080, needs uv), Stable UI
 
-**Image gen presets**: FLUX.1-dev, Chroma-unlocked, Z-Image-Turbo, Qwen2.5-VL-7B (image edit)
+**Image gen presets**: FLUX.1, Chroma, Z-Image, Qwen Image Edit 2509
 
 **CLI mode**: headless binary execution — requires prior GUI setup to configure binary path
 
@@ -187,7 +197,7 @@ export const useMyStore = create<MyStore>((set) => ({
 }));
 ```
 
-Stores load persisted state on init: `void useMyStore.getState().loadFromConfig()` called in `App/index.tsx`.
+Stores auto-initialize at module level. `launchConfig` is the exception — loaded explicitly from `App/index.tsx`.
 
 ## Component Conventions
 
@@ -199,11 +209,26 @@ Stores load persisted state on init: `void useMyStore.getState().loadFromConfig(
 ## Key Types to Know
 
 ```typescript
-type Screen = 'welcome' | 'download' | 'launch' | 'interface'
-type InterfaceTab = 'terminal' | 'chat-text' | 'chat-image'
-type Acceleration = 'cpu' | 'cuda' | 'rocm' | 'vulkan' | ...
-type ModelParamType = 'model' | 'sdmodel' | 'sdt5xxl' | 'sdvae' | ...
-type FrontendPreference = 'koboldcpp' | 'llamacpp' | 'sillytavern' | 'openwebui'
+type Screen = 'welcome' | 'download' | 'launch' | 'interface';
+type InterfaceTab = 'terminal' | 'chat-text' | 'chat-image';
+type Acceleration = keyof AccelerationSupport | 'cpu';
+// = 'rocm' | 'vulkan' | 'noavx2' | 'failsafe' | 'cuda' | 'cpu'
+type ModelParamType =
+  | 'model'
+  | 'sdmodel'
+  | 'sdt5xxl'
+  | 'sdvae'
+  | 'sdclipl'
+  | 'sdclipg'
+  | 'sdphotomaker'
+  | 'sdlora'
+  | 'mmproj'
+  | 'whispermodel'
+  | 'draftmodel'
+  | 'ttsmodel'
+  | 'ttswavtokenizer'
+  | 'embeddingsmodel';
+type FrontendPreference = 'koboldcpp' | 'llamacpp' | 'sillytavern' | 'openwebui';
 ```
 
 ## Key Constants (`src/constants/index.ts`)
