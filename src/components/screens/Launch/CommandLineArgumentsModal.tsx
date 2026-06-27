@@ -239,6 +239,13 @@ const COMMAND_LINE_ARGUMENTS = [
   },
   {
     category: 'Advanced',
+    description:
+      'Allow .kcpps config files loaded after launch to set --onready commands. Only use with trusted configs.',
+    flag: '--allow-config-onready',
+    type: 'boolean',
+  },
+  {
+    category: 'Advanced',
     default: 'stdout',
     description:
       'Do not start server, instead run benchmarks. If filename is provided, appends results to provided file.',
