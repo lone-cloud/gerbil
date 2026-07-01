@@ -1,8 +1,8 @@
 # gerbil — Local LLM desktop app
 
-Electron desktop app that acts as a launcher and GUI for [KoboldCpp](https://github.com/LostRuins/koboldcpp). It is **not** a new LLM backend — it wraps KoboldCpp and makes it usable without touching the terminal. KoboldCpp is an excellent all-in-one local LLM backend but its own launcher UI is bad. Gerbil replaces and significantly improves that launcher.
+Electron desktop app that wraps [KoboldCpp](https://github.com/LostRuins/koboldcpp) — which itself wraps [llama.cpp](https://github.com/ggerganov/llama.cpp) and other backends. Gerbil is another layer in that stack: KoboldCpp handles inference, Gerbil handles everything around it so you never touch a terminal.
 
-**Gerbil vs KoboldCpp's launcher**: Gerbil adds auto binary download, GPU auto-detection (CUDA/ROCm/Vulkan/Metal), image gen presets (FLUX, Chroma, Z-Image, Qwen), HuggingFace model search/download, SillyTavern and OpenWebUI auto-launch, config save/load, real-time system monitoring, Cloudflare tunnel support, and a proper desktop experience.
+Gerbil adds auto binary download, GPU auto-detection (CUDA/ROCm/Vulkan/Metal), image gen presets, HuggingFace model search/download, SillyTavern and OpenWebUI auto-launch, config save/load, real-time system monitoring, Cloudflare tunnel support, and a proper desktop experience.
 
 ## Build & Run
 
@@ -49,9 +49,9 @@ pnpm check   # oxlint + oxfmt (lint + format check)
 
 Fix lint/format issues with `pnpm fix`.
 
-## Gerbil's Role: KoboldCpp Orchestrator
+## Gerbil's Role
 
-Gerbil is a manager and orchestrator for KoboldCpp. It doesn't implement LLM inference — it configures, launches, monitors, and wraps KoboldCpp. KoboldCpp releases monthly updates that frequently add new CLI flags and capabilities.
+Gerbil configures, launches, and monitors KoboldCpp. KoboldCpp releases frequently add new CLI flags — same way llama.cpp does. Gerbil tracks those changes and surfaces what matters to the UI.
 
 **How KoboldCpp flags surface in Gerbil:**
 

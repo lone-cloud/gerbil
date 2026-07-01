@@ -72,7 +72,7 @@ export async function getInstalledBackends() {
           size: launcher.size,
           source: localPaths.includes(launcher.path) ? ('local' as const) : undefined,
           version: versionInfo.version,
-        } as InstalledBackend;
+        };
       } catch (error) {
         logError(`Could not detect version for ${launcher.filename}:`, error as Error);
         return null;
@@ -80,7 +80,7 @@ export async function getInstalledBackends() {
     });
 
     const results = await Promise.all(versionPromises);
-    return results.filter((version): version is InstalledBackend => version !== null);
+    return results.filter((v) => v !== null) as InstalledBackend[];
   } catch (error) {
     logError('Error scanning install directory:', error as Error);
     return [];

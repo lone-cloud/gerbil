@@ -2,7 +2,6 @@ import { Group, rem, SegmentedControl, Slider, Stack, Text, TextInput } from '@m
 import type { MantineColorScheme } from '@mantine/core';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import type { CSSProperties } from 'react';
 
 import { FrontendInterfaceSelector } from '@/components/settings/FrontendInterfaceSelector';
 import { ZOOM } from '@/constants';
@@ -69,16 +68,14 @@ export const AppearanceTab = ({ isOnInterfaceScreen = false }: AppearanceTabProp
           fullWidth
           value={rawColorScheme}
           onChange={handleColorSchemeChange}
-          style={
-            {
-              '--sc-indicator-color':
-                'light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5))',
-              '--sc-indicator-border':
-                'light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4))',
-              border:
-                '0.5px solid light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4))',
-            } as CSSProperties
-          }
+          style={{
+            '--sc-indicator-color':
+              'light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5))',
+            '--sc-indicator-border':
+              'light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4))',
+            border:
+              '0.5px solid light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4))',
+          }}
           data={[
             {
               label: (
