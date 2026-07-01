@@ -114,6 +114,7 @@ const koboldAPI: KoboldAPI = {
 };
 
 const appAPI: AppAPI = {
+  checkForReloadNeeded: () => ipcRenderer.invoke('app:checkForReloadNeeded'),
   checkForUpdates: () => ipcRenderer.invoke('app:checkForUpdates'),
   closeWindow: async () => ipcRenderer.invoke('app:closeWindow'),
   downloadUpdate: () => ipcRenderer.invoke('app:downloadUpdate'),
@@ -158,6 +159,7 @@ const appAPI: AppAPI = {
   openPath: (path) => ipcRenderer.invoke('app:openPath', path),
   openPerformanceManager: () => ipcRenderer.invoke('app:openPerformanceManager'),
   quitAndInstall: () => ipcRenderer.invoke('app:quitAndInstall'),
+  relaunch: () => ipcRenderer.invoke('app:relaunch'),
   setColorScheme: async (colorScheme) => ipcRenderer.invoke('app:setColorScheme', colorScheme),
   setEnableSystemTray: (enabled) => ipcRenderer.invoke('app:setEnableSystemTray', enabled),
   setStartMinimizedToTray: (enabled) => ipcRenderer.invoke('app:setStartMinimizedToTray', enabled),

@@ -1,4 +1,4 @@
-import { access, readdir, readlink } from 'node:fs/promises';
+import { access, readdir, readlink, stat } from 'node:fs/promises';
 import { homedir, release } from 'node:os';
 import { join } from 'node:path';
 import { arch, platform, env as processEnv, versions } from 'node:process';
@@ -50,7 +50,7 @@ async function executeCommand(
   }
 }
 
-export async function getUvVersion() {
+async function getUvVersion() {
   const env = await getUvEnvironment();
   const result = await executeCommand('uv', ['--version'], env);
 
@@ -61,7 +61,7 @@ export async function getUvVersion() {
   return null;
 }
 
-export async function getSystemNodeVersion() {
+async function getSystemNodeVersion() {
   const env = await getNodeEnvironment();
   const result = await executeCommand('node', ['--version'], env);
 
@@ -72,9 +72,8 @@ export async function getSystemNodeVersion() {
 }
 
 export async function isUvAvailable() {
-  const env = await getUvEnvironment();
-  const result = await executeCommand('uv', ['--version'], env, 10_000);
-  return result.success;
+  const version = await getUvVersion();
+  return version !== null;
 }
 
 export async function getUvEnvironment() {
@@ -174,7 +173,9 @@ async function tryVersionManagerPath(basePath: string, env: Record<string, strin
 
   try {
     const entries = await readdir(basePath);
-    const nodeVersions = entries.filter((v) => v.startsWith('v')).toSorted();
+    const nodeVersions = entries
+      .filter((v) => v.startsWith('v'))
+      .toSorted((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
     const latestVersion = nodeVersions.pop();
 
     if (latestVersion) {
@@ -222,6 +223,29 @@ export async function isAURInstallation() {
   return aurPackageVersion !== null;
 }
 
+let launchTimeMtime: number | null = null;
+
+export async function checkForReloadNeeded() {
+  const appImagePath = processEnv.APPIMAGE;
+  const targetPath = appImagePath ?? app.getPath('exe');
+
+  try {
+    const fileStat = await stat(targetPath);
+    const mtime = fileStat.mtimeMs;
+
+    if (launchTimeMtime === null) {
+      launchTimeMtime = mtime;
+      return { needsReload: false };
+    }
+
+    if (mtime !== launchTimeMtime) {
+      return { needsReload: true };
+    }
+  } catch {}
+
+  return { needsReload: false };
+}
+
 export async function getVersionInfo() {
   const [nodeJsSystemVersion, uvVersion, aurPackageVersion] = await Promise.all([
     getSystemNodeVersion(),
@@ -234,6 +258,7 @@ export async function getVersionInfo() {
     arch,
     aurPackageVersion,
     chromeVersion: versions.chrome,
+    v8Version: versions.v8,
     electronVersion: versions.electron,
     nodeJsSystemVersion,
     nodeVersion: versions.node,

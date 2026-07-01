@@ -177,11 +177,16 @@ export interface KoboldAPI {
   onTunnelUrlChanged: (callback: (url: string | null) => void) => () => void;
 }
 
+export interface ReloadCheckResult {
+  needsReload: boolean;
+}
+
 export interface SystemVersionInfo {
   appVersion: string;
   electronVersion: string;
   nodeVersion: string;
   chromeVersion: string;
+  v8Version: string;
   osVersion: string;
   platform: string;
   arch: string;
@@ -220,9 +225,11 @@ export interface AppAPI {
     success: boolean;
     error?: string;
   }>;
+  checkForReloadNeeded: () => Promise<ReloadCheckResult>;
   checkForUpdates: () => Promise<boolean>;
   downloadUpdate: () => Promise<boolean>;
   quitAndInstall: () => Promise<void>;
+  relaunch: () => Promise<void>;
   isUpdateDownloaded: () => Promise<boolean>;
   onWindowStateToggle: (callback: () => void) => () => void;
   onLineNumbersChanged: (callback: (showLineNumbers: boolean) => void) => () => void;

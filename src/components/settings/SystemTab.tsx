@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { InfoCard } from '@/components/InfoCard';
 import type { SystemVersionInfo } from '@/types/electron';
 import type { HardwareInfo } from '@/types/hardware';
-import { createDriverItems, createHardwareItems, createSoftwareItems } from '@/utils/systemInfo';
+import { createHardwareItems, createSoftwareItems } from '@/utils/systemInfo';
 
 export const SystemTab = () => {
   const [versionInfo, setVersionInfo] = useState<SystemVersionInfo | null>(null);
@@ -63,14 +63,11 @@ export const SystemTab = () => {
   }
 
   const softwareItems = createSoftwareItems(versionInfo, koboldVersion);
-  const driverItems = hardwareInfo ? createDriverItems(hardwareInfo) : [];
   const hardwareItems = hardwareInfo ? createHardwareItems(hardwareInfo) : [];
 
   return (
     <Stack gap="md">
       <InfoCard title="Software" items={softwareItems} />
-
-      <InfoCard title="Drivers" items={driverItems} loading={!hardwareInfo} />
 
       <InfoCard title="Hardware" items={hardwareItems} loading={!hardwareInfo} />
     </Stack>

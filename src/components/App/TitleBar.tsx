@@ -3,6 +3,7 @@ import { ActionIcon, AppShell, Box, Group, Image, Tooltip } from '@mantine/core'
 import { Copy, Minus, Settings, Square, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { ReloadButton } from '@/components/App/ReloadButton';
 import { UpdateButton } from '@/components/App/UpdateButton';
 import { Select } from '@/components/Select';
 import { SettingsModal } from '@/components/settings/SettingsModal';
@@ -129,6 +130,7 @@ export const TitleBar = ({ currentScreen, currentTab, onEject, onTabChange }: Ti
         </Box>
 
         <Group gap="0" style={{ WebkitAppRegion: 'no-drag' }}>
+          <ReloadButton />
           <UpdateButton />
 
           <Tooltip label="Settings" position="bottom">

@@ -32,116 +32,109 @@ export const createSoftwareItems = (
         : versionInfo.nodeVersion,
   },
   { label: 'Chromium', value: versionInfo.chromeVersion },
+  { label: 'V8', value: versionInfo.v8Version.replace(/-electron\.\d+$/, '') },
   ...(versionInfo.uvVersion ? [{ label: 'uv', value: versionInfo.uvVersion }] : []),
 ];
 
-export const createDriverItems = (hardwareInfo: HardwareInfo) => {
-  const items: InfoItem[] = [];
+export const createHardwareItems = (hardwareInfo: HardwareInfo) => {
   const { gpuCapabilities } = hardwareInfo;
+  const driverItems: InfoItem[] = [];
 
-  if (!gpuCapabilities) {
-    return [
-      {
-        label: 'Driver Support',
-        value: 'Loading...',
-      },
-    ];
-  }
-
-  if (gpuCapabilities.cuda.driverVersion) {
-    items.push({
-      label: 'NVIDIA',
-      value: gpuCapabilities.cuda.driverVersion,
-    });
-  }
-
-  if (gpuCapabilities.cuda.devices.length > 0) {
-    items.push({
-      label: 'CUDA',
-      value: gpuCapabilities.cuda.version ?? 'Available',
-    });
-  }
-
-  if (gpuCapabilities.rocm.driverVersion) {
-    items.push({
-      label: 'AMD',
-      value: gpuCapabilities.rocm.driverVersion,
-    });
-  }
-
-  if (gpuCapabilities.rocm.devices.length > 0) {
-    items.push({
-      label: 'ROCm',
-      value: gpuCapabilities.rocm.version ?? 'Available',
-    });
-  }
-
-  if (gpuCapabilities.vulkan.devices.length > 0) {
-    items.push({
-      label: 'Vulkan',
-      value: gpuCapabilities.vulkan.version ?? 'Available',
-    });
-  } else {
-    items.push({
-      label: 'Vulkan',
-      value: 'Not available',
-    });
-  }
-
-  return items;
-};
-
-export const createHardwareItems = (hardwareInfo: HardwareInfo) => [
-  {
-    label: 'CPU',
-    value:
-      hardwareInfo.cpu.devices.length > 0 ? hardwareInfo.cpu.devices[0].detailedName : 'Unknown',
-  },
-  {
-    label: 'RAM',
-    value: hardwareInfo.systemMemory
-      ? `${hardwareInfo.systemMemory.totalGB} GB${
-          hardwareInfo.systemMemory.type ? ` ${hardwareInfo.systemMemory.type}` : ''
-        }${hardwareInfo.systemMemory.speed ? ` @ ${hardwareInfo.systemMemory.speed} MHz` : ''}`
-      : 'Detecting...',
-  },
-  ...(() => {
-    const discreteGPUs: GPUDevice[] = [];
-
-    if (hardwareInfo.gpuCapabilities.cuda.devices.length > 0) {
-      discreteGPUs.push(
-        ...hardwareInfo.gpuCapabilities.cuda.devices.map((name) => ({
-          isIntegrated: false,
-          name,
-        })),
-      );
-    }
-    if (hardwareInfo.gpuCapabilities.vulkan.devices.length > 0) {
-      discreteGPUs.push(
-        ...hardwareInfo.gpuCapabilities.vulkan.devices.filter((gpu) => !gpu.isIntegrated),
-      );
-    }
-    if (hardwareInfo.gpuCapabilities.rocm.devices.length > 0) {
-      discreteGPUs.push(
-        ...hardwareInfo.gpuCapabilities.rocm.devices.filter((gpu) => !gpu.isIntegrated),
-      );
+  if (gpuCapabilities) {
+    if (gpuCapabilities.cuda.driverVersion) {
+      driverItems.push({
+        label: 'NVIDIA',
+        value: gpuCapabilities.cuda.driverVersion,
+      });
     }
 
-    const uniqueDiscreteGPUs = discreteGPUs.filter(
-      (gpu, index, arr) => arr.findIndex((g) => g.name === gpu.name) === index,
-    );
+    if (gpuCapabilities.cuda.devices.length > 0) {
+      driverItems.push({
+        label: 'CUDA',
+        value: gpuCapabilities.cuda.version ?? 'Available',
+      });
+    }
 
-    return uniqueDiscreteGPUs.length > 0
-      ? uniqueDiscreteGPUs.map((gpu, index) => ({
-          label: `GPU ${index > 0 ? index + 1 : ''}`.trim(),
-          value: gpu.name,
+    if (gpuCapabilities.rocm.driverVersion) {
+      driverItems.push({
+        label: 'AMD',
+        value: gpuCapabilities.rocm.driverVersion,
+      });
+    }
+
+    if (gpuCapabilities.rocm.devices.length > 0) {
+      driverItems.push({
+        label: 'ROCm',
+        value: gpuCapabilities.rocm.version ?? 'Available',
+      });
+    }
+
+    if (gpuCapabilities.vulkan.devices.length > 0) {
+      driverItems.push({
+        label: 'Vulkan',
+        value: gpuCapabilities.vulkan.version ?? 'Available',
+      });
+    } else {
+      driverItems.push({
+        label: 'Vulkan',
+        value: 'Not available',
+      });
+    }
+  }
+
+  return [
+    {
+      label: 'CPU',
+      value:
+        hardwareInfo.cpu.devices.length > 0 ? hardwareInfo.cpu.devices[0].detailedName : 'Unknown',
+    },
+    {
+      label: 'RAM',
+      value: hardwareInfo.systemMemory
+        ? `${hardwareInfo.systemMemory.totalGB} GB${
+            hardwareInfo.systemMemory.type ? ` ${hardwareInfo.systemMemory.type}` : ''
+          }${hardwareInfo.systemMemory.speed ? ` @ ${hardwareInfo.systemMemory.speed} MHz` : ''}`
+        : 'Detecting...',
+    },
+    ...(() => {
+      if (!gpuCapabilities) {
+        return [{ label: 'GPU', value: 'No discrete GPU detected' }];
+      }
+
+      const discreteGPUs: GPUDevice[] = [];
+
+      if (gpuCapabilities.cuda.devices.length > 0) {
+        discreteGPUs.push(
+          ...gpuCapabilities.cuda.devices.map((name) => ({
+            isIntegrated: false,
+            name,
+          })),
+        );
+      }
+      if (gpuCapabilities.vulkan.devices.length > 0) {
+        discreteGPUs.push(...gpuCapabilities.vulkan.devices.filter((gpu) => !gpu.isIntegrated));
+      }
+      if (gpuCapabilities.rocm.devices.length > 0) {
+        discreteGPUs.push(...gpuCapabilities.rocm.devices.filter((gpu) => !gpu.isIntegrated));
+      }
+
+      const uniqueDiscreteGPUs = discreteGPUs.filter(
+        (gpu, index, arr) => arr.findIndex((g) => g.name === gpu.name) === index,
+      );
+
+      return uniqueDiscreteGPUs.length > 0
+        ? uniqueDiscreteGPUs.map((gpu, index) => ({
+            label: `GPU ${index > 0 ? index + 1 : ''}`.trim(),
+            value: gpu.name,
+          }))
+        : [{ label: 'GPU', value: 'No discrete GPU detected' }];
+    })(),
+    ...(hardwareInfo.gpuMemory && hardwareInfo.gpuMemory.length > 0
+      ? hardwareInfo.gpuMemory.map((mem, index) => ({
+          label: `VRAM ${index > 0 ? index + 1 : ''}`.trim(),
+          value: mem.totalMemoryGB ? `${mem.totalMemoryGB} GB` : 'Unknown',
         }))
-      : [{ label: 'GPU', value: 'No discrete GPU detected' }];
-  })(),
-  ...(hardwareInfo.gpuMemory && hardwareInfo.gpuMemory.length > 0
-    ? hardwareInfo.gpuMemory.map((mem, index) => ({
-        label: `VRAM ${index > 0 ? index + 1 : ''}`.trim(),
-        value: mem.totalMemoryGB ? `${mem.totalMemoryGB} GB` : 'Unknown',
-      }))
-    : []),
-];
+      : []),
+    ...driverItems,
+  ];
+};

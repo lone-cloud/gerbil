@@ -1,5 +1,6 @@
+import { spawn } from 'node:child_process';
 import { join } from 'node:path';
-import { platform } from 'node:process';
+import { env as processEnv, platform } from 'node:process';
 
 import { app, ipcMain } from 'electron';
 
@@ -20,6 +21,7 @@ import {
   set as setConfig,
 } from '@/main/modules/config';
 import {
+  checkForReloadNeeded,
   getVersionInfo,
   isAURInstallation,
   isNpxAvailable,
@@ -291,6 +293,24 @@ export function setupIPCHandlers() {
   ipcMain.handle('app:canAutoUpdate', () => canAutoUpdate());
 
   ipcMain.handle('app:isAURInstallation', () => isAURInstallation());
+
+  ipcMain.handle('app:checkForReloadNeeded', () =>
+    app.isPackaged ? checkForReloadNeeded() : { needsReload: false },
+  );
+
+  ipcMain.handle('app:relaunch', () => {
+    if (app.isPackaged) {
+      const appImagePath = processEnv.APPIMAGE;
+
+      if (appImagePath) {
+        spawn(appImagePath, { detached: true, stdio: 'ignore' }).unref();
+        app.quit();
+      } else {
+        app.relaunch();
+        app.quit();
+      }
+    }
+  });
 
   ipcMain.handle('notepad:saveTabContent', (_, title, content) => saveTabContent(title, content));
 
