@@ -1,10 +1,11 @@
 import { ActionIcon, Box } from '@mantine/core';
 import { Plus } from 'lucide-react';
-import type { DragEvent, KeyboardEvent, MouseEvent } from 'react';
-import { useState } from 'react';
+import type { DragEvent, KeyboardEvent, MouseEvent, WheelEvent } from 'react';
+import { useRef, useState } from 'react';
 
 import { Tab } from '@/components/Notepad/Tab';
 import { useNotepadStore } from '@/stores/notepad';
+import { usePreferencesStore } from '@/stores/preferences';
 
 interface NotepadTabsProps {
   onCreateNewTab: () => Promise<void>;
@@ -26,6 +27,8 @@ export const NotepadTabs = ({ onCreateNewTab, onCloseTab }: NotepadTabsProps) =>
     showLineNumbers,
     setShowLineNumbers,
   } = useNotepadStore();
+  const { resolvedColorScheme } = usePreferencesStore();
+  const tablistRef = useRef<HTMLDivElement>(null);
   const [draggedTabIndex, setDraggedTabIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
@@ -88,17 +91,29 @@ export const NotepadTabs = ({ onCreateNewTab, onCloseTab }: NotepadTabsProps) =>
     setDragOverIndex(null);
   };
 
+  const handleWheel = (e: WheelEvent<HTMLDivElement>) => {
+    if (tablistRef.current) {
+      tablistRef.current.scrollLeft += e.deltaY;
+    }
+  };
+
   return (
     <Box
+      ref={tablistRef}
       role="tablist"
       aria-label="Notepad tabs"
       onContextMenu={handleTabBarContextMenu}
       onKeyDown={handleKeyDown}
+      onWheel={handleWheel}
       style={{
         borderBottom:
-          '1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
+          resolvedColorScheme === 'dark'
+            ? '1px solid var(--mantine-color-dark-4)'
+            : '1px solid var(--mantine-color-gray-3)',
         display: 'flex',
+        flex: 1,
         minHeight: '2rem',
+        minWidth: 0,
         overflow: 'hidden',
       }}
     >

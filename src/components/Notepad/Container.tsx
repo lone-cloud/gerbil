@@ -5,6 +5,7 @@ import type { MouseEvent } from 'react';
 
 import { NOTEPAD_MIN_HEIGHT, NOTEPAD_MIN_WIDTH } from '@/constants/notepad';
 import { useNotepadStore } from '@/stores/notepad';
+import { usePreferencesStore } from '@/stores/preferences';
 
 import { CloseConfirmModal } from './CloseConfirmModal.tsx';
 import { NotepadEditor } from './Editor.tsx';
@@ -22,6 +23,7 @@ export const NotepadContainer = () => {
     isVisible,
     setVisible,
   } = useNotepadStore();
+  const { resolvedColorScheme } = usePreferencesStore();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [resizeDirection, setResizeDirection] = useState<string | null>(null);
@@ -195,7 +197,9 @@ export const NotepadContainer = () => {
           style={{
             alignItems: 'center',
             borderBottom:
-              '1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
+              resolvedColorScheme === 'dark'
+                ? '1px solid var(--mantine-color-dark-4)'
+                : '1px solid var(--mantine-color-gray-3)',
             display: 'flex',
             justifyContent: 'space-between',
             minHeight: 28,

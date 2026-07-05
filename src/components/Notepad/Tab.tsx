@@ -3,6 +3,8 @@ import { X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { DragEvent, KeyboardEvent, MouseEvent } from 'react';
 
+import { usePreferencesStore } from '@/stores/preferences';
+
 interface TabProps {
   title: string;
   index: number;
@@ -32,6 +34,7 @@ export const Tab = ({
   showLineNumbers,
   setShowLineNumbers,
 }: TabProps) => {
+  const { resolvedColorScheme } = usePreferencesStore();
   const [isEditing, setIsEditing] = useState(false);
   const [editingTitle, setEditingTitle] = useState(title);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -114,12 +117,18 @@ export const Tab = ({
       style={{
         alignItems: 'center',
         backgroundColor: isActive
-          ? 'light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))'
+          ? resolvedColorScheme === 'dark'
+            ? 'var(--mantine-color-dark-4)'
+            : 'var(--mantine-color-gray-3)'
           : isDragOver
-            ? 'light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5))'
+            ? resolvedColorScheme === 'dark'
+              ? 'var(--mantine-color-dark-5)'
+              : 'var(--mantine-color-gray-2)'
             : 'transparent',
         borderRight:
-          '1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
+          resolvedColorScheme === 'dark'
+            ? '1px solid var(--mantine-color-dark-4)'
+            : '1px solid var(--mantine-color-gray-3)',
         cursor: isEditing ? 'default' : 'pointer',
         display: 'flex',
         gap: '0.25rem',
