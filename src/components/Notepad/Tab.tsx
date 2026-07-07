@@ -118,8 +118,8 @@ export const Tab = ({
         alignItems: 'center',
         backgroundColor: isActive
           ? resolvedColorScheme === 'dark'
-            ? 'var(--mantine-color-dark-4)'
-            : 'var(--mantine-color-gray-3)'
+            ? 'var(--mantine-color-dark-5)'
+            : 'color-mix(in srgb, var(--mantine-color-gray-2), var(--mantine-color-gray-3) 50%)'
           : isDragOver
             ? resolvedColorScheme === 'dark'
               ? 'var(--mantine-color-dark-5)'

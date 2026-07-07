@@ -6,4 +6,4 @@ allowBuilds:
 minimumReleaseAge: 0
 
 overrides:
-  '@codemirror/view': '^6.43.5'
+  '@codemirror/view': '^6.43.6'
