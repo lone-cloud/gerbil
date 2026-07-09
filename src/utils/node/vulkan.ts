@@ -1,4 +1,5 @@
-import { readdir } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { platform } from 'node:process';
 
 import { execa } from 'execa';
@@ -127,7 +128,10 @@ async function fetchVulkanInfo(): Promise<VulkanInfo> {
       if (runtimeFound) {
         const fallback = await gpusFromSystemInfo();
         if (fallback) {
-          vulkanInfoCache = fallback;
+          vulkanInfoCache = {
+            allGPUs: fallback.allGPUs,
+            apiVersion: fallback.apiVersion,
+          };
           return vulkanInfoCache;
         }
       }
@@ -150,7 +154,11 @@ async function hasVulkanRuntimeLinux() {
 
 async function gpusFromSystemInfo() {
   try {
-    const { controllers } = await siGraphics();
+    const [graphicsResult, apiVersion] = await Promise.all([
+      siGraphics(),
+      getVulkanVersionFromICD(),
+    ]);
+    const { controllers } = graphicsResult;
     const allGPUs = controllers
       .filter((c) => c.vendor && c.model)
       .map((c) => {
@@ -166,10 +174,31 @@ async function gpusFromSystemInfo() {
         };
       });
 
-    return { allGPUs };
+    return { allGPUs, apiVersion };
   } catch {
     return null;
   }
+}
+
+async function getVulkanVersionFromICD() {
+  for (const dir of ICD_SEARCH_DIRS) {
+    try {
+      const entries = await readdir(dir);
+      for (const entry of entries) {
+        if (!entry.endsWith('.json')) continue;
+        try {
+          const content = await readFile(join(dir, entry), 'utf8');
+          const parsed = JSON.parse(content) as {
+            ICD?: { api_version?: string };
+          };
+          if (parsed.ICD?.api_version) {
+            return parsed.ICD.api_version;
+          }
+        } catch {}
+      }
+    } catch {}
+  }
+  return undefined;
 }
 
 export async function detectGPUViaVulkan() {

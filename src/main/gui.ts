@@ -1,4 +1,4 @@
-import { platform } from 'node:process';
+import { argv, platform } from 'node:process';
 
 import { app } from 'electron';
 
@@ -48,7 +48,9 @@ export async function initializeApp(options?: { startMinimized?: boolean }) {
   await initializeConfig();
   await ensureDir(installDir);
 
-  const startMinimized = options?.startMinimized ?? getStartMinimizedToTray();
+  const startMinimized = argv.includes('--relaunched')
+    ? false
+    : (options?.startMinimized ?? getStartMinimizedToTray());
   const trayEnabled = getEnableSystemTray();
 
   await createMainWindow({ startHidden: startMinimized && trayEnabled });

@@ -303,10 +303,10 @@ export function setupIPCHandlers() {
       const appImagePath = processEnv.APPIMAGE;
 
       if (appImagePath) {
-        spawn(appImagePath, { detached: true, stdio: 'ignore' }).unref();
+        spawn(appImagePath, ['--relaunched'], { detached: true, stdio: 'ignore' }).unref();
         app.quit();
       } else {
-        app.relaunch();
+        app.relaunch({ args: ['--relaunched'] });
         app.quit();
       }
     }
