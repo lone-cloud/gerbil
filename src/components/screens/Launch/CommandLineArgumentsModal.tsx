@@ -34,7 +34,6 @@ const UI_COVERED_ARGS = new Set([
   '--nocertify',
   '--websearch',
   '--noshift',
-  '--flashattention',
   '--noflashattention',
   '--noavx2',
   '--failsafe',
@@ -63,7 +62,6 @@ const UI_COVERED_ARGS = new Set([
   '--jinja_tools',
   '--jinja_kwargs',
   '--smartcache',
-  '--pipelineparallel',
   '--nopipelineparallel',
   '--quantkv',
   '--usecpu',
@@ -127,10 +125,10 @@ const COMMAND_LINE_ARGUMENTS = [
   {
     aliases: ['-sm', '--split-mode'],
     category: 'Advanced',
-    choices: ['layer', 'row', 'tensor'],
+    choices: ['layer', 'tensor'],
     default: 'layer',
     description:
-      'How to split the model across multiple GPUs. layer=split by layer (default), row=split by row, tensor=experimental tensor split.',
+      'How to split the model across multiple GPUs. layer=split by layer (default), tensor=experimental tensor split. Row split is deprecated.',
     flag: '--splitmode',
     metavar: '[layer/row/tensor]',
   },

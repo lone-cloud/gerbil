@@ -129,7 +129,7 @@ const buildConfigArgs = (isImageMode: boolean, launchArgs: LaunchArgs) => {
     [launchArgs.nocertify, '--nocertify'],
     [launchArgs.websearch, '--websearch'],
     [launchArgs.noshift, '--noshift'],
-    [!isImageMode && launchArgs.flashattention, '--flashattention'],
+    [!isImageMode && !launchArgs.flashattention, '--noflashattention'],
     [launchArgs.noavx2, '--noavx2'],
     [launchArgs.failsafe, '--failsafe'],
     [launchArgs.usemmap, '--usemmap'],
@@ -157,8 +157,8 @@ const buildConfigArgs = (isImageMode: boolean, launchArgs: LaunchArgs) => {
     args.push('--smartcache');
   }
 
-  if (launchArgs.pipelineparallel) {
-    args.push('--pipelineparallel');
+  if (!launchArgs.pipelineparallel) {
+    args.push('--nopipelineparallel');
   }
 
   const quantkvMap: Record<number, string> = { 1: 'q8_0', 2: 'q4_0', 3: 'bf16', 4: 'q5_1' };

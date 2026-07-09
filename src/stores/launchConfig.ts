@@ -397,7 +397,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
       if (typeof configData.pipelineparallel === 'boolean') {
         updates.pipelineparallel = configData.pipelineparallel;
       } else {
-        updates.pipelineparallel = false;
+        updates.pipelineparallel = true;
       }
 
       if (typeof configData.quantkv === 'number') {
@@ -427,7 +427,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
       set(updates);
     }
   },
-  pipelineparallel: false,
+  pipelineparallel: true,
   quantkv: 0,
   jinja: false,
   jinjatools: false,
