@@ -6,9 +6,11 @@ import { AccelerationSelectItem } from '@/components/screens/Launch/GeneralTab/A
 import { GpuDeviceSelector } from '@/components/screens/Launch/GeneralTab/GpuDeviceSelector';
 import { Select } from '@/components/Select';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
+import { usePreferencesStore } from '@/stores/preferences';
 import type { Acceleration, AccelerationOption } from '@/types';
 
 export const AccelerationSelector = () => {
+  const ignoreIGPUs = usePreferencesStore((s) => s.ignoreIGPUs);
   const {
     acceleration,
     gpuLayers,
@@ -60,6 +62,22 @@ export const AccelerationSelector = () => {
 
     return cleanup;
   }, []);
+
+  const prevIgnoreIGPUs = useRef(ignoreIGPUs);
+  useEffect(() => {
+    if (prevIgnoreIGPUs.current === ignoreIGPUs) return;
+    prevIgnoreIGPUs.current = ignoreIGPUs;
+
+    hasInitialized.current = false;
+    void (async () => {
+      setIsLoadingAccelerations(true);
+      try {
+        const accelerations = await window.electronAPI.kobold.getAvailableAccelerations(true);
+        setAvailableAccelerations(accelerations || []);
+      } catch {}
+      setIsLoadingAccelerations(false);
+    })();
+  }, [ignoreIGPUs]);
 
   useEffect(() => {
     if (availableAccelerations.length > 0 && acceleration) {

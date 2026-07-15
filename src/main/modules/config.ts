@@ -38,6 +38,7 @@ interface AppConfig {
   zoomLevel?: number;
   notepad?: SavedNotepadState;
   enableSystemTray?: boolean;
+  ignoreIGPUs?: boolean;
   startMinimizedToTray?: boolean;
   localBackendPaths?: string[];
 }

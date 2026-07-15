@@ -1,6 +1,7 @@
 import { dirname, join } from 'node:path';
 import { platform } from 'node:process';
 
+import { get as getConfig } from '@/main/modules/config';
 import type { AccelerationOption, AccelerationSupport } from '@/types';
 import { pathExists } from '@/utils/node/fs';
 import { safeExecute, tryExecute } from '@/utils/node/logging';
@@ -91,7 +92,8 @@ export async function getAvailableAccelerations(includeDisabled = false) {
       return [{ label: CPU_LABEL, value: 'cpu' }];
     }
 
-    const cacheKey = `${currentBinaryInfo.path}:${includeDisabled}`;
+    const ignoreIGPUs = getConfig('ignoreIGPUs') ?? true;
+    const cacheKey = `${currentBinaryInfo.path}:${includeDisabled}:${ignoreIGPUs}`;
 
     const cached = availableAccelerationsCache.get(cacheKey);
     if (cached) {
@@ -123,10 +125,13 @@ export async function getAvailableAccelerations(includeDisabled = false) {
     }
 
     if (accelerationSupport.rocm) {
-      const isSupported = hardwareCapabilities.rocm.devices.length > 0;
+      const devices = ignoreIGPUs
+        ? hardwareCapabilities.rocm.devices.filter((d) => !d.isIntegrated)
+        : hardwareCapabilities.rocm.devices;
+      const isSupported = devices.length > 0;
       if (isSupported || includeDisabled) {
         accelerations.push({
-          devices: hardwareCapabilities.rocm.devices,
+          devices,
           disabled: includeDisabled ? !isSupported : undefined,
           label: 'ROCm',
           value: 'rocm',
@@ -135,10 +140,13 @@ export async function getAvailableAccelerations(includeDisabled = false) {
     }
 
     if (accelerationSupport.vulkan) {
-      const isSupported = hardwareCapabilities.vulkan.devices.length > 0;
+      const devices = ignoreIGPUs
+        ? hardwareCapabilities.vulkan.devices.filter((d) => !d.isIntegrated)
+        : hardwareCapabilities.vulkan.devices;
+      const isSupported = devices.length > 0;
       if (isSupported || includeDisabled) {
         accelerations.push({
-          devices: hardwareCapabilities.vulkan.devices,
+          devices,
           disabled: includeDisabled ? !isSupported : undefined,
           label: 'Vulkan',
           value: 'vulkan',

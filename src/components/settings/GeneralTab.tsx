@@ -7,7 +7,8 @@ import { usePreferencesStore } from '@/stores/preferences';
 export const GeneralTab = () => {
   const [enableSystemTray, setEnableSystemTray] = useState(false);
   const [startMinimizedToTray, setStartMinimizedToTray] = useState(false);
-  const { systemMonitoringEnabled, setSystemMonitoringEnabled } = usePreferencesStore();
+  const { ignoreIGPUs, setIgnoreIGPUs, systemMonitoringEnabled, setSystemMonitoringEnabled } =
+    usePreferencesStore();
 
   useEffect(() => {
     const loadSystemTrayPreference = async () => {
@@ -40,15 +41,23 @@ export const GeneralTab = () => {
     <Stack gap="lg" h="100%">
       <div>
         <Text fw={500} mb="xs">
-          Status Bar
+          Monitoring
         </Text>
         <Text size="sm" c="dimmed" mb="md">
-          Control what information is displayed in the status bar
+          Control which system metrics are collected and displayed throughout the app
         </Text>
         <Switch
           label="Show system metrics"
+          description="Display CPU, RAM, and GPU usage in the status bar"
           checked={systemMonitoringEnabled}
           onChange={(event) => setSystemMonitoringEnabled(event.currentTarget.checked)}
+        />
+        <Switch
+          checked={ignoreIGPUs}
+          label="Ignore integrated GPUs"
+          description="Hides integrated GPUs from acceleration options, device lists, and hardware display"
+          mt="sm"
+          onChange={(event) => setIgnoreIGPUs(event.currentTarget.checked)}
         />
       </div>
 

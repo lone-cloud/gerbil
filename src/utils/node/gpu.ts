@@ -6,12 +6,14 @@ import { graphics as siGraphics } from 'systeminformation';
 
 interface CachedGPUInfo {
   devicePath: string;
+  isIntegrated: boolean;
   memoryTotal: number;
   hwmonPath?: string;
   name: string;
 }
 
 export interface GPUData {
+  isIntegrated: boolean;
   name: string;
   usage: number;
   memoryUsed: number;
@@ -50,6 +52,8 @@ async function initializeLinuxGPUCache() {
         (entry) => entry.startsWith('card') && !entry.includes('-'),
       );
 
+      const graphics = await siGraphics().catch(() => null);
+
       const gpus = [];
       for (const card of cardEntries) {
         const devicePath = join(drmPath, card, 'device');
@@ -63,6 +67,8 @@ async function initializeLinuxGPUCache() {
           const gttTotal =
             Math.max(0, (parseInt(memGttRaw.trim(), 10) || 0) / (1024 * 1024 * 1024));
           const memoryTotal = Math.max(vramTotal, gttTotal);
+          // IGPs have meaningful GTT (shared system RAM); discrete GPUs don't
+          const isIntegrated = gttTotal > vramTotal;
 
           if (memoryTotal >= 1) {
             let hwmonPath: string | undefined;
@@ -82,13 +88,18 @@ async function initializeLinuxGPUCache() {
                   uevent,
                 );
               if (pciMatch) {
-                name = pciMatch[1];
+                const fullAddr = pciMatch.groups!.address;
+                const siController = graphics?.controllers.find(
+                  (c) => c.busAddress === fullAddr,
+                );
+                name = siController?.model ?? fullAddr;
               }
             } catch {}
 
             gpus.push({
               devicePath,
               hwmonPath,
+              isIntegrated,
               memoryTotal,
               name,
             });
@@ -139,6 +150,7 @@ async function getLinuxGPUData() {
           }
 
           gpus.push({
+            isIntegrated: cachedGPU.isIntegrated,
             memoryTotal: parseFloat(cachedGPU.memoryTotal.toFixed(2)),
             memoryUsed: parseFloat(memoryUsed.toFixed(2)),
             name: cachedGPU.name,
@@ -172,6 +184,7 @@ async function getWindowsGPUData() {
       if (controller.vram) {
         const vramGB = parseFloat((controller.vram / 1024).toFixed(2));
         gpus.push({
+          isIntegrated: controller.vramDynamic ?? false,
           memoryTotal: vramGB,
           memoryUsed: 0,
           name: controller.model || `GPU ${gpus.length}`,

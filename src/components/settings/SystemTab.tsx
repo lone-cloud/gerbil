@@ -2,11 +2,13 @@ import { Center, Stack, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
 
 import { InfoCard } from '@/components/InfoCard';
+import { usePreferencesStore } from '@/stores/preferences';
 import type { SystemVersionInfo } from '@/types/electron';
 import type { HardwareInfo } from '@/types/hardware';
 import { createHardwareItems, createSoftwareItems } from '@/utils/systemInfo';
 
 export const SystemTab = () => {
+  const ignoreIGPUs = usePreferencesStore((s) => s.ignoreIGPUs);
   const [versionInfo, setVersionInfo] = useState<SystemVersionInfo | null>(null);
   const [hardwareInfo, setHardwareInfo] = useState<HardwareInfo | null>(null);
   const [koboldVersion, setKoboldVersion] = useState<string | null>(null);
@@ -63,7 +65,7 @@ export const SystemTab = () => {
   }
 
   const softwareItems = createSoftwareItems(versionInfo, koboldVersion);
-  const hardwareItems = hardwareInfo ? createHardwareItems(hardwareInfo) : [];
+  const hardwareItems = hardwareInfo ? createHardwareItems(hardwareInfo, ignoreIGPUs) : [];
 
   return (
     <Stack gap="md">

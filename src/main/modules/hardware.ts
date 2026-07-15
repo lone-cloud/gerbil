@@ -12,6 +12,7 @@ import type {
   GPUMemoryInfo,
 } from '@/types/hardware';
 import { formatDeviceName } from '@/utils/format';
+import { get as getConfig } from '@/main/modules/config';
 import { getGPUData } from '@/utils/node/gpu';
 import { safeExecute } from '@/utils/node/logging';
 import { detectGPUViaVulkan, getVulkanInfo } from '@/utils/node/vulkan';
@@ -32,7 +33,7 @@ const ROCM_EXEC_OPTIONS = {
 let cpuCapabilitiesCache: CPUCapabilities | null = null;
 let basicGPUInfoCache: BasicGPUInfo | null = null;
 let gpuCapabilitiesCache: GPUCapabilities | null = null;
-let gpuMemoryInfoCache: GPUMemoryInfo[] | null = null;
+let gpuMemoryInfoCache: { ignoreIGPUs: boolean; data: GPUMemoryInfo[] } | null = null;
 
 export function detectCPU() {
   if (cpuCapabilitiesCache) {
@@ -344,8 +345,10 @@ function determineIfIntegrated(name: string, vulkanInfo: { allGPUs: GPUDevice[] 
 }
 
 export async function detectGPUMemory() {
-  if (gpuMemoryInfoCache) {
-    return gpuMemoryInfoCache;
+  const ignoreIGPUs = getConfig('ignoreIGPUs') ?? true;
+
+  if (gpuMemoryInfoCache && gpuMemoryInfoCache.ignoreIGPUs === ignoreIGPUs) {
+    return gpuMemoryInfoCache.data;
   }
 
   const result = await safeExecute(async () => {
@@ -353,6 +356,8 @@ export async function detectGPUMemory() {
     const memoryInfo: GPUMemoryInfo[] = [];
 
     for (const gpu of gpuData) {
+      if (ignoreIGPUs && gpu.isIntegrated) continue;
+
       let vram: number | null = gpu.memoryTotal;
 
       if (!vram || vram <= 1) {
@@ -367,8 +372,8 @@ export async function detectGPUMemory() {
     return memoryInfo;
   }, 'GPU memory detection failed');
 
-  gpuMemoryInfoCache = result ?? [];
-  return gpuMemoryInfoCache;
+  gpuMemoryInfoCache = { ignoreIGPUs, data: result ?? [] };
+  return gpuMemoryInfoCache.data;
 }
 
 export const detectSystemMemory = async () => {

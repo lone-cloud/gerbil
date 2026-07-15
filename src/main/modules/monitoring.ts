@@ -10,6 +10,7 @@ import {
   powerShellStart,
 } from 'systeminformation';
 
+import { get as getConfig } from '@/main/modules/config';
 import { getGPUData } from '@/utils/node/gpu';
 import { safeExecute, tryExecute } from '@/utils/node/logging';
 
@@ -169,9 +170,11 @@ async function collectAndSendMemoryMetrics() {
 
 async function collectAndSendGpuMetrics() {
   await tryExecute(async () => {
+    const ignoreIGPUs = getConfig('ignoreIGPUs') ?? true;
     const gpuData = await getGPUData();
+    const shown = ignoreIGPUs ? gpuData.filter((g) => !g.isIntegrated) : gpuData;
     const metrics: GpuMetrics = {
-      gpus: gpuData.map((gpu) => ({
+      gpus: shown.map((gpu) => ({
         memoryTotal: gpu.memoryTotal,
         memoryUsage: gpu.memoryTotal > 0 ? Math.round((gpu.memoryUsed / gpu.memoryTotal) * 100) : 0,
         memoryUsed: gpu.memoryUsed,

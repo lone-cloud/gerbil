@@ -181,7 +181,7 @@ async function gpusFromSystemInfo() {
     const allGPUs = controllers
       .filter((c) => c.vendor && c.model)
       .filter((c) => {
-        if (!c.busAddress) return true;
+        if (platform !== 'linux' || !c.busAddress) return true;
         const addr = c.busAddress.startsWith('0000:')
           ? c.busAddress.substring(5)
           : c.busAddress;
@@ -238,7 +238,7 @@ export async function detectGPUViaVulkan() {
     let hasNVIDIA = false;
     const gpuInfo: string[] = [];
 
-    for (const gpu of vulkanInfo.allGPUs) {
+    for (const gpu of vulkanInfo.allGPUs.filter((g) => !g.isIntegrated)) {
       gpuInfo.push(formatDeviceName(gpu.name));
 
       if (gpu.hasAMD) {

@@ -37,7 +37,10 @@ export const createSoftwareItems = (
   ...(versionInfo.uvVersion ? [{ label: 'uv', value: versionInfo.uvVersion }] : []),
 ];
 
-export const createHardwareItems = (hardwareInfo: HardwareInfo) => {
+export const createHardwareItems = (
+  hardwareInfo: HardwareInfo,
+  ignoreIGPUs = true,
+) => {
   const { gpuCapabilities } = hardwareInfo;
   const driverItems: InfoItem[] = [];
 
@@ -112,20 +115,26 @@ export const createHardwareItems = (hardwareInfo: HardwareInfo) => {
           })),
         );
       }
+      const includeGpu = (gpu: GPUDevice) => !ignoreIGPUs || !gpu.isIntegrated;
+
       if (gpuCapabilities.vulkan.devices.length > 0) {
         for (const gpu of gpuCapabilities.vulkan.devices) {
-          discreteGPUs.push({
-            isIntegrated: gpu.isIntegrated,
-            name: gpu.isIntegrated ? gpu.name : formatDeviceName(gpu.name),
-          });
+          if (includeGpu(gpu)) {
+            discreteGPUs.push({
+              isIntegrated: gpu.isIntegrated,
+              name: gpu.isIntegrated ? gpu.name : formatDeviceName(gpu.name),
+            });
+          }
         }
       }
       if (gpuCapabilities.rocm.devices.length > 0) {
         for (const gpu of gpuCapabilities.rocm.devices) {
-          discreteGPUs.push({
-            isIntegrated: gpu.isIntegrated,
-            name: gpu.isIntegrated ? gpu.name : formatDeviceName(gpu.name),
-          });
+          if (includeGpu(gpu)) {
+            discreteGPUs.push({
+              isIntegrated: gpu.isIntegrated,
+              name: gpu.isIntegrated ? gpu.name : formatDeviceName(gpu.name),
+            });
+          }
         }
       }
 

@@ -3,6 +3,7 @@ import { Group, Text, TextInput } from '@mantine/core';
 import { InfoTooltip } from '@/components/InfoTooltip';
 import { Select } from '@/components/Select';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
+import { usePreferencesStore } from '@/stores/preferences';
 import type { AccelerationOption } from '@/types';
 
 const GPU_ACCELERATIONS = new Set(['cuda', 'rocm', 'vulkan']);
@@ -15,23 +16,27 @@ interface GpuDeviceSelectorProps {
 export const GpuDeviceSelector = ({ availableAccelerations }: GpuDeviceSelectorProps) => {
   const { acceleration, gpuDeviceSelection, tensorSplit, setGpuDeviceSelection, setTensorSplit } =
     useLaunchConfigStore();
+  const ignoreIGPUs = usePreferencesStore((s) => s.ignoreIGPUs);
 
   const selectedAcceleration = availableAccelerations.find((a) => a.value === acceleration);
   const isGpuAcceleration = GPU_ACCELERATIONS.has(acceleration);
 
-  const getDiscreteDeviceCount = () => {
+  const getDeviceCount = () => {
     if (!selectedAcceleration?.devices) {
       return 0;
     }
     if (acceleration === 'vulkan' || acceleration === 'rocm') {
-      return selectedAcceleration.devices.filter(
-        (device) => typeof device === 'string' || !device.isIntegrated,
-      ).length;
+      return ignoreIGPUs
+        ? selectedAcceleration.devices.filter(
+            (device) => typeof device === 'string' || !device.isIntegrated,
+          ).length
+        : selectedAcceleration.devices.length;
     }
     return selectedAcceleration.devices.length;
   };
 
-  const hasMultipleDevices = getDiscreteDeviceCount() > 1;
+  const deviceCount = getDeviceCount();
+  const hasMultipleDevices = deviceCount > 1;
   const showTensorSplit =
     TENSOR_SPLIT_ACCELERATIONS.has(acceleration) &&
     hasMultipleDevices &&
@@ -47,20 +52,21 @@ export const GpuDeviceSelector = ({ availableAccelerations }: GpuDeviceSelectorP
     }
 
     if (acceleration === 'vulkan' || acceleration === 'rocm') {
-      const discreteDeviceOptions = selectedAcceleration.devices
-        .map((device, index) => {
-          if (typeof device === 'object' && device.isIntegrated) {
-            return null;
-          }
-          const deviceName = typeof device === 'string' ? device : device.name;
-          return {
-            label: `GPU ${index}: ${deviceName}`,
-            value: index.toString(),
-          };
-        })
-        .filter((option): option is NonNullable<typeof option> => option !== null);
+      const filtered = ignoreIGPUs
+        ? selectedAcceleration.devices
+            .map((device, index) => {
+              if (typeof device === 'object' && device.isIntegrated) return null;
+              return { device, index };
+            })
+            .filter((v): v is NonNullable<typeof v> => v !== null)
+        : selectedAcceleration.devices.map((device, index) => ({ device, index }));
 
-      return [{ label: 'All GPUs', value: 'all' }, ...discreteDeviceOptions];
+      const options = filtered.map(({ device, index }) => ({
+        label: `GPU ${index}: ${typeof device === 'string' ? device : device.name}`,
+        value: index.toString(),
+      }));
+
+      return [{ label: 'All GPUs', value: 'all' }, ...options];
     }
 
     return [
