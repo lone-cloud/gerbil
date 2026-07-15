@@ -13,7 +13,6 @@ import {
 import { getGPUData } from '@/utils/node/gpu';
 import { safeExecute, tryExecute } from '@/utils/node/logging';
 
-import { detectGPU } from './hardware';
 import { isTrayActive, updateMetrics } from './tray';
 
 export interface CpuMetrics {
@@ -170,13 +169,13 @@ async function collectAndSendMemoryMetrics() {
 
 async function collectAndSendGpuMetrics() {
   await tryExecute(async () => {
-    const [gpuData, gpuInfo] = await Promise.all([getGPUData(), detectGPU()]);
+    const gpuData = await getGPUData();
     const metrics: GpuMetrics = {
-      gpus: gpuData.map((gpu, index) => ({
+      gpus: gpuData.map((gpu) => ({
         memoryTotal: gpu.memoryTotal,
         memoryUsage: gpu.memoryTotal > 0 ? Math.round((gpu.memoryUsed / gpu.memoryTotal) * 100) : 0,
         memoryUsed: gpu.memoryUsed,
-        name: gpuInfo.gpuInfo[index] || `GPU ${index}`,
+        name: gpu.name,
         temperature: gpu.temperature,
         usage: Math.round(gpu.usage),
       })),

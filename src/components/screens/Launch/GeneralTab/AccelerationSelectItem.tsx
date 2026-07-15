@@ -32,21 +32,20 @@ export const AccelerationSelectItem = ({
         const discreteDevices = devices.filter(
           (device) => typeof device === 'string' || !device.isIntegrated,
         );
+        const shownDevices = discreteDevices.length > 0 ? discreteDevices : devices;
         return (
-          discreteDevices.length > 0 && (
-            <Group gap={4}>
-              {discreteDevices.slice(0, 2).map((device, index) => (
-                <Badge key={index} size="md" variant="light" color="brand">
-                  {renderDeviceName(device)}
-                </Badge>
-              ))}
-              {discreteDevices.length > 2 && (
-                <Badge size="md" variant="light" color="gray">
-                  +{discreteDevices.length - 2}
-                </Badge>
-              )}
-            </Group>
-          )
+          <Group gap={4}>
+            {shownDevices.slice(0, 2).map((device, index) => (
+              <Badge key={index} size="md" variant="light" color="brand">
+                {renderDeviceName(device)}
+              </Badge>
+            ))}
+            {shownDevices.length > 2 && (
+              <Badge size="md" variant="light" color="gray">
+                +{shownDevices.length - 2}
+              </Badge>
+            )}
+          </Group>
         );
       })()}
   </Group>

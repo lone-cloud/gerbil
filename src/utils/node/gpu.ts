@@ -8,9 +8,11 @@ interface CachedGPUInfo {
   devicePath: string;
   memoryTotal: number;
   hwmonPath?: string;
+  name: string;
 }
 
-interface GPUData {
+export interface GPUData {
+  name: string;
   usage: number;
   memoryUsed: number;
   memoryTotal: number;
@@ -52,45 +54,44 @@ async function initializeLinuxGPUCache() {
       for (const card of cardEntries) {
         const devicePath = join(drmPath, card, 'device');
         try {
-          const memTotalData = await readFile(`${devicePath}/mem_info_vram_total`, 'utf8');
-          const memoryTotal = Math.max(
-            0,
-            (parseInt(memTotalData.trim(), 10) || 0) / (1024 * 1024 * 1024),
-          );
+          const [memVramRaw, memGttRaw] = await Promise.all([
+            readFile(`${devicePath}/mem_info_vram_total`, 'utf8').catch(() => '0'),
+            readFile(`${devicePath}/mem_info_gtt_total`, 'utf8').catch(() => '0'),
+          ]);
+          const vramTotal =
+            Math.max(0, (parseInt(memVramRaw.trim(), 10) || 0) / (1024 * 1024 * 1024));
+          const gttTotal =
+            Math.max(0, (parseInt(memGttRaw.trim(), 10) || 0) / (1024 * 1024 * 1024));
+          const memoryTotal = Math.max(vramTotal, gttTotal);
 
           if (memoryTotal >= 1) {
-            let isDiscrete = false;
+            let hwmonPath: string | undefined;
             try {
-              const busAddress = await readFile(`${devicePath}/uevent`, 'utf8');
-              const pciMatch =
-                /PCI_SLOT_NAME=(?<address>[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-9a-f])/i.exec(
-                  busAddress,
-                );
-
-              if (pciMatch) {
-                const fullAddress = pciMatch[1];
-                const shortAddress = fullAddress.substring(5);
-
-                isDiscrete = isDiscreteBusAddress(shortAddress);
+              const hwmonEntries = await readdir(`${devicePath}/hwmon`);
+              const hwmonEntry = hwmonEntries.find((e) => e.startsWith('hwmon'));
+              if (hwmonEntry) {
+                hwmonPath = `${devicePath}/hwmon/${hwmonEntry}`;
               }
             } catch {}
 
-            if (isDiscrete) {
-              let hwmonPath: string | undefined;
-              try {
-                const hwmonEntries = await readdir(`${devicePath}/hwmon`);
-                const hwmonEntry = hwmonEntries.find((e) => e.startsWith('hwmon'));
-                if (hwmonEntry) {
-                  hwmonPath = `${devicePath}/hwmon/${hwmonEntry}`;
-                }
-              } catch {}
+            let name = card;
+            try {
+              const uevent = await readFile(`${devicePath}/uevent`, 'utf8');
+              const pciMatch =
+                /PCI_SLOT_NAME=(?<address>[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-9a-f])/i.exec(
+                  uevent,
+                );
+              if (pciMatch) {
+                name = pciMatch[1];
+              }
+            } catch {}
 
-              gpus.push({
-                devicePath,
-                hwmonPath,
-                memoryTotal,
-              });
-            }
+            gpus.push({
+              devicePath,
+              hwmonPath,
+              memoryTotal,
+              name,
+            });
           }
         } catch {}
       }
@@ -140,6 +141,7 @@ async function getLinuxGPUData() {
           gpus.push({
             memoryTotal: parseFloat(cachedGPU.memoryTotal.toFixed(2)),
             memoryUsed: parseFloat(memoryUsed.toFixed(2)),
+            name: cachedGPU.name,
             temperature,
             usage,
           });
@@ -172,6 +174,7 @@ async function getWindowsGPUData() {
         gpus.push({
           memoryTotal: vramGB,
           memoryUsed: 0,
+          name: controller.model || `GPU ${gpus.length}`,
           temperature: undefined,
           usage: 0,
         });
@@ -182,27 +185,4 @@ async function getWindowsGPUData() {
   } catch {
     return [];
   }
-}
-
-export function isDiscreteBusAddress(busAddress?: string) {
-  if (!busAddress) {
-    return false;
-  }
-
-  if (!/^[0-9a-f]{2}:\d{2}\.\d$/i.test(busAddress)) {
-    return false;
-  }
-
-  const busNumber = parseInt(busAddress.substring(0, 2), 16);
-  const deviceNumber = parseInt(busAddress.substring(3, 5), 16);
-
-  if (busNumber === 0 && deviceNumber === 2) {
-    return false;
-  }
-
-  if (busNumber > 0 && busNumber <= 15) {
-    return true;
-  }
-
-  return false;
 }

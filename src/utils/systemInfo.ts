@@ -2,6 +2,7 @@ import type { InfoItem } from '@/components/InfoCard';
 import { PRODUCT_NAME } from '@/constants';
 import type { SystemVersionInfo } from '@/types/electron';
 import type { GPUDevice, HardwareInfo } from '@/types/hardware';
+import { formatDeviceName } from '@/utils/format';
 
 export const createSoftwareItems = (
   versionInfo: SystemVersionInfo,
@@ -112,10 +113,20 @@ export const createHardwareItems = (hardwareInfo: HardwareInfo) => {
         );
       }
       if (gpuCapabilities.vulkan.devices.length > 0) {
-        discreteGPUs.push(...gpuCapabilities.vulkan.devices.filter((gpu) => !gpu.isIntegrated));
+        for (const gpu of gpuCapabilities.vulkan.devices) {
+          discreteGPUs.push({
+            isIntegrated: gpu.isIntegrated,
+            name: gpu.isIntegrated ? gpu.name : formatDeviceName(gpu.name),
+          });
+        }
       }
       if (gpuCapabilities.rocm.devices.length > 0) {
-        discreteGPUs.push(...gpuCapabilities.rocm.devices.filter((gpu) => !gpu.isIntegrated));
+        for (const gpu of gpuCapabilities.rocm.devices) {
+          discreteGPUs.push({
+            isIntegrated: gpu.isIntegrated,
+            name: gpu.isIntegrated ? gpu.name : formatDeviceName(gpu.name),
+          });
+        }
       }
 
       const uniqueDiscreteGPUs = discreteGPUs.filter(

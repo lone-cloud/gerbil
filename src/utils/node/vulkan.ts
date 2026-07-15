@@ -152,24 +152,53 @@ async function hasVulkanRuntimeLinux() {
   return false;
 }
 
+async function getActiveDRMAddresses(): Promise<Set<string>> {
+  try {
+    const entries = await readdir('/sys/class/drm');
+    const addresses = new Set<string>();
+    for (const entry of entries) {
+      if (!entry.startsWith('card') || entry.includes('-')) continue;
+      try {
+        const uevent = await readFile(`/sys/class/drm/${entry}/device/uevent`, 'utf8');
+        const match = /PCI_SLOT_NAME=[0-9a-f]{4}:(?<addr>[0-9a-f]{2}:[0-9a-f]{2}\.[0-9a-f])/i.exec(uevent);
+        if (match?.groups) addresses.add(match.groups.addr);
+      } catch {}
+    }
+    return addresses;
+  } catch {
+    return new Set();
+  }
+}
+
 async function gpusFromSystemInfo() {
   try {
-    const [graphicsResult, apiVersion] = await Promise.all([
+    const [graphicsResult, apiVersion, activeAddrs] = await Promise.all([
       siGraphics(),
       getVulkanVersionFromICD(),
+      getActiveDRMAddresses(),
     ]);
     const { controllers } = graphicsResult;
     const allGPUs = controllers
       .filter((c) => c.vendor && c.model)
+      .filter((c) => {
+        if (!c.busAddress) return true;
+        const addr = c.busAddress.startsWith('0000:')
+          ? c.busAddress.substring(5)
+          : c.busAddress;
+        return activeAddrs.has(addr);
+      })
       .map((c) => {
         const vendorLower = (c.vendor ?? '').toLowerCase();
         const nameLower = c.model.toLowerCase();
         const hasAMD = /amd|ati|radeon/.test(vendorLower) || /amd|radeon/.test(nameLower);
         const hasNVIDIA = /nvidia/.test(vendorLower) || /nvidia|geforce|rtx|gtx/.test(nameLower);
+        // VramDynamic is unreliable on desktop; <1GB VRAM is always integrated
+        const isIntegrated =
+          c.vramDynamic || (c.vram !== null && c.vram !== undefined && c.vram < 1024);
         return {
           hasAMD,
           hasNVIDIA,
-          isIntegrated: c.vramDynamic,
+          isIntegrated,
           name: c.model,
         };
       });
@@ -209,7 +238,7 @@ export async function detectGPUViaVulkan() {
     let hasNVIDIA = false;
     const gpuInfo: string[] = [];
 
-    for (const gpu of vulkanInfo.allGPUs.filter((g) => !g.isIntegrated)) {
+    for (const gpu of vulkanInfo.allGPUs) {
       gpuInfo.push(formatDeviceName(gpu.name));
 
       if (gpu.hasAMD) {
