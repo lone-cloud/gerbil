@@ -160,7 +160,9 @@ async function getActiveDRMAddresses(): Promise<Set<string>> {
       if (!entry.startsWith('card') || entry.includes('-')) continue;
       try {
         const uevent = await readFile(`/sys/class/drm/${entry}/device/uevent`, 'utf8');
-        const match = /PCI_SLOT_NAME=[0-9a-f]{4}:(?<addr>[0-9a-f]{2}:[0-9a-f]{2}\.[0-9a-f])/i.exec(uevent);
+        const match = /PCI_SLOT_NAME=[0-9a-f]{4}:(?<addr>[0-9a-f]{2}:[0-9a-f]{2}\.[0-9a-f])/i.exec(
+          uevent,
+        );
         if (match?.groups) addresses.add(match.groups.addr);
       } catch {}
     }
@@ -182,9 +184,7 @@ async function gpusFromSystemInfo() {
       .filter((c) => c.vendor && c.model)
       .filter((c) => {
         if (platform !== 'linux' || !c.busAddress) return true;
-        const addr = c.busAddress.startsWith('0000:')
-          ? c.busAddress.substring(5)
-          : c.busAddress;
+        const addr = c.busAddress.startsWith('0000:') ? c.busAddress.substring(5) : c.busAddress;
         return activeAddrs.has(addr);
       })
       .map((c) => {

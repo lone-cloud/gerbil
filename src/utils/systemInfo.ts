@@ -37,10 +37,7 @@ export const createSoftwareItems = (
   ...(versionInfo.uvVersion ? [{ label: 'uv', value: versionInfo.uvVersion }] : []),
 ];
 
-export const createHardwareItems = (
-  hardwareInfo: HardwareInfo,
-  ignoreIGPUs = true,
-) => {
+export const createHardwareItems = (hardwareInfo: HardwareInfo, ignoreIGPUs = true) => {
   const { gpuCapabilities } = hardwareInfo;
   const driverItems: InfoItem[] = [];
 

@@ -4,6 +4,7 @@ import { platform } from 'node:process';
 import { execa } from 'execa';
 import { graphics as siGraphics, memLayout as siMemLayout } from 'systeminformation';
 
+import { get as getConfig } from '@/main/modules/config';
 import type {
   BasicGPUInfo,
   CPUCapabilities,
@@ -12,7 +13,6 @@ import type {
   GPUMemoryInfo,
 } from '@/types/hardware';
 import { formatDeviceName } from '@/utils/format';
-import { get as getConfig } from '@/main/modules/config';
 import { getGPUData } from '@/utils/node/gpu';
 import { safeExecute } from '@/utils/node/logging';
 import { detectGPUViaVulkan, getVulkanInfo } from '@/utils/node/vulkan';

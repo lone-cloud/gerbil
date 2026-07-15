@@ -62,10 +62,14 @@ async function initializeLinuxGPUCache() {
             readFile(`${devicePath}/mem_info_vram_total`, 'utf8').catch(() => '0'),
             readFile(`${devicePath}/mem_info_gtt_total`, 'utf8').catch(() => '0'),
           ]);
-          const vramTotal =
-            Math.max(0, (parseInt(memVramRaw.trim(), 10) || 0) / (1024 * 1024 * 1024));
-          const gttTotal =
-            Math.max(0, (parseInt(memGttRaw.trim(), 10) || 0) / (1024 * 1024 * 1024));
+          const vramTotal = Math.max(
+            0,
+            (parseInt(memVramRaw.trim(), 10) || 0) / (1024 * 1024 * 1024),
+          );
+          const gttTotal = Math.max(
+            0,
+            (parseInt(memGttRaw.trim(), 10) || 0) / (1024 * 1024 * 1024),
+          );
           const memoryTotal = Math.max(vramTotal, gttTotal);
           // IGPs have meaningful GTT (shared system RAM); discrete GPUs don't
           const isIntegrated = gttTotal > vramTotal;
@@ -89,9 +93,7 @@ async function initializeLinuxGPUCache() {
                 );
               if (pciMatch) {
                 const fullAddr = pciMatch.groups!.address;
-                const siController = graphics?.controllers.find(
-                  (c) => c.busAddress === fullAddr,
-                );
+                const siController = graphics?.controllers.find((c) => c.busAddress === fullAddr);
                 name = siController?.model ?? fullAddr;
               }
             } catch {}
