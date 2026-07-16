@@ -65,7 +65,7 @@
     "lucide-react": "^1.24.0",
     "oxfmt": "^0.59.0",
     "oxlint": "^1.74.0",
-    "oxlint-tsgolint": "^0.24.0",
+    "oxlint-tsgolint": "^0.25.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-error-boundary": "^6.1.2",
@@ -76,13 +76,13 @@
     "remark-gfm": "^4.0.1",
     "rollup-plugin-visualizer": "^7.0.1",
     "typescript": "^7.0.2",
-    "vite": "^8.1.4",
+    "vite": "^8.1.5",
     "zustand": "^5.0.14"
   },
   "engines": {
     "node": ">=24.0.0"
   },
-  "packageManager": "pnpm@11.13.0",
+  "packageManager": "pnpm@11.13.1",
   "build": {
     "appId": "com.gerbil.app",
     "productName": "Gerbil",
