@@ -70,11 +70,11 @@ async function initializeLinuxGPUCache() {
             0,
             (parseInt(memGttRaw.trim(), 10) || 0) / (1024 * 1024 * 1024),
           );
-          const memoryTotal = Math.max(vramTotal, gttTotal);
-          // IGPs have meaningful GTT (shared system RAM); discrete GPUs don't
           const isIntegrated = gttTotal > vramTotal;
+          // GTT inflates eligibility only — don't use it as VRAM for percentages
+          const effectiveMemory = Math.max(vramTotal, gttTotal);
 
-          if (memoryTotal >= 1) {
+          if (effectiveMemory >= 1) {
             let hwmonPath: string | undefined;
             try {
               const hwmonEntries = await readdir(`${devicePath}/hwmon`);
@@ -93,8 +93,11 @@ async function initializeLinuxGPUCache() {
                 );
               if (pciMatch) {
                 const fullAddr = pciMatch.groups!.address;
-                const siController = graphics?.controllers.find((c) => c.busAddress === fullAddr);
-                name = siController?.model ?? fullAddr;
+                const shortAddr = fullAddr.substring(5);
+                const siController = graphics?.controllers.find(
+                  (c) => c.busAddress === fullAddr || c.busAddress === shortAddr,
+                );
+                name = siController?.model ?? shortAddr;
               }
             } catch {}
 
@@ -102,7 +105,7 @@ async function initializeLinuxGPUCache() {
               devicePath,
               hwmonPath,
               isIntegrated,
-              memoryTotal,
+              memoryTotal: vramTotal,
               name,
             });
           }

@@ -360,7 +360,7 @@ export async function detectGPUMemory() {
 
       let vram: number | null = gpu.memoryTotal;
 
-      if (!vram || vram <= 1) {
+      if (!vram || vram <= 0) {
         vram = null;
       }
 
