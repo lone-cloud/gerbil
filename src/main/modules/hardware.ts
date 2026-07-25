@@ -1,7 +1,6 @@
 import { cpus as osCpus, totalmem } from 'node:os';
 import { platform } from 'node:process';
 
-import { execa } from 'execa';
 import { graphics as siGraphics, memLayout as siMemLayout } from 'systeminformation';
 
 import { get as getConfig } from '@/main/modules/config';
@@ -15,15 +14,16 @@ import type {
 import { formatDeviceName } from '@/utils/format';
 import { getGPUData } from '@/utils/node/gpu';
 import { safeExecute } from '@/utils/node/logging';
+import { spawnAsync } from '@/utils/node/process';
 import { detectGPUViaVulkan, getVulkanInfo } from '@/utils/node/vulkan';
 
-const COMMON_EXEC_OPTIONS = {
+const SPAWN_OPTS = {
   reject: false,
   timeout: 3000,
 };
 
-const ROCM_EXEC_OPTIONS = {
-  ...COMMON_EXEC_OPTIONS,
+const ROCM_SPAWN_OPTS = {
+  ...SPAWN_OPTS,
   env: {
     ...process.env,
     PATH: ['/opt/rocm/bin', process.env.PATH].filter(Boolean).join(':'),
@@ -113,10 +113,10 @@ async function detectVulkan() {
 
 async function detectCUDA() {
   try {
-    const { stdout } = await execa(
+    const { stdout } = await spawnAsync(
       'nvidia-smi',
       ['--query-gpu=name,driver_version', '--format=csv,noheader'],
-      COMMON_EXEC_OPTIONS,
+      SPAWN_OPTS,
     );
 
     if (stdout.trim()) {
@@ -176,11 +176,11 @@ async function detectCUDA() {
 export async function detectROCm() {
   try {
     const rocminfoCommand = platform === 'win32' ? 'hipInfo' : 'rocminfo';
-    const execOptions = platform === 'win32' ? COMMON_EXEC_OPTIONS : ROCM_EXEC_OPTIONS;
+    const execOptions = platform === 'win32' ? SPAWN_OPTS : ROCM_SPAWN_OPTS;
     const [rocminfoResult, vulkanInfo, hipccVersion] = await Promise.all([
-      execa(rocminfoCommand, [], execOptions),
+      spawnAsync(rocminfoCommand, [], execOptions),
       getVulkanInfo(),
-      execa('hipcc', ['--version'], execOptions),
+      spawnAsync('hipcc', ['--version'], execOptions),
     ]);
     const { stdout } = rocminfoResult;
     const { stdout: hipccOutput } = hipccVersion;
@@ -200,13 +200,13 @@ export async function detectROCm() {
     const getDriverVersion = async () => {
       if (platform === 'win32') {
         try {
-          const { stdout: driverOutput } = await execa(
+          const { stdout: driverOutput } = await spawnAsync(
             'powershell',
             [
               '-Command',
               `Get-CimInstance -ClassName Win32_VideoController | Where-Object { $_.Name -like '*AMD*' -or $_.Name -like '*Radeon*' } | Select-Object -First 1 -ExpandProperty DriverVersion`,
             ],
-            COMMON_EXEC_OPTIONS,
+            SPAWN_OPTS,
           );
           if (driverOutput.trim()) return driverOutput.trim();
         } catch {}

@@ -36,6 +36,7 @@
     "react/jsx-max-depth": "off",
     "react/jsx-props-no-spreading": "off",
     "react/jsx-handler-names": "off",
+    "react/function-component-definition": "off",
     "react/no-array-index-key": "off",
     "typescript/no-floating-promises": "error",
     "typescript/no-misused-promises": "error",

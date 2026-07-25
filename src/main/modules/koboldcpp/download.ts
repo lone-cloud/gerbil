@@ -4,12 +4,12 @@ import { basename, join } from 'node:path';
 import { platform } from 'node:process';
 
 import { dialog } from 'electron';
-import { execa } from 'execa';
 
 import type { DownloadReleaseOptions, GitHubAsset } from '@/types/electron';
 import { pathExists } from '@/utils/node/fs';
 import { logError } from '@/utils/node/logging';
 import { getLauncherPath } from '@/utils/node/path';
+import { spawnAsync } from '@/utils/node/process';
 import { stripAssetExtensions } from '@/utils/version';
 
 import {
@@ -136,17 +136,17 @@ async function setupLauncher(tempPackedFilePath: string, unpackedDirPath: string
 async function unpackKoboldCpp(packedPath: string, unpackDir: string) {
   try {
     await mkdir(unpackDir, { recursive: true });
-    await execa(packedPath, ['--unpack', unpackDir], {
+    await spawnAsync(packedPath, ['--unpack', unpackDir], {
       stdio: ['ignore', 'pipe', 'pipe'],
       timeout: 60_000,
     });
   } catch (error) {
-    const execaError = error as {
+    const spawnError = error as {
       stderr?: string;
       stdout?: string;
       message: string;
     };
-    const errorMessage = execaError.stderr ?? execaError.stdout ?? execaError.message;
+    const errorMessage = spawnError.stderr ?? spawnError.stdout ?? spawnError.message;
     throw new Error(`Unpack failed: ${errorMessage}`, { cause: error });
   }
 }

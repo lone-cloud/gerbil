@@ -1,3 +1,5 @@
+import { spawn } from 'node:child_process';
+import type { ChildProcess } from 'node:child_process';
 import { createWriteStream } from 'node:fs';
 import { access, chmod } from 'node:fs/promises';
 import path from 'node:path';
@@ -5,18 +7,16 @@ import { arch, platform } from 'node:process';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 
-import { execa } from 'execa';
-import type { ResultPromise } from 'execa';
-
 import { GITHUB_API, OPENWEBUI, SILLYTAVERN } from '@/constants';
 import { PROXY } from '@/constants/proxy';
 import { getInstallDir } from '@/main/modules/config';
 import type { FrontendPreference } from '@/types';
 import { logError } from '@/utils/node/logging';
+import { spawnAsync } from '@/utils/node/process';
 
 import { sendKoboldOutput, sendToRenderer } from '../window';
 
-let activeTunnel: ResultPromise | null = null;
+let activeTunnel: ChildProcess | null = null;
 let tunnelUrl: string | null = null;
 
 const getCloudflaredBin = () => {
@@ -50,7 +50,7 @@ const getCloudflaredDownloadUrl = (version: string) =>
 
 const getInstalledCloudflaredVersion = async (binPath: string) => {
   try {
-    const result = await execa(binPath, ['--version']);
+    const result = await spawnAsync(binPath, ['--version']);
     const match = /(?<version>\d{4}\.\d+\.\d+)/.exec(result.stdout + result.stderr);
     return match ? match[1] : null;
   } catch {
@@ -160,7 +160,7 @@ export const startTunnel = async (
     }
 
     const nullDevice = platform === 'win32' ? 'NUL' : '/dev/null';
-    const tunnel = execa(bin, [
+    const tunnel = spawn(bin, [
       'tunnel',
       '--config',
       nullDevice,
@@ -168,7 +168,6 @@ export const startTunnel = async (
       tunnelTarget,
       '--no-autoupdate',
     ]);
-    tunnel.catch(() => {});
 
     activeTunnel = tunnel;
 

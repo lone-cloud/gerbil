@@ -1,12 +1,11 @@
 import { readdir, rm, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { execa } from 'execa';
-
 import type { InstalledBackend } from '@/types/electron';
 import { pathExists } from '@/utils/node/fs';
 import { logError } from '@/utils/node/logging';
 import { getLauncherPath } from '@/utils/node/path';
+import { spawnAsync } from '@/utils/node/process';
 
 import {
   get as getAppConfig,
@@ -202,7 +201,7 @@ export async function getVersionFromBinary(launcherPath: string) {
     }
 
     try {
-      const result = await execa(launcherPath, ['--version'], {
+      const result = await spawnAsync(launcherPath, ['--version'], {
         stdio: ['ignore', 'pipe', 'pipe'],
         timeout: 30_000,
       });

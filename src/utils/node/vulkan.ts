@@ -2,10 +2,10 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { platform } from 'node:process';
 
-import { execa } from 'execa';
 import { graphics as siGraphics } from 'systeminformation';
 
 import { formatDeviceName } from '@/utils/format';
+import { spawnAsync } from '@/utils/node/process';
 
 const ICD_SEARCH_DIRS = ['/usr/share/vulkan/icd.d', '/etc/vulkan/icd.d'];
 
@@ -39,7 +39,7 @@ export function getVulkanInfo(): Promise<VulkanInfo> {
 
 async function fetchVulkanInfo(): Promise<VulkanInfo> {
   try {
-    const { stdout } = await execa('vulkaninfo', ['--summary'], {
+    const { stdout } = await spawnAsync('vulkaninfo', ['--summary'], {
       reject: false,
       timeout: 3000,
     });

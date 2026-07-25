@@ -4,9 +4,9 @@ import { join } from 'node:path';
 import { arch, platform, env as processEnv, versions } from 'node:process';
 
 import { app } from 'electron';
-import { execa } from 'execa';
 
 import { PRODUCT_NAME } from '@/constants';
+import { spawnAsync } from '@/utils/node/process';
 
 const PATH_SEPARATOR = platform === 'win32' ? ';' : ':';
 const BIN_SUBDIRS = ['bin', join('installation', 'bin')];
@@ -36,11 +36,7 @@ async function executeCommand(
   timeout = 5000,
 ) {
   try {
-    const result = await execa(command, args, {
-      env,
-      reject: false,
-      timeout,
-    });
+    const result = await spawnAsync(command, args, { env, reject: false, timeout });
     if (result.failed) {
       return { success: false };
     }
@@ -203,7 +199,7 @@ export async function getAURVersion() {
   const packageName = PRODUCT_NAME.toLowerCase();
 
   try {
-    const { stdout } = await execa('pacman', ['-Q', packageName], {
+    const { stdout } = await spawnAsync('pacman', ['-Q', packageName], {
       reject: false,
       timeout: 1000,
     });
