@@ -128,9 +128,9 @@ const COMMAND_LINE_ARGUMENTS = [
     choices: ['layer', 'tensor'],
     default: 'layer',
     description:
-      'How to split the model across multiple GPUs. layer=split by layer (default), tensor=experimental tensor split. Row split is deprecated.',
+      'How to split the model across multiple GPUs. layer=split by layer (default), tensor=experimental tensor split. Row split was removed in kcpp 1.118 and now defaults to tensor split.',
     flag: '--splitmode',
-    metavar: '[layer/row/tensor]',
+    metavar: '[layer/tensor]',
   },
   {
     aliases: ['--blasbatchsize', '--batch-size', '-b'],
@@ -327,7 +327,7 @@ const COMMAND_LINE_ARGUMENTS = [
     category: 'Advanced',
     default: 'None',
     description:
-      'Enter a password required to use this instance. This key will be required for all text endpoints. Image endpoints are not secured. Can also be set with env var KOBOLDCPP_PASSWORD.',
+      'Enter a password required to use this instance. This key will be required for all text endpoints. Image endpoints are not secured. Can also be set with env var KCPP_PASSWORD.',
     flag: '--password',
     metavar: '[API key]',
   },
@@ -604,7 +604,7 @@ const COMMAND_LINE_ARGUMENTS = [
     category: 'Administration',
     default: 'None',
     description:
-      'Require a password to access admin functions. You are strongly advised to use one for publically accessible instances! Can also be set with env var KOBOLDCPP_ADMINPASSWORD.',
+      'Require a password to access admin functions. You are strongly advised to use one for publically accessible instances! Can also be set with env var KCPP_ADMINPASSWORD.',
     flag: '--adminpassword',
     metavar: '[password]',
   },
@@ -933,7 +933,8 @@ const COMMAND_LINE_ARGUMENTS = [
     category: 'Advanced',
     choices: ['default', 'true', 'false'],
     default: 'default',
-    description: 'A quick way to enable or disable thinking in the jinja template.',
+    description:
+      'A quick way to enable or disable thinking in the jinja template. Automatically enables jinja when set.',
     flag: '--jinjathink',
   },
   {
