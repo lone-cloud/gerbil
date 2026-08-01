@@ -1,6 +1,6 @@
 {
   "name": "gerbil",
-  "version": "1.27.0",
+  "version": "1.27.1",
   "description": "Run Large Language Models locally",
   "keywords": [
     "ai",
