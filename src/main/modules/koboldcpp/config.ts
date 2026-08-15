@@ -20,9 +20,8 @@ export async function getConfigFiles() {
       const files = await readdir(installDir);
 
       for (const file of files) {
-        const filePath = join(installDir, file);
-
-        const stats = await stat(filePath);
+        const filePath = join(installDir, file),
+          stats = await stat(filePath);
         if (
           stats.isFile() &&
           (file.endsWith('.kcpps') || file.endsWith('.kcppt') || file.endsWith('.json'))
@@ -55,16 +54,16 @@ export async function parseConfigFile(filePath: string) {
 
 export async function saveConfigFile(configFileName: string, configData: KoboldConfig) {
   return tryExecute(async () => {
-    const installDir = getInstallDir();
-    const configPath = join(installDir, configFileName);
+    const installDir = getInstallDir(),
+      configPath = join(installDir, configFileName);
     await writeJsonFile(configPath, configData);
   }, 'Error saving config file');
 }
 
 export async function deleteConfigFile(configFileName: string) {
   return tryExecute(async () => {
-    const installDir = getInstallDir();
-    const configPath = join(installDir, configFileName);
+    const installDir = getInstallDir(),
+      configPath = join(installDir, configFileName);
     await unlink(configPath);
   }, 'Error deleting config file');
 }

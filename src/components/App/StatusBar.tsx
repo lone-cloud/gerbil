@@ -12,28 +12,32 @@ import { getTunnelInterfaceUrl } from '@/utils/interface';
 import { PerformanceBadge } from './PerformanceBadge';
 
 export const StatusBar = () => {
-  const [cpuMetrics, setCpuMetrics] = useState<CpuMetrics | null>(null);
-  const [memoryMetrics, setMemoryMetrics] = useState<MemoryMetrics | null>(null);
-  const [gpuMetrics, setGpuMetrics] = useState<GpuMetrics | null>(null);
-  const [tunnelBaseUrl, setTunnelBaseUrl] = useState<string | null>(null);
-  const { systemMonitoringEnabled, frontendPreference, imageGenerationFrontendPreference } =
-    usePreferencesStore();
-  const { isVisible, setVisible } = useNotepadStore();
-  const { isImageGenerationMode } = useLaunchConfigStore();
-
-  const tunnelUrl = useMemo(() => {
-    if (!tunnelBaseUrl) {
-      return null;
-    }
-    if (frontendPreference === 'sillytavern' || frontendPreference === 'openwebui') {
-      return tunnelBaseUrl;
-    }
-    return getTunnelInterfaceUrl(tunnelBaseUrl, {
+  const [cpuMetrics, setCpuMetrics] = useState<CpuMetrics | null>(null),
+    [memoryMetrics, setMemoryMetrics] = useState<MemoryMetrics | null>(null),
+    [gpuMetrics, setGpuMetrics] = useState<GpuMetrics | null>(null),
+    [tunnelBaseUrl, setTunnelBaseUrl] = useState<string | null>(null),
+    { systemMonitoringEnabled, frontendPreference, imageGenerationFrontendPreference } =
+      usePreferencesStore(),
+    { isVisible, setVisible } = useNotepadStore(),
+    { isImageGenerationMode } = useLaunchConfigStore(),
+    tunnelUrl = useMemo(() => {
+      if (!tunnelBaseUrl) {
+        return null;
+      }
+      if (frontendPreference === 'sillytavern' || frontendPreference === 'openwebui') {
+        return tunnelBaseUrl;
+      }
+      return getTunnelInterfaceUrl(tunnelBaseUrl, {
+        frontendPreference,
+        imageGenerationFrontendPreference,
+        isImageGenerationMode,
+      });
+    }, [
+      tunnelBaseUrl,
       frontendPreference,
       imageGenerationFrontendPreference,
       isImageGenerationMode,
-    });
-  }, [tunnelBaseUrl, frontendPreference, imageGenerationFrontendPreference, isImageGenerationMode]);
+    ]);
 
   useEffect(() => {
     if (!systemMonitoringEnabled) {
@@ -43,30 +47,27 @@ export const StatusBar = () => {
     let isMounted = true;
 
     const handleCpuMetrics = (metrics: CpuMetrics) => {
-      if (!isMounted) {
-        return;
-      }
-      setCpuMetrics(metrics);
-    };
-
-    const handleMemoryMetrics = (metrics: MemoryMetrics) => {
-      if (!isMounted) {
-        return;
-      }
-      setMemoryMetrics(metrics);
-    };
-
-    const handleGpuMetrics = (metrics: GpuMetrics) => {
-      if (!isMounted) {
-        return;
-      }
-      setGpuMetrics(metrics);
-    };
-
-    const cleanupCpu = window.electronAPI.monitoring.onCpuMetrics(handleCpuMetrics);
-    const cleanupMemory = window.electronAPI.monitoring.onMemoryMetrics(handleMemoryMetrics);
-    const cleanupGpu = window.electronAPI.monitoring.onGpuMetrics(handleGpuMetrics);
-    const stopMonitoring = window.electronAPI.monitoring.start();
+        if (!isMounted) {
+          return;
+        }
+        setCpuMetrics(metrics);
+      },
+      handleMemoryMetrics = (metrics: MemoryMetrics) => {
+        if (!isMounted) {
+          return;
+        }
+        setMemoryMetrics(metrics);
+      },
+      handleGpuMetrics = (metrics: GpuMetrics) => {
+        if (!isMounted) {
+          return;
+        }
+        setGpuMetrics(metrics);
+      },
+      cleanupCpu = window.electronAPI.monitoring.onCpuMetrics(handleCpuMetrics),
+      cleanupMemory = window.electronAPI.monitoring.onMemoryMetrics(handleMemoryMetrics),
+      cleanupGpu = window.electronAPI.monitoring.onGpuMetrics(handleGpuMetrics),
+      stopMonitoring = window.electronAPI.monitoring.start();
 
     return () => {
       isMounted = false;
@@ -82,9 +83,9 @@ export const StatusBar = () => {
     return cleanup;
   }, []);
 
-  const displayCpuMetrics = systemMonitoringEnabled ? cpuMetrics : null;
-  const displayMemoryMetrics = systemMonitoringEnabled ? memoryMetrics : null;
-  const displayGpuMetrics = systemMonitoringEnabled ? gpuMetrics : null;
+  const displayCpuMetrics = systemMonitoringEnabled ? cpuMetrics : null,
+    displayMemoryMetrics = systemMonitoringEnabled ? memoryMetrics : null,
+    displayGpuMetrics = systemMonitoringEnabled ? gpuMetrics : null;
 
   return (
     <AppShell.Footer>

@@ -25,25 +25,24 @@ export const initializeAudio = async () => {
   }
 
   try {
-    const allSounds = [soundAssets.elephant, ...soundAssets.mouseSqueaks];
+    const allSounds = [soundAssets.elephant, ...soundAssets.mouseSqueaks],
+      initPromises = allSounds.map(async (soundUrl) => {
+        const audio = new Audio(soundUrl);
+        audio.preload = 'auto';
 
-    const initPromises = allSounds.map(async (soundUrl) => {
-      const audio = new Audio(soundUrl);
-      audio.preload = 'auto';
+        audio.volume = 0.01;
 
-      audio.volume = 0.01;
+        try {
+          await audio.play();
+          audio.pause();
+          audio.currentTime = 0;
+          audio.volume = 0.5;
+        } catch (err) {
+          window.electronAPI.logs.logError(`Failed to init audio for ${soundUrl}: ${String(err)}`);
+        }
 
-      try {
-        await audio.play();
-        audio.pause();
-        audio.currentTime = 0;
-        audio.volume = 0.5;
-      } catch (err) {
-        window.electronAPI.logs.logError(`Failed to init audio for ${soundUrl}: ${String(err)}`);
-      }
-
-      audioCache.set(soundUrl, audio);
-    });
+        audioCache.set(soundUrl, audio);
+      });
 
     await Promise.allSettled(initPromises);
     audioInitialized = true;

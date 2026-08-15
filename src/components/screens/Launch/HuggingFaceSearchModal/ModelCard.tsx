@@ -44,33 +44,32 @@ interface ModelCardProps {
 }
 
 export const ModelCard = ({ modelId }: ModelCardProps) => {
-  const [readme, setReadme] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadReadme = async () => {
-    if (readme !== null) {
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(`${HUGGINGFACE_BASE_URL}/${modelId}/raw/main/README.md`);
-      if (!response.ok) {
-        throw new Error('README not available');
+  const [readme, setReadme] = useState<string | null>(null),
+    [loading, setLoading] = useState(false),
+    [error, setError] = useState<string | null>(null),
+    loadReadme = async () => {
+      if (readme !== null) {
+        return;
       }
-      let text = await response.text();
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(`${HUGGINGFACE_BASE_URL}/${modelId}/raw/main/README.md`);
+        if (!response.ok) {
+          throw new Error('README not available');
+        }
+        let text = await response.text();
 
-      const frontmatterRegex = /^---\n[\s\S]*?\n---\n/;
-      text = text.replace(frontmatterRegex, '');
+        const frontmatterRegex = /^---\n[\s\S]*?\n---\n/;
+        text = text.replace(frontmatterRegex, '');
 
-      setReadme(text);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load README');
-    } finally {
-      setLoading(false);
-    }
-  };
+        setReadme(text);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load README');
+      } finally {
+        setLoading(false);
+      }
+    };
 
   return (
     <Accordion>

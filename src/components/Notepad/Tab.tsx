@@ -34,10 +34,10 @@ export const Tab = ({
   showLineNumbers,
   setShowLineNumbers,
 }: TabProps) => {
-  const { resolvedColorScheme } = usePreferencesStore();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editingTitle, setEditingTitle] = useState(title);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const { resolvedColorScheme } = usePreferencesStore(),
+    [isEditing, setIsEditing] = useState(false),
+    [editingTitle, setEditingTitle] = useState(title),
+    inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -47,53 +47,47 @@ export const Tab = ({
   }, [isEditing]);
 
   const handleTitleClick = (e: MouseEvent) => {
-    e.stopPropagation();
-    if (!isActive) {
-      onSelect();
-    }
-  };
-
-  const handleTitleDoubleClick = (e: MouseEvent) => {
-    e.stopPropagation();
-    if (isActive) {
-      setIsEditing(true);
-      setEditingTitle(title);
-    }
-  };
-
-  const handleInputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+      e.stopPropagation();
+      if (!isActive) {
+        onSelect();
+      }
+    },
+    handleTitleDoubleClick = (e: MouseEvent) => {
+      e.stopPropagation();
+      if (isActive) {
+        setIsEditing(true);
+        setEditingTitle(title);
+      }
+    },
+    handleInputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        handleSaveTitle();
+      } else if (e.key === 'Escape') {
+        setIsEditing(false);
+        setEditingTitle(title);
+      }
+    },
+    handleInputBlur = () => {
       handleSaveTitle();
-    } else if (e.key === 'Escape') {
+    },
+    handleSaveTitle = () => {
+      const trimmedTitle = editingTitle.trim();
+      if (trimmedTitle && trimmedTitle !== title) {
+        onRename(trimmedTitle);
+      }
       setIsEditing(false);
-      setEditingTitle(title);
-    }
-  };
-
-  const handleInputBlur = () => {
-    handleSaveTitle();
-  };
-
-  const handleSaveTitle = () => {
-    const trimmedTitle = editingTitle.trim();
-    if (trimmedTitle && trimmedTitle !== title) {
-      onRename(trimmedTitle);
-    }
-    setIsEditing(false);
-  };
-
-  const handleTabClick = () => {
-    if (!isEditing) {
-      onSelect();
-    }
-  };
-
-  const handleMouseDown = (e: MouseEvent) => {
-    if (e.button === 1) {
-      e.preventDefault();
-      onClose(e);
-    }
-  };
+    },
+    handleTabClick = () => {
+      if (!isEditing) {
+        onSelect();
+      }
+    },
+    handleMouseDown = (e: MouseEvent) => {
+      if (e.button === 1) {
+        e.preventDefault();
+        onClose(e);
+      }
+    };
 
   return (
     <Box

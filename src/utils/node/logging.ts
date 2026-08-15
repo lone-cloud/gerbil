@@ -8,57 +8,55 @@ import DailyRotateFile from 'winston-daily-rotate-file';
 import { isDevelopment } from '@/utils/node/environment';
 
 const ensureLogsDirectory = async (logsDir: string) => {
-  try {
-    await mkdir(logsDir, { recursive: true });
-  } catch {
-    return;
-  }
-};
+    try {
+      await mkdir(logsDir, { recursive: true });
+    } catch {
+      return;
+    }
+  },
+  createAppLogger = () => {
+    const logsDir = join(app.getPath('userData'), 'logs');
 
-const createAppLogger = () => {
-  const logsDir = join(app.getPath('userData'), 'logs');
+    void ensureLogsDirectory(logsDir);
 
-  void ensureLogsDirectory(logsDir);
+    return createLogger({
+      format: format.combine(
+        format.timestamp({
+          format: 'YYYY-MM-DD HH:mm:ss.SSS',
+        }),
+        format.printf((info) => {
+          const { timestamp, level, message, error } = info as {
+            timestamp: string;
+            level: string;
+            message: string;
+            error?: Error;
+          };
+          let logEntry = `${timestamp} [MAIN] [${level.toUpperCase()}] ${message}`;
 
-  return createLogger({
-    format: format.combine(
-      format.timestamp({
-        format: 'YYYY-MM-DD HH:mm:ss.SSS',
-      }),
-      format.printf((info) => {
-        const { timestamp, level, message, error } = info as {
-          timestamp: string;
-          level: string;
-          message: string;
-          error?: Error;
-        };
-        let logEntry = `${timestamp} [MAIN] [${level.toUpperCase()}] ${message}`;
-
-        if (error && error instanceof Error) {
-          logEntry += `\n  Error: ${error.message}`;
-          if (error.stack) {
-            logEntry += `\n  Stack: ${error.stack}`;
+          if (error && error instanceof Error) {
+            logEntry += `\n  Error: ${error.message}`;
+            if (error.stack) {
+              logEntry += `\n  Stack: ${error.stack}`;
+            }
           }
-        }
 
-        return logEntry;
-      }),
-    ),
-    level: isDevelopment ? 'debug' : 'info',
-    transports: [
-      new DailyRotateFile({
-        filename: join(logsDir, 'gerbil-%DATE%.log'),
-        datePattern: 'YYYY-MM-DD',
-        maxSize: '10m',
-        maxFiles: '5d',
-        createSymlink: true,
-        symlinkName: 'gerbil.log',
-      }),
-    ],
-  });
-};
-
-const logger = createAppLogger();
+          return logEntry;
+        }),
+      ),
+      level: isDevelopment ? 'debug' : 'info',
+      transports: [
+        new DailyRotateFile({
+          filename: join(logsDir, 'gerbil-%DATE%.log'),
+          datePattern: 'YYYY-MM-DD',
+          maxSize: '10m',
+          maxFiles: '5d',
+          createSymlink: true,
+          symlinkName: 'gerbil.log',
+        }),
+      ],
+    });
+  },
+  logger = createAppLogger();
 
 export const logError = (message: string, error?: Error) => {
   logger.error(message, { error });

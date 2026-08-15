@@ -21,30 +21,29 @@ interface HandleDownloadParams {
 }
 
 const transformReleaseToDownloadItems = (release: GitHubRelease, platform: string) => {
-  const version = release.tag_name?.replace(/^v/, '') || 'unknown';
-  const platformAssets = filterAssetsByPlatform(release.assets, platform);
+    const version = release.tag_name?.replace(/^v/, '') || 'unknown',
+      platformAssets = filterAssetsByPlatform(release.assets, platform);
 
-  return platformAssets.map((asset) => ({
-    name: asset.name,
-    size: asset.size,
-    url: asset.browser_download_url,
-    version,
-  }));
-};
+    return platformAssets.map((asset) => ({
+      name: asset.name,
+      size: asset.size,
+      url: asset.browser_download_url,
+      version,
+    }));
+  },
+  fetchLatestReleaseFromAPI = async (platform: string) => {
+    const response = await fetch(GITHUB_API.LATEST_RELEASE_URL);
 
-const fetchLatestReleaseFromAPI = async (platform: string) => {
-  const response = await fetch(GITHUB_API.LATEST_RELEASE_URL);
-
-  if (!response.ok) {
-    if (response.status === 403) {
-      throw new Error('GitHub API rate limit reached');
+    if (!response.ok) {
+      if (response.status === 403) {
+        throw new Error('GitHub API rate limit reached');
+      }
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
 
-  const release: GitHubRelease = await response.json();
-  return transformReleaseToDownloadItems(release, platform);
-};
+    const release: GitHubRelease = await response.json();
+    return transformReleaseToDownloadItems(release, platform);
+  };
 
 interface KoboldBackendsState {
   platform: string;
@@ -62,11 +61,10 @@ interface KoboldBackendsState {
 
 const fetchDownloads = async (platform: string) => {
   const [releases, rocm] = await Promise.all([
-    fetchLatestReleaseFromAPI(platform),
-    getROCmDownload(),
-  ]);
-
-  const allDownloads: DownloadItem[] = [...releases];
+      fetchLatestReleaseFromAPI(platform),
+      getROCmDownload(),
+    ]),
+    allDownloads: DownloadItem[] = [...releases];
   if (rocm) {
     allDownloads.push(rocm);
   }
@@ -92,10 +90,10 @@ export const useKoboldBackendsStore = create<KoboldBackendsState>((set, get) => 
 
       const availableAssets = latestRelease.assets.map((asset: GitHubAsset) => {
         const installedBackend = installedBackends.find((b: InstalledBackend) => {
-          const pathParts = b.path.split(/[/\\]/);
-          const launcherIndex = pathParts.findIndex(
-            (part: string) => part === 'koboldcpp-launcher' || part === 'koboldcpp-launcher.exe',
-          );
+          const pathParts = b.path.split(/[/\\]/),
+            launcherIndex = pathParts.findIndex(
+              (part: string) => part === 'koboldcpp-launcher' || part === 'koboldcpp-launcher.exe',
+            );
 
           if (launcherIndex > 0) {
             const directoryName = pathParts[launcherIndex - 1];
@@ -118,8 +116,8 @@ export const useKoboldBackendsStore = create<KoboldBackendsState>((set, get) => 
       };
     }, 'Failed to fetch latest release with status:'),
   handleDownload: async (params: HandleDownloadParams) => {
-    const { item, isUpdate = false, wasCurrentBinary = false, oldBackendPath } = params;
-    const { downloading } = get();
+    const { item, isUpdate = false, wasCurrentBinary = false, oldBackendPath } = params,
+      { downloading } = get();
 
     if (downloading) {
       return;
@@ -128,15 +126,14 @@ export const useKoboldBackendsStore = create<KoboldBackendsState>((set, get) => 
     set({ downloading: item.name, downloadProgress: { [item.name]: 0 } });
 
     const progressCleanup = window.electronAPI.kobold.onDownloadProgress((progress) => {
-      set({ downloadProgress: { [item.name]: progress } });
-    });
-
-    const asset: GitHubAsset = {
-      name: item.name,
-      browser_download_url: item.url,
-      size: item.size,
-      version: item.version,
-    };
+        set({ downloadProgress: { [item.name]: progress } });
+      }),
+      asset: GitHubAsset = {
+        name: item.name,
+        browser_download_url: item.url,
+        size: item.size,
+        version: item.version,
+      };
 
     await window.electronAPI.kobold.downloadRelease(asset, {
       isUpdate,

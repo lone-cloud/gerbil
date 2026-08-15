@@ -29,124 +29,122 @@ export const DownloadCard = ({
   onRedownload,
   onDelete,
 }: DownloadCardProps) => {
-  const { downloading, downloadProgress } = useKoboldBackendsStore();
+  const { downloading, downloadProgress } = useKoboldBackendsStore(),
+    isLoading = downloading === backend.name,
+    currentProgress = isLoading ? Math.min(downloadProgress[backend.name], 100) || 0 : 0,
+    hasVersionMismatch = Boolean(
+      backend.version && backend.actualVersion && backend.version !== backend.actualVersion,
+    ),
+    renderActionButtons = () => {
+      const buttons = [];
 
-  const isLoading = downloading === backend.name;
-  const currentProgress = isLoading ? Math.min(downloadProgress[backend.name], 100) || 0 : 0;
-  const hasVersionMismatch = Boolean(
-    backend.version && backend.actualVersion && backend.version !== backend.actualVersion,
-  );
+      if (!backend.isInstalled) {
+        return (
+          <Button
+            key="download"
+            variant="filled"
+            size="xs"
+            onClick={onDownload}
+            loading={isLoading}
+            disabled={disabled}
+            leftSection={
+              isLoading ? (
+                <Loader size="1rem" />
+              ) : (
+                <Download style={{ height: rem(14), width: rem(14) }} />
+              )
+            }
+          >
+            {isLoading ? 'Downloading...' : 'Download'}
+          </Button>
+        );
+      }
 
-  const renderActionButtons = () => {
-    const buttons = [];
+      if (!backend.isCurrent && onMakeCurrent) {
+        buttons.push(
+          <Button
+            key="makeCurrent"
+            variant="filled"
+            size="xs"
+            onClick={onMakeCurrent}
+            disabled={disabled}
+          >
+            Make Current
+          </Button>,
+        );
+      }
 
-    if (!backend.isInstalled) {
-      return (
-        <Button
-          key="download"
-          variant="filled"
-          size="xs"
-          onClick={onDownload}
-          loading={isLoading}
-          disabled={disabled}
-          leftSection={
-            isLoading ? (
-              <Loader size="1rem" />
-            ) : (
-              <Download style={{ height: rem(14), width: rem(14) }} />
-            )
-          }
-        >
-          {isLoading ? 'Downloading...' : 'Download'}
-        </Button>
-      );
-    }
+      if (backend.hasUpdate && !backend.isLocal && onUpdate) {
+        buttons.push(
+          <Button
+            key="update"
+            variant="filled"
+            size="xs"
+            onClick={onUpdate}
+            loading={isLoading}
+            disabled={disabled}
+            color="orange"
+            leftSection={
+              isLoading ? (
+                <Loader size="1rem" />
+              ) : (
+                <Download style={{ height: rem(14), width: rem(14) }} />
+              )
+            }
+          >
+            {isLoading ? 'Updating...' : `Update to ${backend.newerVersion}`}
+          </Button>,
+        );
+      }
 
-    if (!backend.isCurrent && onMakeCurrent) {
-      buttons.push(
-        <Button
-          key="makeCurrent"
-          variant="filled"
-          size="xs"
-          onClick={onMakeCurrent}
-          disabled={disabled}
-        >
-          Make Current
-        </Button>,
-      );
-    }
+      if (hasVersionMismatch && !backend.isLocal && onRedownload) {
+        buttons.push(
+          <Button
+            key="redownload"
+            variant="filled"
+            size="xs"
+            onClick={onRedownload}
+            loading={isLoading}
+            disabled={disabled}
+            color="red"
+            leftSection={
+              isLoading ? (
+                <Loader size="1rem" />
+              ) : (
+                <Download style={{ height: rem(14), width: rem(14) }} />
+              )
+            }
+          >
+            {isLoading ? 'Re-downloading...' : 'Re-download'}
+          </Button>,
+        );
+      }
 
-    if (backend.hasUpdate && !backend.isLocal && onUpdate) {
-      buttons.push(
-        <Button
-          key="update"
-          variant="filled"
-          size="xs"
-          onClick={onUpdate}
-          loading={isLoading}
-          disabled={disabled}
-          color="orange"
-          leftSection={
-            isLoading ? (
-              <Loader size="1rem" />
-            ) : (
-              <Download style={{ height: rem(14), width: rem(14) }} />
-            )
-          }
-        >
-          {isLoading ? 'Updating...' : `Update to ${backend.newerVersion}`}
-        </Button>,
-      );
-    }
+      if (onDelete && backend.isInstalled && !backend.isCurrent) {
+        buttons.push(
+          <Button
+            key="delete"
+            variant="light"
+            size="xs"
+            onClick={onDelete}
+            loading={isLoading}
+            disabled={disabled}
+            color="red"
+            leftSection={
+              isLoading ? (
+                <Loader size="1rem" />
+              ) : (
+                <Trash2 style={{ height: rem(14), width: rem(14) }} />
+              )
+            }
+          >
+            {isLoading ? 'Deleting...' : 'Delete'}
+          </Button>,
+        );
+      }
 
-    if (hasVersionMismatch && !backend.isLocal && onRedownload) {
-      buttons.push(
-        <Button
-          key="redownload"
-          variant="filled"
-          size="xs"
-          onClick={onRedownload}
-          loading={isLoading}
-          disabled={disabled}
-          color="red"
-          leftSection={
-            isLoading ? (
-              <Loader size="1rem" />
-            ) : (
-              <Download style={{ height: rem(14), width: rem(14) }} />
-            )
-          }
-        >
-          {isLoading ? 'Re-downloading...' : 'Re-download'}
-        </Button>,
-      );
-    }
-
-    if (onDelete && backend.isInstalled && !backend.isCurrent) {
-      buttons.push(
-        <Button
-          key="delete"
-          variant="light"
-          size="xs"
-          onClick={onDelete}
-          loading={isLoading}
-          disabled={disabled}
-          color="red"
-          leftSection={
-            isLoading ? (
-              <Loader size="1rem" />
-            ) : (
-              <Trash2 style={{ height: rem(14), width: rem(14) }} />
-            )
-          }
-        >
-          {isLoading ? 'Deleting...' : 'Delete'}
-        </Button>,
-      );
-    }
-
-    return buttons.length > 0 ? <Stack gap="xs">{buttons}</Stack> : null;
-  };
+      return buttons.length > 0 ? <Stack gap="xs">{buttons}</Stack> : null;
+    };
 
   return (
     <Card

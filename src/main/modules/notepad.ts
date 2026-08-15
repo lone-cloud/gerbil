@@ -8,33 +8,31 @@ import { pathExists } from '@/utils/node/fs';
 import { get, getInstallDir, set } from './config';
 
 const DEFAULT_NOTEPAD_STATE: SavedNotepadState = {
-  activeTabId: null,
-  isVisible: false,
-  position: DEFAULT_NOTEPAD_POSITION,
-};
+    activeTabId: null,
+    isVisible: false,
+    position: DEFAULT_NOTEPAD_POSITION,
+  },
+  getNotepadDir = () => join(getInstallDir(), 'notepad'),
+  getTabsFromStorage = async () => {
+    const tabs = [];
 
-const getNotepadDir = () => join(getInstallDir(), 'notepad');
+    try {
+      const notepadDir = getNotepadDir();
+      if (await pathExists(notepadDir)) {
+        const files = await readdir(notepadDir),
+          tabFiles = files.filter((f) => f.endsWith('.txt'));
 
-const getTabsFromStorage = async () => {
-  const tabs = [];
-
-  try {
-    const notepadDir = getNotepadDir();
-    if (await pathExists(notepadDir)) {
-      const files = await readdir(notepadDir);
-      const tabFiles = files.filter((f) => f.endsWith('.txt'));
-
-      for (const file of tabFiles) {
-        const title = file.replace('.txt', '');
-        tabs.push({ title });
+        for (const file of tabFiles) {
+          const title = file.replace('.txt', '');
+          tabs.push({ title });
+        }
       }
+    } catch {
+      return [];
     }
-  } catch {
-    return [];
-  }
 
-  return tabs;
-};
+    return tabs;
+  };
 
 export const renameTab = async (oldTitle: string, newTitle: string) => {
   try {
@@ -49,8 +47,8 @@ export const renameTab = async (oldTitle: string, newTitle: string) => {
 
 export const saveTabContent = async (title: string, content: string) => {
   try {
-    const notepadDir = getNotepadDir();
-    const filePath = join(notepadDir, `${title}.txt`);
+    const notepadDir = getNotepadDir(),
+      filePath = join(notepadDir, `${title}.txt`);
 
     await writeFile(filePath, content, 'utf8');
     return true;
@@ -74,12 +72,12 @@ export const saveNotepadState = async (state: SavedNotepadState) => {
 };
 
 export const loadNotepadState = async () => {
-  const stored = get('notepad') ?? DEFAULT_NOTEPAD_STATE;
-  const tabs = await getTabsFromStorage();
-  const activeTabId =
-    stored.activeTabId && tabs.some((tab) => tab.title === stored.activeTabId)
-      ? stored.activeTabId
-      : tabs[0]?.title || null;
+  const stored = get('notepad') ?? DEFAULT_NOTEPAD_STATE,
+    tabs = await getTabsFromStorage(),
+    activeTabId =
+      stored.activeTabId && tabs.some((tab) => tab.title === stored.activeTabId)
+        ? stored.activeTabId
+        : tabs[0]?.title || null;
 
   return { ...stored, activeTabId, tabs };
 };
@@ -95,12 +93,12 @@ export const deleteTabFile = async (title: string) => {
 
 export const createNewTab = async (title?: string) => {
   if (!title) {
-    const state = await loadNotepadState();
-    const noteNumbers = state.tabs
-      .map((tab) => /^Note (?<number>\d+)$/.exec(tab.title)?.[1])
-      .filter(Boolean)
-      .map(Number)
-      .toSorted((a, b) => a - b);
+    const state = await loadNotepadState(),
+      noteNumbers = state.tabs
+        .map((tab) => /^Note (?<number>\d+)$/.exec(tab.title)?.[1])
+        .filter(Boolean)
+        .map(Number)
+        .toSorted((a, b) => a - b);
 
     let counter = 1;
     for (const num of noteNumbers) {

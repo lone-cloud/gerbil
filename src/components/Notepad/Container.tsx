@@ -13,94 +13,86 @@ import { NotepadTabs } from './Tabs.tsx';
 
 export const NotepadContainer = () => {
   const {
-    position,
-    setPosition,
-    tabs,
-    activeTabId,
-    addTab,
-    removeTab,
-    isLoaded,
-    isVisible,
-    setVisible,
-  } = useNotepadStore();
-  const { resolvedColorScheme } = usePreferencesStore();
+      position,
+      setPosition,
+      tabs,
+      activeTabId,
+      addTab,
+      removeTab,
+      isLoaded,
+      isVisible,
+      setVisible,
+    } = useNotepadStore(),
+    { resolvedColorScheme } = usePreferencesStore(),
+    containerRef = useRef<HTMLDivElement>(null),
+    [resizeDirection, setResizeDirection] = useState<string | null>(null),
+    [confirmCloseModal, setConfirmCloseModal] = useState<{
+      isOpen: boolean;
+      title: string;
+    }>({
+      isOpen: false,
+      title: '',
+    }),
+    activeTab = tabs.find((tab) => tab.title === activeTabId),
+    handleCreateNewTab = async () => {
+      const newTab = await window.electronAPI.notepad.createNewTab();
+      addTab(newTab);
+    },
+    handleTabCloseRequest = (title: string) => {
+      const tab = tabs.find((t) => t.title === title);
+      if (!tab) {
+        return;
+      }
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [resizeDirection, setResizeDirection] = useState<string | null>(null);
-  const [confirmCloseModal, setConfirmCloseModal] = useState<{
-    isOpen: boolean;
-    title: string;
-  }>({
-    isOpen: false,
-    title: '',
-  });
-
-  const activeTab = tabs.find((tab) => tab.title === activeTabId);
-
-  const handleCreateNewTab = async () => {
-    const newTab = await window.electronAPI.notepad.createNewTab();
-    addTab(newTab);
-  };
-
-  const handleTabCloseRequest = (title: string) => {
-    const tab = tabs.find((t) => t.title === title);
-    if (!tab) {
-      return;
-    }
-
-    if (tab.content.trim().length > 0) {
-      setConfirmCloseModal({
-        isOpen: true,
-        title,
-      });
-    } else {
-      removeTab(title);
-    }
-  };
-
-  const handleConfirmClose = () => {
-    removeTab(confirmCloseModal.title);
-    setConfirmCloseModal({ isOpen: false, title: '' });
-  };
-
-  const handleCancelClose = () => {
-    setConfirmCloseModal({ isOpen: false, title: '' });
-  };
-
-  const handleResizeStart = (direction: string) => (e: MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-    setResizeDirection(direction);
-  };
+      if (tab.content.trim().length > 0) {
+        setConfirmCloseModal({
+          isOpen: true,
+          title,
+        });
+      } else {
+        removeTab(title);
+      }
+    },
+    handleConfirmClose = () => {
+      removeTab(confirmCloseModal.title);
+      setConfirmCloseModal({ isOpen: false, title: '' });
+    },
+    handleCancelClose = () => {
+      setConfirmCloseModal({ isOpen: false, title: '' });
+    },
+    handleResizeStart = (direction: string) => (e: MouseEvent<HTMLDivElement>) => {
+      e.stopPropagation();
+      setResizeDirection(direction);
+    };
 
   useEffect(() => {
     const handleMouseMove = (e: globalThis.MouseEvent) => {
-      if (resizeDirection) {
-        const rect = containerRef.current?.getBoundingClientRect();
-        if (!rect) {
-          return;
+        if (resizeDirection) {
+          const rect = containerRef.current?.getBoundingClientRect();
+          if (!rect) {
+            return;
+          }
+
+          let newWidth = position.width,
+            newHeight = position.height;
+
+          if (resizeDirection.includes('right')) {
+            newWidth = Math.max(NOTEPAD_MIN_WIDTH, e.clientX - rect.left);
+          }
+          if (resizeDirection.includes('top')) {
+            newHeight = Math.max(NOTEPAD_MIN_HEIGHT, window.innerHeight - e.clientY - 5);
+          }
+
+          setPosition({
+            ...position,
+            height: newHeight,
+            width: newWidth,
+          });
         }
-
-        let newWidth = position.width;
-        let newHeight = position.height;
-
-        if (resizeDirection.includes('right')) {
-          newWidth = Math.max(NOTEPAD_MIN_WIDTH, e.clientX - rect.left);
-        }
-        if (resizeDirection.includes('top')) {
-          newHeight = Math.max(NOTEPAD_MIN_HEIGHT, window.innerHeight - e.clientY - 5);
-        }
-
-        setPosition({
-          ...position,
-          height: newHeight,
-          width: newWidth,
-        });
-      }
-    };
-
-    const handleMouseUp = () => {
-      setResizeDirection(null);
-    };
+      },
+      handleMouseUp = () => {
+        setResizeDirection(null);
+      };
 
     if (resizeDirection) {
       document.addEventListener('mousemove', handleMouseMove);

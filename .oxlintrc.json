@@ -67,7 +67,8 @@
     "curly": "off",
     "no-implicit-coercion": "off",
     "no-duplicate-imports": "off",
-    "no-await-in-loop": "off"
+    "no-await-in-loop": "off",
+    "one-var": "off"
   },
   "ignorePatterns": ["*.config.*", "scripts/**"]
 }

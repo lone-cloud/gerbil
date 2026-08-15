@@ -34,12 +34,11 @@ export async function handleCliMode(args: string[]) {
   }
 
   return new Promise<void>((resolve, reject) => {
-    const isWindows = platform === 'win32';
-
-    const child = spawn(currentBinary, args, {
-      detached: false,
-      stdio: isWindows ? 'pipe' : 'inherit',
-    });
+    const isWindows = platform === 'win32',
+      child = spawn(currentBinary, args, {
+        detached: false,
+        stdio: isWindows ? 'pipe' : 'inherit',
+      });
 
     if (isWindows) {
       child.stdout?.setEncoding('utf8');

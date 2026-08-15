@@ -27,15 +27,14 @@ export function spawnAsync(
 
   return new Promise((resolve, reject) => {
     const cp = spawn(command, args, {
-      env: opts.env,
-      stdio: opts.stdio ?? 'pipe',
-    });
-
-    const stdoutDecoder = new StringDecoder('utf8');
-    const stderrDecoder = new StringDecoder('utf8');
-    let stdout = '';
-    let stderr = '';
-    let settled = false;
+        env: opts.env,
+        stdio: opts.stdio ?? 'pipe',
+      }),
+      stdoutDecoder = new StringDecoder('utf8'),
+      stderrDecoder = new StringDecoder('utf8');
+    let stdout = '',
+      stderr = '',
+      settled = false;
 
     cp.stdout?.on('data', (data: Buffer) => {
       stdout += stdoutDecoder.write(data);
@@ -77,14 +76,14 @@ export function spawnAsync(
       settled = true;
       stdout += stdoutDecoder.end();
       stderr += stderrDecoder.end();
-      const exitCode = code ?? -1;
-      const failed = exitCode !== 0 || signal !== null;
+      const exitCode = code ?? -1,
+        failed = exitCode !== 0 || signal !== null;
 
       if (failed && rejectOnError) {
         const message = signal
-          ? `Command killed with signal ${signal}: ${commandLine}`
-          : `Command failed with exit code ${exitCode}: ${commandLine}`;
-        const error = Object.assign(new Error(message), { stderr, stdout, exitCode, signal });
+            ? `Command killed with signal ${signal}: ${commandLine}`
+            : `Command failed with exit code ${exitCode}: ${commandLine}`,
+          error = Object.assign(new Error(message), { stderr, stdout, exitCode, signal });
         reject(error);
       } else {
         resolve({ stdout, stderr, exitCode, failed, signal });

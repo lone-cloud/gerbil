@@ -5,19 +5,18 @@ import { useCallback, useEffect, useState } from 'react';
 import { TITLEBAR_HEIGHT } from '@/constants';
 
 export const ReloadButton = () => {
-  const [needsReload, setNeedsReload] = useState(false);
-
-  const checkForReload = useCallback(async () => {
-    try {
-      const result = await window.electronAPI.app.checkForReloadNeeded();
-      setNeedsReload(result.needsReload);
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to check for reload',
-        error instanceof Error ? error : undefined,
-      );
-    }
-  }, []);
+  const [needsReload, setNeedsReload] = useState(false),
+    checkForReload = useCallback(async () => {
+      try {
+        const result = await window.electronAPI.app.checkForReloadNeeded();
+        setNeedsReload(result.needsReload);
+      } catch (error) {
+        window.electronAPI.logs.logError(
+          'Failed to check for reload',
+          error instanceof Error ? error : undefined,
+        );
+      }
+    }, []);
 
   useEffect(() => {
     void checkForReload();

@@ -10,17 +10,15 @@ interface EjectConfirmModalProps {
 }
 
 export const EjectConfirmModal = ({ opened, onClose, onConfirm }: EjectConfirmModalProps) => {
-  const [skipConfirmation, setSkipConfirmation] = useState(false);
-
-  const handleConfirm = () => {
-    onConfirm(skipConfirmation);
-    onClose();
-  };
-
-  const handleClose = () => {
-    setSkipConfirmation(false);
-    onClose();
-  };
+  const [skipConfirmation, setSkipConfirmation] = useState(false),
+    handleConfirm = () => {
+      onConfirm(skipConfirmation);
+      onClose();
+    },
+    handleClose = () => {
+      setSkipConfirmation(false);
+      onClose();
+    };
 
   return (
     <Modal opened={opened} onClose={handleClose} title="Are you sure you want to eject?">

@@ -7,17 +7,17 @@ import { lookup } from 'mime-types';
 
 import { pathExists } from '@/utils/node/fs';
 
-let server: Server | null = null;
-let serverPort = 0;
+let server: Server | null = null,
+  serverPort = 0;
 
 export const startStaticServer = (distPath: string) =>
   new Promise<string>((resolve, reject) => {
     server = createServer(
       (req, res) =>
         void (async () => {
-          const requestPath = req.url === '/' ? 'index.html' : (req.url ?? 'index.html');
-          const normalizedPath = normalize(join(distPath, requestPath));
-          const resolvedDistPath = resolvePath(distPath);
+          const requestPath = req.url === '/' ? 'index.html' : (req.url ?? 'index.html'),
+            normalizedPath = normalize(join(distPath, requestPath)),
+            resolvedDistPath = resolvePath(distPath);
 
           if (
             !normalizedPath.startsWith(resolvedDistPath + sep) &&
@@ -34,8 +34,8 @@ export const startStaticServer = (distPath: string) =>
           }
 
           try {
-            const content = await readFile(safeFilePath);
-            const contentType = lookup(safeFilePath) || 'application/octet-stream';
+            const content = await readFile(safeFilePath),
+              contentType = lookup(safeFilePath) || 'application/octet-stream';
 
             res.writeHead(200, { 'Content-Type': contentType });
             res.end(content);

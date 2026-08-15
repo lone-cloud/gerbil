@@ -43,8 +43,8 @@ interface AppConfig {
   localBackendPaths?: string[];
 }
 
-let config: AppConfig = {};
-let configPath: string;
+let config: AppConfig = {},
+  configPath: string;
 
 async function loadConfig() {
   const loaded = await safeExecute(

@@ -17,40 +17,38 @@ interface NotepadEditorProps {
 }
 
 export const NotepadEditor = ({ tab }: NotepadEditorProps) => {
-  const { saveTabContent, showLineNumbers, setShowLineNumbers } = useNotepadStore();
-  const { resolvedColorScheme } = usePreferencesStore();
-  const [content, setContent] = useState(() => tab.content);
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const editorRef = useRef<ReactCodeMirrorRef>(null);
+  const { saveTabContent, showLineNumbers, setShowLineNumbers } = useNotepadStore(),
+    { resolvedColorScheme } = usePreferencesStore(),
+    [content, setContent] = useState(() => tab.content),
+    saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null),
+    editorRef = useRef<ReactCodeMirrorRef>(null),
+    handleContentChange = useCallback(
+      (newContent: string) => {
+        setContent(newContent);
 
-  const handleContentChange = useCallback(
-    (newContent: string) => {
-      setContent(newContent);
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+        }
 
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = setTimeout(() => {
+          void saveTabContent(tab.title, newContent);
+        }, 500);
+      },
+      [tab.title, saveTabContent],
+    ),
+    handleEditorContextMenu = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+
+      if (target.closest('.cm-gutters') || target.closest('.cm-lineNumbers')) {
+        e.preventDefault();
+        setShowLineNumbers(false);
       }
-
-      saveTimeoutRef.current = setTimeout(() => {
-        void saveTabContent(tab.title, newContent);
-      }, 500);
     },
-    [tab.title, saveTabContent],
-  );
-
-  const handleEditorContextMenu = (e: MouseEvent) => {
-    const target = e.target as HTMLElement;
-
-    if (target.closest('.cm-gutters') || target.closest('.cm-lineNumbers')) {
-      e.preventDefault();
-      setShowLineNumbers(false);
-    }
-  };
-  const handleBoxClick = useCallback(() => {
-    if (editorRef.current?.view) {
-      editorRef.current.view.focus();
-    }
-  }, []);
+    handleBoxClick = useCallback(() => {
+      if (editorRef.current?.view) {
+        editorRef.current.view.focus();
+      }
+    }, []);
 
   useEffect(
     () => () => {
@@ -62,19 +60,19 @@ export const NotepadEditor = ({ tab }: NotepadEditorProps) => {
   );
 
   const extensions = [
-    search(),
-    history(),
-    keymap.of(historyKeymap),
-    highlightActiveLine(),
-    EditorView.lineWrapping,
-    EditorView.theme({
-      '&': {
-        fontSize: '0.8em',
-        height: '100%',
-      },
-    }),
-  ];
-  const theme = resolvedColorScheme === 'dark' ? oneDark : undefined;
+      search(),
+      history(),
+      keymap.of(historyKeymap),
+      highlightActiveLine(),
+      EditorView.lineWrapping,
+      EditorView.theme({
+        '&': {
+          fontSize: '0.8em',
+          height: '100%',
+        },
+      }),
+    ],
+    theme = resolvedColorScheme === 'dark' ? oneDark : undefined;
 
   return (
     <Box

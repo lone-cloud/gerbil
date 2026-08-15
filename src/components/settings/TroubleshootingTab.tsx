@@ -17,17 +17,16 @@ export const TroubleshootingTab = () => {
   }, []);
 
   const handleSelectInstallDir = async () => {
-    const selectedDir = await window.electronAPI.kobold.selectInstallDirectory();
-    if (selectedDir) {
-      setInstallDir(selectedDir);
-    }
-  };
-
-  const handleOpenInstallDir = async () => {
-    if (installDir) {
-      await window.electronAPI.app.openPath(installDir);
-    }
-  };
+      const selectedDir = await window.electronAPI.kobold.selectInstallDirectory();
+      if (selectedDir) {
+        setInstallDir(selectedDir);
+      }
+    },
+    handleOpenInstallDir = async () => {
+      if (installDir) {
+        await window.electronAPI.app.openPath(installDir);
+      }
+    };
 
   return (
     <Stack gap="lg" h="100%">

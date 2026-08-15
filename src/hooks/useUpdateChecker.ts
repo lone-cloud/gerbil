@@ -12,12 +12,11 @@ export interface BinaryUpdateInfo {
 }
 
 export const useUpdateChecker = () => {
-  const [updateInfo, setUpdateInfo] = useState<BinaryUpdateInfo | null>(null);
-  const [isChecking, setIsChecking] = useState(false);
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [dismissedUpdates, setDismissedUpdates] = useState<DismissedUpdate[]>([]);
-
-  const { availableDownloads: releases, loadingRemote } = useKoboldBackendsStore();
+  const [updateInfo, setUpdateInfo] = useState<BinaryUpdateInfo | null>(null),
+    [isChecking, setIsChecking] = useState(false),
+    [showUpdateModal, setShowUpdateModal] = useState(false),
+    [dismissedUpdates, setDismissedUpdates] = useState<DismissedUpdate[]>([]),
+    { availableDownloads: releases, loadingRemote } = useKoboldBackendsStore();
   useEffect(() => {
     const loadDismissedUpdates = async () => {
       const dismissed = (await window.electronAPI.config.get('dismissedUpdates')) as
@@ -33,93 +32,85 @@ export const useUpdateChecker = () => {
   }, []);
 
   const checkForUpdates = useCallback(async () => {
-    if (loadingRemote || releases.length === 0) {
-      return;
-    }
+      if (loadingRemote || releases.length === 0) {
+        return;
+      }
 
-    setIsChecking(true);
-    const [currentBackend, rocmDownload] = await Promise.all([
-      window.electronAPI.kobold.getCurrentBackend(),
-      getROCmDownload(),
-    ]);
+      setIsChecking(true);
+      const [currentBackend, rocmDownload] = await Promise.all([
+        window.electronAPI.kobold.getCurrentBackend(),
+        getROCmDownload(),
+      ]);
 
-    if (!currentBackend) {
-      setIsChecking(false);
-      return;
-    }
+      if (!currentBackend) {
+        setIsChecking(false);
+        return;
+      }
 
-    if (currentBackend.source === 'local') {
-      setIsChecking(false);
-      return;
-    }
+      if (currentBackend.source === 'local') {
+        setIsChecking(false);
+        return;
+      }
 
-    const availableDownloads: DownloadItem[] = [...releases];
-    if (rocmDownload) {
-      availableDownloads.push(rocmDownload);
-    }
+      const availableDownloads: DownloadItem[] = [...releases];
+      if (rocmDownload) {
+        availableDownloads.push(rocmDownload);
+      }
 
-    const currentDisplayName = getDisplayNameFromPath(currentBackend);
+      const currentDisplayName = getDisplayNameFromPath(currentBackend),
+        matchingDownload = availableDownloads.find((download: DownloadItem) => {
+          const downloadBaseName = stripAssetExtensions(download.name);
+          return downloadBaseName === currentDisplayName;
+        });
 
-    const matchingDownload = availableDownloads.find((download: DownloadItem) => {
-      const downloadBaseName = stripAssetExtensions(download.name);
-      return downloadBaseName === currentDisplayName;
-    });
+      if (matchingDownload?.version) {
+        const hasUpdate = compareVersions(matchingDownload.version, currentBackend.version) > 0;
 
-    if (matchingDownload?.version) {
-      const hasUpdate = compareVersions(matchingDownload.version, currentBackend.version) > 0;
+        if (hasUpdate) {
+          const installedBackends = await window.electronAPI.kobold.getInstalledBackends(),
+            sameNameBackends = installedBackends.filter(
+              (b) => getDisplayNameFromPath(b) === currentDisplayName,
+            ),
+            hasMultipleVersions = new Set(sameNameBackends.map((b) => b.version)).size > 1,
+            looksLocal = hasMultipleVersions && currentBackend.version !== matchingDownload.version;
 
-      if (hasUpdate) {
-        const installedBackends = await window.electronAPI.kobold.getInstalledBackends();
+          if (!looksLocal) {
+            const isUpdateDismissed = dismissedUpdates.some(
+              (dismissedUpdate) =>
+                dismissedUpdate.currentBackendPath === currentBackend.path &&
+                dismissedUpdate.targetVersion === matchingDownload.version,
+            );
 
-        const sameNameBackends = installedBackends.filter(
-          (b) => getDisplayNameFromPath(b) === currentDisplayName,
-        );
-
-        const hasMultipleVersions = new Set(sameNameBackends.map((b) => b.version)).size > 1;
-
-        const looksLocal =
-          hasMultipleVersions && currentBackend.version !== matchingDownload.version;
-
-        if (!looksLocal) {
-          const isUpdateDismissed = dismissedUpdates.some(
-            (dismissedUpdate) =>
-              dismissedUpdate.currentBackendPath === currentBackend.path &&
-              dismissedUpdate.targetVersion === matchingDownload.version,
-          );
-
-          if (!isUpdateDismissed) {
-            setUpdateInfo({
-              availableUpdate: matchingDownload,
-              currentBackend,
-            });
-            setShowUpdateModal(true);
+            if (!isUpdateDismissed) {
+              setUpdateInfo({
+                availableUpdate: matchingDownload,
+                currentBackend,
+              });
+              setShowUpdateModal(true);
+            }
           }
         }
       }
-    }
 
-    setIsChecking(false);
-  }, [dismissedUpdates, releases, loadingRemote]);
-
-  const skipUpdate = useCallback(() => {
-    if (updateInfo?.availableUpdate.version) {
-      const newDismissedUpdate: DismissedUpdate = {
-        currentBackendPath: updateInfo.currentBackend.path,
-        targetVersion: updateInfo.availableUpdate.version,
-      };
-
-      const newDismissedUpdates = [...dismissedUpdates, newDismissedUpdate];
-      setDismissedUpdates(newDismissedUpdates);
-      window.electronAPI.config.set('dismissedUpdates', newDismissedUpdates);
-    }
-    setShowUpdateModal(false);
-    setUpdateInfo(null);
-  }, [updateInfo, dismissedUpdates]);
-
-  const closeModal = useCallback(() => {
-    setShowUpdateModal(false);
-    setUpdateInfo(null);
-  }, []);
+      setIsChecking(false);
+    }, [dismissedUpdates, releases, loadingRemote]),
+    skipUpdate = useCallback(() => {
+      if (updateInfo?.availableUpdate.version) {
+        const newDismissedUpdate: DismissedUpdate = {
+            currentBackendPath: updateInfo.currentBackend.path,
+            targetVersion: updateInfo.availableUpdate.version,
+          },
+          newDismissedUpdates = [...dismissedUpdates, newDismissedUpdate];
+        setDismissedUpdates(newDismissedUpdates);
+        window.electronAPI.config.set('dismissedUpdates', newDismissedUpdates);
+      }
+      setShowUpdateModal(false);
+      setUpdateInfo(null);
+    }, [updateInfo, dismissedUpdates]),
+    closeModal = useCallback(() => {
+      setShowUpdateModal(false);
+      setUpdateInfo(null);
+    }, []);
 
   return {
     checkForUpdates,

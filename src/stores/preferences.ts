@@ -22,13 +22,12 @@ interface PreferencesStore {
 }
 
 const resolveColorScheme = (raw: MantineColorScheme): ResolvedColorScheme => {
-  if (raw === 'auto') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  }
-  return raw;
-};
-
-const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    if (raw === 'auto') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return raw;
+  },
+  mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 mediaQuery.addEventListener('change', () => {
   const { rawColorScheme } = usePreferencesStore.getState();
   if (rawColorScheme === 'auto') {

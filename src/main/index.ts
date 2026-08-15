@@ -3,8 +3,8 @@ import { argv, exit } from 'node:process';
 if (argv[1] === '--version') {
   void (async () => {
     try {
-      const { app } = await import('electron');
-      const version = app.getVersion();
+      const { app } = await import('electron'),
+        version = app.getVersion();
       console.log(version);
     } catch {
       console.log('unknown');
@@ -17,8 +17,8 @@ if (argv[1] === '--version') {
 
     if (isCliMode) {
       try {
-        const cliModule = await import('./cli');
-        const args = argv.slice(argv.indexOf('--cli') + 1);
+        const cliModule = await import('./cli'),
+          args = argv.slice(argv.indexOf('--cli') + 1);
         try {
           await cliModule.handleCliMode(args);
         } catch (error) {
@@ -31,8 +31,8 @@ if (argv[1] === '--version') {
       }
     } else {
       try {
-        const guiModule = await import('./gui');
-        const startMinimized = argv.includes('--minimized');
+        const guiModule = await import('./gui'),
+          startMinimized = argv.includes('--minimized');
         await guiModule.initializeApp(startMinimized ? { startMinimized } : undefined);
       } catch (error: unknown) {
         console.error('Failed to initialize Gerbil:', error);

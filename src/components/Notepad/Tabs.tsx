@@ -19,83 +19,73 @@ const handleDragOver = (e: DragEvent) => {
 
 export const NotepadTabs = ({ onCreateNewTab, onCloseTab }: NotepadTabsProps) => {
   const {
-    tabs,
-    activeTabId,
-    setActiveTab,
-    reorderTabs,
-    updateTab,
-    showLineNumbers,
-    setShowLineNumbers,
-  } = useNotepadStore();
-  const { resolvedColorScheme } = usePreferencesStore();
-  const tablistRef = useRef<HTMLDivElement>(null);
-  const [draggedTabIndex, setDraggedTabIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-
-  const handleTabSelect = (title: string) => {
-    setActiveTab(title);
-  };
-
-  const handleTabClose = (e: MouseEvent, title: string) => {
-    e.stopPropagation();
-    onCloseTab(title);
-  };
-
-  const handleTabRename = (title: string, newTitle: string) => {
-    updateTab(title, { title: newTitle });
-    void window.electronAPI.notepad.renameTab(title, newTitle);
-  };
-
-  const handleTabBarContextMenu = (e: MouseEvent) => {
-    e.preventDefault();
-
-    if (!showLineNumbers) {
-      setShowLineNumbers(true);
-    }
-  };
-
-  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    const currentIndex = tabs.findIndex((t) => t.title === activeTabId);
-    if (e.key === 'ArrowRight') {
+      tabs,
+      activeTabId,
+      setActiveTab,
+      reorderTabs,
+      updateTab,
+      showLineNumbers,
+      setShowLineNumbers,
+    } = useNotepadStore(),
+    { resolvedColorScheme } = usePreferencesStore(),
+    tablistRef = useRef<HTMLDivElement>(null),
+    [draggedTabIndex, setDraggedTabIndex] = useState<number | null>(null),
+    [dragOverIndex, setDragOverIndex] = useState<number | null>(null),
+    handleTabSelect = (title: string) => {
+      setActiveTab(title);
+    },
+    handleTabClose = (e: MouseEvent, title: string) => {
+      e.stopPropagation();
+      onCloseTab(title);
+    },
+    handleTabRename = (title: string, newTitle: string) => {
+      updateTab(title, { title: newTitle });
+      void window.electronAPI.notepad.renameTab(title, newTitle);
+    },
+    handleTabBarContextMenu = (e: MouseEvent) => {
       e.preventDefault();
-      const next = (currentIndex + 1) % tabs.length;
-      setActiveTab(tabs[next].title);
-    } else if (e.key === 'ArrowLeft') {
+
+      if (!showLineNumbers) {
+        setShowLineNumbers(true);
+      }
+    },
+    handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+      const currentIndex = tabs.findIndex((t) => t.title === activeTabId);
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        const next = (currentIndex + 1) % tabs.length;
+        setActiveTab(tabs[next].title);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const prev = (currentIndex - 1 + tabs.length) % tabs.length;
+        setActiveTab(tabs[prev].title);
+      }
+    },
+    handleDragStart = (e: DragEvent, index: number) => {
+      setDraggedTabIndex(index);
+      e.dataTransfer.effectAllowed = 'move';
+    },
+    handleDragEnter = (index: number) => {
+      setDragOverIndex(index);
+    },
+    handleDragLeave = () => {
+      setDragOverIndex(null);
+    },
+    handleDrop = (e: DragEvent, dropIndex: number) => {
       e.preventDefault();
-      const prev = (currentIndex - 1 + tabs.length) % tabs.length;
-      setActiveTab(tabs[prev].title);
-    }
-  };
 
-  const handleDragStart = (e: DragEvent, index: number) => {
-    setDraggedTabIndex(index);
-    e.dataTransfer.effectAllowed = 'move';
-  };
+      if (draggedTabIndex !== null && draggedTabIndex !== dropIndex) {
+        reorderTabs(draggedTabIndex, dropIndex);
+      }
 
-  const handleDragEnter = (index: number) => {
-    setDragOverIndex(index);
-  };
-
-  const handleDragLeave = () => {
-    setDragOverIndex(null);
-  };
-
-  const handleDrop = (e: DragEvent, dropIndex: number) => {
-    e.preventDefault();
-
-    if (draggedTabIndex !== null && draggedTabIndex !== dropIndex) {
-      reorderTabs(draggedTabIndex, dropIndex);
-    }
-
-    setDraggedTabIndex(null);
-    setDragOverIndex(null);
-  };
-
-  const handleWheel = (e: WheelEvent<HTMLDivElement>) => {
-    if (tablistRef.current) {
-      tablistRef.current.scrollLeft += e.deltaY;
-    }
-  };
+      setDraggedTabIndex(null);
+      setDragOverIndex(null);
+    },
+    handleWheel = (e: WheelEvent<HTMLDivElement>) => {
+      if (tablistRef.current) {
+        tablistRef.current.scrollLeft += e.deltaY;
+      }
+    };
 
   return (
     <Box

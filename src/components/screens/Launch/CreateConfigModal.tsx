@@ -16,23 +16,20 @@ export const CreateConfigModal = ({
   onCreateConfig,
   existingConfigNames,
 }: CreateConfigModalProps) => {
-  const [newConfigName, setNewConfigName] = useState('');
-
-  const trimmedConfigName = newConfigName.trim();
-  const configNameExists =
-    trimmedConfigName && existingConfigNames.includes(trimmedConfigName.toLowerCase());
-
-  const handleClose = () => {
-    setNewConfigName('');
-    onClose();
-  };
-
-  const handleSubmit = async () => {
-    const configName = trimmedConfigName;
-    setNewConfigName('');
-    await onCreateConfig(configName);
-    onClose();
-  };
+  const [newConfigName, setNewConfigName] = useState(''),
+    trimmedConfigName = newConfigName.trim(),
+    configNameExists =
+      trimmedConfigName && existingConfigNames.includes(trimmedConfigName.toLowerCase()),
+    handleClose = () => {
+      setNewConfigName('');
+      onClose();
+    },
+    handleSubmit = async () => {
+      const configName = trimmedConfigName;
+      setNewConfigName('');
+      await onCreateConfig(configName);
+      onClose();
+    };
 
   return (
     <Modal opened={opened} onClose={handleClose} title="Create New Configuration" size="sm">

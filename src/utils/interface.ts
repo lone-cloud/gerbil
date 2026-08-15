@@ -20,10 +20,9 @@ export function getAvailableInterfaceOptions({
   isTextMode,
   isImageGenerationMode,
 }: InterfaceSelectionParams) {
-  const chatItems: InterfaceOption[] = [];
-
-  const effectiveImageFrontend =
-    imageGenerationFrontendPreference === 'builtin' ? 'koboldcpp' : frontendPreference;
+  const chatItems: InterfaceOption[] = [],
+    effectiveImageFrontend =
+      imageGenerationFrontendPreference === 'builtin' ? 'koboldcpp' : frontendPreference;
 
   if (frontendPreference === 'sillytavern' || frontendPreference === 'openwebui') {
     if (isTextMode || (isImageGenerationMode && effectiveImageFrontend === frontendPreference)) {

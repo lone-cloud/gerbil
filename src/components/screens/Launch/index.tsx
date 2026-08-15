@@ -20,93 +20,88 @@ interface LaunchScreenProps {
 }
 
 export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
-  const [configFiles, setConfigFiles] = useState<ConfigFile[]>([]);
-  const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  const [, setInstallDir] = useState('');
-  const [activeTab, setActiveTab] = useState<string | null>('general');
-  const [configLoaded, setConfigLoaded] = useState(false);
-  const defaultsSetRef = useRef(false);
+  const [configFiles, setConfigFiles] = useState<ConfigFile[]>([]),
+    [selectedFile, setSelectedFile] = useState<string | null>(null),
+    [, setInstallDir] = useState(''),
+    [activeTab, setActiveTab] = useState<string | null>('general'),
+    [configLoaded, setConfigLoaded] = useState(false),
+    defaultsSetRef = useRef(false),
+    {
+      gpuLayers,
+      autoGpuLayers,
+      contextSize,
+      model,
+      additionalArguments,
+      preLaunchCommands,
+      port,
+      host,
+      multiuser,
+      multiplayer,
+      remotetunnel,
+      nocertify,
+      websearch,
+      noshift,
+      flashattention,
+      noavx2,
+      failsafe,
+      lowvram,
+      quantmatmul,
+      usemmap,
+      debugmode,
+      acceleration,
+      gpuDeviceSelection,
+      gpuPlatform,
+      tensorSplit,
+      sdmodel,
+      sdt5xxl,
+      sdclipl,
+      sdclipg,
+      sdphotomaker,
+      sdvae,
+      sdlora,
+      sdconvdirect,
+      sdvaecpu,
+      sdclipgpu,
+      moecpu,
+      moeexperts,
+      smartcache,
+      pipelineparallel,
+      quantkv,
+      jinja,
+      jinjatools,
+      jinjakwargs,
+      parseAndApplyConfigFile,
+      loadConfigFromFile,
+      setModel,
+      setAcceleration,
+    } = useLaunchConfigStore(),
+    { isLaunching, handleLaunch } = useLaunchLogic({
+      model,
+      onLaunch,
+      sdmodel,
+    }),
+    { warnings: combinedWarnings } = useWarnings({
+      acceleration,
+      configLoaded,
+      model,
+      sdmodel,
+    }),
+    setHappyDefaults = useCallback(async () => {
+      const accelerations = await window.electronAPI.kobold.getAvailableAccelerations();
 
-  const {
-    gpuLayers,
-    autoGpuLayers,
-    contextSize,
-    model,
-    additionalArguments,
-    preLaunchCommands,
-    port,
-    host,
-    multiuser,
-    multiplayer,
-    remotetunnel,
-    nocertify,
-    websearch,
-    noshift,
-    flashattention,
-    noavx2,
-    failsafe,
-    lowvram,
-    quantmatmul,
-    usemmap,
-    debugmode,
-    acceleration,
-    gpuDeviceSelection,
-    gpuPlatform,
-    tensorSplit,
-    sdmodel,
-    sdt5xxl,
-    sdclipl,
-    sdclipg,
-    sdphotomaker,
-    sdvae,
-    sdlora,
-    sdconvdirect,
-    sdvaecpu,
-    sdclipgpu,
-    moecpu,
-    moeexperts,
-    smartcache,
-    pipelineparallel,
-    quantkv,
-    jinja,
-    jinjatools,
-    jinjakwargs,
-    parseAndApplyConfigFile,
-    loadConfigFromFile,
-    setModel,
-    setAcceleration,
-  } = useLaunchConfigStore();
-
-  const { isLaunching, handleLaunch } = useLaunchLogic({
-    model,
-    onLaunch,
-    sdmodel,
-  });
-
-  const { warnings: combinedWarnings } = useWarnings({
-    acceleration,
-    configLoaded,
-    model,
-    sdmodel,
-  });
-
-  const setHappyDefaults = useCallback(async () => {
-    const accelerations = await window.electronAPI.kobold.getAvailableAccelerations();
-
-    if (!acceleration && accelerations && accelerations.length > 0) {
-      setAcceleration(accelerations[0].value as Acceleration);
-    }
-  }, [acceleration, setAcceleration]);
-
-  const setInitialDefaults = useCallback(
-    (currentModel: string, currentSdModel: string) => {
-      if (!defaultsSetRef.current && !currentModel.trim() && !currentSdModel.trim()) {
-        setModel(DEFAULT_MODEL_URL);
-        defaultsSetRef.current = true;
+      if (!acceleration && accelerations && accelerations.length > 0) {
+        setAcceleration(accelerations[0].value as Acceleration);
       }
-    },
-    [setModel],
-  );
+    }, [acceleration, setAcceleration]),
+    setInitialDefaults = useCallback(
+      (currentModel: string, currentSdModel: string) => {
+        if (!defaultsSetRef.current && !currentModel.trim() && !currentSdModel.trim()) {
+          setModel(DEFAULT_MODEL_URL);
+          defaultsSetRef.current = true;
+        }
+      },
+      [setModel],
+    );
 
   useEffect(() => {
     if (configLoaded && !defaultsSetRef.current) {
@@ -118,151 +113,145 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
   }, [configLoaded, setHappyDefaults, model, sdmodel, setInitialDefaults]);
 
   const loadConfigFiles = useCallback(async () => {
-    const [files, currentDir, savedConfig] = await Promise.all([
-      window.electronAPI.kobold.getConfigFiles(),
-      window.electronAPI.kobold.getCurrentInstallDir(),
-      window.electronAPI.kobold.getSelectedConfig(),
-    ]);
+      const [files, currentDir, savedConfig] = await Promise.all([
+        window.electronAPI.kobold.getConfigFiles(),
+        window.electronAPI.kobold.getCurrentInstallDir(),
+        window.electronAPI.kobold.getSelectedConfig(),
+      ]);
 
-    setConfigFiles(files);
-    setInstallDir(currentDir);
+      setConfigFiles(files);
+      setInstallDir(currentDir);
 
-    if (savedConfig && files.some((f) => f.name === savedConfig)) {
-      setSelectedFile(savedConfig);
-    } else if (files.length > 0 && !selectedFile) {
-      setSelectedFile(files[0].name);
-    }
-
-    const loadedConfigFileName = await loadConfigFromFile(files, savedConfig);
-    if (loadedConfigFileName && !selectedFile) {
-      setSelectedFile(loadedConfigFileName);
-    }
-
-    setConfigLoaded(true);
-  }, [selectedFile, loadConfigFromFile]);
-
-  const handleFileSelection = async (fileName: string) => {
-    setSelectedFile(fileName);
-    await window.electronAPI.kobold.setSelectedConfig(fileName);
-
-    const selectedConfig = configFiles.find((f) => f.name === fileName);
-    if (selectedConfig) {
-      await parseAndApplyConfigFile(selectedConfig.path);
-    }
-  };
-
-  const buildConfigData = () => ({
-    additionalArguments,
-    autoGpuLayers,
-    contextsize: contextSize,
-    debugmode,
-    failsafe,
-    flashattention,
-    gpuDeviceSelection,
-    gpulayers: gpuLayers,
-    host,
-    model,
-    moecpu,
-    moeexperts,
-    multiplayer,
-    multiuser: multiuser ? 1 : 0,
-    noavx2,
-    nocertify,
-    noshift,
-    pipelineparallel,
-    port,
-    preLaunchCommands: preLaunchCommands.filter((cmd) => cmd.trim() !== ''),
-    remotetunnel,
-    sdclipg,
-    sdclipgpu,
-    sdclipl,
-    sdconvdirect,
-    sdlora,
-    sdmodel,
-    sdphotomaker,
-    sdt5xxl,
-    sdvae,
-    sdvaecpu,
-    smartcache,
-    tensorSplit,
-    usecuda: acceleration === 'cuda' || acceleration === 'rocm',
-    usemmap,
-    usevulkan: acceleration === 'vulkan',
-    websearch,
-    quantkv,
-    jinja,
-    jinjatools,
-    jinjakwargs,
-  });
-
-  const handleCreateNewConfig = async (configName: string) => {
-    const fullConfigName = `${configName}.json`;
-    const saveSuccess = await window.electronAPI.kobold.saveConfigFile(
-      fullConfigName,
-      buildConfigData(),
-    );
-
-    if (saveSuccess) {
-      await loadConfigFiles();
-      setSelectedFile(fullConfigName);
-      await window.electronAPI.kobold.setSelectedConfig(fullConfigName);
-    } else {
-      logError('Failed to create new configuration', new Error('Save operation failed'));
-    }
-  };
-
-  const handleSaveConfig = async () => {
-    if (!selectedFile) {
-      logError('No configuration file selected for saving', new Error('Selected file is null'));
-      return false;
-    }
-
-    const saveSuccess = await window.electronAPI.kobold.saveConfigFile(
-      selectedFile,
-      buildConfigData(),
-    );
-
-    if (!saveSuccess) {
-      logError('Failed to save configuration', new Error('Save operation failed'));
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleDeleteConfig = async (fileName: string) => {
-    const deleteSuccess = await window.electronAPI.kobold.deleteConfigFile(fileName);
-
-    if (deleteSuccess) {
-      await loadConfigFiles();
-
-      const updatedFiles = await window.electronAPI.kobold.getConfigFiles();
-      if (updatedFiles.length > 0) {
-        const firstConfig = updatedFiles[0].name;
-        setSelectedFile(firstConfig);
-        await window.electronAPI.kobold.setSelectedConfig(firstConfig);
-
-        const selectedConfig = updatedFiles.find((f) => f.name === firstConfig);
-        if (selectedConfig) {
-          await parseAndApplyConfigFile(selectedConfig.path);
-        }
-      } else {
-        setSelectedFile(null);
-        await window.electronAPI.kobold.setSelectedConfig('');
+      if (savedConfig && files.some((f) => f.name === savedConfig)) {
+        setSelectedFile(savedConfig);
+      } else if (files.length > 0 && !selectedFile) {
+        setSelectedFile(files[0].name);
       }
-    }
 
-    return deleteSuccess;
-  };
+      const loadedConfigFileName = await loadConfigFromFile(files, savedConfig);
+      if (loadedConfigFileName && !selectedFile) {
+        setSelectedFile(loadedConfigFileName);
+      }
+
+      setConfigLoaded(true);
+    }, [selectedFile, loadConfigFromFile]),
+    handleFileSelection = async (fileName: string) => {
+      setSelectedFile(fileName);
+      await window.electronAPI.kobold.setSelectedConfig(fileName);
+
+      const selectedConfig = configFiles.find((f) => f.name === fileName);
+      if (selectedConfig) {
+        await parseAndApplyConfigFile(selectedConfig.path);
+      }
+    },
+    buildConfigData = () => ({
+      additionalArguments,
+      autoGpuLayers,
+      contextsize: contextSize,
+      debugmode,
+      failsafe,
+      flashattention,
+      gpuDeviceSelection,
+      gpulayers: gpuLayers,
+      host,
+      model,
+      moecpu,
+      moeexperts,
+      multiplayer,
+      multiuser: multiuser ? 1 : 0,
+      noavx2,
+      nocertify,
+      noshift,
+      pipelineparallel,
+      port,
+      preLaunchCommands: preLaunchCommands.filter((cmd) => cmd.trim() !== ''),
+      remotetunnel,
+      sdclipg,
+      sdclipgpu,
+      sdclipl,
+      sdconvdirect,
+      sdlora,
+      sdmodel,
+      sdphotomaker,
+      sdt5xxl,
+      sdvae,
+      sdvaecpu,
+      smartcache,
+      tensorSplit,
+      usecuda: acceleration === 'cuda' || acceleration === 'rocm',
+      usemmap,
+      usevulkan: acceleration === 'vulkan',
+      websearch,
+      quantkv,
+      jinja,
+      jinjatools,
+      jinjakwargs,
+    }),
+    handleCreateNewConfig = async (configName: string) => {
+      const fullConfigName = `${configName}.json`,
+        saveSuccess = await window.electronAPI.kobold.saveConfigFile(
+          fullConfigName,
+          buildConfigData(),
+        );
+
+      if (saveSuccess) {
+        await loadConfigFiles();
+        setSelectedFile(fullConfigName);
+        await window.electronAPI.kobold.setSelectedConfig(fullConfigName);
+      } else {
+        logError('Failed to create new configuration', new Error('Save operation failed'));
+      }
+    },
+    handleSaveConfig = async () => {
+      if (!selectedFile) {
+        logError('No configuration file selected for saving', new Error('Selected file is null'));
+        return false;
+      }
+
+      const saveSuccess = await window.electronAPI.kobold.saveConfigFile(
+        selectedFile,
+        buildConfigData(),
+      );
+
+      if (!saveSuccess) {
+        logError('Failed to save configuration', new Error('Save operation failed'));
+        return false;
+      }
+
+      return true;
+    },
+    handleDeleteConfig = async (fileName: string) => {
+      const deleteSuccess = await window.electronAPI.kobold.deleteConfigFile(fileName);
+
+      if (deleteSuccess) {
+        await loadConfigFiles();
+
+        const updatedFiles = await window.electronAPI.kobold.getConfigFiles();
+        if (updatedFiles.length > 0) {
+          const firstConfig = updatedFiles[0].name;
+          setSelectedFile(firstConfig);
+          await window.electronAPI.kobold.setSelectedConfig(firstConfig);
+
+          const selectedConfig = updatedFiles.find((f) => f.name === firstConfig);
+          if (selectedConfig) {
+            await parseAndApplyConfigFile(selectedConfig.path);
+          }
+        } else {
+          setSelectedFile(null);
+          await window.electronAPI.kobold.setSelectedConfig('');
+        }
+      }
+
+      return deleteSuccess;
+    };
 
   useEffect(() => {
     void loadConfigFiles();
 
     const handleInstallDirChange = () => {
-      void loadConfigFiles();
-    };
-
-    const cleanup = window.electronAPI.kobold.onInstallDirChanged(handleInstallDirChange);
+        void loadConfigFiles();
+      },
+      cleanup = window.electronAPI.kobold.onInstallDirChanged(handleInstallDirChange);
 
     return cleanup;
   }, [loadConfigFiles]);
@@ -361,9 +350,9 @@ export const LaunchScreen = ({ onLaunch }: LaunchScreenProps) => {
       if (event.key !== 'Enter') return;
       if ((!model && !sdmodel) || isLaunching) return;
 
-      const target = event.target as HTMLElement;
-      const isInputFocused =
-        ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable;
+      const target = event.target as HTMLElement,
+        isInputFocused =
+          ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable;
 
       // Ctrl/Cmd+Enter always launches; bare Enter only when no input is focused
       if (isInputFocused && !event.ctrlKey && !event.metaKey) return;

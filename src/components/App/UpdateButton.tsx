@@ -8,25 +8,24 @@ import { useAppUpdateChecker } from '@/hooks/useAppUpdateChecker';
 
 export const UpdateButton = () => {
   const {
-    hasUpdate,
-    releaseUrl,
-    canAutoUpdate,
-    isUpdateDownloaded,
-    isDownloading,
-    downloadUpdate,
-    installUpdate,
-  } = useAppUpdateChecker();
-
-  const [showDownload, setShowDownload] = useState(false);
+      hasUpdate,
+      releaseUrl,
+      canAutoUpdate,
+      isUpdateDownloaded,
+      isDownloading,
+      downloadUpdate,
+      installUpdate,
+    } = useAppUpdateChecker(),
+    [showDownload, setShowDownload] = useState(false);
 
   if (!hasUpdate) {
     return null;
   }
 
-  let color: 'green' | 'blue' | 'orange' = 'orange';
-  let label = 'Update available';
-  let onClick: (() => void) | undefined;
-  let icon = <CircleFadingArrowUp size="1.25rem" />;
+  let color: 'green' | 'blue' | 'orange' = 'orange',
+    label = 'Update available',
+    onClick: (() => void) | undefined,
+    icon = <CircleFadingArrowUp size="1.25rem" />;
 
   if (isUpdateDownloaded) {
     color = 'green';

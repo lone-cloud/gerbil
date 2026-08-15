@@ -15,38 +15,35 @@ interface DownloadScreenProps {
 
 export const DownloadScreen = ({ onDownloadComplete }: DownloadScreenProps) => {
   const {
-    platform,
-    availableDownloads,
-    loadingPlatform,
-    loadingRemote,
-    downloading,
-    handleDownload: handleDownloadFromStore,
-  } = useKoboldBackendsStore();
+      platform,
+      availableDownloads,
+      loadingPlatform,
+      loadingRemote,
+      downloading,
+      handleDownload: handleDownloadFromStore,
+    } = useKoboldBackendsStore(),
+    [downloadingAsset, setDownloadingAsset] = useState<string | null>(null),
+    [importing, setImporting] = useState(false),
+    downloadingItemRef = useRef<HTMLDivElement>(null),
+    loading = loadingPlatform || loadingRemote,
+    handleDownload = useCallback(
+      async (download: DownloadItem) => {
+        setDownloadingAsset(download.name);
 
-  const [downloadingAsset, setDownloadingAsset] = useState<string | null>(null);
-  const [importing, setImporting] = useState(false);
-  const downloadingItemRef = useRef<HTMLDivElement>(null);
+        await handleDownloadFromStore({
+          isUpdate: false,
+          item: download,
+          wasCurrentBinary: false,
+        });
 
-  const loading = loadingPlatform || loadingRemote;
+        onDownloadComplete();
 
-  const handleDownload = useCallback(
-    async (download: DownloadItem) => {
-      setDownloadingAsset(download.name);
-
-      await handleDownloadFromStore({
-        isUpdate: false,
-        item: download,
-        wasCurrentBinary: false,
-      });
-
-      onDownloadComplete();
-
-      setTimeout(() => {
-        setDownloadingAsset(null);
-      }, 200);
-    },
-    [handleDownloadFromStore, onDownloadComplete],
-  );
+        setTimeout(() => {
+          setDownloadingAsset(null);
+        }, 200);
+      },
+      [handleDownloadFromStore, onDownloadComplete],
+    );
 
   useEffect(() => {
     if (downloading && downloadingItemRef.current) {

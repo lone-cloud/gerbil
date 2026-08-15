@@ -56,17 +56,16 @@ export interface SystemMetrics {
   }[];
 }
 
-let cpuInterval: ReturnType<typeof setInterval> | null = null;
-let memoryInterval: ReturnType<typeof setInterval> | null = null;
-let gpuInterval: ReturnType<typeof setInterval> | null = null;
-let isRunning = false;
-const updateFrequency = 1000;
-const memoryUpdateFrequency = platform === 'win32' ? 3000 : updateFrequency;
-let mainWindow: BrowserWindow | null = null;
-
-let latestCpuMetrics: CpuMetrics | null = null;
-let latestMemoryMetrics: MemoryMetrics | null = null;
-let latestGpuMetrics: GpuMetrics | null = null;
+let cpuInterval: ReturnType<typeof setInterval> | null = null,
+  memoryInterval: ReturnType<typeof setInterval> | null = null,
+  gpuInterval: ReturnType<typeof setInterval> | null = null,
+  isRunning = false;
+const updateFrequency = 1000,
+  memoryUpdateFrequency = platform === 'win32' ? 3000 : updateFrequency;
+let mainWindow: BrowserWindow | null = null,
+  latestCpuMetrics: CpuMetrics | null = null,
+  latestMemoryMetrics: MemoryMetrics | null = null,
+  latestGpuMetrics: GpuMetrics | null = null;
 
 export function startMonitoring(window: BrowserWindow) {
   if (isRunning) {
@@ -126,10 +125,10 @@ function updateTrayWithMetrics() {
 
 async function collectAndSendCpuMetrics() {
   await tryExecute(async () => {
-    const cpuData = await currentLoad();
-    const metrics: CpuMetrics = {
-      usage: Math.round(cpuData.currentLoad),
-    };
+    const cpuData = await currentLoad(),
+      metrics: CpuMetrics = {
+        usage: Math.round(cpuData.currentLoad),
+      };
 
     if (platform === 'linux') {
       try {
@@ -150,14 +149,14 @@ async function collectAndSendCpuMetrics() {
 
 async function collectAndSendMemoryMetrics() {
   await tryExecute(async () => {
-    const memData = await mem();
-    const usedBytes = memData.active || memData.used;
-    const totalBytes = memData.total;
-    const metrics: MemoryMetrics = {
-      total: totalBytes / (1024 * 1024 * 1024),
-      usage: Math.round((usedBytes / totalBytes) * 100),
-      used: usedBytes / (1024 * 1024 * 1024),
-    };
+    const memData = await mem(),
+      usedBytes = memData.active || memData.used,
+      totalBytes = memData.total,
+      metrics: MemoryMetrics = {
+        total: totalBytes / (1024 * 1024 * 1024),
+        usage: Math.round((usedBytes / totalBytes) * 100),
+        used: usedBytes / (1024 * 1024 * 1024),
+      };
 
     latestMemoryMetrics = metrics;
     updateTrayWithMetrics();
@@ -170,19 +169,20 @@ async function collectAndSendMemoryMetrics() {
 
 async function collectAndSendGpuMetrics() {
   await tryExecute(async () => {
-    const ignoreIGPUs = getConfig('ignoreIGPUs') ?? true;
-    const gpuData = await getGPUData();
-    const shown = ignoreIGPUs ? gpuData.filter((g) => !g.isIntegrated) : gpuData;
-    const metrics: GpuMetrics = {
-      gpus: shown.map((gpu) => ({
-        memoryTotal: gpu.memoryTotal,
-        memoryUsage: gpu.memoryTotal > 0 ? Math.round((gpu.memoryUsed / gpu.memoryTotal) * 100) : 0,
-        memoryUsed: gpu.memoryUsed,
-        name: gpu.name,
-        temperature: gpu.temperature,
-        usage: Math.round(gpu.usage),
-      })),
-    };
+    const ignoreIGPUs = getConfig('ignoreIGPUs') ?? true,
+      gpuData = await getGPUData(),
+      shown = ignoreIGPUs ? gpuData.filter((g) => !g.isIntegrated) : gpuData,
+      metrics: GpuMetrics = {
+        gpus: shown.map((gpu) => ({
+          memoryTotal: gpu.memoryTotal,
+          memoryUsage:
+            gpu.memoryTotal > 0 ? Math.round((gpu.memoryUsed / gpu.memoryTotal) * 100) : 0,
+          memoryUsed: gpu.memoryUsed,
+          name: gpu.name,
+          temperature: gpu.temperature,
+          usage: Math.round(gpu.usage),
+        })),
+      };
 
     latestGpuMetrics = metrics;
     updateTrayWithMetrics();
@@ -203,59 +203,58 @@ const LINUX_PERFORMANCE_APPS = [
   'top',
 ] as const;
 
-let cachedLinuxApp: string | null = null;
-let linuxAppSearchComplete = false;
+let cachedLinuxApp: string | null = null,
+  linuxAppSearchComplete = false;
 
 const tryLaunchCommand = async (command: string, args: string[] = []) =>
-  new Promise<boolean>((resolve) => {
-    const child = spawn(command, args, {
-      detached: true,
-      stdio: 'ignore',
-    });
+    new Promise<boolean>((resolve) => {
+      const child = spawn(command, args, {
+        detached: true,
+        stdio: 'ignore',
+      });
 
-    let hasResolved = false;
+      let hasResolved = false;
 
-    child.on('error', () => {
-      if (!hasResolved) {
-        hasResolved = true;
-        resolve(false);
-      }
-    });
+      child.on('error', () => {
+        if (!hasResolved) {
+          hasResolved = true;
+          resolve(false);
+        }
+      });
 
-    child.on('spawn', () => {
-      if (!hasResolved) {
-        hasResolved = true;
-        child.unref();
-        resolve(true);
-      }
-    });
+      child.on('spawn', () => {
+        if (!hasResolved) {
+          hasResolved = true;
+          child.unref();
+          resolve(true);
+        }
+      });
 
-    setTimeout(() => {
-      if (!hasResolved) {
-        hasResolved = true;
-        child.kill();
-        resolve(false);
-      }
-    }, 2000);
-  });
-
-const findLinuxPerformanceApp = async () => {
-  if (linuxAppSearchComplete) {
-    return cachedLinuxApp;
-  }
-
-  for (const app of LINUX_PERFORMANCE_APPS) {
-    const success = await tryLaunchCommand(app, ['--help']);
-    if (success) {
-      cachedLinuxApp = app;
-      linuxAppSearchComplete = true;
-      return app;
+      setTimeout(() => {
+        if (!hasResolved) {
+          hasResolved = true;
+          child.kill();
+          resolve(false);
+        }
+      }, 2000);
+    }),
+  findLinuxPerformanceApp = async () => {
+    if (linuxAppSearchComplete) {
+      return cachedLinuxApp;
     }
-  }
 
-  linuxAppSearchComplete = true;
-  return null;
-};
+    for (const app of LINUX_PERFORMANCE_APPS) {
+      const success = await tryLaunchCommand(app, ['--help']);
+      if (success) {
+        cachedLinuxApp = app;
+        linuxAppSearchComplete = true;
+        return app;
+      }
+    }
+
+    linuxAppSearchComplete = true;
+    return null;
+  };
 
 export const openPerformanceManager = async () =>
   (await safeExecute(async () => {

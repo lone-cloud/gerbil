@@ -13,10 +13,10 @@ export interface PlatformGPUInfo {
 
 export async function getPlatformGPUInfo(): Promise<PlatformGPUInfo> {
   const result = await safeExecute(async () => {
-    const gpuInfo = await detectGPU();
-    const { hasAMD, hasNVIDIA } = gpuInfo;
-    const isWindows = platform === 'win32';
-    const shouldForceCPU = (hasAMD && isWindows) || (!hasAMD && !hasNVIDIA);
+    const gpuInfo = await detectGPU(),
+      { hasAMD, hasNVIDIA } = gpuInfo,
+      isWindows = platform === 'win32',
+      shouldForceCPU = (hasAMD && isWindows) || (!hasAMD && !hasNVIDIA);
 
     return {
       hasAMD,

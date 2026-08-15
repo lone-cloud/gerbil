@@ -7,54 +7,51 @@ import { InfoTooltip } from '@/components/InfoTooltip';
 import { useLaunchConfigStore } from '@/stores/launchConfig';
 
 const KV_QUANT_OPTIONS = [
-  { value: '0', label: 'F16 (off)' },
-  { value: '1', label: 'Q8 (8-bit)' },
-  { value: '2', label: 'Q4 (4-bit)' },
-  { value: '3', label: 'BF16' },
-  { value: '4', label: 'Q5 (5-bit)' },
-];
-
-const FLEX_COL: CSSProperties = { flex: 1, minWidth: 200 };
+    { value: '0', label: 'F16 (off)' },
+    { value: '1', label: 'Q8 (8-bit)' },
+    { value: '2', label: 'Q4 (4-bit)' },
+    { value: '3', label: 'BF16' },
+    { value: '4', label: 'Q5 (5-bit)' },
+  ],
+  FLEX_COL: CSSProperties = { flex: 1, minWidth: 200 };
 
 export const PerformanceTab = () => {
   const {
-    noshift,
-    flashattention,
-    lowvram,
-    quantmatmul,
-    usemmap,
-    acceleration,
-    moecpu,
-    moeexperts,
-    smartcache,
-    pipelineparallel,
-    quantkv,
-    setNoshift,
-    setFlashattention,
-    setLowvram,
-    setQuantmatmul,
-    setUsemmap,
-    setMoecpu,
-    setMoeexperts,
-    setSmartcache,
-    setPipelineparallel,
-    setQuantkv,
-  } = useLaunchConfigStore();
-
-  const isGpuAcceleration = acceleration === 'cuda' || acceleration === 'rocm';
-  const quantkvActive = quantkv > 0;
-  const quantkvWithoutFlash = quantkvActive && !flashattention;
-
-  const handleQuantkvChange = useCallback(
-    (value: string | null) => {
-      const level = Number(value ?? '0');
-      setQuantkv(level);
-      if (level > 0) {
-        setFlashattention(true);
-      }
-    },
-    [setQuantkv, setFlashattention],
-  );
+      noshift,
+      flashattention,
+      lowvram,
+      quantmatmul,
+      usemmap,
+      acceleration,
+      moecpu,
+      moeexperts,
+      smartcache,
+      pipelineparallel,
+      quantkv,
+      setNoshift,
+      setFlashattention,
+      setLowvram,
+      setQuantmatmul,
+      setUsemmap,
+      setMoecpu,
+      setMoeexperts,
+      setSmartcache,
+      setPipelineparallel,
+      setQuantkv,
+    } = useLaunchConfigStore(),
+    isGpuAcceleration = acceleration === 'cuda' || acceleration === 'rocm',
+    quantkvActive = quantkv > 0,
+    quantkvWithoutFlash = quantkvActive && !flashattention,
+    handleQuantkvChange = useCallback(
+      (value: string | null) => {
+        const level = Number(value ?? '0');
+        setQuantkv(level);
+        if (level > 0) {
+          setFlashattention(true);
+        }
+      },
+      [setQuantkv, setFlashattention],
+    );
 
   return (
     <Stack gap="md">

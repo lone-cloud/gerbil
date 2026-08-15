@@ -49,9 +49,9 @@ export async function initializeApp(options?: { startMinimized?: boolean }) {
   await ensureDir(installDir);
 
   const startMinimized = argv.includes('--relaunched')
-    ? false
-    : (options?.startMinimized ?? getStartMinimizedToTray());
-  const trayEnabled = getEnableSystemTray();
+      ? false
+      : (options?.startMinimized ?? getStartMinimizedToTray()),
+    trayEnabled = getEnableSystemTray();
 
   await createMainWindow({ startHidden: startMinimized && trayEnabled });
   createTray();
@@ -71,18 +71,17 @@ export async function initializeApp(options?: { startMinimized?: boolean }) {
 
     void safeExecute(async () => {
       const cleanupPromises = [
-        Promise.resolve(cleanupWindow()),
-        stopKoboldCpp(),
-        stopSillyTavern(),
-        stopOpenWebUI(),
-        stopStaticServer(),
-      ];
-
-      const timeoutPromise = new Promise<void>((resolve) => {
-        setTimeout(() => {
-          resolve();
-        }, 10_000);
-      });
+          Promise.resolve(cleanupWindow()),
+          stopKoboldCpp(),
+          stopSillyTavern(),
+          stopOpenWebUI(),
+          stopStaticServer(),
+        ],
+        timeoutPromise = new Promise<void>((resolve) => {
+          setTimeout(() => {
+            resolve();
+          }, 10_000);
+        });
 
       await Promise.race([Promise.all(cleanupPromises), timeoutPromise]);
     }, 'Error during cleanup');

@@ -8,11 +8,11 @@ import type { HardwareInfo } from '@/types/hardware';
 import { createHardwareItems, createSoftwareItems } from '@/utils/systemInfo';
 
 export const SystemTab = () => {
-  const ignoreIGPUs = usePreferencesStore((s) => s.ignoreIGPUs);
-  const [versionInfo, setVersionInfo] = useState<SystemVersionInfo | null>(null);
-  const [hardwareInfo, setHardwareInfo] = useState<HardwareInfo | null>(null);
-  const [koboldVersion, setKoboldVersion] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const ignoreIGPUs = usePreferencesStore((s) => s.ignoreIGPUs),
+    [versionInfo, setVersionInfo] = useState<SystemVersionInfo | null>(null),
+    [hardwareInfo, setHardwareInfo] = useState<HardwareInfo | null>(null),
+    [koboldVersion, setKoboldVersion] = useState<string | null>(null),
+    [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadAll = async () => {
@@ -64,8 +64,8 @@ export const SystemTab = () => {
     );
   }
 
-  const softwareItems = createSoftwareItems(versionInfo, koboldVersion);
-  const hardwareItems = hardwareInfo ? createHardwareItems(hardwareInfo, ignoreIGPUs) : [];
+  const softwareItems = createSoftwareItems(versionInfo, koboldVersion),
+    hardwareItems = hardwareInfo ? createHardwareItems(hardwareInfo, ignoreIGPUs) : [];
 
   return (
     <Stack gap="md">

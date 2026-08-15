@@ -26,24 +26,22 @@ export const UpdateAvailableModal = ({
   updateInfo,
   onUpdate,
 }: UpdateAvailableModalProps) => {
-  const { downloading, downloadProgress } = useKoboldBackendsStore();
-  const currentBackend = updateInfo?.currentBackend;
-  const availableUpdate = updateInfo?.availableUpdate;
-  const [isUpdating, setIsUpdating] = useState(false);
-
-  const isDownloading = Boolean(availableUpdate) && downloading === availableUpdate?.name;
-  const currentProgress = availableUpdate ? downloadProgress[availableUpdate.name] || 0 : 0;
-
-  const handleUpdate = async () => {
-    if (availableUpdate) {
-      setIsUpdating(true);
-      await safeExecute(async () => {
-        await onUpdate(availableUpdate);
-        onClose();
-      }, 'Failed to update:');
-    }
-    setIsUpdating(false);
-  };
+  const { downloading, downloadProgress } = useKoboldBackendsStore(),
+    currentBackend = updateInfo?.currentBackend,
+    availableUpdate = updateInfo?.availableUpdate,
+    [isUpdating, setIsUpdating] = useState(false),
+    isDownloading = Boolean(availableUpdate) && downloading === availableUpdate?.name,
+    currentProgress = availableUpdate ? downloadProgress[availableUpdate.name] || 0 : 0,
+    handleUpdate = async () => {
+      if (availableUpdate) {
+        setIsUpdating(true);
+        await safeExecute(async () => {
+          await onUpdate(availableUpdate);
+          onClose();
+        }, 'Failed to update:');
+      }
+      setIsUpdating(false);
+    };
 
   return (
     <Modal

@@ -9,31 +9,30 @@ import { useLaunchConfigStore } from '@/stores/launchConfig';
 
 export const ImageGenerationTab = () => {
   const {
-    sdmodel,
-    sdt5xxl,
-    sdclipl,
-    sdclipg,
-    sdphotomaker,
-    sdvae,
-    sdlora,
-    sdconvdirect,
-    sdvaecpu,
-    sdclipgpu,
-    setSdmodel,
-    setSdt5xxl,
-    setSdclipl,
-    setSdclipg,
-    setSdphotomaker,
-    setSdvae,
-    setSdlora,
-    setSdconvdirect,
-    setSdvaecpu,
-    setSdclipgpu,
-    applyPreset,
-    selectFile,
-  } = useLaunchConfigStore();
-
-  const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
+      sdmodel,
+      sdt5xxl,
+      sdclipl,
+      sdclipg,
+      sdphotomaker,
+      sdvae,
+      sdlora,
+      sdconvdirect,
+      sdvaecpu,
+      sdclipgpu,
+      setSdmodel,
+      setSdt5xxl,
+      setSdclipl,
+      setSdclipg,
+      setSdphotomaker,
+      setSdvae,
+      setSdlora,
+      setSdconvdirect,
+      setSdvaecpu,
+      setSdclipgpu,
+      applyPreset,
+      selectFile,
+    } = useLaunchConfigStore(),
+    [selectedPreset, setSelectedPreset] = useState<string | null>(null);
 
   return (
     <Stack gap="md">

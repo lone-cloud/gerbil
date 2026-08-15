@@ -9,54 +9,51 @@ import { useLaunchConfigStore } from '@/stores/launchConfig';
 
 export const AdvancedTab = () => {
   const {
-    additionalArguments,
-    preLaunchCommands,
-    noavx2,
-    failsafe,
-    debugmode,
-    jinja,
-    jinjatools,
-    jinjakwargs,
-    setAdditionalArguments,
-    setPreLaunchCommands,
-    setNoavx2,
-    setFailsafe,
-    setDebugmode,
-    setJinja,
-    setJinjatools,
-    setJinjakwargs,
-  } = useLaunchConfigStore();
-  const [commandLineModalOpen, setCommandLineModalOpen] = useState(false);
-  const [backendSupport, setBackendSupport] = useState<{
-    noavx2: boolean;
-    failsafe: boolean;
-  } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const handleAddArgument = useCallback(
-    (newArgument: string) => {
-      const currentArgs = additionalArguments.trim();
-      const updatedArgs = currentArgs ? `${currentArgs} ${newArgument}` : newArgument;
-      setAdditionalArguments(updatedArgs);
-    },
-    [additionalArguments, setAdditionalArguments],
-  );
-
-  const handleJinjaChange = useCallback(
-    (val: boolean) => {
-      setJinja(val);
-      if (!val) setJinjatools(false);
-    },
-    [setJinja, setJinjatools],
-  );
-
-  const handleJinjatoolsChange = useCallback(
-    (val: boolean) => {
-      setJinjatools(val);
-      if (val) setJinja(true);
-    },
-    [setJinja, setJinjatools],
-  );
+      additionalArguments,
+      preLaunchCommands,
+      noavx2,
+      failsafe,
+      debugmode,
+      jinja,
+      jinjatools,
+      jinjakwargs,
+      setAdditionalArguments,
+      setPreLaunchCommands,
+      setNoavx2,
+      setFailsafe,
+      setDebugmode,
+      setJinja,
+      setJinjatools,
+      setJinjakwargs,
+    } = useLaunchConfigStore(),
+    [commandLineModalOpen, setCommandLineModalOpen] = useState(false),
+    [backendSupport, setBackendSupport] = useState<{
+      noavx2: boolean;
+      failsafe: boolean;
+    } | null>(null),
+    [isLoading, setIsLoading] = useState(true),
+    handleAddArgument = useCallback(
+      (newArgument: string) => {
+        const currentArgs = additionalArguments.trim(),
+          updatedArgs = currentArgs ? `${currentArgs} ${newArgument}` : newArgument;
+        setAdditionalArguments(updatedArgs);
+      },
+      [additionalArguments, setAdditionalArguments],
+    ),
+    handleJinjaChange = useCallback(
+      (val: boolean) => {
+        setJinja(val);
+        if (!val) setJinjatools(false);
+      },
+      [setJinja, setJinjatools],
+    ),
+    handleJinjatoolsChange = useCallback(
+      (val: boolean) => {
+        setJinjatools(val);
+        if (val) setJinja(true);
+      },
+      [setJinja, setJinjatools],
+    );
 
   useEffect(() => {
     const detectAccelerationSupport = async () => {

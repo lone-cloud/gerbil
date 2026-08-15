@@ -20,8 +20,8 @@ async function getLinuxROCmDownload() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const latestRelease = await response.json();
-    const version = latestRelease?.tag_name?.replace(/^v/, '') ?? 'unknown';
+    const latestRelease = await response.json(),
+      version = latestRelease?.tag_name?.replace(/^v/, '') ?? 'unknown';
 
     return {
       name: ROCM.LINUX.BINARY_NAME,
@@ -46,15 +46,14 @@ async function getWindowsROCmDownload() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const latestRelease = await response.json();
-    const version = latestRelease?.tag_name?.replace(/^v/, '') ?? 'unknown';
-
-    const windowsAsset =
-      latestRelease.assets?.find((asset: GitHubAsset) => asset.name === 'koboldcpp_rocm.exe') ??
-      latestRelease.assets?.find(
-        (asset: GitHubAsset) =>
-          asset.name.includes('koboldcpp_rocm') && asset.name.endsWith('.exe'),
-      );
+    const latestRelease = await response.json(),
+      version = latestRelease?.tag_name?.replace(/^v/, '') ?? 'unknown',
+      windowsAsset =
+        latestRelease.assets?.find((asset: GitHubAsset) => asset.name === 'koboldcpp_rocm.exe') ??
+        latestRelease.assets?.find(
+          (asset: GitHubAsset) =>
+            asset.name.includes('koboldcpp_rocm') && asset.name.endsWith('.exe'),
+        );
 
     if (!windowsAsset) {
       throw new Error('Windows ROCm executable not found in release');

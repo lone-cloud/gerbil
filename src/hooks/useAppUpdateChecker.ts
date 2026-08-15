@@ -12,10 +12,10 @@ interface AppUpdateInfo {
 }
 
 export const useAppUpdateChecker = () => {
-  const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(null);
-  const [canAutoUpdate, setCanAutoUpdate] = useState(false);
-  const [isUpdateDownloaded, setIsUpdateDownloaded] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
+  const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(null),
+    [canAutoUpdate, setCanAutoUpdate] = useState(false),
+    [isUpdateDownloaded, setIsUpdateDownloaded] = useState(false),
+    [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     const initializeUpdater = async () => {
@@ -32,68 +32,64 @@ export const useAppUpdateChecker = () => {
   }, []);
 
   const downloadUpdate = useCallback(async () => {
-    if (!canAutoUpdate) {
-      return;
-    }
+      if (!canAutoUpdate) {
+        return;
+      }
 
-    setIsDownloading(true);
+      setIsDownloading(true);
 
-    const checkResult = await window.electronAPI.updater.checkForUpdates();
-    if (!checkResult) {
+      const checkResult = await window.electronAPI.updater.checkForUpdates();
+      if (!checkResult) {
+        setIsDownloading(false);
+        return;
+      }
+
+      const success = await window.electronAPI.updater.downloadUpdate();
+      if (success) {
+        setIsUpdateDownloaded(true);
+      }
+
       setIsDownloading(false);
-      return;
-    }
-
-    const success = await window.electronAPI.updater.downloadUpdate();
-    if (success) {
-      setIsUpdateDownloaded(true);
-    }
-
-    setIsDownloading(false);
-  }, [canAutoUpdate]);
-
-  const installUpdate = useCallback(() => {
-    if (isUpdateDownloaded) {
-      void window.electronAPI.updater.quitAndInstall();
-    }
-  }, [isUpdateDownloaded]);
-
-  const checkForAppUpdates = useCallback(async () => {
-    try {
-      const currentVersion = await window.electronAPI.app.getVersion();
-
-      const response = await withRetry(() =>
-        fetch(`${GITHUB_API.BASE_URL}/repos/${GITHUB_API.GERBIL_REPO}/releases/latest`),
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch latest release');
+    }, [canAutoUpdate]),
+    installUpdate = useCallback(() => {
+      if (isUpdateDownloaded) {
+        void window.electronAPI.updater.quitAndInstall();
       }
+    }, [isUpdateDownloaded]),
+    checkForAppUpdates = useCallback(async () => {
+      try {
+        const currentVersion = await window.electronAPI.app.getVersion(),
+          response = await withRetry(() =>
+            fetch(`${GITHUB_API.BASE_URL}/repos/${GITHUB_API.GERBIL_REPO}/releases/latest`),
+          );
 
-      const release = await response.json();
-      const latestVersion = release.tag_name?.replace(/^v/, '') ?? '';
+        if (!response.ok) {
+          throw new Error('Failed to fetch latest release');
+        }
 
-      if (!latestVersion) {
-        throw new Error('Invalid release data');
+        const release = await response.json(),
+          latestVersion = release.tag_name?.replace(/^v/, '') ?? '';
+
+        if (!latestVersion) {
+          throw new Error('Invalid release data');
+        }
+
+        const hasUpdate = compareVersions(latestVersion, currentVersion) > 0,
+          info: AppUpdateInfo = {
+            currentVersion,
+            hasUpdate,
+            latestVersion,
+            releaseUrl: release.html_url,
+          };
+
+        setUpdateInfo(info);
+      } catch (error) {
+        window.electronAPI.logs.logError(
+          'Failed to check for app updates',
+          error instanceof Error ? error : undefined,
+        );
       }
-
-      const hasUpdate = compareVersions(latestVersion, currentVersion) > 0;
-
-      const info: AppUpdateInfo = {
-        currentVersion,
-        hasUpdate,
-        latestVersion,
-        releaseUrl: release.html_url,
-      };
-
-      setUpdateInfo(info);
-    } catch (error) {
-      window.electronAPI.logs.logError(
-        'Failed to check for app updates',
-        error instanceof Error ? error : undefined,
-      );
-    }
-  }, []);
+    }, []);
 
   useEffect(() => {
     void checkForAppUpdates();

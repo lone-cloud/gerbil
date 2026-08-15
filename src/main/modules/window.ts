@@ -21,34 +21,32 @@ import { isTrayActive } from './tray-active';
 let mainWindow: BrowserWindow | null = null;
 
 export async function createMainWindow(options?: { startHidden?: boolean }) {
-  const { size } = screen.getPrimaryDisplay();
-  const savedBounds = getWindowBounds();
-
-  const defaultWidth = 800;
-  const minHeight = 600;
-  const defaultHeight = Math.max(minHeight, Math.min(Math.floor(size.height * 0.75), 1000));
-
-  const windowOptions = {
-    backgroundColor: getBackgroundColor(),
-    frame: false,
-    height: savedBounds?.height ?? defaultHeight,
-    icon: isDevelopment
-      ? join(__dirname, '../../src/assets/icon.png')
-      : join(__dirname, '../../assets/icon.png'),
-    minHeight,
-    minWidth: 600,
-    show: false,
-    title: PRODUCT_NAME,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: join(__dirname, '../preload/index.js'),
-      backgroundThrottling: false,
-      offscreen: false,
-      spellcheck: true,
-    },
-    width: savedBounds?.width ?? defaultWidth,
-  } as BrowserWindowConstructorOptions;
+  const { size } = screen.getPrimaryDisplay(),
+    savedBounds = getWindowBounds(),
+    defaultWidth = 800,
+    minHeight = 600,
+    defaultHeight = Math.max(minHeight, Math.min(Math.floor(size.height * 0.75), 1000)),
+    windowOptions = {
+      backgroundColor: getBackgroundColor(),
+      frame: false,
+      height: savedBounds?.height ?? defaultHeight,
+      icon: isDevelopment
+        ? join(__dirname, '../../src/assets/icon.png')
+        : join(__dirname, '../../assets/icon.png'),
+      minHeight,
+      minWidth: 600,
+      show: false,
+      title: PRODUCT_NAME,
+      webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true,
+        preload: join(__dirname, '../preload/index.js'),
+        backgroundThrottling: false,
+        offscreen: false,
+        spellcheck: true,
+      },
+      width: savedBounds?.width ?? defaultWidth,
+    } as BrowserWindowConstructorOptions;
 
   if (savedBounds?.x !== undefined && savedBounds?.y !== undefined) {
     const minVisibleSize = 100;
@@ -77,8 +75,8 @@ export async function createMainWindow(options?: { startHidden?: boolean }) {
 
   const saveBounds = () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
-      const isMaximized = mainWindow.isMaximized();
-      const currentBounds = mainWindow.getBounds();
+      const isMaximized = mainWindow.isMaximized(),
+        currentBounds = mainWindow.getBounds();
       let bounds: WindowBounds = { isMaximized };
 
       if (!isMaximized) {
@@ -119,8 +117,8 @@ export async function createMainWindow(options?: { startHidden?: boolean }) {
   if (isDevelopment) {
     void mainWindow.loadURL('http://localhost:5173');
   } else {
-    const distPath = join(__dirname, '../../dist');
-    const url = await startStaticServer(distPath);
+    const distPath = join(__dirname, '../../dist'),
+      url = await startStaticServer(distPath);
     void mainWindow.loadURL(url);
     Menu.setApplicationMenu(null);
   }
@@ -172,21 +170,19 @@ export async function createMainWindow(options?: { startHidden?: boolean }) {
 
 function setupContextMenu(window: BrowserWindow) {
   window.webContents.on('context-menu', (_, params) => {
-    const hasLinkURL = Boolean(params.linkURL);
-    const hasSelection = Boolean(params.selectionText);
-    const { isEditable } = params;
-    const isDev = isDevelopment;
-    const hasMisspelling = Boolean(params.misspelledWord);
-
-    const canCut = hasSelection && isEditable;
-    const canCopy = hasSelection;
-    const canPaste = isEditable;
-    const canSelectAll = isEditable || params.mediaType === 'none';
-    const canUndo = isEditable && params.editFlags?.canUndo;
-    const canRedo = isEditable && params.editFlags?.canRedo;
-    const hasEditOperations = canCut || canCopy || canPaste || canSelectAll || canUndo || canRedo;
-
-    const menuItems = [];
+    const hasLinkURL = Boolean(params.linkURL),
+      hasSelection = Boolean(params.selectionText),
+      { isEditable } = params,
+      isDev = isDevelopment,
+      hasMisspelling = Boolean(params.misspelledWord),
+      canCut = hasSelection && isEditable,
+      canCopy = hasSelection,
+      canPaste = isEditable,
+      canSelectAll = isEditable || params.mediaType === 'none',
+      canUndo = isEditable && params.editFlags?.canUndo,
+      canRedo = isEditable && params.editFlags?.canRedo,
+      hasEditOperations = canCut || canCopy || canPaste || canSelectAll || canUndo || canRedo,
+      menuItems = [];
 
     if (isDev) {
       menuItems.push({

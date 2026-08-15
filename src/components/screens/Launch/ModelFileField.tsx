@@ -40,17 +40,17 @@ export const ModelFileField = ({
   showAnalyze = false,
   paramType,
 }: ModelFileFieldProps) => {
-  const validationState = getInputValidationState(value);
-  const [analysisModalOpened, setAnalysisModalOpened] = useState(false);
-  const [modelAnalysis, setModelAnalysis] = useState<ModelAnalysis | null>(null);
-  const [analysisLoading, setAnalysisLoading] = useState(false);
-  const [analysisError, setAnalysisError] = useState<string>();
-  const [analysisCache, setAnalysisCache] = useState<Map<string, ModelAnalysis>>(new Map());
-  const [cachedModels, setCachedModels] = useState<CachedModel[]>([]);
-  const [searchModalOpened, setSearchModalOpened] = useState(false);
-  const [inputFocused, setInputFocused] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const combobox = useCombobox();
+  const validationState = getInputValidationState(value),
+    [analysisModalOpened, setAnalysisModalOpened] = useState(false),
+    [modelAnalysis, setModelAnalysis] = useState<ModelAnalysis | null>(null),
+    [analysisLoading, setAnalysisLoading] = useState(false),
+    [analysisError, setAnalysisError] = useState<string>(),
+    [analysisCache, setAnalysisCache] = useState<Map<string, ModelAnalysis>>(new Map()),
+    [cachedModels, setCachedModels] = useState<CachedModel[]>([]),
+    [searchModalOpened, setSearchModalOpened] = useState(false),
+    [inputFocused, setInputFocused] = useState(false),
+    inputRef = useRef<HTMLInputElement>(null),
+    combobox = useCombobox();
 
   useEffect(() => {
     if (inputFocused && inputRef.current) {
@@ -71,52 +71,50 @@ export const ModelFileField = ({
   }, [paramType]);
 
   const options = cachedModels.map((model) => (
-    <Combobox.Option value={model.path} key={model.path}>
-      {model.author}/{model.model}
-    </Combobox.Option>
-  ));
+      <Combobox.Option value={model.path} key={model.path}>
+        {model.author}/{model.model}
+      </Combobox.Option>
+    )),
+    getHelperText = () => {
+      if (validationState === 'neutral') {
+        return undefined;
+      }
 
-  const getHelperText = () => {
-    if (validationState === 'neutral') {
+      if (validationState === 'invalid') {
+        return 'Enter a valid URL or file path';
+      }
+
       return undefined;
-    }
+    },
+    handleAnalyzeModel = async () => {
+      if (validationState === 'neutral' || validationState === 'invalid') {
+        return;
+      }
 
-    if (validationState === 'invalid') {
-      return 'Enter a valid URL or file path';
-    }
+      setAnalysisModalOpened(true);
+      setAnalysisError(undefined);
 
-    return undefined;
-  };
+      const cached = analysisCache.get(value);
+      if (cached) {
+        setModelAnalysis(cached);
+        return;
+      }
 
-  const handleAnalyzeModel = async () => {
-    if (validationState === 'neutral' || validationState === 'invalid') {
-      return;
-    }
+      setAnalysisLoading(true);
+      setModelAnalysis(null);
 
-    setAnalysisModalOpened(true);
-    setAnalysisError(undefined);
-
-    const cached = analysisCache.get(value);
-    if (cached) {
-      setModelAnalysis(cached);
-      return;
-    }
-
-    setAnalysisLoading(true);
-    setModelAnalysis(null);
-
-    try {
-      const analysis = await window.electronAPI.kobold.analyzeModel(value);
-      setModelAnalysis(analysis);
-      setAnalysisCache((prev) => new Map(prev).set(value, analysis));
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to analyze model';
-      setAnalysisError(errorMessage);
-      logError('Failed to analyze model:', error as Error);
-    } finally {
-      setAnalysisLoading(false);
-    }
-  };
+      try {
+        const analysis = await window.electronAPI.kobold.analyzeModel(value);
+        setModelAnalysis(analysis);
+        setAnalysisCache((prev) => new Map(prev).set(value, analysis));
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to analyze model';
+        setAnalysisError(errorMessage);
+        logError('Failed to analyze model:', error as Error);
+      } finally {
+        setAnalysisLoading(false);
+      }
+    };
 
   return (
     <div>

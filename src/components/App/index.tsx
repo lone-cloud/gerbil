@@ -20,33 +20,31 @@ import type { KoboldCrashInfo } from '@/types/ipc';
 import { getDefaultInterfaceTab } from '@/utils/interface';
 
 export const App = () => {
-  const [currentScreen, setCurrentScreen] = useState<Screen | null>(null);
-  const [hasInitialized, setHasInitialized] = useState(false);
-  const [activeInterfaceTab, setActiveInterfaceTab] = useState<InterfaceTab>('terminal');
-  const [isServerReady, setIsServerReady] = useState(false);
-  const [ejectConfirmModalOpen, setEjectConfirmModalOpen] = useState(false);
-  const [crashInfo, setCrashInfo] = useState<KoboldCrashInfo | null>(null);
-  const isInterfaceScreen = currentScreen === 'interface';
-
-  const {
-    resolvedColorScheme: appColorScheme,
-    systemMonitoringEnabled,
-    frontendPreference,
-    imageGenerationFrontendPreference,
-  } = usePreferencesStore();
-  const { setColorScheme } = useMantineColorScheme();
-  const { model, sdmodel, isTextMode, isImageGenerationMode } = useLaunchConfigStore();
-
-  const defaultInterfaceTab = useMemo(
-    () =>
-      getDefaultInterfaceTab({
-        frontendPreference,
-        imageGenerationFrontendPreference,
-        isImageGenerationMode,
-        isTextMode,
-      }),
-    [frontendPreference, imageGenerationFrontendPreference, isTextMode, isImageGenerationMode],
-  );
+  const [currentScreen, setCurrentScreen] = useState<Screen | null>(null),
+    [hasInitialized, setHasInitialized] = useState(false),
+    [activeInterfaceTab, setActiveInterfaceTab] = useState<InterfaceTab>('terminal'),
+    [isServerReady, setIsServerReady] = useState(false),
+    [ejectConfirmModalOpen, setEjectConfirmModalOpen] = useState(false),
+    [crashInfo, setCrashInfo] = useState<KoboldCrashInfo | null>(null),
+    isInterfaceScreen = currentScreen === 'interface',
+    {
+      resolvedColorScheme: appColorScheme,
+      systemMonitoringEnabled,
+      frontendPreference,
+      imageGenerationFrontendPreference,
+    } = usePreferencesStore(),
+    { setColorScheme } = useMantineColorScheme(),
+    { model, sdmodel, isTextMode, isImageGenerationMode } = useLaunchConfigStore(),
+    defaultInterfaceTab = useMemo(
+      () =>
+        getDefaultInterfaceTab({
+          frontendPreference,
+          imageGenerationFrontendPreference,
+          isImageGenerationMode,
+          isTextMode,
+        }),
+      [frontendPreference, imageGenerationFrontendPreference, isTextMode, isImageGenerationMode],
+    );
 
   useEffect(() => {
     const cleanup = window.electronAPI.kobold.onServerReady(() => {
@@ -65,9 +63,9 @@ export const App = () => {
 
   useEffect(() => {
     const updateTray = async () => {
-      const config = await window.electronAPI.kobold.getSelectedConfig();
-      const displayModel = model || sdmodel || null;
-      const modelName = displayModel ? (displayModel.split('/').pop() ?? displayModel) : null;
+      const config = await window.electronAPI.kobold.getSelectedConfig(),
+        displayModel = model || sdmodel || null,
+        modelName = displayModel ? (displayModel.split('/').pop() ?? displayModel) : null;
 
       void window.electronAPI.app.updateTrayState({
         config: config ?? null,
@@ -108,24 +106,22 @@ export const App = () => {
   }, []);
 
   const {
-    updateInfo: binaryUpdateInfo,
-    showUpdateModal,
-    checkForUpdates,
-    skipUpdate,
-    closeModal,
-  } = useUpdateChecker();
-
-  const { handleDownload, loadingRemote } = useKoboldBackendsStore();
-
-  const determineScreen = useCallback((currentVersion: unknown, hasSeenWelcome: boolean) => {
-    if (!hasSeenWelcome) {
-      setCurrentScreen('welcome');
-    } else if (currentVersion) {
-      setCurrentScreen('launch');
-    } else {
-      setCurrentScreen('download');
-    }
-  }, []);
+      updateInfo: binaryUpdateInfo,
+      showUpdateModal,
+      checkForUpdates,
+      skipUpdate,
+      closeModal,
+    } = useUpdateChecker(),
+    { handleDownload, loadingRemote } = useKoboldBackendsStore(),
+    determineScreen = useCallback((currentVersion: unknown, hasSeenWelcome: boolean) => {
+      if (!hasSeenWelcome) {
+        setCurrentScreen('welcome');
+      } else if (currentVersion) {
+        setCurrentScreen('launch');
+      } else {
+        setCurrentScreen('download');
+      }
+    }, []);
 
   useEffect(() => {
     const checkInstallation = async () => {
@@ -147,24 +143,22 @@ export const App = () => {
     }
 
     const runUpdateCheck = async () => {
-      const currentBackend = await window.electronAPI.kobold.getCurrentBackend();
-      if (!currentBackend) {
-        return;
-      }
+        const currentBackend = await window.electronAPI.kobold.getCurrentBackend();
+        if (!currentBackend) {
+          return;
+        }
 
-      void checkForUpdates();
-    };
-
-    const initialTimeout = setTimeout(() => {
-      void runUpdateCheck();
-    }, 5000);
-
-    const interval = setInterval(
-      () => {
-        void runUpdateCheck();
+        void checkForUpdates();
       },
-      6 * 60 * 60 * 1000,
-    );
+      initialTimeout = setTimeout(() => {
+        void runUpdateCheck();
+      }, 5000),
+      interval = setInterval(
+        () => {
+          void runUpdateCheck();
+        },
+        6 * 60 * 60 * 1000,
+      );
 
     return () => {
       clearTimeout(initialTimeout);
@@ -173,47 +167,43 @@ export const App = () => {
   }, [loadingRemote, hasInitialized, checkForUpdates]);
 
   const handleBinaryUpdate = async (download: DownloadItem) => {
-    const currentBackend = await window.electronAPI.kobold.getCurrentBackend();
+      const currentBackend = await window.electronAPI.kobold.getCurrentBackend();
 
-    await handleDownload({
-      isUpdate: true,
-      item: download,
-      oldBackendPath: currentBackend?.path,
-      wasCurrentBinary: true,
-    });
+      await handleDownload({
+        isUpdate: true,
+        item: download,
+        oldBackendPath: currentBackend?.path,
+        wasCurrentBinary: true,
+      });
 
-    closeModal();
-  };
+      closeModal();
+    },
+    handleEject = async () => {
+      const skipEjectConfirmation = await window.electronAPI.config.get('skipEjectConfirmation');
 
-  const handleEject = async () => {
-    const skipEjectConfirmation = await window.electronAPI.config.get('skipEjectConfirmation');
-
-    if (skipEjectConfirmation) {
+      if (skipEjectConfirmation) {
+        performEject();
+      } else {
+        setEjectConfirmModalOpen(true);
+      }
+    },
+    handleEjectConfirm = (skipConfirmation: boolean) => {
+      if (skipConfirmation) {
+        window.electronAPI.config.set('skipEjectConfirmation', true);
+      }
       performEject();
-    } else {
-      setEjectConfirmModalOpen(true);
-    }
-  };
+    },
+    handleWelcomeComplete = async () => {
+      window.electronAPI.config.set('hasSeenWelcome', true);
 
-  const handleEjectConfirm = (skipConfirmation: boolean) => {
-    if (skipConfirmation) {
-      window.electronAPI.config.set('skipEjectConfirmation', true);
-    }
-    performEject();
-  };
-
-  const handleWelcomeComplete = async () => {
-    window.electronAPI.config.set('hasSeenWelcome', true);
-
-    const currentBackend = await window.electronAPI.kobold.getCurrentBackend();
-    determineScreen(currentBackend, true);
-  };
-
-  const handleDownloadComplete = () => setCurrentScreen('launch');
-  const handleLaunch = () => {
-    setActiveInterfaceTab('terminal');
-    setCurrentScreen('interface');
-  };
+      const currentBackend = await window.electronAPI.kobold.getCurrentBackend();
+      determineScreen(currentBackend, true);
+    },
+    handleDownloadComplete = () => setCurrentScreen('launch'),
+    handleLaunch = () => {
+      setActiveInterfaceTab('terminal');
+      setCurrentScreen('interface');
+    };
 
   return (
     <AppShell

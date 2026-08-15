@@ -6,11 +6,10 @@ import { formatBytes } from '@/utils/format';
 import { logError } from '@/utils/node/logging';
 
 function estimateMemoryRequirements(fileSize: number) {
-  const vramOverhead = 1.1;
-  const fullGpuVram = fileSize * vramOverhead;
-
-  const ramOverhead = 1.2;
-  const systemRam = fileSize * ramOverhead;
+  const vramOverhead = 1.1,
+    fullGpuVram = fileSize * vramOverhead,
+    ramOverhead = 1.2,
+    systemRam = fileSize * ramOverhead;
 
   return {
     fullGpuVram: formatBytes(fullGpuVram),
@@ -65,8 +64,8 @@ export async function analyzeGGUFModel(filePath: string) {
 
     let fileSize: number;
     if (isUrl) {
-      const response = await fetch(filePath, { method: 'HEAD' });
-      const contentLength = response.headers.get('content-length');
+      const response = await fetch(filePath, { method: 'HEAD' }),
+        contentLength = response.headers.get('content-length');
       fileSize = contentLength ? parseInt(contentLength, 10) : 0;
     } else {
       const stats = await stat(filePath);
@@ -74,30 +73,25 @@ export async function analyzeGGUFModel(filePath: string) {
     }
 
     const { metadata } = await gguf(filePath, {
-      allowLocalFile: !isUrl,
-    });
-
-    const metadataRecord = metadata as Record<string, unknown>;
-
-    const architecture = getMetadataValue(metadataRecord, 'general.architecture') as string;
-    const name = getMetadataValue(metadataRecord, 'general.name') as string | undefined;
-    const paramCount = getMetadataValue(metadataRecord, 'general.parameter_count') as
-      | number
-      | undefined;
-
-    const contextLength = getMetadataValue(metadataRecord, `${architecture}.context_length`) as
-      | number
-      | undefined;
-
-    const blockCount = getMetadataValue(metadataRecord, `${architecture}.block_count`) as
-      | number
-      | undefined;
-    const expertCount = getMetadataValue(metadataRecord, `${architecture}.expert_count`) as
-      | number
-      | undefined;
-
-    const memoryEstimates = estimateMemoryRequirements(fileSize);
-    const vramPerLayer = estimateVramPerLayer(fileSize, blockCount);
+        allowLocalFile: !isUrl,
+      }),
+      metadataRecord = metadata as Record<string, unknown>,
+      architecture = getMetadataValue(metadataRecord, 'general.architecture') as string,
+      name = getMetadataValue(metadataRecord, 'general.name') as string | undefined,
+      paramCount = getMetadataValue(metadataRecord, 'general.parameter_count') as
+        | number
+        | undefined,
+      contextLength = getMetadataValue(metadataRecord, `${architecture}.context_length`) as
+        | number
+        | undefined,
+      blockCount = getMetadataValue(metadataRecord, `${architecture}.block_count`) as
+        | number
+        | undefined,
+      expertCount = getMetadataValue(metadataRecord, `${architecture}.expert_count`) as
+        | number
+        | undefined,
+      memoryEstimates = estimateMemoryRequirements(fileSize),
+      vramPerLayer = estimateVramPerLayer(fileSize, blockCount);
 
     return {
       architecture: {

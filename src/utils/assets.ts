@@ -43,27 +43,25 @@ export const isAssetStandard = (assetName: string) => {
 
 export const sortDownloadsByType = <T extends { name: string }>(downloads: T[]) =>
   [...downloads].toSorted((a, b) => {
-    const aName = stripAssetExtensions(a.name).toLowerCase();
-    const bName = stripAssetExtensions(b.name).toLowerCase();
-
-    const getOrderPriority = (name: string) => {
-      if (isAssetStandard(name)) {
-        return 0;
-      }
-      if (name.includes(ASSET_SUFFIXES.ROCM)) {
-        return 1;
-      }
-      if (name.endsWith(ASSET_SUFFIXES.NOCUDA)) {
-        return 2;
-      }
-      if (name.endsWith(ASSET_SUFFIXES.OLDPC)) {
-        return 3;
-      }
-      return 4;
-    };
-
-    const aPriority = getOrderPriority(aName);
-    const bPriority = getOrderPriority(bName);
+    const aName = stripAssetExtensions(a.name).toLowerCase(),
+      bName = stripAssetExtensions(b.name).toLowerCase(),
+      getOrderPriority = (name: string) => {
+        if (isAssetStandard(name)) {
+          return 0;
+        }
+        if (name.includes(ASSET_SUFFIXES.ROCM)) {
+          return 1;
+        }
+        if (name.endsWith(ASSET_SUFFIXES.NOCUDA)) {
+          return 2;
+        }
+        if (name.endsWith(ASSET_SUFFIXES.OLDPC)) {
+          return 3;
+        }
+        return 4;
+      },
+      aPriority = getOrderPriority(aName),
+      bPriority = getOrderPriority(bName);
 
     if (aPriority !== bPriority) {
       return aPriority - bPriority;

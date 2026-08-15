@@ -24,17 +24,17 @@ import { startProxy, stopProxy } from '../proxy';
 import { startTunnel, stopTunnel } from '../tunnel';
 import { filterSpam, patchKcppSduiEmbd, patchKliteEmbd, patchLcppGzEmbd } from './patches';
 
-let koboldProcess: ChildProcess | null = null;
-let isIntentionalStop = false;
+let koboldProcess: ChildProcess | null = null,
+  isIntentionalStop = false;
 
 export const isKoboldRunning = () => koboldProcess !== null;
 let hasProcessStartedSuccessfully = false;
 const preLaunchProcesses = new Set<ChildProcess>();
 
 function spawnPreLaunchCommands(commands: string[]) {
-  const installDir = getInstallDir();
-  const shell = platform === 'win32' ? 'cmd' : '/bin/sh';
-  const shellFlag = platform === 'win32' ? '/c' : '-c';
+  const installDir = getInstallDir(),
+    shell = platform === 'win32' ? 'cmd' : '/bin/sh',
+    shellFlag = platform === 'win32' ? '/c' : '-c';
 
   for (const command of commands) {
     if (!command.trim()) {
@@ -89,23 +89,23 @@ async function stopPreLaunchProcesses() {
 }
 
 async function resolveModelPaths(args: string[]) {
-  const resolvedArgs: string[] = [];
-  const modelParams = new Set([
-    '--model',
-    '--sdmodel',
-    '--sdt5xxl',
-    '--sdclipl',
-    '--sdclipg',
-    '--sdphotomaker',
-    '--sdvae',
-    '--sdlora',
-    '--mmproj',
-    '--whispermodel',
-    '--draftmodel',
-    '--ttsmodel',
-    '--ttswavtokenizer',
-    '--embeddingsmodel',
-  ]);
+  const resolvedArgs: string[] = [],
+    modelParams = new Set([
+      '--model',
+      '--sdmodel',
+      '--sdt5xxl',
+      '--sdclipl',
+      '--sdclipg',
+      '--sdphotomaker',
+      '--sdvae',
+      '--sdlora',
+      '--mmproj',
+      '--whispermodel',
+      '--draftmodel',
+      '--ttsmodel',
+      '--ttswavtokenizer',
+      '--embeddingsmodel',
+    ]);
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -114,8 +114,8 @@ async function resolveModelPaths(args: string[]) {
       resolvedArgs.push(arg);
       const urlOrPath = args[i + 1];
       try {
-        const paramType = arg.slice(2) as ModelParamType;
-        const resolvedPath = await resolveModelPath(urlOrPath, paramType);
+        const paramType = arg.slice(2) as ModelParamType,
+          resolvedPath = await resolveModelPath(urlOrPath, paramType);
         resolvedArgs.push(resolvedPath);
         i++;
       } catch (error) {
@@ -155,10 +155,10 @@ export async function launchKoboldCpp(
 
     const currentBackend = await getCurrentBackend();
     if (!currentBackend || !(await pathExists(currentBackend.path))) {
-      const rawPath = getCurrentKoboldBinary();
-      const error = currentBackend
-        ? `Binary file does not exist at path: ${currentBackend.path}`
-        : 'No backend configured';
+      const rawPath = getCurrentKoboldBinary(),
+        error = currentBackend
+          ? `Binary file does not exist at path: ${currentBackend.path}`
+          : 'No backend configured';
 
       logError(
         `Launch failed: ${error}. Raw config path: "${rawPath}", Current backend: ${JSON.stringify(currentBackend)}`,
@@ -170,16 +170,15 @@ export async function launchKoboldCpp(
       };
     }
 
-    const binaryDir = currentBackend.path.split(/[/\\]/).slice(0, -1).join('/');
-
-    const {
-      isImageMode,
-      isTextMode,
-      debugmode,
-      remotetunnel,
-      host: koboldHost,
-      port: koboldPort,
-    } = parseKoboldConfig(args);
+    const binaryDir = currentBackend.path.split(/[/\\]/).slice(0, -1).join('/'),
+      {
+        isImageMode,
+        isTextMode,
+        debugmode,
+        remotetunnel,
+        host: koboldHost,
+        port: koboldPort,
+      } = parseKoboldConfig(args);
 
     if (frontendPreference === 'koboldcpp') {
       if (isImageMode) {
@@ -196,29 +195,28 @@ export async function launchKoboldCpp(
       await patchKcppSduiEmbd(binaryDir);
     }
 
-    const resolvedArgs = await resolveModelPaths(args);
-    const finalArgs = resolvedArgs.filter((arg) => arg !== '--remotetunnel');
+    const resolvedArgs = await resolveModelPaths(args),
+      finalArgs = resolvedArgs.filter((arg) => arg !== '--remotetunnel');
 
     await stopProxy();
     await startProxy(koboldHost, koboldPort);
 
     const rocmEnv =
-      platform !== 'win32'
-        ? {
-            HSA_OVERRIDE_GFX_VERSION: process.env.HSA_OVERRIDE_GFX_VERSION,
-            LD_LIBRARY_PATH: ['/opt/rocm/lib', '/opt/rocm/lib64', process.env.LD_LIBRARY_PATH]
-              .filter(Boolean)
-              .join(':'),
-            PATH: ['/opt/rocm/bin', process.env.PATH].filter(Boolean).join(':'),
-          }
-        : {};
-
-    const child = spawn(currentBackend.path, finalArgs, {
-      cwd: binaryDir,
-      detached: false,
-      env: { ...process.env, ...rocmEnv },
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
+        platform !== 'win32'
+          ? {
+              HSA_OVERRIDE_GFX_VERSION: process.env.HSA_OVERRIDE_GFX_VERSION,
+              LD_LIBRARY_PATH: ['/opt/rocm/lib', '/opt/rocm/lib64', process.env.LD_LIBRARY_PATH]
+                .filter(Boolean)
+                .join(':'),
+              PATH: ['/opt/rocm/bin', process.env.PATH].filter(Boolean).join(':'),
+            }
+          : {},
+      child = spawn(currentBackend.path, finalArgs, {
+        cwd: binaryDir,
+        detached: false,
+        env: { ...process.env, ...rocmEnv },
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
 
     koboldProcess = child;
 
@@ -227,66 +225,64 @@ export async function launchKoboldCpp(
     sendKoboldOutput(commandLine);
 
     let readyResolve: ((value: { success: boolean; pid?: number; error?: string }) => void) | null =
-      null;
-    let readyReject: ((error: Error) => void) | null = null;
-    let isReady = false;
+        null,
+      readyReject: ((error: Error) => void) | null = null,
+      isReady = false;
 
     const readyPromise = new Promise<{
-      success: boolean;
-      pid?: number;
-      error?: string;
-    }>((resolve, reject) => {
-      readyResolve = resolve;
-      readyReject = reject;
-    });
+        success: boolean;
+        pid?: number;
+        error?: string;
+      }>((resolve, reject) => {
+        readyResolve = resolve;
+        readyReject = reject;
+      }),
+      handleServerReady = () => {
+        const isKoboldFrontend =
+          frontendPreference === 'koboldcpp' ||
+          frontendPreference === 'llamacpp' ||
+          (!isTextMode && imageGenerationFrontendPreference === 'builtin');
 
-    const handleServerReady = () => {
-      const isKoboldFrontend =
-        frontendPreference === 'koboldcpp' ||
-        frontendPreference === 'llamacpp' ||
-        (!isTextMode && imageGenerationFrontendPreference === 'builtin');
+        if (isKoboldFrontend) {
+          sendToRenderer('server-ready');
+        }
 
-      if (isKoboldFrontend) {
-        sendToRenderer('server-ready');
-      }
+        readyResolve?.({ pid: child.pid, success: true });
 
-      readyResolve?.({ pid: child.pid, success: true });
+        if (remotetunnel && isKoboldFrontend) {
+          void startTunnel(frontendPreference, true);
+        }
+      },
+      handleOutput = (data: Buffer) => {
+        const output = data.toString(),
+          filtered = debugmode ? output : filterSpam(output);
+        if (filtered.trim()) {
+          sendKoboldOutput(filtered, true);
+        }
 
-      if (remotetunnel && isKoboldFrontend) {
-        void startTunnel(frontendPreference, true);
-      }
-    };
-
-    const handleOutput = (data: Buffer) => {
-      const output = data.toString();
-      const filtered = debugmode ? output : filterSpam(output);
-      if (filtered.trim()) {
-        sendKoboldOutput(filtered, true);
-      }
-
-      if (!isReady && output.includes(SERVER_READY_SIGNALS.KOBOLDCPP)) {
-        isReady = true;
-        hasProcessStartedSuccessfully = true;
-        handleServerReady();
-      }
-    };
+        if (!isReady && output.includes(SERVER_READY_SIGNALS.KOBOLDCPP)) {
+          isReady = true;
+          hasProcessStartedSuccessfully = true;
+          handleServerReady();
+        }
+      };
 
     child.stdout?.on('data', handleOutput);
     child.stderr?.on('data', handleOutput);
 
     child.on('exit', (code, signal) => {
-      const isCrash = signal !== null || (code !== null && code !== 0);
-      const displayMessage = signal
-        ? `\nProcess terminated with signal ${signal}`
-        : code === 0
-          ? '\nProcess exited successfully'
-          : code && (code > 1 || code < 0)
-            ? `\nProcess exited with code ${code}`
-            : `\nProcess exited with code ${code}`;
+      const isCrash = signal !== null || (code !== null && code !== 0),
+        displayMessage = signal
+          ? `\nProcess terminated with signal ${signal}`
+          : code === 0
+            ? '\nProcess exited successfully'
+            : code && (code > 1 || code < 0)
+              ? `\nProcess exited with code ${code}`
+              : `\nProcess exited with code ${code}`;
       sendKoboldOutput(displayMessage);
 
-      const wasIntentionalStop = isIntentionalStop;
-      const hadStartedSuccessfully = hasProcessStartedSuccessfully;
+      const wasIntentionalStop = isIntentionalStop,
+        hadStartedSuccessfully = hasProcessStartedSuccessfully;
       koboldProcess = null;
       isIntentionalStop = false;
       hasProcessStartedSuccessfully = false;
@@ -348,17 +344,15 @@ export const launchKoboldCppWithCustomFrontends = async (
   preLaunchCommands: string[] = [],
 ) =>
   safeExecute(async () => {
-    const frontendPreference = getConfig('frontendPreference');
-    const imageGenerationFrontendPreference = getConfig('imageGenerationFrontendPreference');
-
-    const { isTextMode, remotetunnel } = parseKoboldConfig(args);
-
-    const result = await launchKoboldCpp(
-      args,
-      frontendPreference,
-      imageGenerationFrontendPreference,
-      preLaunchCommands,
-    );
+    const frontendPreference = getConfig('frontendPreference'),
+      imageGenerationFrontendPreference = getConfig('imageGenerationFrontendPreference'),
+      { isTextMode, remotetunnel } = parseKoboldConfig(args),
+      result = await launchKoboldCpp(
+        args,
+        frontendPreference,
+        imageGenerationFrontendPreference,
+        preLaunchCommands,
+      );
 
     if (
       frontendPreference === 'koboldcpp' ||

@@ -53,242 +53,233 @@ interface LaunchArgs {
 }
 
 const buildModelArgs = (model: string, sdmodel: string, launchArgs: LaunchArgs) => {
-  const args: string[] = [];
+    const args: string[] = [];
 
-  if (model.trim() !== '') {
-    args.push('--model', model);
-  }
+    if (model.trim() !== '') {
+      args.push('--model', model);
+    }
 
-  if (sdmodel.trim() !== '') {
-    args.push('--sdmodel', sdmodel);
+    if (sdmodel.trim() !== '') {
+      args.push('--sdmodel', sdmodel);
 
-    const imageModels = [
-      ['--sdt5xxl', launchArgs.sdt5xxl],
-      ['--sdclipl', launchArgs.sdclipl],
-      ['--sdclipg', launchArgs.sdclipg],
-      ['--sdphotomaker', launchArgs.sdphotomaker],
-      ['--sdvae', launchArgs.sdvae],
-      ['--sdlora', launchArgs.sdlora],
+      const imageModels = [
+        ['--sdt5xxl', launchArgs.sdt5xxl],
+        ['--sdclipl', launchArgs.sdclipl],
+        ['--sdclipg', launchArgs.sdclipg],
+        ['--sdphotomaker', launchArgs.sdphotomaker],
+        ['--sdvae', launchArgs.sdvae],
+        ['--sdlora', launchArgs.sdlora],
+      ];
+
+      imageModels.forEach(([flag, value]) => {
+        if (value.trim()) {
+          args.push(flag, value);
+        }
+      });
+
+      if (launchArgs.flashattention) {
+        args.push('--sdflashattention');
+      }
+
+      if (launchArgs.sdvaecpu) {
+        args.push('--sdvaecpu');
+      }
+
+      if (launchArgs.sdclipgpu) {
+        args.push('--sdclipgpu');
+      }
+
+      if (launchArgs.sdconvdirect !== 'off') {
+        args.push('--sdconvdirect', launchArgs.sdconvdirect);
+      }
+    }
+
+    return args;
+  },
+  buildConfigArgs = (isImageMode: boolean, launchArgs: LaunchArgs) => {
+    const args: string[] = [],
+      isGpuAcceleration = launchArgs.acceleration && launchArgs.acceleration !== 'cpu';
+
+    if (isGpuAcceleration) {
+      if (launchArgs.autoGpuLayers && launchArgs.gpuLayers > 0) {
+        args.push('--gpulayers', launchArgs.gpuLayers.toString());
+      } else if (!launchArgs.autoGpuLayers && launchArgs.gpuLayers > 0) {
+        args.push('--gpulayers', launchArgs.gpuLayers.toString());
+      }
+    }
+
+    if (launchArgs.contextSize) {
+      args.push('--contextsize', launchArgs.contextSize.toString());
+    }
+
+    if (launchArgs.port) {
+      args.push('--port', launchArgs.port.toString());
+    }
+
+    if (launchArgs.host !== 'localhost' && launchArgs.host) {
+      args.push('--host', launchArgs.host);
+    }
+
+    const flagMappings: [boolean, string, string?][] = [
+      [launchArgs.multiuser, '--multiuser', '1'],
+      [launchArgs.multiplayer, '--multiplayer'],
+      [launchArgs.remotetunnel, '--remotetunnel'],
+      [launchArgs.nocertify, '--nocertify'],
+      [launchArgs.websearch, '--websearch'],
+      [launchArgs.noshift, '--noshift'],
+      [!isImageMode && !launchArgs.flashattention, '--noflashattention'],
+      [launchArgs.noavx2, '--noavx2'],
+      [launchArgs.failsafe, '--failsafe'],
+      [launchArgs.usemmap, '--usemmap'],
+      [launchArgs.debugmode, '--debugmode', '1'],
     ];
 
-    imageModels.forEach(([flag, value]) => {
-      if (value.trim()) {
-        args.push(flag, value);
+    flagMappings.forEach(([condition, flag, value]) => {
+      if (condition) {
+        args.push(flag);
+        if (value) {
+          args.push(value);
+        }
       }
     });
 
-    if (launchArgs.flashattention) {
-      args.push('--sdflashattention');
+    if (launchArgs.moeexperts !== -1) {
+      args.push('--moeexperts', launchArgs.moeexperts.toString());
     }
 
-    if (launchArgs.sdvaecpu) {
-      args.push('--sdvaecpu');
+    if (launchArgs.moecpu > 0) {
+      args.push('--moecpu', launchArgs.moecpu.toString());
     }
 
-    if (launchArgs.sdclipgpu) {
-      args.push('--sdclipgpu');
+    if (launchArgs.smartcache) {
+      args.push('--smartcache');
     }
 
-    if (launchArgs.sdconvdirect !== 'off') {
-      args.push('--sdconvdirect', launchArgs.sdconvdirect);
+    if (!launchArgs.pipelineparallel) {
+      args.push('--nopipelineparallel');
     }
-  }
 
-  return args;
-};
-
-const buildConfigArgs = (isImageMode: boolean, launchArgs: LaunchArgs) => {
-  const args: string[] = [];
-
-  const isGpuAcceleration = launchArgs.acceleration && launchArgs.acceleration !== 'cpu';
-
-  if (isGpuAcceleration) {
-    if (launchArgs.autoGpuLayers && launchArgs.gpuLayers > 0) {
-      args.push('--gpulayers', launchArgs.gpuLayers.toString());
-    } else if (!launchArgs.autoGpuLayers && launchArgs.gpuLayers > 0) {
-      args.push('--gpulayers', launchArgs.gpuLayers.toString());
+    const quantkvMap: Record<number, string> = { 1: 'q8_0', 2: 'q4_0', 3: 'bf16', 4: 'q5_1' };
+    if (launchArgs.quantkv > 0 && quantkvMap[launchArgs.quantkv]) {
+      args.push('--quantkv', quantkvMap[launchArgs.quantkv]);
     }
-  }
 
-  if (launchArgs.contextSize) {
-    args.push('--contextsize', launchArgs.contextSize.toString());
-  }
+    if (launchArgs.jinjatools) {
+      args.push('--jinja_tools');
+    } else if (launchArgs.jinja) {
+      args.push('--jinja');
+    }
 
-  if (launchArgs.port) {
-    args.push('--port', launchArgs.port.toString());
-  }
+    if ((launchArgs.jinja || launchArgs.jinjatools) && launchArgs.jinjakwargs.trim()) {
+      args.push('--jinja_kwargs', launchArgs.jinjakwargs.trim());
+    }
 
-  if (launchArgs.host !== 'localhost' && launchArgs.host) {
-    args.push('--host', launchArgs.host);
-  }
+    return args;
+  },
+  buildCudaArgs = (launchArgs: LaunchArgs) => {
+    const cudaArgs = ['--usecuda'];
+    cudaArgs.push(launchArgs.lowvram ? 'lowvram' : 'normal');
 
-  const flagMappings: [boolean, string, string?][] = [
-    [launchArgs.multiuser, '--multiuser', '1'],
-    [launchArgs.multiplayer, '--multiplayer'],
-    [launchArgs.remotetunnel, '--remotetunnel'],
-    [launchArgs.nocertify, '--nocertify'],
-    [launchArgs.websearch, '--websearch'],
-    [launchArgs.noshift, '--noshift'],
-    [!isImageMode && !launchArgs.flashattention, '--noflashattention'],
-    [launchArgs.noavx2, '--noavx2'],
-    [launchArgs.failsafe, '--failsafe'],
-    [launchArgs.usemmap, '--usemmap'],
-    [launchArgs.debugmode, '--debugmode', '1'],
-  ];
+    if (launchArgs.gpuDeviceSelection === 'all') {
+      cudaArgs.push('0');
+    } else {
+      cudaArgs.push(launchArgs.gpuDeviceSelection || '0');
+    }
 
-  flagMappings.forEach(([condition, flag, value]) => {
-    if (condition) {
-      args.push(flag);
-      if (value) {
-        args.push(value);
+    cudaArgs.push(launchArgs.quantmatmul ? 'mmq' : 'nommq');
+    return cudaArgs;
+  },
+  buildVulkanArgs = () => ['--usevulkan'],
+  addTensorSplitArgs = (args: string[], launchArgs: LaunchArgs) => {
+    if (launchArgs.tensorSplit?.trim()) {
+      const tensorValues = launchArgs.tensorSplit
+        .split(',')
+        .map((value) => value.trim())
+        .filter((value) => value !== '' && !Number.isNaN(Number(value)));
+
+      if (tensorValues.length > 0) {
+        args.push('--tensorsplit', ...tensorValues);
       }
     }
-  });
+  },
+  buildBackendArgs = (launchArgs: LaunchArgs, platform: string) => {
+    const args: string[] = [];
 
-  if (launchArgs.moeexperts !== -1) {
-    args.push('--moeexperts', launchArgs.moeexperts.toString());
-  }
-
-  if (launchArgs.moecpu > 0) {
-    args.push('--moecpu', launchArgs.moecpu.toString());
-  }
-
-  if (launchArgs.smartcache) {
-    args.push('--smartcache');
-  }
-
-  if (!launchArgs.pipelineparallel) {
-    args.push('--nopipelineparallel');
-  }
-
-  const quantkvMap: Record<number, string> = { 1: 'q8_0', 2: 'q4_0', 3: 'bf16', 4: 'q5_1' };
-  if (launchArgs.quantkv > 0 && quantkvMap[launchArgs.quantkv]) {
-    args.push('--quantkv', quantkvMap[launchArgs.quantkv]);
-  }
-
-  if (launchArgs.jinjatools) {
-    args.push('--jinja_tools');
-  } else if (launchArgs.jinja) {
-    args.push('--jinja');
-  }
-
-  if ((launchArgs.jinja || launchArgs.jinjatools) && launchArgs.jinjakwargs.trim()) {
-    args.push('--jinja_kwargs', launchArgs.jinjakwargs.trim());
-  }
-
-  return args;
-};
-
-const buildCudaArgs = (launchArgs: LaunchArgs) => {
-  const cudaArgs = ['--usecuda'];
-  cudaArgs.push(launchArgs.lowvram ? 'lowvram' : 'normal');
-
-  if (launchArgs.gpuDeviceSelection === 'all') {
-    cudaArgs.push('0');
-  } else {
-    cudaArgs.push(launchArgs.gpuDeviceSelection || '0');
-  }
-
-  cudaArgs.push(launchArgs.quantmatmul ? 'mmq' : 'nommq');
-  return cudaArgs;
-};
-
-const buildVulkanArgs = () => ['--usevulkan'];
-
-const addTensorSplitArgs = (args: string[], launchArgs: LaunchArgs) => {
-  if (launchArgs.tensorSplit?.trim()) {
-    const tensorValues = launchArgs.tensorSplit
-      .split(',')
-      .map((value) => value.trim())
-      .filter((value) => value !== '' && !Number.isNaN(Number(value)));
-
-    if (tensorValues.length > 0) {
-      args.push('--tensorsplit', ...tensorValues);
+    if (platform === 'darwin') {
+      return args;
     }
-  }
-};
 
-const buildBackendArgs = (launchArgs: LaunchArgs, platform: string) => {
-  const args: string[] = [];
+    if (!launchArgs.acceleration || launchArgs.acceleration === 'cpu') {
+      if (launchArgs.acceleration === 'cpu') {
+        args.push('--usecpu');
+      }
 
-  if (platform === 'darwin') {
-    return args;
-  }
+      return args;
+    }
 
-  if (!launchArgs.acceleration || launchArgs.acceleration === 'cpu') {
-    if (launchArgs.acceleration === 'cpu') {
-      args.push('--usecpu');
+    const isTensorSplitSupported =
+      launchArgs.acceleration === 'cuda' ||
+      launchArgs.acceleration === 'rocm' ||
+      launchArgs.acceleration === 'vulkan';
+
+    if (launchArgs.acceleration === 'cuda' || launchArgs.acceleration === 'rocm') {
+      args.push(...buildCudaArgs(launchArgs));
+
+      if (launchArgs.gpuDeviceSelection === 'all' && isTensorSplitSupported) {
+        addTensorSplitArgs(args, launchArgs);
+      }
+    } else if (launchArgs.acceleration === 'vulkan') {
+      args.push(...buildVulkanArgs());
+
+      if (launchArgs.gpuDeviceSelection === 'all' && isTensorSplitSupported) {
+        addTensorSplitArgs(args, launchArgs);
+      }
     }
 
     return args;
-  }
-
-  const isTensorSplitSupported =
-    launchArgs.acceleration === 'cuda' ||
-    launchArgs.acceleration === 'rocm' ||
-    launchArgs.acceleration === 'vulkan';
-
-  if (launchArgs.acceleration === 'cuda' || launchArgs.acceleration === 'rocm') {
-    args.push(...buildCudaArgs(launchArgs));
-
-    if (launchArgs.gpuDeviceSelection === 'all' && isTensorSplitSupported) {
-      addTensorSplitArgs(args, launchArgs);
-    }
-  } else if (launchArgs.acceleration === 'vulkan') {
-    args.push(...buildVulkanArgs());
-
-    if (launchArgs.gpuDeviceSelection === 'all' && isTensorSplitSupported) {
-      addTensorSplitArgs(args, launchArgs);
-    }
-  }
-
-  return args;
-};
+  };
 
 export const useLaunchLogic = ({ model, sdmodel, onLaunch }: UseLaunchLogicProps) => {
-  const [isLaunching, setIsLaunching] = useState(false);
+  const [isLaunching, setIsLaunching] = useState(false),
+    handleLaunch = useCallback(
+      async (launchArgs: LaunchArgs) => {
+        const hasTextModel = model.trim() !== '',
+          hasImageModel = sdmodel.trim() !== '';
 
-  const handleLaunch = useCallback(
-    async (launchArgs: LaunchArgs) => {
-      const hasTextModel = model.trim() !== '';
-      const hasImageModel = sdmodel.trim() !== '';
+        if (isLaunching || (!hasTextModel && !hasImageModel)) {
+          return;
+        }
 
-      if (isLaunching || (!hasTextModel && !hasImageModel)) {
-        return;
-      }
+        setIsLaunching(true);
 
-      setIsLaunching(true);
-
-      onLaunch();
-
-      const platform = await window.electronAPI.kobold.getPlatform();
-
-      const args: string[] = [
-        ...buildModelArgs(model, sdmodel, launchArgs),
-        ...buildConfigArgs(hasImageModel, launchArgs),
-        ...buildBackendArgs(launchArgs, platform),
-      ];
-
-      if (launchArgs.additionalArguments.trim()) {
-        const additionalArgs = launchArgs.additionalArguments.trim().split(/\s+/);
-        args.push(...additionalArgs);
-      }
-
-      const preLaunchCommands = launchArgs.preLaunchCommands.filter((cmd) => cmd.trim() !== '');
-
-      const result = await window.electronAPI.kobold.launchKoboldCpp(args, preLaunchCommands);
-
-      if (result.success) {
         onLaunch();
-      } else {
-        const errorMessage = result.error ?? 'Unknown launch error';
-        window.electronAPI.logs.logError('Launch failed:', new Error(errorMessage));
-      }
 
-      setIsLaunching(false);
-    },
-    [model, sdmodel, isLaunching, onLaunch],
-  );
+        const platform = await window.electronAPI.kobold.getPlatform(),
+          args: string[] = [
+            ...buildModelArgs(model, sdmodel, launchArgs),
+            ...buildConfigArgs(hasImageModel, launchArgs),
+            ...buildBackendArgs(launchArgs, platform),
+          ];
+
+        if (launchArgs.additionalArguments.trim()) {
+          const additionalArgs = launchArgs.additionalArguments.trim().split(/\s+/);
+          args.push(...additionalArgs);
+        }
+
+        const preLaunchCommands = launchArgs.preLaunchCommands.filter((cmd) => cmd.trim() !== ''),
+          result = await window.electronAPI.kobold.launchKoboldCpp(args, preLaunchCommands);
+
+        if (result.success) {
+          onLaunch();
+        } else {
+          const errorMessage = result.error ?? 'Unknown launch error';
+          window.electronAPI.logs.logError('Launch failed:', new Error(errorMessage));
+        }
+
+        setIsLaunching(false);
+      },
+      [model, sdmodel, isLaunching, onLaunch],
+    );
 
   return {
     handleLaunch,

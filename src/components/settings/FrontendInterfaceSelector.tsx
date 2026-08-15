@@ -29,174 +29,160 @@ export const FrontendInterfaceSelector = ({
   isOnInterfaceScreen = false,
 }: FrontendInterfaceSelectorProps) => {
   const {
-    frontendPreference,
-    setFrontendPreference,
-    imageGenerationFrontendPreference,
-    setImageGenerationFrontendPreference,
-  } = usePreferencesStore();
+      frontendPreference,
+      setFrontendPreference,
+      imageGenerationFrontendPreference,
+      setImageGenerationFrontendPreference,
+    } = usePreferencesStore(),
+    [frontendRequirements, setFrontendRequirements] = useState(new Map()),
+    [showClearDataModal, setShowClearDataModal] = useState(false),
+    frontendConfigs: FrontendConfig[] = useMemo(
+      () => [
+        {
+          label: FRONTENDS.LLAMA_CPP,
+          value: 'llamacpp',
+        },
+        {
+          label: FRONTENDS.KOBOLDAI_LITE,
+          value: 'koboldcpp',
+        },
+        {
+          label: FRONTENDS.SILLYTAVERN,
+          requirementCheck: () => window.electronAPI.dependencies.isNpxAvailable(),
+          requirements: [
+            {
+              id: 'nodejs',
+              name: 'Node.js',
+              url: 'https://nodejs.org/',
+            },
+          ],
+          value: 'sillytavern',
+        },
+        {
+          label: FRONTENDS.OPENWEBUI,
+          requirementCheck: () => window.electronAPI.dependencies.isUvAvailable(),
+          requirements: [
+            {
+              id: 'uv',
+              name: 'uv',
+              url: 'https://docs.astral.sh/uv/getting-started/installation/',
+            },
+          ],
+          value: 'openwebui',
+        },
+      ],
+      [],
+    ),
+    checkAllFrontendRequirements = useCallback(async () => {
+      const requirementResults = new Map<string, boolean>();
 
-  const [frontendRequirements, setFrontendRequirements] = useState(new Map());
-
-  const [showClearDataModal, setShowClearDataModal] = useState(false);
-
-  const frontendConfigs: FrontendConfig[] = useMemo(
-    () => [
-      {
-        label: FRONTENDS.LLAMA_CPP,
-        value: 'llamacpp',
-      },
-      {
-        label: FRONTENDS.KOBOLDAI_LITE,
-        value: 'koboldcpp',
-      },
-      {
-        label: FRONTENDS.SILLYTAVERN,
-        requirementCheck: () => window.electronAPI.dependencies.isNpxAvailable(),
-        requirements: [
-          {
-            id: 'nodejs',
-            name: 'Node.js',
-            url: 'https://nodejs.org/',
-          },
-        ],
-        value: 'sillytavern',
-      },
-      {
-        label: FRONTENDS.OPENWEBUI,
-        requirementCheck: () => window.electronAPI.dependencies.isUvAvailable(),
-        requirements: [
-          {
-            id: 'uv',
-            name: 'uv',
-            url: 'https://docs.astral.sh/uv/getting-started/installation/',
-          },
-        ],
-        value: 'openwebui',
-      },
-    ],
-    [],
-  );
-
-  const checkAllFrontendRequirements = useCallback(async () => {
-    const requirementResults = new Map<string, boolean>();
-
-    for (const config of frontendConfigs) {
-      if (config.requirementCheck) {
-        const isAvailable = await config.requirementCheck();
-        requirementResults.set(config.value, isAvailable);
-      } else {
-        requirementResults.set(config.value, true);
+      for (const config of frontendConfigs) {
+        if (config.requirementCheck) {
+          const isAvailable = await config.requirementCheck();
+          requirementResults.set(config.value, isAvailable);
+        } else {
+          requirementResults.set(config.value, true);
+        }
       }
-    }
 
-    setFrontendRequirements(requirementResults);
+      setFrontendRequirements(requirementResults);
 
-    const currentFrontendConfig = frontendConfigs.find(
-      (config) => config.value === frontendPreference,
-    );
-    if (currentFrontendConfig && !requirementResults.get(frontendPreference)) {
-      setFrontendPreference('llamacpp');
-    }
-  }, [frontendConfigs, frontendPreference, setFrontendPreference]);
-
-  const getSelectedFrontendConfig = () =>
-    frontendConfigs.find((config) => config.value === frontendPreference);
-
-  const getUnmetRequirements = () => {
-    const selectedConfig = getSelectedFrontendConfig();
-    if (!selectedConfig || !selectedConfig.requirements) {
-      return [];
-    }
-
-    const isAvailable = frontendRequirements.get(selectedConfig.value) ?? true;
-    return isAvailable ? [] : selectedConfig.requirements;
-  };
-
-  const getUnmetRequirementsForFrontend = (frontendValue: string) => {
-    const config = frontendConfigs.find((c) => c.value === frontendValue);
-    if (!config || !config.requirements) {
-      return [];
-    }
-
-    const isAvailable = frontendRequirements.get(frontendValue) ?? true;
-    return isAvailable ? [] : config.requirements;
-  };
-
-  const isFrontendAvailable = (frontendValue: string) =>
-    frontendRequirements.get(frontendValue) ?? true;
-
-  const handleFrontendPreferenceChange = (value: string | null) => {
-    setFrontendPreference(value as FrontendPreference);
-  };
-
-  const handleImageGenerationFrontendChange = (value: string | null) => {
-    setImageGenerationFrontendPreference(value as ImageGenerationFrontendPreference);
-  };
-
-  const handleClearOpenWebUIData = async () => {
-    await window.electronAPI.dependencies.clearOpenWebUIData();
-    setShowClearDataModal(false);
-  };
-
-  const renderDisabledFrontendWarnings = () => {
-    const disabledFrontends = frontendConfigs.filter(
-      (config) => !isFrontendAvailable(config.value),
-    );
-
-    if (disabledFrontends.length === 0) {
-      return null;
-    }
-
-    const requirementGroups = new Map<string, string[]>();
-
-    disabledFrontends.forEach((config) => {
-      const unmetReqs = getUnmetRequirementsForFrontend(config.value);
-      const reqKey = unmetReqs.map((req) => req.id).join(',');
-      if (!requirementGroups.has(reqKey)) {
-        requirementGroups.set(reqKey, []);
+      const currentFrontendConfig = frontendConfigs.find(
+        (config) => config.value === frontendPreference,
+      );
+      if (currentFrontendConfig && !requirementResults.get(frontendPreference)) {
+        setFrontendPreference('llamacpp');
       }
-      requirementGroups.get(reqKey)?.push(config.label);
-    });
+    }, [frontendConfigs, frontendPreference, setFrontendPreference]),
+    getSelectedFrontendConfig = () =>
+      frontendConfigs.find((config) => config.value === frontendPreference),
+    getUnmetRequirements = () => {
+      const selectedConfig = getSelectedFrontendConfig();
+      if (!selectedConfig || !selectedConfig.requirements) {
+        return [];
+      }
 
-    return (
-      <Box mt="sm">
-        {[...requirementGroups.entries()].map(([reqKey, frontendLabels]) => {
-          const firstDisabledFrontend = disabledFrontends.find(
-            (config) =>
-              getUnmetRequirementsForFrontend(config.value)
-                .map((req) => req.id)
-                .join(',') === reqKey,
-          );
-          const unmetReqs = firstDisabledFrontend
-            ? getUnmetRequirementsForFrontend(firstDisabledFrontend.value)
-            : [];
+      const isAvailable = frontendRequirements.get(selectedConfig.value) ?? true;
+      return isAvailable ? [] : selectedConfig.requirements;
+    },
+    getUnmetRequirementsForFrontend = (frontendValue: string) => {
+      const config = frontendConfigs.find((c) => c.value === frontendValue);
+      if (!config || !config.requirements) {
+        return [];
+      }
 
-          const frontendText =
-            frontendLabels.length === 1
-              ? frontendLabels[0]
-              : frontendLabels.length === 2
-                ? `${frontendLabels[0]} and ${frontendLabels[1]}`
-                : `${frontendLabels.slice(0, -1).join(', ')}, and ${frontendLabels[frontendLabels.length - 1]}`;
+      const isAvailable = frontendRequirements.get(frontendValue) ?? true;
+      return isAvailable ? [] : config.requirements;
+    },
+    isFrontendAvailable = (frontendValue: string) =>
+      frontendRequirements.get(frontendValue) ?? true,
+    handleFrontendPreferenceChange = (value: string | null) => {
+      setFrontendPreference(value as FrontendPreference);
+    },
+    handleImageGenerationFrontendChange = (value: string | null) => {
+      setImageGenerationFrontendPreference(value as ImageGenerationFrontendPreference);
+    },
+    handleClearOpenWebUIData = async () => {
+      await window.electronAPI.dependencies.clearOpenWebUIData();
+      setShowClearDataModal(false);
+    },
+    renderDisabledFrontendWarnings = () => {
+      const disabledFrontends = frontendConfigs.filter(
+        (config) => !isFrontendAvailable(config.value),
+      );
 
-          const isAre = frontendLabels.length === 1 ? 'is' : 'are';
+      if (disabledFrontends.length === 0) {
+        return null;
+      }
 
-          return (
-            <Text key={reqKey} size="sm" c="orange">
-              {frontendText} {isAre} disabled - requires{' '}
-              {unmetReqs.map((req, index) => (
-                <span key={req.id}>
-                  <Anchor href={req.url} target="_blank" rel="noopener noreferrer" td="underline">
-                    {req.name}
-                  </Anchor>
-                  {index < unmetReqs.length - 1 ? ', ' : ''}
-                </span>
-              ))}
-            </Text>
-          );
-        })}
-      </Box>
-    );
-  };
+      const requirementGroups = new Map<string, string[]>();
+
+      disabledFrontends.forEach((config) => {
+        const unmetReqs = getUnmetRequirementsForFrontend(config.value),
+          reqKey = unmetReqs.map((req) => req.id).join(',');
+        if (!requirementGroups.has(reqKey)) {
+          requirementGroups.set(reqKey, []);
+        }
+        requirementGroups.get(reqKey)?.push(config.label);
+      });
+
+      return (
+        <Box mt="sm">
+          {[...requirementGroups.entries()].map(([reqKey, frontendLabels]) => {
+            const firstDisabledFrontend = disabledFrontends.find(
+                (config) =>
+                  getUnmetRequirementsForFrontend(config.value)
+                    .map((req) => req.id)
+                    .join(',') === reqKey,
+              ),
+              unmetReqs = firstDisabledFrontend
+                ? getUnmetRequirementsForFrontend(firstDisabledFrontend.value)
+                : [],
+              frontendText =
+                frontendLabels.length === 1
+                  ? frontendLabels[0]
+                  : frontendLabels.length === 2
+                    ? `${frontendLabels[0]} and ${frontendLabels[1]}`
+                    : `${frontendLabels.slice(0, -1).join(', ')}, and ${frontendLabels[frontendLabels.length - 1]}`,
+              isAre = frontendLabels.length === 1 ? 'is' : 'are';
+
+            return (
+              <Text key={reqKey} size="sm" c="orange">
+                {frontendText} {isAre} disabled - requires{' '}
+                {unmetReqs.map((req, index) => (
+                  <span key={req.id}>
+                    <Anchor href={req.url} target="_blank" rel="noopener noreferrer" td="underline">
+                      {req.name}
+                    </Anchor>
+                    {index < unmetReqs.length - 1 ? ', ' : ''}
+                  </span>
+                ))}
+              </Text>
+            );
+          })}
+        </Box>
+      );
+    };
 
   useEffect(() => {
     void checkAllFrontendRequirements();

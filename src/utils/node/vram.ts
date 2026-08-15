@@ -47,8 +47,8 @@ function estimateContextVram(
   flashAttention: boolean,
   layerKvInfo: LayerKvInfo | number,
 ) {
-  const bytesPerElement = 2;
-  const flashAttnFactor = flashAttention ? 0.5 : 1;
+  const bytesPerElement = 2,
+    flashAttnFactor = flashAttention ? 0.5 : 1;
 
   if (typeof layerKvInfo === 'number') {
     return (2 * contextSize * layers * layerKvInfo * bytesPerElement * flashAttnFactor) / 1024 ** 3;
@@ -58,10 +58,10 @@ function estimateContextVram(
     layerKvInfo;
   let totalBytes = 0;
   for (let i = 0; i < layers; i++) {
-    const isSwa = isSwaByLayer[i] ?? false;
-    const effectiveContext = isSwa ? Math.min(contextSize, slidingWindow) : contextSize;
-    const headDim = isSwa ? swaHeadDim : globalHeadDim;
-    const kvHeads = headCountKvByLayer[i] ?? headCountKvByLayer[headCountKvByLayer.length - 1];
+    const isSwa = isSwaByLayer[i] ?? false,
+      effectiveContext = isSwa ? Math.min(contextSize, slidingWindow) : contextSize,
+      headDim = isSwa ? swaHeadDim : globalHeadDim,
+      kvHeads = headCountKvByLayer[i] ?? headCountKvByLayer[headCountKvByLayer.length - 1];
     totalBytes += 2 * effectiveContext * kvHeads * headDim * bytesPerElement * flashAttnFactor;
   }
   return totalBytes / 1024 ** 3;
@@ -78,8 +78,8 @@ export async function calculateOptimalGpuLayers({
 
   let fileSize: number;
   if (isUrl) {
-    const response = await fetch(modelPath, { method: 'HEAD' });
-    const contentLength = response.headers.get('content-length');
+    const response = await fetch(modelPath, { method: 'HEAD' }),
+      contentLength = response.headers.get('content-length');
     fileSize = contentLength ? parseInt(contentLength, 10) : 0;
   } else {
     const stats = await stat(modelPath);
@@ -95,69 +95,55 @@ export async function calculateOptimalGpuLayers({
   }
 
   const { metadata } = await gguf(modelPath, {
-    allowLocalFile: !isUrl,
-  });
-
-  const metadataRecord = metadata as Record<string, unknown>;
-
-  const architecture = (metadataRecord['general.architecture'] as string) || 'llama';
-  const totalLayers = (metadataRecord[`${architecture}.block_count`] as number) || 32;
-  const embeddingLength = (metadataRecord[`${architecture}.embedding_length`] as number) || 4096;
-  const headCount = (metadataRecord[`${architecture}.attention.head_count`] as number) || 32;
-
-  const headCountKvRaw = metadataRecord[`${architecture}.attention.head_count_kv`];
-  const headCountKvByLayer = Array.isArray(headCountKvRaw) ? (headCountKvRaw as number[]) : null;
-  const headCountKvScalar = headCountKvByLayer
-    ? Math.max(...headCountKvByLayer)
-    : (headCountKvRaw as number) || headCount;
-
-  const keyLength = metadataRecord[`${architecture}.attention.key_length`] as number | undefined;
-  const valueLength = metadataRecord[`${architecture}.attention.value_length`] as
-    | number
-    | undefined;
-  const keyLengthSwa = metadataRecord[`${architecture}.attention.key_length_swa`] as
-    | number
-    | undefined;
-  const valueLengthSwa = metadataRecord[`${architecture}.attention.value_length_swa`] as
-    | number
-    | undefined;
-  const globalHeadDim = keyLength ?? valueLength ?? embeddingLength / headCount;
-  const swaHeadDim = keyLengthSwa ?? valueLengthSwa ?? globalHeadDim;
-
-  const slidingWindow = metadataRecord[`${architecture}.attention.sliding_window`] as
-    | number
-    | undefined;
-  const slidingWindowPatternRaw =
-    metadataRecord[`${architecture}.attention.sliding_window_pattern`];
-  const isSwaByLayer = Array.isArray(slidingWindowPatternRaw)
-    ? (slidingWindowPatternRaw as boolean[])
-    : null;
-
-  const layerKvInfo: LayerKvInfo | number =
-    (headCountKvByLayer ?? (slidingWindow !== undefined && isSwaByLayer))
-      ? {
-          headCountKvByLayer: headCountKvByLayer ?? Array(totalLayers).fill(headCountKvScalar),
-          globalHeadDim,
-          swaHeadDim,
-          slidingWindow: slidingWindow ?? contextSize,
-          isSwaByLayer: isSwaByLayer ?? Array(totalLayers).fill(false),
-        }
-      : headCountKvScalar * globalHeadDim;
-
-  const { multiplier, computeBufferGB, headroomGB } = getAccelerationOverhead(acceleration);
-
-  const modelSizeGB = fileSize / 1024 ** 3;
-  const effectiveModelSizeGB = modelSizeGB * multiplier;
-  const vramPerLayerGB = effectiveModelSizeGB / totalLayers;
-
-  const availableForModel = availableVramGB - computeBufferGB - headroomGB;
+      allowLocalFile: !isUrl,
+    }),
+    metadataRecord = metadata as Record<string, unknown>,
+    architecture = (metadataRecord['general.architecture'] as string) || 'llama',
+    totalLayers = (metadataRecord[`${architecture}.block_count`] as number) || 32,
+    embeddingLength = (metadataRecord[`${architecture}.embedding_length`] as number) || 4096,
+    headCount = (metadataRecord[`${architecture}.attention.head_count`] as number) || 32,
+    headCountKvRaw = metadataRecord[`${architecture}.attention.head_count_kv`],
+    headCountKvByLayer = Array.isArray(headCountKvRaw) ? (headCountKvRaw as number[]) : null,
+    headCountKvScalar = headCountKvByLayer
+      ? Math.max(...headCountKvByLayer)
+      : (headCountKvRaw as number) || headCount,
+    keyLength = metadataRecord[`${architecture}.attention.key_length`] as number | undefined,
+    valueLength = metadataRecord[`${architecture}.attention.value_length`] as number | undefined,
+    keyLengthSwa = metadataRecord[`${architecture}.attention.key_length_swa`] as number | undefined,
+    valueLengthSwa = metadataRecord[`${architecture}.attention.value_length_swa`] as
+      | number
+      | undefined,
+    globalHeadDim = keyLength ?? valueLength ?? embeddingLength / headCount,
+    swaHeadDim = keyLengthSwa ?? valueLengthSwa ?? globalHeadDim,
+    slidingWindow = metadataRecord[`${architecture}.attention.sliding_window`] as
+      | number
+      | undefined,
+    slidingWindowPatternRaw = metadataRecord[`${architecture}.attention.sliding_window_pattern`],
+    isSwaByLayer = Array.isArray(slidingWindowPatternRaw)
+      ? (slidingWindowPatternRaw as boolean[])
+      : null,
+    layerKvInfo: LayerKvInfo | number =
+      (headCountKvByLayer ?? (slidingWindow !== undefined && isSwaByLayer))
+        ? {
+            headCountKvByLayer: headCountKvByLayer ?? Array(totalLayers).fill(headCountKvScalar),
+            globalHeadDim,
+            swaHeadDim,
+            slidingWindow: slidingWindow ?? contextSize,
+            isSwaByLayer: isSwaByLayer ?? Array(totalLayers).fill(false),
+          }
+        : headCountKvScalar * globalHeadDim,
+    { multiplier, computeBufferGB, headroomGB } = getAccelerationOverhead(acceleration),
+    modelSizeGB = fileSize / 1024 ** 3,
+    effectiveModelSizeGB = modelSizeGB * multiplier,
+    vramPerLayerGB = effectiveModelSizeGB / totalLayers,
+    availableForModel = availableVramGB - computeBufferGB - headroomGB;
 
   let recommendedLayers = 0;
 
   for (let layers = 1; layers <= totalLayers; layers++) {
-    const modelVram = layers * vramPerLayerGB;
-    const contextVram = estimateContextVram(contextSize, layers, flashAttention, layerKvInfo);
-    const totalVram = modelVram + contextVram;
+    const modelVram = layers * vramPerLayerGB,
+      contextVram = estimateContextVram(contextSize, layers, flashAttention, layerKvInfo),
+      totalVram = modelVram + contextVram;
 
     if (totalVram <= availableForModel) {
       recommendedLayers = layers;
@@ -166,13 +152,13 @@ export async function calculateOptimalGpuLayers({
     }
   }
 
-  const modelVramGB = recommendedLayers * vramPerLayerGB;
-  const contextVramGB = estimateContextVram(
-    contextSize,
-    recommendedLayers,
-    flashAttention,
-    layerKvInfo,
-  );
+  const modelVramGB = recommendedLayers * vramPerLayerGB,
+    contextVramGB = estimateContextVram(
+      contextSize,
+      recommendedLayers,
+      flashAttention,
+      layerKvInfo,
+    );
 
   return {
     contextVramGB,

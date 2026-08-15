@@ -1,30 +1,29 @@
 const isValidUrl = (string: string) => {
-  try {
-    const url = new URL(string);
-    return url.protocol === 'http:' || url.protocol === 'https:';
-  } catch {
-    return false;
-  }
-};
+    try {
+      const url = new URL(string);
+      return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  },
+  isValidFilePath = (path: string) => {
+    if (!path.trim()) {
+      return false;
+    }
 
-const isValidFilePath = (path: string) => {
-  if (!path.trim()) {
-    return false;
-  }
+    const validExtensions = ['.gguf'],
+      hasValidExtension = validExtensions.some((ext) => path.toLowerCase().endsWith(ext));
 
-  const validExtensions = ['.gguf'];
-  const hasValidExtension = validExtensions.some((ext) => path.toLowerCase().endsWith(ext));
-
-  return hasValidExtension || path.includes('/') || path.includes('\\');
-};
+    return hasValidExtension || path.includes('/') || path.includes('\\');
+  };
 
 export const getInputValidationState = (path: string) => {
   if (!path.trim()) {
     return 'neutral';
   }
 
-  const isUrl = isValidUrl(path);
-  const isFile = isValidFilePath(path);
+  const isUrl = isValidUrl(path),
+    isFile = isValidFilePath(path);
 
   if (isUrl) {
     return 'valid';

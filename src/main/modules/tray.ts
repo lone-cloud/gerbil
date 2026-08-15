@@ -16,16 +16,16 @@ import { getMainWindow } from './window';
 const needsMetricsInMenu =
   platform === 'linux' && /gnome/i.test(process.env.XDG_CURRENT_DESKTOP ?? '');
 
-let tray: Tray | null = null;
-let currentMetrics: {
-  cpu: CpuMetrics | null;
-  memory: MemoryMetrics | null;
-  gpu: GpuMetrics | null;
-} = {
-  cpu: null,
-  gpu: null,
-  memory: null,
-};
+let tray: Tray | null = null,
+  currentMetrics: {
+    cpu: CpuMetrics | null;
+    memory: MemoryMetrics | null;
+    gpu: GpuMetrics | null;
+  } = {
+    cpu: null,
+    gpu: null,
+    memory: null,
+  };
 
 interface TrayAppState {
   currentScreen: Screen | null;
@@ -86,9 +86,8 @@ function buildTooltipText() {
   const parts: string[] = [];
 
   if (appState.monitoringEnabled && currentMetrics.cpu && currentMetrics.memory) {
-    const metrics: string[] = [];
-
-    const cpuText = `CPU:   ${currentMetrics.cpu.usage}%${currentMetrics.cpu.temperature ? ` • ${currentMetrics.cpu.temperature}°C` : ''}`;
+    const metrics: string[] = [],
+      cpuText = `CPU:   ${currentMetrics.cpu.usage}%${currentMetrics.cpu.temperature ? ` • ${currentMetrics.cpu.temperature}°C` : ''}`;
     metrics.push(cpuText);
 
     const ramText = `RAM:   ${currentMetrics.memory.usage}% • ${currentMetrics.memory.used.toFixed(2)} GB`;
@@ -96,13 +95,13 @@ function buildTooltipText() {
 
     if (currentMetrics.gpu?.gpus) {
       currentMetrics.gpu.gpus.forEach((gpu, index) => {
-        const gpuLabel = (currentMetrics.gpu?.gpus?.length ?? 0) > 1 ? `GPU ${index + 1}` : 'GPU';
-        const gpuText = `${gpuLabel}:   ${gpu.usage}%${gpu.temperature ? ` • ${gpu.temperature}°C` : ''}`;
+        const gpuLabel = (currentMetrics.gpu?.gpus?.length ?? 0) > 1 ? `GPU ${index + 1}` : 'GPU',
+          gpuText = `${gpuLabel}:   ${gpu.usage}%${gpu.temperature ? ` • ${gpu.temperature}°C` : ''}`;
         metrics.push(gpuText);
 
         const vramLabel =
-          (currentMetrics.gpu?.gpus?.length ?? 0) > 1 ? `VRAM ${index + 1}` : 'VRAM';
-        const vramText = `${vramLabel}: ${gpu.memoryUsage}% • ${gpu.memoryUsed.toFixed(2)} GB`;
+            (currentMetrics.gpu?.gpus?.length ?? 0) > 1 ? `VRAM ${index + 1}` : 'VRAM',
+          vramText = `${vramLabel}: ${gpu.memoryUsage}% • ${gpu.memoryUsed.toFixed(2)} GB`;
         metrics.push(vramText);
       });
     }
@@ -160,10 +159,9 @@ function buildMetricsMenuItems(): MenuItemConstructorOptions[] {
 }
 
 function buildContextMenu() {
-  const mainWindow = getMainWindow();
-  const isVisible = mainWindow.isVisible();
-
-  const menuTemplate: MenuItemConstructorOptions[] = [];
+  const mainWindow = getMainWindow(),
+    isVisible = mainWindow.isVisible(),
+    menuTemplate: MenuItemConstructorOptions[] = [];
 
   if (needsMetricsInMenu) {
     menuTemplate.push(...buildMetricsMenuItems());
@@ -220,10 +218,9 @@ export function createTray() {
   }
 
   const iconPath = app.isPackaged
-    ? join(resourcesPath, 'icon.png')
-    : join(__dirname, '../../src/assets/icon.png');
-
-  const icon = nativeImage.createFromPath(iconPath);
+      ? join(resourcesPath, 'icon.png')
+      : join(__dirname, '../../src/assets/icon.png'),
+    icon = nativeImage.createFromPath(iconPath);
 
   if (icon.isEmpty()) {
     return;

@@ -13,21 +13,20 @@ import { compareVersions, getDisplayNameFromPath, stripAssetExtensions } from '@
 
 export const BackendsTab = () => {
   const {
-    availableDownloads,
-    loadingPlatform,
-    loadingRemote,
-    downloading,
-    handleDownload: handleDownloadFromStore,
-    getLatestReleaseWithDownloadStatus,
-    refreshDownloads,
-  } = useKoboldBackendsStore();
-
-  const [installedBackends, setInstalledBackends] = useState<InstalledBackend[]>([]);
-  const [currentBackend, setCurrentBackend] = useState<InstalledBackend | null>(null);
-  const [loadingInstalled, setLoadingInstalled] = useState(true);
-  const [latestRelease, setLatestRelease] = useState<ReleaseWithStatus | null>(null);
-  const [importing, setImporting] = useState(false);
-  const downloadingItemRef = useRef<HTMLDivElement>(null);
+      availableDownloads,
+      loadingPlatform,
+      loadingRemote,
+      downloading,
+      handleDownload: handleDownloadFromStore,
+      getLatestReleaseWithDownloadStatus,
+      refreshDownloads,
+    } = useKoboldBackendsStore(),
+    [installedBackends, setInstalledBackends] = useState<InstalledBackend[]>([]),
+    [currentBackend, setCurrentBackend] = useState<InstalledBackend | null>(null),
+    [loadingInstalled, setLoadingInstalled] = useState(true),
+    [latestRelease, setLatestRelease] = useState<ReleaseWithStatus | null>(null),
+    [importing, setImporting] = useState(false),
+    downloadingItemRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -54,102 +53,98 @@ export const BackendsTab = () => {
   }, [getLatestReleaseWithDownloadStatus, refreshDownloads]);
 
   const loadInstalledBackends = useCallback(async () => {
-    const [backends, current] = await Promise.all([
-      window.electronAPI.kobold.getInstalledBackends(),
-      window.electronAPI.kobold.getCurrentBackend(),
-    ]);
+      const [backends, current] = await Promise.all([
+        window.electronAPI.kobold.getInstalledBackends(),
+        window.electronAPI.kobold.getCurrentBackend(),
+      ]);
 
-    setInstalledBackends(backends);
-    setCurrentBackend(current);
-  }, []);
+      setInstalledBackends(backends);
+      setCurrentBackend(current);
+    }, []),
+    allBackends = useMemo((): BackendInfo[] => {
+      const backends: BackendInfo[] = [],
+        processedInstalled = new Set<string>();
 
-  const allBackends = useMemo((): BackendInfo[] => {
-    const backends: BackendInfo[] = [];
-    const processedInstalled = new Set<string>();
+      availableDownloads.forEach((download) => {
+        const downloadBaseName = stripAssetExtensions(download.name),
+          matchingBackends = installedBackends.filter((b) => {
+            const displayName = getDisplayNameFromPath(b);
+            return displayName === downloadBaseName;
+          });
 
-    availableDownloads.forEach((download) => {
-      const downloadBaseName = stripAssetExtensions(download.name);
+        if (matchingBackends.length > 0) {
+          const downloadVersion = download.version ?? 'unknown',
+            hasMultipleVersions = new Set(matchingBackends.map((b) => b.version)).size > 1;
 
-      const matchingBackends = installedBackends.filter((b) => {
-        const displayName = getDisplayNameFromPath(b);
-        return displayName === downloadBaseName;
+          matchingBackends.forEach((installedBackend) => {
+            processedInstalled.add(installedBackend.path);
+
+            const isCurrent = Boolean(
+                currentBackend && currentBackend.path === installedBackend.path,
+              ),
+              isLocal =
+                installedBackend.source === 'local' ||
+                (hasMultipleVersions &&
+                  installedBackend.version !== downloadVersion &&
+                  installedBackend.source !== 'local'),
+              hasUpdate =
+                !isLocal && compareVersions(downloadVersion, installedBackend.version) > 0;
+
+            backends.push({
+              actualVersion: installedBackend.actualVersion,
+              downloadUrl: download.url,
+              hasUpdate,
+              installedPath: installedBackend.path,
+              isCurrent,
+              isInstalled: true,
+              isLocal,
+              name: download.name,
+              newerVersion: hasUpdate ? download.version : undefined,
+              size: undefined,
+              version: installedBackend.version,
+            });
+          });
+        } else {
+          backends.push({
+            downloadUrl: download.url,
+            isCurrent: false,
+            isInstalled: false,
+            name: download.name,
+            size: download.size,
+            version: download.version ?? 'unknown',
+          });
+        }
       });
 
-      if (matchingBackends.length > 0) {
-        const downloadVersion = download.version ?? 'unknown';
-        const hasMultipleVersions = new Set(matchingBackends.map((b) => b.version)).size > 1;
-
-        matchingBackends.forEach((installedBackend) => {
-          processedInstalled.add(installedBackend.path);
-
-          const isCurrent = Boolean(
-            currentBackend && currentBackend.path === installedBackend.path,
-          );
-
-          const isLocal =
-            installedBackend.source === 'local' ||
-            (hasMultipleVersions &&
-              installedBackend.version !== downloadVersion &&
-              installedBackend.source !== 'local');
-
-          const hasUpdate =
-            !isLocal && compareVersions(downloadVersion, installedBackend.version) > 0;
+      installedBackends.forEach((installed) => {
+        if (!processedInstalled.has(installed.path)) {
+          const displayName = getDisplayNameFromPath(installed),
+            isCurrent = Boolean(currentBackend && currentBackend.path === installed.path);
 
           backends.push({
-            actualVersion: installedBackend.actualVersion,
-            downloadUrl: download.url,
-            hasUpdate,
-            installedPath: installedBackend.path,
+            actualVersion: installed.actualVersion,
+            installedPath: installed.path,
             isCurrent,
             isInstalled: true,
-            isLocal,
-            name: download.name,
-            newerVersion: hasUpdate ? download.version : undefined,
+            isLocal: installed.source === 'local',
+            name: displayName,
             size: undefined,
-            version: installedBackend.version,
+            version: installed.version,
           });
-        });
-      } else {
-        backends.push({
-          downloadUrl: download.url,
-          isCurrent: false,
-          isInstalled: false,
-          name: download.name,
-          size: download.size,
-          version: download.version ?? 'unknown',
-        });
-      }
-    });
+        }
+      });
 
-    installedBackends.forEach((installed) => {
-      if (!processedInstalled.has(installed.path)) {
-        const displayName = getDisplayNameFromPath(installed);
-        const isCurrent = Boolean(currentBackend && currentBackend.path === installed.path);
+      return backends.toSorted((a, b) => {
+        if (a.isInstalled && !b.isInstalled) {
+          return -1;
+        }
+        if (!a.isInstalled && b.isInstalled) {
+          return 1;
+        }
 
-        backends.push({
-          actualVersion: installed.actualVersion,
-          installedPath: installed.path,
-          isCurrent,
-          isInstalled: true,
-          isLocal: installed.source === 'local',
-          name: displayName,
-          size: undefined,
-          version: installed.version,
-        });
-      }
-    });
-
-    return backends.toSorted((a, b) => {
-      if (a.isInstalled && !b.isInstalled) {
-        return -1;
-      }
-      if (!a.isInstalled && b.isInstalled) {
-        return 1;
-      }
-
-      return 0;
-    });
-  }, [availableDownloads, installedBackends, currentBackend]);
+        return 0;
+      });
+    }, [availableDownloads, installedBackends, currentBackend]);
 
   useEffect(() => {
     if (downloading && downloadingItemRef.current) {
@@ -161,75 +156,71 @@ export const BackendsTab = () => {
   }, [downloading]);
 
   const handleDownload = async (backend: BackendInfo) => {
-    const download = availableDownloads.find((d) => d.name === backend.name);
-    if (!download) {
-      return;
-    }
+      const download = availableDownloads.find((d) => d.name === backend.name);
+      if (!download) {
+        return;
+      }
 
-    await handleDownloadFromStore({
-      isUpdate: false,
-      item: download,
-      wasCurrentBinary: false,
-    });
+      await handleDownloadFromStore({
+        isUpdate: false,
+        item: download,
+        wasCurrentBinary: false,
+      });
 
-    await loadInstalledBackends();
-  };
-
-  const handleUpdate = async (backend: BackendInfo) => {
-    const download = availableDownloads.find((d) => d.name === backend.name);
-    if (!download) {
-      return;
-    }
-
-    await handleDownloadFromStore({
-      isUpdate: true,
-      item: download,
-      oldBackendPath: backend.installedPath,
-      wasCurrentBinary: backend.isCurrent,
-    });
-
-    await loadInstalledBackends();
-  };
-
-  const handleRedownload = async (backend: BackendInfo) => {
-    const download = availableDownloads.find((d) => d.name === backend.name);
-    if (!download) {
-      return;
-    }
-
-    await handleDownloadFromStore({
-      isUpdate: true,
-      item: download,
-      oldBackendPath: backend.installedPath,
-      wasCurrentBinary: backend.isCurrent,
-    });
-
-    await loadInstalledBackends();
-  };
-
-  const handleDelete = async (backend: BackendInfo) => {
-    if (!backend.installedPath || backend.isCurrent) {
-      return;
-    }
-
-    const result = await window.electronAPI.kobold.deleteRelease(backend.installedPath);
-    if (result.success) {
       await loadInstalledBackends();
-    }
-  };
+    },
+    handleUpdate = async (backend: BackendInfo) => {
+      const download = availableDownloads.find((d) => d.name === backend.name);
+      if (!download) {
+        return;
+      }
 
-  const makeCurrent = (backend: BackendInfo) => {
-    if (!backend.installedPath) {
-      return;
-    }
+      await handleDownloadFromStore({
+        isUpdate: true,
+        item: download,
+        oldBackendPath: backend.installedPath,
+        wasCurrentBinary: backend.isCurrent,
+      });
 
-    const targetBackend = installedBackends.find((b) => b.path === backend.installedPath);
-    if (targetBackend) {
-      setCurrentBackend(targetBackend);
-    }
+      await loadInstalledBackends();
+    },
+    handleRedownload = async (backend: BackendInfo) => {
+      const download = availableDownloads.find((d) => d.name === backend.name);
+      if (!download) {
+        return;
+      }
 
-    void window.electronAPI.kobold.setCurrentBackend(backend.installedPath);
-  };
+      await handleDownloadFromStore({
+        isUpdate: true,
+        item: download,
+        oldBackendPath: backend.installedPath,
+        wasCurrentBinary: backend.isCurrent,
+      });
+
+      await loadInstalledBackends();
+    },
+    handleDelete = async (backend: BackendInfo) => {
+      if (!backend.installedPath || backend.isCurrent) {
+        return;
+      }
+
+      const result = await window.electronAPI.kobold.deleteRelease(backend.installedPath);
+      if (result.success) {
+        await loadInstalledBackends();
+      }
+    },
+    makeCurrent = (backend: BackendInfo) => {
+      if (!backend.installedPath) {
+        return;
+      }
+
+      const targetBackend = installedBackends.find((b) => b.path === backend.installedPath);
+      if (targetBackend) {
+        setCurrentBackend(targetBackend);
+      }
+
+      void window.electronAPI.kobold.setCurrentBackend(backend.installedPath);
+    };
 
   if (loadingInstalled) {
     return (

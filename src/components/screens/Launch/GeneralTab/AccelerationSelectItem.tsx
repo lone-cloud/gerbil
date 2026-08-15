@@ -16,12 +16,11 @@ export const AccelerationSelectItem = ({
   devices,
   disabled = false,
 }: AccelerationSelectItemProps) => {
-  const ignoreIGPUs = usePreferencesStore((s) => s.ignoreIGPUs);
-
-  const shownDevices =
-    ignoreIGPUs && devices
-      ? devices.filter((d) => typeof d === 'string' || !d.isIntegrated)
-      : (devices ?? []);
+  const ignoreIGPUs = usePreferencesStore((s) => s.ignoreIGPUs),
+    shownDevices =
+      ignoreIGPUs && devices
+        ? devices.filter((d) => typeof d === 'string' || !d.isIntegrated)
+        : (devices ?? []);
 
   return (
     <Group justify="space-between" wrap="nowrap">

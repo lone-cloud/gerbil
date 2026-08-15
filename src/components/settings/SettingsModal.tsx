@@ -32,11 +32,9 @@ export const SettingsModal = ({
   currentScreen,
   isOnInterfaceScreen = false,
 }: SettingsModalProps) => {
-  const [activeTab, setActiveTab] = useState('general');
-
-  const showBackendsTab = currentScreen !== 'download' && currentScreen !== 'welcome';
-
-  const effectiveActiveTab = !showBackendsTab && activeTab === 'backends' ? 'general' : activeTab;
+  const [activeTab, setActiveTab] = useState('general'),
+    showBackendsTab = currentScreen !== 'download' && currentScreen !== 'welcome',
+    effectiveActiveTab = !showBackendsTab && activeTab === 'backends' ? 'general' : activeTab;
 
   return (
     <Modal

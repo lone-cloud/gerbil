@@ -267,8 +267,8 @@ export function setupIPCHandlers() {
   ipcMain.handle('dependencies:isUvAvailable', () => isUvAvailable());
 
   ipcMain.handle('dependencies:clearOpenWebUIData', async () => {
-    const { rm } = await import('node:fs/promises');
-    const openWebUIDataDir = join(getInstallDir(), 'openwebui-data');
+    const { rm } = await import('node:fs/promises'),
+      openWebUIDataDir = join(getInstallDir(), 'openwebui-data');
     try {
       await rm(openWebUIDataDir, { force: true, recursive: true });
       return { success: true };

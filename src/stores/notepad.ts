@@ -33,16 +33,15 @@ export const useNotepadStore = create<NotepadStore>()(
     isVisible: false,
     loadState: async () => {
       try {
-        const savedState = await window.electronAPI.notepad.loadState();
-
-        const tabsWithContent = await Promise.all(
-          savedState.tabs.map((tab) =>
-            window.electronAPI.notepad.loadTabContent(tab.title).then((content) => ({
-              ...tab,
-              content,
-            })),
-          ),
-        );
+        const savedState = await window.electronAPI.notepad.loadState(),
+          tabsWithContent = await Promise.all(
+            savedState.tabs.map((tab) =>
+              window.electronAPI.notepad.loadTabContent(tab.title).then((content) => ({
+                ...tab,
+                content,
+              })),
+            ),
+          );
 
         if (tabsWithContent.length === 0) {
           const defaultTab = await window.electronAPI.notepad.createNewTab();
@@ -87,13 +86,13 @@ export const useNotepadStore = create<NotepadStore>()(
         return;
       }
 
-      const newTabs = state.tabs.filter((tab) => tab.title !== title);
-      const newActiveTabId =
-        state.activeTabId === title
-          ? newTabs.length > 0
-            ? newTabs[Math.max(0, newTabs.length - 1)].title
-            : null
-          : state.activeTabId;
+      const newTabs = state.tabs.filter((tab) => tab.title !== title),
+        newActiveTabId =
+          state.activeTabId === title
+            ? newTabs.length > 0
+              ? newTabs[Math.max(0, newTabs.length - 1)].title
+              : null
+            : state.activeTabId;
 
       set({
         tabs: newTabs,
@@ -104,9 +103,9 @@ export const useNotepadStore = create<NotepadStore>()(
     },
 
     reorderTabs: (fromIndex, toIndex) => {
-      const state = get();
-      const newTabs = [...state.tabs];
-      const [movedTab] = newTabs.splice(fromIndex, 1);
+      const state = get(),
+        newTabs = [...state.tabs],
+        [movedTab] = newTabs.splice(fromIndex, 1);
       newTabs.splice(toIndex, 0, movedTab);
 
       set({ tabs: newTabs });

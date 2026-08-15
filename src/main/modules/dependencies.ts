@@ -8,8 +8,8 @@ import { app } from 'electron';
 import { PRODUCT_NAME } from '@/constants';
 import { spawnAsync } from '@/utils/node/process';
 
-const PATH_SEPARATOR = platform === 'win32' ? ';' : ':';
-const BIN_SUBDIRS = ['bin', join('installation', 'bin')];
+const PATH_SEPARATOR = platform === 'win32' ? ';' : ':',
+  BIN_SUBDIRS = ['bin', join('installation', 'bin')];
 
 async function pathExists(path: string) {
   try {
@@ -47,8 +47,8 @@ async function executeCommand(
 }
 
 async function getUvVersion() {
-  const env = await getUvEnvironment();
-  const result = await executeCommand('uv', ['--version'], env);
+  const env = await getUvEnvironment(),
+    result = await executeCommand('uv', ['--version'], env);
 
   if (result.success && result.output) {
     const version = /uv\s+(?<version>\d+\.\d+\.\d+)/i.exec(result.output);
@@ -58,8 +58,8 @@ async function getUvVersion() {
 }
 
 async function getSystemNodeVersion() {
-  const env = await getNodeEnvironment();
-  const result = await executeCommand('node', ['--version'], env);
+  const env = await getNodeEnvironment(),
+    result = await executeCommand('node', ['--version'], env);
 
   if (result.success && result.output) {
     return result.output.replace(/^v/, '') || null;
@@ -73,11 +73,9 @@ export async function isUvAvailable() {
 }
 
 export async function getUvEnvironment() {
-  const env = { ...processEnv };
-
-  const uvPaths = [join(homedir(), '.cargo', 'bin'), join(homedir(), '.local', 'bin')];
-
-  const existingPaths: string[] = [];
+  const env = { ...processEnv },
+    uvPaths = [join(homedir(), '.cargo', 'bin'), join(homedir(), '.local', 'bin')],
+    existingPaths: string[] = [];
   for (const path of uvPaths) {
     if (await pathExists(path)) {
       existingPaths.push(path);
@@ -99,8 +97,8 @@ export async function getUvEnvironment() {
 }
 
 export async function isNpxAvailable() {
-  const env = await getNodeEnvironment();
-  const result = await executeCommand('npx', ['--version'], env);
+  const env = await getNodeEnvironment(),
+    result = await executeCommand('npx', ['--version'], env);
   return result.success;
 }
 
@@ -168,11 +166,11 @@ async function tryVersionManagerPath(basePath: string, env: Record<string, strin
   }
 
   try {
-    const entries = await readdir(basePath);
-    const nodeVersions = entries
-      .filter((v) => v.startsWith('v'))
-      .toSorted((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
-    const latestVersion = nodeVersions.pop();
+    const entries = await readdir(basePath),
+      nodeVersions = entries
+        .filter((v) => v.startsWith('v'))
+        .toSorted((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })),
+      latestVersion = nodeVersions.pop();
 
     if (latestVersion) {
       const binPath = await findNodeBinPath(join(basePath, latestVersion));
@@ -200,10 +198,10 @@ export async function getAURVersion() {
 
   try {
     const { stdout } = await spawnAsync('pacman', ['-Q', packageName], {
-      reject: false,
-      timeout: 1000,
-    });
-    const trimmed = stdout.trim();
+        reject: false,
+        timeout: 1000,
+      }),
+      trimmed = stdout.trim();
     if (trimmed.length > 0) {
       aurVersionCache = trimmed.replace(`${packageName} `, '');
       return aurVersionCache;
@@ -222,12 +220,12 @@ export async function isAURInstallation() {
 let launchTimeMtime: number | null = null;
 
 export async function checkForReloadNeeded() {
-  const appImagePath = processEnv.APPIMAGE;
-  const targetPath = appImagePath ?? app.getPath('exe');
+  const appImagePath = processEnv.APPIMAGE,
+    targetPath = appImagePath ?? app.getPath('exe');
 
   try {
-    const fileStat = await stat(targetPath);
-    const mtime = fileStat.mtimeMs;
+    const fileStat = await stat(targetPath),
+      mtime = fileStat.mtimeMs;
 
     if (launchTimeMtime === null) {
       launchTimeMtime = mtime;
@@ -284,13 +282,11 @@ export function isWindowsPortableInstallation() {
   }
 
   try {
-    const execPath = app.getPath('exe');
-
-    const isInTemp =
-      execPath.toLowerCase().includes('\\temp\\') || execPath.toLowerCase().includes('\\tmp\\');
-
-    const isInProgramFiles = execPath.toLowerCase().includes('program files');
-    const isInAppDataPrograms = execPath.toLowerCase().includes(String.raw`appdata\local\programs`);
+    const execPath = app.getPath('exe'),
+      isInTemp =
+        execPath.toLowerCase().includes('\\temp\\') || execPath.toLowerCase().includes('\\tmp\\'),
+      isInProgramFiles = execPath.toLowerCase().includes('program files'),
+      isInAppDataPrograms = execPath.toLowerCase().includes(String.raw`appdata\local\programs`);
 
     windowsPortableInstallationCache = isInTemp && !isInProgramFiles && !isInAppDataPrograms;
 

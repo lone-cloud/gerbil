@@ -13,9 +13,9 @@ interface AppearanceTabProps {
 }
 
 export const AppearanceTab = ({ isOnInterfaceScreen = false }: AppearanceTabProps) => {
-  const { rawColorScheme, setColorScheme: setStoreColorScheme } = usePreferencesStore();
-  const [zoomLevel, setZoomLevel] = useState(ZOOM.DEFAULT_LEVEL as number);
-  const [zoomPercentage, setZoomPercentage] = useState(ZOOM.DEFAULT_PERCENTAGE.toString());
+  const { rawColorScheme, setColorScheme: setStoreColorScheme } = usePreferencesStore(),
+    [zoomLevel, setZoomLevel] = useState(ZOOM.DEFAULT_LEVEL as number),
+    [zoomPercentage, setZoomPercentage] = useState(ZOOM.DEFAULT_PERCENTAGE.toString());
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -31,28 +31,26 @@ export const AppearanceTab = ({ isOnInterfaceScreen = false }: AppearanceTabProp
   }, []);
 
   const handleColorSchemeChange = (value: string) => {
-    const newColorScheme = value as MantineColorScheme;
-    void setStoreColorScheme(newColorScheme);
-  };
-
-  const handleZoomChange = (newZoomLevel: number) => {
-    setZoomLevel(newZoomLevel);
-    const percentage = zoomLevelToPercentage(newZoomLevel);
-    setZoomPercentage(percentage.toString());
-
-    void window.electronAPI.app.setZoomLevel(newZoomLevel);
-  };
-
-  const handleZoomPercentageChange = (value: string) => {
-    setZoomPercentage(value);
-    const numValue = Number(value);
-    if (!Number.isNaN(numValue) && isValidZoomPercentage(numValue)) {
-      const newZoomLevel = percentageToZoomLevel(numValue);
+      const newColorScheme = value as MantineColorScheme;
+      void setStoreColorScheme(newColorScheme);
+    },
+    handleZoomChange = (newZoomLevel: number) => {
       setZoomLevel(newZoomLevel);
+      const percentage = zoomLevelToPercentage(newZoomLevel);
+      setZoomPercentage(percentage.toString());
 
       void window.electronAPI.app.setZoomLevel(newZoomLevel);
-    }
-  };
+    },
+    handleZoomPercentageChange = (value: string) => {
+      setZoomPercentage(value);
+      const numValue = Number(value);
+      if (!Number.isNaN(numValue) && isValidZoomPercentage(numValue)) {
+        const newZoomLevel = percentageToZoomLevel(numValue);
+        setZoomLevel(newZoomLevel);
+
+        void window.electronAPI.app.setZoomLevel(newZoomLevel);
+      }
+    };
 
   return (
     <Stack gap="lg" h="100%">
@@ -119,8 +117,8 @@ export const AppearanceTab = ({ isOnInterfaceScreen = false }: AppearanceTabProp
             value={zoomPercentage}
             onChange={(event) => handleZoomPercentageChange(event.currentTarget.value)}
             onBlur={(event) => {
-              const { value } = event.currentTarget;
-              const numValue = Number(value);
+              const { value } = event.currentTarget,
+                numValue = Number(value);
               if (Number.isNaN(numValue) || !isValidZoomPercentage(numValue)) {
                 setZoomPercentage(zoomLevelToPercentage(zoomLevel).toString());
               }

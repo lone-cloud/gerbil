@@ -16,12 +16,11 @@ interface UseWarningsProps {
 }
 
 const checkModelWarnings = (model: string, sdmodel: string, configLoaded: boolean) => {
-  const hasTextModel = model?.trim() !== '';
-  const hasImageModel = sdmodel.trim() !== '';
-  const showModelPriorityWarning = hasTextModel && hasImageModel;
-  const showNoModelWarning = !hasTextModel && !hasImageModel && configLoaded;
-
-  const warnings: Warning[] = [];
+  const hasTextModel = model?.trim() !== '',
+    hasImageModel = sdmodel.trim() !== '',
+    showModelPriorityWarning = hasTextModel && hasImageModel,
+    showNoModelWarning = !hasTextModel && !hasImageModel && configLoaded,
+    warnings: Warning[] = [];
 
   if (showModelPriorityWarning) {
     warnings.push({
@@ -53,124 +52,123 @@ interface GpuInfo {
 }
 
 const checkGpuWarnings = async (
-  accelerationSupport: AccelerationSupport,
-  gpuCapabilities: GpuCapabilities,
-  gpuInfo: GpuInfo,
-) => {
-  const warnings: Warning[] = [];
+    accelerationSupport: AccelerationSupport,
+    gpuCapabilities: GpuCapabilities,
+    gpuInfo: GpuInfo,
+  ) => {
+    const warnings: Warning[] = [];
 
-  if (accelerationSupport.cuda && gpuCapabilities.cuda.devices.length === 0 && gpuInfo.hasNVIDIA) {
-    warnings.push({
-      message:
-        'Your binary supports CUDA and you have an NVIDIA GPU, but CUDA runtime is not detected on your system.',
-      type: 'warning',
-    });
-  }
-
-  if (accelerationSupport.rocm && gpuCapabilities.rocm.devices.length === 0 && gpuInfo.hasAMD) {
-    const platform = await window.electronAPI.kobold.getPlatform();
-    const baseMessage =
-      'Your binary supports ROCm and you have an AMD GPU, but ROCm runtime is not detected on your system.';
-
-    let message = baseMessage;
-    if (platform === 'win32') {
-      message +=
-        ' On Windows, make sure ROCm is installed and its bin directory is added to your PATH so that hipInfo.exe can be found.';
+    if (
+      accelerationSupport.cuda &&
+      gpuCapabilities.cuda.devices.length === 0 &&
+      gpuInfo.hasNVIDIA
+    ) {
+      warnings.push({
+        message:
+          'Your binary supports CUDA and you have an NVIDIA GPU, but CUDA runtime is not detected on your system.',
+        type: 'warning',
+      });
     }
 
-    warnings.push({
-      message,
-      type: 'info',
-    });
-  }
+    if (accelerationSupport.rocm && gpuCapabilities.rocm.devices.length === 0 && gpuInfo.hasAMD) {
+      const platform = await window.electronAPI.kobold.getPlatform(),
+        baseMessage =
+          'Your binary supports ROCm and you have an AMD GPU, but ROCm runtime is not detected on your system.';
 
-  return warnings;
-};
+      let message = baseMessage;
+      if (platform === 'win32') {
+        message +=
+          ' On Windows, make sure ROCm is installed and its bin directory is added to your PATH so that hipInfo.exe can be found.';
+      }
 
-const checkVramWarnings = async (acceleration: string): Promise<Warning[]> => {
-  const warnings: Warning[] = [];
-  const isGpuAcceleration = ['cuda', 'rocm', 'vulkan'].includes(acceleration);
+      warnings.push({
+        message,
+        type: 'info',
+      });
+    }
 
-  if (isGpuAcceleration) {
-    const gpuMemoryInfo = await window.electronAPI.kobold.detectGPUMemory();
+    return warnings;
+  },
+  checkVramWarnings = async (acceleration: string): Promise<Warning[]> => {
+    const warnings: Warning[] = [],
+      isGpuAcceleration = ['cuda', 'rocm', 'vulkan'].includes(acceleration);
 
-    if (gpuMemoryInfo) {
-      const lowVramThreshold = 8;
-      const validGpus = gpuMemoryInfo.filter(
-        (gpu) => gpu.totalMemoryGB !== null && gpu.totalMemoryGB !== '',
-      );
-      const lowVramGpus = validGpus.filter(
-        (gpu) => parseFloat(gpu.totalMemoryGB ?? '0') < lowVramThreshold,
-      );
+    if (isGpuAcceleration) {
+      const gpuMemoryInfo = await window.electronAPI.kobold.detectGPUMemory();
 
-      if (validGpus.length > 0 && lowVramGpus.length === validGpus.length) {
-        const memoryDetails = lowVramGpus
-          .map((gpu) => `${parseFloat(gpu.totalMemoryGB ?? '0').toFixed(1)}GB`)
-          .join(', ');
+      if (gpuMemoryInfo) {
+        const lowVramThreshold = 8,
+          validGpus = gpuMemoryInfo.filter(
+            (gpu) => gpu.totalMemoryGB !== null && gpu.totalMemoryGB !== '',
+          ),
+          lowVramGpus = validGpus.filter(
+            (gpu) => parseFloat(gpu.totalMemoryGB ?? '0') < lowVramThreshold,
+          );
 
-        warnings.push({
-          message: `Low VRAM detected (${memoryDetails}). Consider using smaller models, reducing GPU layers, or enabling the "Low VRAM" option on the Advanced tab.`,
-          type: 'warning',
-        });
+        if (validGpus.length > 0 && lowVramGpus.length === validGpus.length) {
+          const memoryDetails = lowVramGpus
+            .map((gpu) => `${parseFloat(gpu.totalMemoryGB ?? '0').toFixed(1)}GB`)
+            .join(', ');
+
+          warnings.push({
+            message: `Low VRAM detected (${memoryDetails}). Consider using smaller models, reducing GPU layers, or enabling the "Low VRAM" option on the Advanced tab.`,
+            type: 'warning',
+          });
+        }
       }
     }
-  }
 
-  return warnings;
-};
-
-const checkCpuWarnings = (acceleration: string, availableAccelerations: AccelerationOption[]) => {
-  const warnings: Warning[] = [];
-
-  if (acceleration !== 'cpu') {
     return warnings;
-  }
+  },
+  checkCpuWarnings = (acceleration: string, availableAccelerations: AccelerationOption[]) => {
+    const warnings: Warning[] = [];
 
-  if (availableAccelerations.some((a) => a.value === 'cpu')) {
-    warnings.push({
-      message:
-        "LLMs run significantly faster on GPU-accelerated systems. Consider using NVIDIA's CUDA, AMD's ROCm or Vulkan backends for optimal performance.",
-      type: 'info',
-    });
-  }
-
-  return warnings;
-};
-
-const checkBackendWarnings = async (params?: {
-  acceleration: string;
-  cpuCapabilities: CPUCapabilities | null;
-  availableAccelerations: AccelerationOption[];
-}) => {
-  const warnings: Warning[] = [];
-
-  const [accelerationSupport, gpuCapabilities, gpuInfo] = await Promise.all([
-    window.electronAPI.kobold.detectAccelerationSupport(),
-    window.electronAPI.kobold.detectGPUCapabilities(),
-    window.electronAPI.kobold.detectGPU(),
-  ]);
-
-  if (!accelerationSupport) {
-    return warnings;
-  }
-
-  const gpuWarnings = await checkGpuWarnings(accelerationSupport, gpuCapabilities, gpuInfo);
-  warnings.push(...gpuWarnings);
-
-  if (params) {
-    const { acceleration, cpuCapabilities, availableAccelerations } = params;
-
-    const vramWarnings = await checkVramWarnings(acceleration);
-    warnings.push(...vramWarnings);
-
-    if (cpuCapabilities) {
-      const cpuWarnings = checkCpuWarnings(acceleration, availableAccelerations);
-      warnings.push(...cpuWarnings);
+    if (acceleration !== 'cpu') {
+      return warnings;
     }
-  }
 
-  return warnings;
-};
+    if (availableAccelerations.some((a) => a.value === 'cpu')) {
+      warnings.push({
+        message:
+          "LLMs run significantly faster on GPU-accelerated systems. Consider using NVIDIA's CUDA, AMD's ROCm or Vulkan backends for optimal performance.",
+        type: 'info',
+      });
+    }
+
+    return warnings;
+  },
+  checkBackendWarnings = async (params?: {
+    acceleration: string;
+    cpuCapabilities: CPUCapabilities | null;
+    availableAccelerations: AccelerationOption[];
+  }) => {
+    const warnings: Warning[] = [],
+      [accelerationSupport, gpuCapabilities, gpuInfo] = await Promise.all([
+        window.electronAPI.kobold.detectAccelerationSupport(),
+        window.electronAPI.kobold.detectGPUCapabilities(),
+        window.electronAPI.kobold.detectGPU(),
+      ]);
+
+    if (!accelerationSupport) {
+      return warnings;
+    }
+
+    const gpuWarnings = await checkGpuWarnings(accelerationSupport, gpuCapabilities, gpuInfo);
+    warnings.push(...gpuWarnings);
+
+    if (params) {
+      const { acceleration, cpuCapabilities, availableAccelerations } = params,
+        vramWarnings = await checkVramWarnings(acceleration);
+      warnings.push(...vramWarnings);
+
+      if (cpuCapabilities) {
+        const cpuWarnings = checkCpuWarnings(acceleration, availableAccelerations);
+        warnings.push(...cpuWarnings);
+      }
+    }
+
+    return warnings;
+  };
 
 export const useWarnings = ({
   model,
@@ -178,32 +176,29 @@ export const useWarnings = ({
   acceleration,
   configLoaded = false,
 }: UseWarningsProps) => {
-  const [backendWarnings, setBackendWarnings] = useState<Warning[]>([]);
+  const [backendWarnings, setBackendWarnings] = useState<Warning[]>([]),
+    modelWarnings = useMemo(
+      () => checkModelWarnings(model, sdmodel, configLoaded),
+      [model, sdmodel, configLoaded],
+    ),
+    updateBackendWarnings = useCallback(async () => {
+      if (!acceleration) {
+        setBackendWarnings([]);
+        return;
+      }
 
-  const modelWarnings = useMemo(
-    () => checkModelWarnings(model, sdmodel, configLoaded),
-    [model, sdmodel, configLoaded],
-  );
+      const [cpuCapabilitiesResult, availableAccelerations] = await Promise.all([
+          window.electronAPI.kobold.detectCPU(),
+          window.electronAPI.kobold.getAvailableAccelerations(),
+        ]),
+        result = await checkBackendWarnings({
+          acceleration,
+          availableAccelerations,
+          cpuCapabilities: cpuCapabilitiesResult,
+        });
 
-  const updateBackendWarnings = useCallback(async () => {
-    if (!acceleration) {
-      setBackendWarnings([]);
-      return;
-    }
-
-    const [cpuCapabilitiesResult, availableAccelerations] = await Promise.all([
-      window.electronAPI.kobold.detectCPU(),
-      window.electronAPI.kobold.getAvailableAccelerations(),
-    ]);
-
-    const result = await checkBackendWarnings({
-      acceleration,
-      availableAccelerations,
-      cpuCapabilities: cpuCapabilitiesResult,
-    });
-
-    setBackendWarnings(result);
-  }, [acceleration]);
+      setBackendWarnings(result);
+    }, [acceleration]);
 
   useEffect(() => {
     void updateBackendWarnings();

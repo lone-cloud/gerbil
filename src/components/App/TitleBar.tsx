@@ -34,21 +34,19 @@ const renderOption = ({ option }: { option: SelectOption }) => (
 );
 
 export const TitleBar = ({ currentScreen, currentTab, onEject, onTabChange }: TitleBarProps) => {
-  const { frontendPreference, imageGenerationFrontendPreference } = usePreferencesStore();
-  const { handleLogoClick, getLogoStyles } = useLogoClickSounds();
-  const [isMaximized, setIsMaximized] = useState(false);
-  const [isSelectOpen, setIsSelectOpen] = useState(false);
-  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
-
-  const { isTextMode, isImageGenerationMode } = useLaunchConfigStore();
-
-  const handleTabChange = (value: string | null) => {
-    if (value === 'eject') {
-      onEject();
-    } else if (value) {
-      onTabChange(value as InterfaceTab);
-    }
-  };
+  const { frontendPreference, imageGenerationFrontendPreference } = usePreferencesStore(),
+    { handleLogoClick, getLogoStyles } = useLogoClickSounds(),
+    [isMaximized, setIsMaximized] = useState(false),
+    [isSelectOpen, setIsSelectOpen] = useState(false),
+    [settingsModalOpen, setSettingsModalOpen] = useState(false),
+    { isTextMode, isImageGenerationMode } = useLaunchConfigStore(),
+    handleTabChange = (value: string | null) => {
+      if (value === 'eject') {
+        onEject();
+      } else if (value) {
+        onTabChange(value as InterfaceTab);
+      }
+    };
 
   useEffect(() => {
     const initializeState = async () => {

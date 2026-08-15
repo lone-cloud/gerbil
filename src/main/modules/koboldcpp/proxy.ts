@@ -6,65 +6,63 @@ import { logError } from '@/utils/node/logging';
 
 import { sendKoboldOutput } from '../window';
 
-let proxyServer: http.Server | null = null;
-let koboldCppHost = 'localhost';
-let koboldCppPort = 5001;
+let proxyServer: http.Server | null = null,
+  koboldCppHost = 'localhost',
+  koboldCppPort = 5001;
 
 const replaceKoboldWithGerbil = (data: string) => {
-  try {
-    return data.replace(/"koboldcpp\//g, '"gerbil/');
-  } catch {
-    return data;
-  }
-};
+    try {
+      return data.replace(/"koboldcpp\//g, '"gerbil/');
+    } catch {
+      return data;
+    }
+  },
+  proxyRequest = (clientReq: IncomingMessage, clientRes: ServerResponse) => {
+    const options = {
+        headers: {
+          ...clientReq.headers,
+          host: `${koboldCppHost}:${koboldCppPort}`,
+        },
+        hostname: koboldCppHost,
+        method: clientReq.method,
+        path: clientReq.url,
+        port: koboldCppPort,
+      },
+      proxyReq = http.request(options, (proxyRes) => {
+        const isJson = proxyRes.headers['content-type']?.includes('application/json');
 
-const proxyRequest = (clientReq: IncomingMessage, clientRes: ServerResponse) => {
-  const options = {
-    headers: {
-      ...clientReq.headers,
-      host: `${koboldCppHost}:${koboldCppPort}`,
-    },
-    hostname: koboldCppHost,
-    method: clientReq.method,
-    path: clientReq.url,
-    port: koboldCppPort,
+        if (isJson) {
+          let body = '';
+
+          proxyRes.on('data', (chunk) => {
+            body += chunk.toString();
+          });
+
+          proxyRes.on('end', () => {
+            const modifiedBody = replaceKoboldWithGerbil(body);
+
+            clientRes.writeHead(proxyRes.statusCode ?? 200, {
+              ...proxyRes.headers,
+              'content-length': Buffer.byteLength(modifiedBody),
+            });
+            clientRes.end(modifiedBody);
+          });
+        } else {
+          clientRes.writeHead(proxyRes.statusCode ?? 200, proxyRes.headers);
+          proxyRes.pipe(clientRes);
+        }
+      });
+
+    proxyReq.on('error', (error) => {
+      logError(`Proxy request error: ${error.message}`, error);
+      if (!clientRes.headersSent) {
+        clientRes.writeHead(502);
+        clientRes.end('Bad Gateway');
+      }
+    });
+
+    clientReq.pipe(proxyReq);
   };
-
-  const proxyReq = http.request(options, (proxyRes) => {
-    const isJson = proxyRes.headers['content-type']?.includes('application/json');
-
-    if (isJson) {
-      let body = '';
-
-      proxyRes.on('data', (chunk) => {
-        body += chunk.toString();
-      });
-
-      proxyRes.on('end', () => {
-        const modifiedBody = replaceKoboldWithGerbil(body);
-
-        clientRes.writeHead(proxyRes.statusCode ?? 200, {
-          ...proxyRes.headers,
-          'content-length': Buffer.byteLength(modifiedBody),
-        });
-        clientRes.end(modifiedBody);
-      });
-    } else {
-      clientRes.writeHead(proxyRes.statusCode ?? 200, proxyRes.headers);
-      proxyRes.pipe(clientRes);
-    }
-  });
-
-  proxyReq.on('error', (error) => {
-    logError(`Proxy request error: ${error.message}`, error);
-    if (!clientRes.headersSent) {
-      clientRes.writeHead(502);
-      clientRes.end('Bad Gateway');
-    }
-  });
-
-  clientReq.pipe(proxyReq);
-};
 
 export const startProxy = (targetHost: string, targetPort: number) =>
   new Promise<void>((resolve, reject) => {

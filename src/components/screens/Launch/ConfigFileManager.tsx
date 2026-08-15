@@ -27,67 +27,57 @@ export const ConfigFileManager = ({
   onSaveConfig,
   onDeleteConfig,
 }: ConfigFileManagerProps) => {
-  const [configModalOpened, setConfigModalOpened] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [deleteModalOpened, setDeleteModalOpened] = useState(false);
-  const [configToDelete, setConfigToDelete] = useState<string | null>(null);
-
-  const existingConfigNames = configFiles.map((file) =>
-    stripFileExtension(file.name).toLowerCase(),
-  );
-
-  const handleOpenConfigModal = () => {
-    setConfigModalOpened(true);
-  };
-
-  const handleCloseConfigModal = useCallback(() => {
-    setConfigModalOpened(false);
-  }, []);
-
-  const handleDeleteClick = () => {
-    if (selectedFile) {
-      setConfigToDelete(selectedFile);
-      setDeleteModalOpened(true);
-    }
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (configToDelete) {
-      const success = await onDeleteConfig(configToDelete);
-      if (success) {
-        setConfigToDelete(null);
-        setDeleteModalOpened(false);
+  const [configModalOpened, setConfigModalOpened] = useState(false),
+    [saveSuccess, setSaveSuccess] = useState(false),
+    [deleteModalOpened, setDeleteModalOpened] = useState(false),
+    [configToDelete, setConfigToDelete] = useState<string | null>(null),
+    existingConfigNames = configFiles.map((file) => stripFileExtension(file.name).toLowerCase()),
+    handleOpenConfigModal = () => {
+      setConfigModalOpened(true);
+    },
+    handleCloseConfigModal = useCallback(() => {
+      setConfigModalOpened(false);
+    }, []),
+    handleDeleteClick = () => {
+      if (selectedFile) {
+        setConfigToDelete(selectedFile);
+        setDeleteModalOpened(true);
       }
-    }
-  };
-
-  const handleDeleteCancel = () => {
-    setConfigToDelete(null);
-    setDeleteModalOpened(false);
-  };
-
-  const handleSaveClick = async () => {
-    if (selectedFile) {
-      const success = await onSaveConfig();
-      if (success) {
-        setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 1500);
+    },
+    handleDeleteConfirm = async () => {
+      if (configToDelete) {
+        const success = await onDeleteConfig(configToDelete);
+        if (success) {
+          setConfigToDelete(null);
+          setDeleteModalOpened(false);
+        }
       }
-    } else {
-      handleOpenConfigModal();
-    }
-  };
+    },
+    handleDeleteCancel = () => {
+      setConfigToDelete(null);
+      setDeleteModalOpened(false);
+    },
+    handleSaveClick = async () => {
+      if (selectedFile) {
+        const success = await onSaveConfig();
+        if (success) {
+          setSaveSuccess(true);
+          setTimeout(() => setSaveSuccess(false), 1500);
+        }
+      } else {
+        handleOpenConfigModal();
+      }
+    },
+    selectData = configFiles.map((file) => {
+      const extension = file.name.split('.').pop() ?? '',
+        nameWithoutExtension = stripFileExtension(file.name);
 
-  const selectData = configFiles.map((file) => {
-    const extension = file.name.split('.').pop() ?? '';
-    const nameWithoutExtension = stripFileExtension(file.name);
-
-    return {
-      extension: `.${extension}`,
-      label: nameWithoutExtension,
-      value: file.name,
-    };
-  });
+      return {
+        extension: `.${extension}`,
+        label: nameWithoutExtension,
+        value: file.name,
+      };
+    });
 
   return (
     <>

@@ -17,8 +17,8 @@ import { getInstallDir } from './config';
 import { getNodeEnvironment } from './dependencies';
 import { sendKoboldOutput, sendToRenderer } from './window';
 
-let sillyTavernProcess: ChildProcess | null = null;
-let proxyServer: Server | null = null;
+let sillyTavernProcess: ChildProcess | null = null,
+  proxyServer: Server | null = null;
 
 const SILLYTAVERN_BASE_ARGS = ['--listen', '--browserLaunchEnabled', 'false', '--disableCsrf'];
 
@@ -30,17 +30,12 @@ process.on('SIGTERM', () => {
   void stopFrontend();
 });
 
-const getSillyTavernDataDir = () => join(getInstallDir(), 'sillytavern-data');
-
-const getSillyTavernInstallDir = () => join(getInstallDir(), 'sillytavern-server');
-
-const getSillyTavernServerPath = () =>
-  join(getSillyTavernInstallDir(), 'node_modules', 'sillytavern', 'server.js');
-
-const getSillyTavernSettingsPath = () =>
-  join(getSillyTavernDataDir(), 'default-user', 'settings.json');
-
-const getSillyTavernPidPath = () => join(getSillyTavernInstallDir(), 'sillytavern.pid');
+const getSillyTavernDataDir = () => join(getInstallDir(), 'sillytavern-data'),
+  getSillyTavernInstallDir = () => join(getInstallDir(), 'sillytavern-server'),
+  getSillyTavernServerPath = () =>
+    join(getSillyTavernInstallDir(), 'node_modules', 'sillytavern', 'server.js'),
+  getSillyTavernSettingsPath = () => join(getSillyTavernDataDir(), 'default-user', 'settings.json'),
+  getSillyTavernPidPath = () => join(getSillyTavernInstallDir(), 'sillytavern.pid');
 
 async function saveSillyTavernPid(pid: number) {
   await writeFile(getSillyTavernPidPath(), String(pid), 'utf8').catch(() => {});
@@ -53,8 +48,8 @@ async function clearSillyTavernPid() {
 async function killOrphanedSillyTavern() {
   const pidPath = getSillyTavernPidPath();
   if (!(await pathExists(pidPath))) return;
-  const raw = await readFile(pidPath, 'utf8').catch(() => null);
-  const pid = raw ? parseInt(raw.trim(), 10) : NaN;
+  const raw = await readFile(pidPath, 'utf8').catch(() => null),
+    pid = raw ? parseInt(raw.trim(), 10) : NaN;
   if (!isNaN(pid)) {
     await killProcessByPid(pid);
   }
@@ -62,20 +57,18 @@ async function killOrphanedSillyTavern() {
 }
 
 async function ensureSillyTavernInstalled() {
-  const serverPath = getSillyTavernServerPath();
-  const installDir = getSillyTavernInstallDir();
-  const env = await getNodeEnvironment();
-
-  const nodeModulesPath = join(installDir, 'node_modules');
-  const jsquashFlatPath = join(nodeModulesPath, '@jsquash');
+  const serverPath = getSillyTavernServerPath(),
+    installDir = getSillyTavernInstallDir(),
+    env = await getNodeEnvironment(),
+    nodeModulesPath = join(installDir, 'node_modules'),
+    jsquashFlatPath = join(nodeModulesPath, '@jsquash');
 
   if (await pathExists(jsquashFlatPath)) {
     sendKoboldOutput('Detected old flat installation, cleaning up...');
     await tryExecute(async () => {
       await new Promise<void>((resolve, reject) => {
-        const rmCmd = platform === 'win32' ? 'rmdir' : 'rm';
-        const rmArgs =
-          platform === 'win32' ? ['/s', '/q', nodeModulesPath] : ['-rf', nodeModulesPath];
+        const rmCmd = platform === 'win32' ? 'rmdir' : 'rm',
+          rmArgs = platform === 'win32' ? ['/s', '/q', nodeModulesPath] : ['-rf', nodeModulesPath];
 
         spawn(rmCmd, rmArgs, {
           shell: true,
@@ -158,9 +151,9 @@ async function ensureSillyTavernInstalled() {
 }
 
 async function createNpxProcess(args: string[]) {
-  const env = await getNodeEnvironment();
-  const serverJsPath = getSillyTavernServerPath();
-  const installDir = getSillyTavernInstallDir();
+  const env = await getNodeEnvironment(),
+    serverJsPath = getSillyTavernServerPath(),
+    installDir = getSillyTavernInstallDir();
 
   return spawn('node', [serverJsPath, ...args], {
     cwd: installDir,
@@ -336,19 +329,18 @@ const createProxyServer = (targetPort: number, proxyPort: number) => {
     delete headers.forwarded;
 
     const options = {
-      headers,
-      hostname: 'localhost',
-      method: req.method,
-      path: req.url,
-      port: targetPort,
-    };
-
-    const proxyReq = request(options, (proxyRes) => {
-      const responseHeaders = { ...proxyRes.headers };
-      delete responseHeaders['x-frame-options'];
-      res.writeHead(proxyRes.statusCode ?? 200, responseHeaders);
-      proxyRes.pipe(res);
-    });
+        headers,
+        hostname: 'localhost',
+        method: req.method,
+        path: req.url,
+        port: targetPort,
+      },
+      proxyReq = request(options, (proxyRes) => {
+        const responseHeaders = { ...proxyRes.headers };
+        delete responseHeaders['x-frame-options'];
+        res.writeHead(proxyRes.statusCode ?? 200, responseHeaders);
+        proxyRes.pipe(res);
+      });
 
     proxyReq.on('error', (err) => {
       logError('Proxy request error:', err);
@@ -371,11 +363,11 @@ const createProxyServer = (targetPort: number, proxyPort: number) => {
 export async function startFrontend(args: string[]) {
   try {
     const config = {
-      name: 'sillytavern',
-      port: SILLYTAVERN.PORT,
-      proxyPort: SILLYTAVERN.PROXY_PORT,
-    };
-    const { isImageMode } = parseKoboldConfig(args);
+        name: 'sillytavern',
+        port: SILLYTAVERN.PORT,
+        proxyPort: SILLYTAVERN.PROXY_PORT,
+      },
+      { isImageMode } = parseKoboldConfig(args);
 
     await stopFrontend();
 
@@ -389,15 +381,14 @@ export async function startFrontend(args: string[]) {
 
     createProxyServer(config.port, config.proxyPort);
 
-    const sillyTavernDataDir = getSillyTavernDataDir();
-
-    const sillyTavernArgs = [
-      ...SILLYTAVERN_BASE_ARGS,
-      '--port',
-      config.port.toString(),
-      '--dataRoot',
-      sillyTavernDataDir,
-    ];
+    const sillyTavernDataDir = getSillyTavernDataDir(),
+      sillyTavernArgs = [
+        ...SILLYTAVERN_BASE_ARGS,
+        '--port',
+        config.port.toString(),
+        '--dataRoot',
+        sillyTavernDataDir,
+      ];
 
     sillyTavernProcess = await createNpxProcess(sillyTavernArgs);
 

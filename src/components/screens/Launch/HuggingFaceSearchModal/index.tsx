@@ -42,32 +42,30 @@ export const HuggingFaceSearchModal = ({
   onSelect,
   searchParams: initialSearchParams,
 }: HuggingFaceSearchModalProps) => {
-  const [searchQuery, setSearchQuery] = useState(initialSearchParams.search ?? '');
-  const [debouncedQuery] = useDebouncedValue(searchQuery, 600);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const prevOpenedRef = useRef(false);
-
-  const {
-    models,
-    files,
-    loading,
-    loadingFiles,
-    error,
-    hasMore,
-    selectedModel,
-    sortBy,
-    searchParams,
-    searchModels,
-    loadMoreModels,
-    loadModelFiles,
-    changeSortOrder,
-    getFileDownloadUrl,
-    reset,
-  } = useHuggingFaceSearch(initialSearchParams);
-
-  const handleSortChange = (value: string) => {
-    changeSortOrder(value as HuggingFaceSortOption, searchQuery);
-  };
+  const [searchQuery, setSearchQuery] = useState(initialSearchParams.search ?? ''),
+    [debouncedQuery] = useDebouncedValue(searchQuery, 600),
+    scrollAreaRef = useRef<HTMLDivElement>(null),
+    prevOpenedRef = useRef(false),
+    {
+      models,
+      files,
+      loading,
+      loadingFiles,
+      error,
+      hasMore,
+      selectedModel,
+      sortBy,
+      searchParams,
+      searchModels,
+      loadMoreModels,
+      loadModelFiles,
+      changeSortOrder,
+      getFileDownloadUrl,
+      reset,
+    } = useHuggingFaceSearch(initialSearchParams),
+    handleSortChange = (value: string) => {
+      changeSortOrder(value as HuggingFaceSortOption, searchQuery);
+    };
 
   useEffect(() => {
     if (opened && !prevOpenedRef.current) {
@@ -86,44 +84,39 @@ export const HuggingFaceSearchModal = ({
   }, [debouncedQuery, opened, searchModels]);
 
   const handleClose = () => {
-    setSearchQuery(initialSearchParams.search ?? '');
-    onClose();
-  };
-
-  const handleModelSelect = (model: HuggingFaceModelInfo) => {
-    void loadModelFiles(model);
-  };
-
-  const handleFileSelect = (file: HuggingFaceFileInfo) => {
-    if (!selectedModel) {
-      return;
-    }
-    const url = getFileDownloadUrl(selectedModel.id, file.path);
-    onSelect(url);
-    handleClose();
-  };
-
-  const handleBack = () => {
-    reset();
-    void searchModels(searchQuery);
-  };
-
-  const handleOpenExternal = () => {
-    if (selectedModel) {
-      void window.electronAPI.app.openExternal(`${HUGGINGFACE_BASE_URL}/${selectedModel.id}`);
-    }
-  };
-
-  const getFilterBadges = () => {
-    const badges: string[] = [];
-    if (searchParams?.filter) {
-      badges.push(searchParams.filter.toUpperCase());
-    }
-    if (searchParams?.pipelineTag) {
-      badges.push(searchParams.pipelineTag.replace('-', ' '));
-    }
-    return badges;
-  };
+      setSearchQuery(initialSearchParams.search ?? '');
+      onClose();
+    },
+    handleModelSelect = (model: HuggingFaceModelInfo) => {
+      void loadModelFiles(model);
+    },
+    handleFileSelect = (file: HuggingFaceFileInfo) => {
+      if (!selectedModel) {
+        return;
+      }
+      const url = getFileDownloadUrl(selectedModel.id, file.path);
+      onSelect(url);
+      handleClose();
+    },
+    handleBack = () => {
+      reset();
+      void searchModels(searchQuery);
+    },
+    handleOpenExternal = () => {
+      if (selectedModel) {
+        void window.electronAPI.app.openExternal(`${HUGGINGFACE_BASE_URL}/${selectedModel.id}`);
+      }
+    },
+    getFilterBadges = () => {
+      const badges: string[] = [];
+      if (searchParams?.filter) {
+        badges.push(searchParams.filter.toUpperCase());
+      }
+      if (searchParams?.pipelineTag) {
+        badges.push(searchParams.pipelineTag.replace('-', ' '));
+      }
+      return badges;
+    };
 
   return (
     <Modal

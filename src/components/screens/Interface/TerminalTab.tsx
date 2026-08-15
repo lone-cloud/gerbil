@@ -10,15 +10,15 @@ export interface TerminalTabRef {
 }
 
 export const TerminalTab = forwardRef<TerminalTabRef>((_props, ref) => {
-  const [terminalContent, setTerminalContent] = useState('');
-  const [isUserScrolling, setIsUserScrolling] = useState(false);
-  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
-  const [isVisible, setIsVisible] = useState(false);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const lastScrollTop = useRef(0);
-  const shouldAutoScrollRef = useRef(true);
-  const isUserScrollingRef = useRef(false);
+  const [terminalContent, setTerminalContent] = useState(''),
+    [isUserScrolling, setIsUserScrolling] = useState(false),
+    [shouldAutoScroll, setShouldAutoScroll] = useState(true),
+    [isVisible, setIsVisible] = useState(false),
+    scrollAreaRef = useRef<HTMLDivElement>(null),
+    viewportRef = useRef<HTMLDivElement>(null),
+    lastScrollTop = useRef(0),
+    shouldAutoScrollRef = useRef(true),
+    isUserScrollingRef = useRef(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -33,8 +33,8 @@ export const TerminalTab = forwardRef<TerminalTabRef>((_props, ref) => {
       return;
     }
 
-    const { scrollHeight, clientHeight } = viewportRef.current;
-    const isAtBottomNow = y + clientHeight >= scrollHeight - 10;
+    const { scrollHeight, clientHeight } = viewportRef.current,
+      isAtBottomNow = y + clientHeight >= scrollHeight - 10;
 
     if (y < lastScrollTop.current) {
       setIsUserScrolling(true);

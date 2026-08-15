@@ -96,12 +96,11 @@ export const patchKliteEmbd = (unpackedDir: string) =>
 export const patchKcppSduiEmbd = (unpackedDir: string) =>
   tryExecute(async () => {
     const possiblePaths = [
-      join(unpackedDir, '_internal', 'embd_res', 'kcpp_sdui.embd'),
-      join(unpackedDir, 'embd_res', 'kcpp_sdui.embd'),
-      join(unpackedDir, 'kcpp_sdui.embd'),
-    ];
-
-    const sourceAssetPath = getAssetPath('kcpp_sdui.embd');
+        join(unpackedDir, '_internal', 'embd_res', 'kcpp_sdui.embd'),
+        join(unpackedDir, 'embd_res', 'kcpp_sdui.embd'),
+        join(unpackedDir, 'kcpp_sdui.embd'),
+      ],
+      sourceAssetPath = getAssetPath('kcpp_sdui.embd');
 
     for (const targetPath of possiblePaths) {
       if (await pathExists(targetPath)) {
@@ -114,12 +113,11 @@ export const patchKcppSduiEmbd = (unpackedDir: string) =>
 export const patchLcppGzEmbd = (unpackedDir: string) =>
   tryExecute(async () => {
     const possiblePaths = [
-      join(unpackedDir, '_internal', 'embd_res', 'lcpp.gz.embd'),
-      join(unpackedDir, 'embd_res', 'lcpp.gz.embd'),
-      join(unpackedDir, 'lcpp.gz.embd'),
-    ];
-
-    const sourceAssetPath = getAssetPath('lcpp.gz.embd');
+        join(unpackedDir, '_internal', 'embd_res', 'lcpp.gz.embd'),
+        join(unpackedDir, 'embd_res', 'lcpp.gz.embd'),
+        join(unpackedDir, 'lcpp.gz.embd'),
+      ],
+      sourceAssetPath = getAssetPath('lcpp.gz.embd');
 
     for (const targetPath of possiblePaths) {
       if (await pathExists(targetPath)) {

@@ -38,8 +38,8 @@ export const createSoftwareItems = (
 ];
 
 export const createHardwareItems = (hardwareInfo: HardwareInfo, ignoreIGPUs = true) => {
-  const { gpuCapabilities } = hardwareInfo;
-  const driverItems: InfoItem[] = [];
+  const { gpuCapabilities } = hardwareInfo,
+    driverItems: InfoItem[] = [];
 
   if (gpuCapabilities) {
     if (gpuCapabilities.cuda.driverVersion) {

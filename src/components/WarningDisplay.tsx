@@ -17,8 +17,8 @@ export const WarningDisplay = ({ warnings, children }: WarningDisplayProps) => {
     return <Group gap="xs">{children}</Group>;
   }
 
-  const warningMessages = warnings.filter((w) => w.type === 'warning');
-  const infoMessages = warnings.filter((w) => w.type === 'info');
+  const warningMessages = warnings.filter((w) => w.type === 'warning'),
+    infoMessages = warnings.filter((w) => w.type === 'info');
 
   return (
     <Group gap="xs" align="center">

@@ -20,8 +20,8 @@ const formatFileSizeInMB = (bytes: number) => {
 
 export const formatBytes = (bytes: number) => {
   const units = ['B', 'KB', 'MB', 'GB'];
-  let size = bytes;
-  let unitIndex = 0;
+  let size = bytes,
+    unitIndex = 0;
 
   while (size >= 1024 && unitIndex < units.length - 1) {
     size /= 1024;
@@ -61,9 +61,9 @@ export const formatDownloads = (count: number) => {
 };
 
 export const formatDate = (date: Date) => {
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const now = new Date(),
+    diff = now.getTime() - date.getTime(),
+    days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
   if (days === 0) {
     return 'today';

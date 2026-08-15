@@ -9,10 +9,9 @@ import { safeExecute, tryExecute } from '@/utils/node/logging';
 import { detectCPU, detectGPUCapabilities } from '../hardware';
 import { getCurrentBinaryInfo } from './backend';
 
-const accelerationSupportCache = new Map<string, AccelerationSupport>();
-const availableAccelerationsCache = new Map<string, AccelerationOption[]>();
-
-const CPU_LABEL = platform === 'darwin' ? 'Metal' : 'CPU';
+const accelerationSupportCache = new Map<string, AccelerationSupport>(),
+  availableAccelerationsCache = new Map<string, AccelerationOption[]>(),
+  CPU_LABEL = platform === 'darwin' ? 'Metal' : 'CPU';
 
 async function detectAccelerationSupportFromPath(koboldBinaryPath: string) {
   const cached = accelerationSupportCache.get(koboldBinaryPath);
@@ -29,34 +28,31 @@ async function detectAccelerationSupportFromPath(koboldBinaryPath: string) {
   };
 
   await tryExecute(async () => {
-    const binaryDir = dirname(koboldBinaryPath);
-    const internalDir = join(binaryDir, '_internal');
+    const binaryDir = dirname(koboldBinaryPath),
+      internalDir = join(binaryDir, '_internal'),
+      libExtension = platform === 'win32' ? '.dll' : '.so',
+      hasKoboldCppLib = async (name: string): Promise<boolean> => {
+        const filename = `${name}${libExtension}`;
 
-    const libExtension = platform === 'win32' ? '.dll' : '.so';
-
-    const hasKoboldCppLib = async (name: string): Promise<boolean> => {
-      const filename = `${name}${libExtension}`;
-
-      if (platform === 'win32') {
-        return (
-          (await pathExists(join(binaryDir, filename))) ||
-          (await pathExists(join(internalDir, filename)))
-        );
-      } else {
-        return (
-          (await pathExists(join(internalDir, filename))) ||
-          (await pathExists(join(binaryDir, filename)))
-        );
-      }
-    };
-
-    const [rocm, vulkan, noavx2, failsafe, cuda] = await Promise.all([
-      hasKoboldCppLib('koboldcpp_hipblas'),
-      hasKoboldCppLib('koboldcpp_vulkan'),
-      hasKoboldCppLib('koboldcpp_noavx2'),
-      hasKoboldCppLib('koboldcpp_failsafe'),
-      hasKoboldCppLib('koboldcpp_cublas'),
-    ]);
+        if (platform === 'win32') {
+          return (
+            (await pathExists(join(binaryDir, filename))) ||
+            (await pathExists(join(internalDir, filename)))
+          );
+        } else {
+          return (
+            (await pathExists(join(internalDir, filename))) ||
+            (await pathExists(join(binaryDir, filename)))
+          );
+        }
+      },
+      [rocm, vulkan, noavx2, failsafe, cuda] = await Promise.all([
+        hasKoboldCppLib('koboldcpp_hipblas'),
+        hasKoboldCppLib('koboldcpp_vulkan'),
+        hasKoboldCppLib('koboldcpp_noavx2'),
+        hasKoboldCppLib('koboldcpp_failsafe'),
+        hasKoboldCppLib('koboldcpp_cublas'),
+      ]);
 
     support.rocm = rocm;
     support.vulkan = vulkan;
@@ -92,10 +88,9 @@ export async function getAvailableAccelerations(includeDisabled = false) {
       return [{ label: CPU_LABEL, value: 'cpu' }];
     }
 
-    const ignoreIGPUs = getConfig('ignoreIGPUs') ?? true;
-    const cacheKey = `${currentBinaryInfo.path}:${includeDisabled}:${ignoreIGPUs}`;
-
-    const cached = availableAccelerationsCache.get(cacheKey);
+    const ignoreIGPUs = getConfig('ignoreIGPUs') ?? true,
+      cacheKey = `${currentBinaryInfo.path}:${includeDisabled}:${ignoreIGPUs}`,
+      cached = availableAccelerationsCache.get(cacheKey);
     if (cached) {
       return cached;
     }
@@ -126,9 +121,9 @@ export async function getAvailableAccelerations(includeDisabled = false) {
 
     if (accelerationSupport.rocm) {
       const devices = ignoreIGPUs
-        ? hardwareCapabilities.rocm.devices.filter((d) => !d.isIntegrated)
-        : hardwareCapabilities.rocm.devices;
-      const isSupported = devices.length > 0;
+          ? hardwareCapabilities.rocm.devices.filter((d) => !d.isIntegrated)
+          : hardwareCapabilities.rocm.devices,
+        isSupported = devices.length > 0;
       if (isSupported || includeDisabled) {
         accelerations.push({
           devices,
@@ -141,9 +136,9 @@ export async function getAvailableAccelerations(includeDisabled = false) {
 
     if (accelerationSupport.vulkan) {
       const devices = ignoreIGPUs
-        ? hardwareCapabilities.vulkan.devices.filter((d) => !d.isIntegrated)
-        : hardwareCapabilities.vulkan.devices;
-      const isSupported = devices.length > 0;
+          ? hardwareCapabilities.vulkan.devices.filter((d) => !d.isIntegrated)
+          : hardwareCapabilities.vulkan.devices,
+        isSupported = devices.length > 0;
       if (isSupported || includeDisabled) {
         accelerations.push({
           devices,

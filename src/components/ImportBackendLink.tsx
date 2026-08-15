@@ -12,32 +12,29 @@ export const ImportBackendLink = ({
   onSuccess,
   onImportingChange,
 }: ImportBackendLinkProps) => {
-  const [importing, setImporting] = useState(false);
+  const [importing, setImporting] = useState(false),
+    updateImporting = (value: boolean) => {
+      setImporting(value);
+      onImportingChange?.(value);
+    },
+    [importError, setImportError] = useState<string | null>(null),
+    isDisabled = disabled || importing,
+    handleImport = async () => {
+      setImportError(null);
+      updateImporting(true);
 
-  const updateImporting = (value: boolean) => {
-    setImporting(value);
-    onImportingChange?.(value);
-  };
-  const [importError, setImportError] = useState<string | null>(null);
+      try {
+        const result = await window.electronAPI.kobold.importLocalBackend();
 
-  const isDisabled = disabled || importing;
-
-  const handleImport = async () => {
-    setImportError(null);
-    updateImporting(true);
-
-    try {
-      const result = await window.electronAPI.kobold.importLocalBackend();
-
-      if (result.success) {
-        await onSuccess();
-      } else if (result.error) {
-        setImportError(result.error);
+        if (result.success) {
+          await onSuccess();
+        } else if (result.error) {
+          setImportError(result.error);
+        }
+      } finally {
+        updateImporting(false);
       }
-    } finally {
-      updateImporting(false);
-    }
-  };
+    };
 
   return (
     <Box mt="xs">

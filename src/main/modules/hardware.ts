@@ -18,34 +18,32 @@ import { spawnAsync } from '@/utils/node/process';
 import { detectGPUViaVulkan, getVulkanInfo } from '@/utils/node/vulkan';
 
 const SPAWN_OPTS = {
-  reject: false,
-  timeout: 3000,
-};
-
-const ROCM_SPAWN_OPTS = {
-  ...SPAWN_OPTS,
-  env: {
-    ...process.env,
-    PATH: ['/opt/rocm/bin', process.env.PATH].filter(Boolean).join(':'),
+    reject: false,
+    timeout: 3000,
   },
-};
+  ROCM_SPAWN_OPTS = {
+    ...SPAWN_OPTS,
+    env: {
+      ...process.env,
+      PATH: ['/opt/rocm/bin', process.env.PATH].filter(Boolean).join(':'),
+    },
+  };
 
-let cpuCapabilitiesCache: CPUCapabilities | null = null;
-let basicGPUInfoCache: BasicGPUInfo | null = null;
-let gpuCapabilitiesCache: GPUCapabilities | null = null;
-let gpuMemoryInfoCache: { ignoreIGPUs: boolean; data: GPUMemoryInfo[] } | null = null;
+let cpuCapabilitiesCache: CPUCapabilities | null = null,
+  basicGPUInfoCache: BasicGPUInfo | null = null,
+  gpuCapabilitiesCache: GPUCapabilities | null = null,
+  gpuMemoryInfoCache: { ignoreIGPUs: boolean; data: GPUMemoryInfo[] } | null = null;
 
 export function detectCPU() {
   if (cpuCapabilitiesCache) {
     return cpuCapabilitiesCache;
   }
 
-  const cpuList = osCpus();
-  const brand = cpuList[0]?.model;
-  const cores = cpuList.length;
-  const speed = (cpuList[0]?.speed ?? 0) / 1000;
-
-  const devices: { name: string; detailedName: string }[] = [];
+  const cpuList = osCpus(),
+    brand = cpuList[0]?.model,
+    cores = cpuList.length,
+    speed = (cpuList[0]?.speed ?? 0) / 1000,
+    devices: { name: string; detailedName: string }[] = [];
   if (brand) {
     const name = formatDeviceName(brand);
     devices.push({
@@ -63,13 +61,12 @@ export async function detectGPU() {
     return basicGPUInfoCache;
   }
 
-  const result = await safeExecute(() => detectGPUViaVulkan(), 'GPU detection failed');
-
-  const fallbackGPUInfo = {
-    gpuInfo: [],
-    hasAMD: false,
-    hasNVIDIA: false,
-  };
+  const result = await safeExecute(() => detectGPUViaVulkan(), 'GPU detection failed'),
+    fallbackGPUInfo = {
+      gpuInfo: [],
+      hasAMD: false,
+      hasNVIDIA: false,
+    };
 
   basicGPUInfoCache = result ?? fallbackGPUInfo;
   return basicGPUInfoCache;
@@ -89,9 +86,8 @@ export async function detectGPUCapabilities() {
 
 async function detectVulkan() {
   try {
-    const vulkanInfo = await getVulkanInfo();
-
-    const devices: GPUDevice[] = [];
+    const vulkanInfo = await getVulkanInfo(),
+      devices: GPUDevice[] = [];
 
     for (const gpu of vulkanInfo.allGPUs) {
       const { isIntegrated } = gpu;
@@ -121,20 +117,19 @@ async function detectCUDA() {
 
     if (stdout.trim()) {
       const errorPatterns = [
-        'NVIDIA-SMI has failed',
-        'No devices found',
-        'Unable to determine the device handle',
-        "couldn't communicate with the NVIDIA driver",
-        'No NVIDIA GPU found',
-      ];
-
-      const hasError = errorPatterns.some((pattern) =>
-        stdout.toLowerCase().includes(pattern.toLowerCase()),
-      );
+          'NVIDIA-SMI has failed',
+          'No devices found',
+          'Unable to determine the device handle',
+          "couldn't communicate with the NVIDIA driver",
+          'No NVIDIA GPU found',
+        ],
+        hasError = errorPatterns.some((pattern) =>
+          stdout.toLowerCase().includes(pattern.toLowerCase()),
+        );
 
       if (!hasError) {
-        const lines = stdout.split('\n').filter((line) => line.trim());
-        const devices: string[] = [];
+        const lines = stdout.split('\n').filter((line) => line.trim()),
+          devices: string[] = [];
         let driverVersion: string | undefined;
 
         for (const line of lines) {
@@ -160,12 +155,12 @@ async function detectCUDA() {
   if (platform === 'win32') {
     try {
       const { controllers } = await Promise.race([
-        siGraphics(),
-        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
-      ]);
-      const devices = controllers
-        .filter((c) => /nvidia|geforce|rtx|gtx/i.test(c.model ?? ''))
-        .map((c) => formatDeviceName(c.model ?? ''));
+          siGraphics(),
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
+        ]),
+        devices = controllers
+          .filter((c) => /nvidia|geforce|rtx|gtx/i.test(c.model ?? ''))
+          .map((c) => formatDeviceName(c.model ?? ''));
       return { devices };
     } catch {}
   }
@@ -175,17 +170,16 @@ async function detectCUDA() {
 
 export async function detectROCm() {
   try {
-    const rocminfoCommand = platform === 'win32' ? 'hipInfo' : 'rocminfo';
-    const execOptions = platform === 'win32' ? SPAWN_OPTS : ROCM_SPAWN_OPTS;
-    const [rocminfoResult, vulkanInfo, hipccVersion] = await Promise.all([
-      spawnAsync(rocminfoCommand, [], execOptions),
-      getVulkanInfo(),
-      spawnAsync('hipcc', ['--version'], execOptions),
-    ]);
-    const { stdout } = rocminfoResult;
-    const { stdout: hipccOutput } = hipccVersion;
-    let version: string | undefined;
-    let driverVersion: string | undefined;
+    const rocminfoCommand = platform === 'win32' ? 'hipInfo' : 'rocminfo',
+      execOptions = platform === 'win32' ? SPAWN_OPTS : ROCM_SPAWN_OPTS,
+      [rocminfoResult, vulkanInfo, hipccVersion] = await Promise.all([
+        spawnAsync(rocminfoCommand, [], execOptions),
+        getVulkanInfo(),
+        spawnAsync('hipcc', ['--version'], execOptions),
+      ]),
+      { stdout } = rocminfoResult,
+      { stdout: hipccOutput } = hipccVersion;
+    let version: string | undefined, driverVersion: string | undefined;
 
     try {
       if (hipccOutput.trim()) {
@@ -242,13 +236,13 @@ export async function detectROCm() {
 }
 
 function parseRocmOutput(output: string, vulkanInfo: { allGPUs: GPUDevice[] }) {
-  const devices: GPUDevice[] = [];
-  const lines = output.split('\n');
+  const devices: GPUDevice[] = [],
+    lines = output.split('\n');
   let currentDevice: Partial<GPUDevice> | null = null;
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const trimmedLine = line.trim();
+    const line = lines[i],
+      trimmedLine = line.trim();
 
     if (handleHipInfoLine(trimmedLine, currentDevice, devices)) {
       currentDevice = trimmedLine.startsWith('device#') ? {} : currentDevice;
@@ -321,9 +315,9 @@ const createDevice = (name: string, isIntegrated: boolean) => ({
 });
 
 function findDeviceType(lines: string[], startIndex: number) {
-  const searchRangeLines = 20;
-  const searchStartIndex = Math.max(0, startIndex - searchRangeLines);
-  const searchEndIndex = Math.min(lines.length, startIndex + searchRangeLines);
+  const searchRangeLines = 20,
+    searchStartIndex = Math.max(0, startIndex - searchRangeLines),
+    searchEndIndex = Math.min(lines.length, startIndex + searchRangeLines);
 
   for (let searchIndex = searchStartIndex; searchIndex < searchEndIndex; searchIndex++) {
     if (lines[searchIndex].includes('Device Type:')) {
@@ -352,8 +346,8 @@ export async function detectGPUMemory() {
   }
 
   const result = await safeExecute(async () => {
-    const gpuData = await getGPUData(true);
-    const memoryInfo: GPUMemoryInfo[] = [];
+    const gpuData = await getGPUData(true),
+      memoryInfo: GPUMemoryInfo[] = [];
 
     for (const gpu of gpuData) {
       if (ignoreIGPUs && gpu.isIntegrated) continue;
@@ -385,8 +379,7 @@ export const detectSystemMemory = async () => {
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
     ]);
 
-    let speed: number | undefined;
-    let type: string | undefined;
+    let speed: number | undefined, type: string | undefined;
 
     if (memLayout && memLayout.length > 0) {
       const populatedSlot = memLayout.find(

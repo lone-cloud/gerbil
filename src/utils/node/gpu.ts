@@ -21,9 +21,8 @@ export interface GPUData {
   temperature?: number;
 }
 
-let linuxGpuCache: CachedGPUInfo[] | null = null;
-
-let linuxCachePromise: Promise<CachedGPUInfo[]> | null = null;
+let linuxGpuCache: CachedGPUInfo[] | null = null,
+  linuxCachePromise: Promise<CachedGPUInfo[]> | null = null;
 
 export async function getGPUData(forNonMetrics = false) {
   if (platform === 'linux') {
@@ -46,39 +45,29 @@ async function initializeLinuxGPUCache() {
 
   linuxCachePromise = (async () => {
     try {
-      const drmPath = '/sys/class/drm';
-      const entries = await readdir(drmPath);
-      const cardEntries = entries.filter(
-        (entry) => entry.startsWith('card') && !entry.includes('-'),
-      );
-
-      const graphics = await siGraphics().catch(() => null);
-
-      const gpus = [];
+      const drmPath = '/sys/class/drm',
+        entries = await readdir(drmPath),
+        cardEntries = entries.filter((entry) => entry.startsWith('card') && !entry.includes('-')),
+        graphics = await siGraphics().catch(() => null),
+        gpus = [];
       for (const card of cardEntries) {
         const devicePath = join(drmPath, card, 'device');
         try {
           const [memVramRaw, memGttRaw] = await Promise.all([
-            readFile(`${devicePath}/mem_info_vram_total`, 'utf8').catch(() => '0'),
-            readFile(`${devicePath}/mem_info_gtt_total`, 'utf8').catch(() => '0'),
-          ]);
-          const vramTotal = Math.max(
-            0,
-            (parseInt(memVramRaw.trim(), 10) || 0) / (1024 * 1024 * 1024),
-          );
-          const gttTotal = Math.max(
-            0,
-            (parseInt(memGttRaw.trim(), 10) || 0) / (1024 * 1024 * 1024),
-          );
-          const isIntegrated = gttTotal > vramTotal;
-          // GTT inflates eligibility only — don't use it as VRAM for percentages
-          const effectiveMemory = Math.max(vramTotal, gttTotal);
+              readFile(`${devicePath}/mem_info_vram_total`, 'utf8').catch(() => '0'),
+              readFile(`${devicePath}/mem_info_gtt_total`, 'utf8').catch(() => '0'),
+            ]),
+            vramTotal = Math.max(0, (parseInt(memVramRaw.trim(), 10) || 0) / (1024 * 1024 * 1024)),
+            gttTotal = Math.max(0, (parseInt(memGttRaw.trim(), 10) || 0) / (1024 * 1024 * 1024)),
+            isIntegrated = gttTotal > vramTotal,
+            // GTT inflates eligibility only — don't use it as VRAM for percentages
+            effectiveMemory = Math.max(vramTotal, gttTotal);
 
           if (effectiveMemory >= 1) {
             let hwmonPath: string | undefined;
             try {
-              const hwmonEntries = await readdir(`${devicePath}/hwmon`);
-              const hwmonEntry = hwmonEntries.find((e) => e.startsWith('hwmon'));
+              const hwmonEntries = await readdir(`${devicePath}/hwmon`),
+                hwmonEntry = hwmonEntries.find((e) => e.startsWith('hwmon'));
               if (hwmonEntry) {
                 hwmonPath = `${devicePath}/hwmon/${hwmonEntry}`;
               }
@@ -86,17 +75,17 @@ async function initializeLinuxGPUCache() {
 
             let name = card;
             try {
-              const uevent = await readFile(`${devicePath}/uevent`, 'utf8');
-              const pciMatch =
-                /PCI_SLOT_NAME=(?<address>[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-9a-f])/i.exec(
-                  uevent,
-                );
+              const uevent = await readFile(`${devicePath}/uevent`, 'utf8'),
+                pciMatch =
+                  /PCI_SLOT_NAME=(?<address>[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-9a-f])/i.exec(
+                    uevent,
+                  );
               if (pciMatch) {
-                const fullAddr = pciMatch.groups!.address;
-                const shortAddr = fullAddr.substring(5);
-                const siController = graphics?.controllers.find(
-                  (c) => c.busAddress === fullAddr || c.busAddress === shortAddr,
-                );
+                const fullAddr = pciMatch.groups!.address,
+                  shortAddr = fullAddr.substring(5),
+                  siController = graphics?.controllers.find(
+                    (c) => c.busAddress === fullAddr || c.busAddress === shortAddr,
+                  );
                 name = siController?.model ?? shortAddr;
               }
             } catch {}
@@ -127,29 +116,26 @@ async function initializeLinuxGPUCache() {
 
 async function getLinuxGPUData() {
   try {
-    const cachedGPUs = await initializeLinuxGPUCache();
-
-    const gpus: GPUData[] = [];
+    const cachedGPUs = await initializeLinuxGPUCache(),
+      gpus: GPUData[] = [];
     for (const cachedGPU of cachedGPUs) {
       if (cachedGPU.memoryTotal > 0) {
         try {
           const [usageData, memUsedData] = await Promise.all([
-            readFile(`${cachedGPU.devicePath}/gpu_busy_percent`, 'utf8'),
-            readFile(`${cachedGPU.devicePath}/mem_info_vram_used`, 'utf8'),
-          ]);
-
-          const usageParsed = parseInt(usageData.trim(), 10) || 0;
-          const usage = Math.max(0, Math.min(100, usageParsed));
-
-          const memParsed = parseInt(memUsedData.trim(), 10) || 0;
-          const memGB = memParsed / (1024 * 1024 * 1024);
-          const memoryUsed = Math.max(0, memGB);
+              readFile(`${cachedGPU.devicePath}/gpu_busy_percent`, 'utf8'),
+              readFile(`${cachedGPU.devicePath}/mem_info_vram_used`, 'utf8'),
+            ]),
+            usageParsed = parseInt(usageData.trim(), 10) || 0,
+            usage = Math.max(0, Math.min(100, usageParsed)),
+            memParsed = parseInt(memUsedData.trim(), 10) || 0,
+            memGB = memParsed / (1024 * 1024 * 1024),
+            memoryUsed = Math.max(0, memGB);
 
           let temperature: number | undefined;
           if (cachedGPU.hwmonPath) {
             try {
-              const tempData = await readFile(`${cachedGPU.hwmonPath}/temp1_input`, 'utf8');
-              const tempRaw = parseInt(tempData.trim(), 10);
+              const tempData = await readFile(`${cachedGPU.hwmonPath}/temp1_input`, 'utf8'),
+                tempRaw = parseInt(tempData.trim(), 10);
               temperature = Math.round(tempRaw / 1000);
             } catch {}
           }
@@ -175,15 +161,13 @@ async function getLinuxGPUData() {
 async function getWindowsGPUData() {
   try {
     const graphics = await Promise.race([
-      siGraphics(),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
-    ]);
-
-    const discreteControllers = graphics.controllers.filter(
-      (controller) => controller.vram && controller.vram >= 1024,
-    );
-
-    const gpus: GPUData[] = [];
+        siGraphics(),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
+      ]),
+      discreteControllers = graphics.controllers.filter(
+        (controller) => controller.vram && controller.vram >= 1024,
+      ),
+      gpus: GPUData[] = [];
 
     for (const controller of discreteControllers) {
       if (controller.vram) {

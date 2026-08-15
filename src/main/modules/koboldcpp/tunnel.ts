@@ -16,98 +16,91 @@ import { spawnAsync } from '@/utils/node/process';
 
 import { sendKoboldOutput, sendToRenderer } from '../window';
 
-let activeTunnel: ChildProcess | null = null;
-let tunnelUrl: string | null = null;
+let activeTunnel: ChildProcess | null = null,
+  tunnelUrl: string | null = null;
 
 const getCloudflaredBin = () => {
-  const binName = platform === 'win32' ? 'cloudflared.exe' : 'cloudflared';
-  return path.join(getInstallDir(), binName);
-};
+    const binName = platform === 'win32' ? 'cloudflared.exe' : 'cloudflared';
+    return path.join(getInstallDir(), binName);
+  },
+  getCloudflaredAssetName = () => {
+    const archSuffix = arch === 'arm64' ? 'arm64' : 'amd64';
 
-const getCloudflaredAssetName = () => {
-  const archSuffix = arch === 'arm64' ? 'arm64' : 'amd64';
-
-  if (platform === 'win32') {
-    return 'cloudflared-windows-amd64.exe';
-  } else if (platform === 'darwin') {
-    return `cloudflared-darwin-${archSuffix}`;
-  } else {
-    return `cloudflared-linux-${archSuffix}`;
-  }
-};
-
-const getCloudflaredLatestVersion = async () => {
-  const response = await fetch(GITHUB_API.CLOUDFLARED_LATEST_RELEASE_URL);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch latest cloudflared release: ${response.statusText}`);
-  }
-  const release = (await response.json()) as { tag_name: string };
-  return release.tag_name;
-};
-
-const getCloudflaredDownloadUrl = (version: string) =>
-  GITHUB_API.getCloudflaredDownloadUrl(version, getCloudflaredAssetName());
-
-const getInstalledCloudflaredVersion = async (binPath: string) => {
-  try {
-    const result = await spawnAsync(binPath, ['--version']);
-    const match = /(?<version>\d{4}\.\d+\.\d+)/.exec(result.stdout + result.stderr);
-    return match ? match[1] : null;
-  } catch {
-    return null;
-  }
-};
-
-const downloadCloudflared = async (binPath: string, version: string) => {
-  const url = getCloudflaredDownloadUrl(version);
-  sendKoboldOutput(`Downloading cloudflared ${version} from ${url}...`);
-
-  const response = await fetch(url);
-  if (!response.ok || !response.body) {
-    throw new Error(`Failed to download cloudflared: ${response.statusText}`);
-  }
-
-  await pipeline(Readable.fromWeb(response.body as any), createWriteStream(binPath));
-
-  if (platform !== 'win32') {
-    await chmod(binPath, 0o755);
-  }
-
-  sendKoboldOutput(`Downloaded cloudflared ${version} to ${binPath}`);
-};
-
-const getTunnelTarget = (frontendPreference: FrontendPreference) => {
-  switch (frontendPreference) {
-    case 'sillytavern': {
-      return `http://${SILLYTAVERN.HOST}:${SILLYTAVERN.PROXY_PORT}`;
+    if (platform === 'win32') {
+      return 'cloudflared-windows-amd64.exe';
+    } else if (platform === 'darwin') {
+      return `cloudflared-darwin-${archSuffix}`;
+    } else {
+      return `cloudflared-linux-${archSuffix}`;
     }
-    case 'openwebui': {
-      return `http://${OPENWEBUI.HOST}:${OPENWEBUI.PORT}`;
+  },
+  getCloudflaredLatestVersion = async () => {
+    const response = await fetch(GITHUB_API.CLOUDFLARED_LATEST_RELEASE_URL);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch latest cloudflared release: ${response.statusText}`);
     }
-    default: {
-      return `http://${PROXY.HOST}:${PROXY.PORT}`;
-    }
-  }
-};
-
-const waitForBackend = async (url: string, timeoutMs = 30_000) => {
-  const startTime = Date.now();
-
-  while (Date.now() - startTime < timeoutMs) {
+    const release = (await response.json()) as { tag_name: string };
+    return release.tag_name;
+  },
+  getCloudflaredDownloadUrl = (version: string) =>
+    GITHUB_API.getCloudflaredDownloadUrl(version, getCloudflaredAssetName()),
+  getInstalledCloudflaredVersion = async (binPath: string) => {
     try {
-      const response = await fetch(url, {
-        method: 'HEAD',
-        signal: AbortSignal.timeout(2000),
-      });
-      if (response.ok) {
-        return true;
-      }
-    } catch {}
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  }
+      const result = await spawnAsync(binPath, ['--version']),
+        match = /(?<version>\d{4}\.\d+\.\d+)/.exec(result.stdout + result.stderr);
+      return match ? match[1] : null;
+    } catch {
+      return null;
+    }
+  },
+  downloadCloudflared = async (binPath: string, version: string) => {
+    const url = getCloudflaredDownloadUrl(version);
+    sendKoboldOutput(`Downloading cloudflared ${version} from ${url}...`);
 
-  return false;
-};
+    const response = await fetch(url);
+    if (!response.ok || !response.body) {
+      throw new Error(`Failed to download cloudflared: ${response.statusText}`);
+    }
+
+    await pipeline(Readable.fromWeb(response.body as any), createWriteStream(binPath));
+
+    if (platform !== 'win32') {
+      await chmod(binPath, 0o755);
+    }
+
+    sendKoboldOutput(`Downloaded cloudflared ${version} to ${binPath}`);
+  },
+  getTunnelTarget = (frontendPreference: FrontendPreference) => {
+    switch (frontendPreference) {
+      case 'sillytavern': {
+        return `http://${SILLYTAVERN.HOST}:${SILLYTAVERN.PROXY_PORT}`;
+      }
+      case 'openwebui': {
+        return `http://${OPENWEBUI.HOST}:${OPENWEBUI.PORT}`;
+      }
+      default: {
+        return `http://${PROXY.HOST}:${PROXY.PORT}`;
+      }
+    }
+  },
+  waitForBackend = async (url: string, timeoutMs = 30_000) => {
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeoutMs) {
+      try {
+        const response = await fetch(url, {
+          method: 'HEAD',
+          signal: AbortSignal.timeout(2000),
+        });
+        if (response.ok) {
+          return true;
+        }
+      } catch {}
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
+    return false;
+  };
 
 export const startTunnel = async (
   frontendPreference: FrontendPreference = 'koboldcpp',
@@ -133,20 +126,16 @@ export const startTunnel = async (
 
     sendKoboldOutput(`Starting Cloudflare tunnel → ${tunnelTarget}`);
 
-    const bin = getCloudflaredBin();
-
-    const latestVersion = await getCloudflaredLatestVersion();
-    const binExists = await access(bin)
-      .then(() => true)
-      .catch(() => false);
+    const bin = getCloudflaredBin(),
+      latestVersion = await getCloudflaredLatestVersion(),
+      binExists = await access(bin)
+        .then(() => true)
+        .catch(() => false);
 
     if (binExists) {
-      const installedVersion = await getInstalledCloudflaredVersion(bin);
-      const normalizedInstalled = installedVersion?.replace(
-        /^(?<version>\d{4}\.\d+\.\d+).*$/,
-        '$1',
-      );
-      const normalizedLatest = latestVersion.replace(/^[v]?(?<version>\d{4}\.\d+\.\d+).*$/, '$1');
+      const installedVersion = await getInstalledCloudflaredVersion(bin),
+        normalizedInstalled = installedVersion?.replace(/^(?<version>\d{4}\.\d+\.\d+).*$/, '$1'),
+        normalizedLatest = latestVersion.replace(/^[v]?(?<version>\d{4}\.\d+\.\d+).*$/, '$1');
       if (normalizedInstalled !== normalizedLatest) {
         sendKoboldOutput(
           `Updating cloudflared ${installedVersion ?? 'unknown'} → ${latestVersion}`,
@@ -159,21 +148,21 @@ export const startTunnel = async (
       await downloadCloudflared(bin, latestVersion);
     }
 
-    const nullDevice = platform === 'win32' ? 'NUL' : '/dev/null';
-    const tunnel = spawn(bin, [
-      'tunnel',
-      '--config',
-      nullDevice,
-      '--url',
-      tunnelTarget,
-      '--no-autoupdate',
-    ]);
+    const nullDevice = platform === 'win32' ? 'NUL' : '/dev/null',
+      tunnel = spawn(bin, [
+        'tunnel',
+        '--config',
+        nullDevice,
+        '--url',
+        tunnelTarget,
+        '--no-autoupdate',
+      ]);
 
     activeTunnel = tunnel;
 
-    let rateLimited = false;
-    let output = '';
-    let urlFound = false;
+    let rateLimited = false,
+      output = '',
+      urlFound = false;
 
     const onTunnelOutput = (text: string) => {
       output += text;
@@ -195,21 +184,20 @@ export const startTunnel = async (
 
     await new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => {
-        const message = rateLimited
-          ? 'Cloudflare rate limit exceeded. Please wait a few minutes and try again.'
-          : 'Tunnel connection timed out';
-        tunnel.kill();
-        reject(new Error(message));
-      }, 30_000);
-
-      const checkInterval = setInterval(() => {
-        if (tunnelUrl) {
-          urlFound = true;
-          clearTimeout(timeout);
-          clearInterval(checkInterval);
-          resolve();
-        }
-      }, 100);
+          const message = rateLimited
+            ? 'Cloudflare rate limit exceeded. Please wait a few minutes and try again.'
+            : 'Tunnel connection timed out';
+          tunnel.kill();
+          reject(new Error(message));
+        }, 30_000),
+        checkInterval = setInterval(() => {
+          if (tunnelUrl) {
+            urlFound = true;
+            clearTimeout(timeout);
+            clearInterval(checkInterval);
+            resolve();
+          }
+        }, 100);
 
       tunnel.once('error', (error) => {
         clearTimeout(timeout);

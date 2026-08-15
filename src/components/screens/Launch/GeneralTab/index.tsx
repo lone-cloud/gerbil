@@ -12,8 +12,8 @@ interface GeneralTabProps {
 
 export const GeneralTab = ({ configLoaded = true }: GeneralTabProps) => {
   const { model, contextSize, setModel, selectFile, setContextSizeWithStep } =
-    useLaunchConfigStore();
-  const [isSliding, setIsSliding] = useState(false);
+      useLaunchConfigStore(),
+    [isSliding, setIsSliding] = useState(false);
 
   useEffect(() => {
     if (!isSliding) {

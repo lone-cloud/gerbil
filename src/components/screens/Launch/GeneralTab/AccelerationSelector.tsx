@@ -10,25 +10,24 @@ import { usePreferencesStore } from '@/stores/preferences';
 import type { Acceleration, AccelerationOption } from '@/types';
 
 export const AccelerationSelector = () => {
-  const ignoreIGPUs = usePreferencesStore((s) => s.ignoreIGPUs);
-  const {
-    acceleration,
-    gpuLayers,
-    autoGpuLayers,
-    model,
-    contextSize,
-    gpuDeviceSelection,
-    flashattention,
-    setAcceleration,
-    setGpuLayers,
-    setAutoGpuLayers,
-  } = useLaunchConfigStore();
-
-  const [availableAccelerations, setAvailableAccelerations] = useState<AccelerationOption[]>([]);
-  const [isLoadingAccelerations, setIsLoadingAccelerations] = useState(false);
-  const [isCalculatingLayers, setIsCalculatingLayers] = useState(false);
-  const [isMac, setIsMac] = useState(false);
-  const hasInitialized = useRef(false);
+  const ignoreIGPUs = usePreferencesStore((s) => s.ignoreIGPUs),
+    {
+      acceleration,
+      gpuLayers,
+      autoGpuLayers,
+      model,
+      contextSize,
+      gpuDeviceSelection,
+      flashattention,
+      setAcceleration,
+      setGpuLayers,
+      setAutoGpuLayers,
+    } = useLaunchConfigStore(),
+    [availableAccelerations, setAvailableAccelerations] = useState<AccelerationOption[]>([]),
+    [isLoadingAccelerations, setIsLoadingAccelerations] = useState(false),
+    [isCalculatingLayers, setIsCalculatingLayers] = useState(false),
+    [isMac, setIsMac] = useState(false),
+    hasInitialized = useRef(false);
 
   useEffect(() => {
     const loadAccelerations = async () => {
@@ -110,15 +109,14 @@ export const AccelerationSelector = () => {
         }
 
         const selectedDeviceIndices = gpuDeviceSelection
-          .split(',')
-          .map((d) => parseInt(d.trim(), 10))
-          .filter((d) => !Number.isNaN(d));
-
-        const availableVramGB = selectedDeviceIndices.reduce((total, deviceIndex) => {
-          const device = gpuMemory[deviceIndex];
-          const vramGB = device?.totalMemoryGB ? parseFloat(device.totalMemoryGB) : 0;
-          return total + vramGB;
-        }, 0);
+            .split(',')
+            .map((d) => parseInt(d.trim(), 10))
+            .filter((d) => !Number.isNaN(d)),
+          availableVramGB = selectedDeviceIndices.reduce((total, deviceIndex) => {
+            const device = gpuMemory[deviceIndex],
+              vramGB = device?.totalMemoryGB ? parseFloat(device.totalMemoryGB) : 0;
+            return total + vramGB;
+          }, 0);
 
         if (availableVramGB === 0) {
           return;

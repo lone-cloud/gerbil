@@ -12,21 +12,19 @@ interface ServerTabProps {
 }
 
 export const ServerTab = ({ isServerReady, activeTab }: ServerTabProps) => {
-  const { isImageGenerationMode } = useLaunchConfigStore();
-  const { frontendPreference, imageGenerationFrontendPreference } = usePreferencesStore();
-
-  const effectiveImageMode =
-    activeTab === 'chat-image' ? true : activeTab === 'chat-text' ? false : isImageGenerationMode;
-
-  const { url: iframeUrl, title } = useMemo(
-    () =>
-      getServerInterfaceInfo({
-        frontendPreference,
-        imageGenerationFrontendPreference,
-        isImageGenerationMode: effectiveImageMode,
-      }),
-    [frontendPreference, imageGenerationFrontendPreference, effectiveImageMode],
-  );
+  const { isImageGenerationMode } = useLaunchConfigStore(),
+    { frontendPreference, imageGenerationFrontendPreference } = usePreferencesStore(),
+    effectiveImageMode =
+      activeTab === 'chat-image' ? true : activeTab === 'chat-text' ? false : isImageGenerationMode,
+    { url: iframeUrl, title } = useMemo(
+      () =>
+        getServerInterfaceInfo({
+          frontendPreference,
+          imageGenerationFrontendPreference,
+          isImageGenerationMode: effectiveImageMode,
+        }),
+      [frontendPreference, imageGenerationFrontendPreference, effectiveImageMode],
+    );
 
   if (!isServerReady) {
     return (

@@ -5,10 +5,10 @@ import { Switch } from '@/components/Switch';
 import { usePreferencesStore } from '@/stores/preferences';
 
 export const GeneralTab = () => {
-  const [enableSystemTray, setEnableSystemTray] = useState(false);
-  const [startMinimizedToTray, setStartMinimizedToTray] = useState(false);
-  const { ignoreIGPUs, setIgnoreIGPUs, systemMonitoringEnabled, setSystemMonitoringEnabled } =
-    usePreferencesStore();
+  const [enableSystemTray, setEnableSystemTray] = useState(false),
+    [startMinimizedToTray, setStartMinimizedToTray] = useState(false),
+    { ignoreIGPUs, setIgnoreIGPUs, systemMonitoringEnabled, setSystemMonitoringEnabled } =
+      usePreferencesStore();
 
   useEffect(() => {
     const loadSystemTrayPreference = async () => {
@@ -24,18 +24,17 @@ export const GeneralTab = () => {
   }, []);
 
   const handleSystemTrayToggle = async (checked: boolean) => {
-    setEnableSystemTray(checked);
-    await window.electronAPI.app.setEnableSystemTray(checked);
-    if (!checked) {
-      setStartMinimizedToTray(false);
-      await window.electronAPI.app.setStartMinimizedToTray(false);
-    }
-  };
-
-  const handleStartMinimizedToggle = async (checked: boolean) => {
-    setStartMinimizedToTray(checked);
-    await window.electronAPI.app.setStartMinimizedToTray(checked);
-  };
+      setEnableSystemTray(checked);
+      await window.electronAPI.app.setEnableSystemTray(checked);
+      if (!checked) {
+        setStartMinimizedToTray(false);
+        await window.electronAPI.app.setStartMinimizedToTray(false);
+      }
+    },
+    handleStartMinimizedToggle = async (checked: boolean) => {
+      setStartMinimizedToTray(checked);
+      await window.electronAPI.app.setStartMinimizedToTray(checked);
+    };
 
   return (
     <Stack gap="lg" h="100%">

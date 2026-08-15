@@ -33,18 +33,18 @@ export async function getInstalledBackends() {
       return [];
     }
 
-    const items = await readdir(installDir);
-    const launchers: { path: string; filename: string; size: number }[] = [];
+    const items = await readdir(installDir),
+      launchers: { path: string; filename: string; size: number }[] = [];
 
     for (const item of items) {
-      const itemPath = join(installDir, item);
-      const stats = await stat(itemPath);
+      const itemPath = join(installDir, item),
+        stats = await stat(itemPath);
 
       if (stats.isDirectory()) {
         const launcherPath = await getLauncherPath(itemPath);
         if (launcherPath && (await pathExists(launcherPath))) {
-          const launcherStats = await stat(launcherPath);
-          const launcherFilename = launcherPath.split(/[/\\]/).pop() ?? '';
+          const launcherStats = await stat(launcherPath),
+            launcherFilename = launcherPath.split(/[/\\]/).pop() ?? '';
           launchers.push({
             filename: launcherFilename,
             path: launcherPath,
@@ -55,30 +55,29 @@ export async function getInstalledBackends() {
     }
 
     const versionPromises = launchers.map(async (launcher) => {
-      try {
-        const versionInfo = await getVersionFromBinary(launcher.path);
+        try {
+          const versionInfo = await getVersionFromBinary(launcher.path);
 
-        if (!versionInfo) {
+          if (!versionInfo) {
+            return null;
+          }
+
+          const localPaths = getAppConfig('localBackendPaths') ?? [];
+
+          return {
+            actualVersion: versionInfo.actualVersion,
+            filename: launcher.filename,
+            path: launcher.path,
+            size: launcher.size,
+            source: localPaths.includes(launcher.path) ? ('local' as const) : undefined,
+            version: versionInfo.version,
+          };
+        } catch (error) {
+          logError(`Could not detect version for ${launcher.filename}:`, error as Error);
           return null;
         }
-
-        const localPaths = getAppConfig('localBackendPaths') ?? [];
-
-        return {
-          actualVersion: versionInfo.actualVersion,
-          filename: launcher.filename,
-          path: launcher.path,
-          size: launcher.size,
-          source: localPaths.includes(launcher.path) ? ('local' as const) : undefined,
-          version: versionInfo.version,
-        };
-      } catch (error) {
-        logError(`Could not detect version for ${launcher.filename}:`, error as Error);
-        return null;
-      }
-    });
-
-    const results = await Promise.all(versionPromises);
+      }),
+      results = await Promise.all(versionPromises);
     return results.filter((v) => v !== null) as InstalledBackend[];
   } catch (error) {
     logError('Error scanning install directory:', error as Error);
@@ -87,8 +86,8 @@ export async function getInstalledBackends() {
 }
 
 export async function getCurrentBackend() {
-  const currentBinaryPath = getCurrentKoboldBinary();
-  const backends = await getInstalledBackends();
+  const currentBinaryPath = getCurrentKoboldBinary(),
+    backends = await getInstalledBackends();
 
   if (currentBinaryPath && (await pathExists(currentBinaryPath))) {
     const currentBackend = backends.find((b: InstalledBackend) => b.path === currentBinaryPath);
@@ -114,8 +113,8 @@ export async function getCurrentBinaryInfo() {
   const currentBackend = await getCurrentBackend();
 
   if (currentBackend) {
-    const pathParts = currentBackend.path.split(/[/\\]/);
-    const filename = pathParts[pathParts.length - 2] || currentBackend.filename;
+    const pathParts = currentBackend.path.split(/[/\\]/),
+      filename = pathParts[pathParts.length - 2] || currentBackend.filename;
 
     return {
       filename,
@@ -188,8 +187,8 @@ export async function getVersionFromBinary(launcherPath: string) {
       return backendVersionCache.get(launcherPath);
     }
 
-    let folderVersion: string | null = null;
-    let actualVersion: string | null = null;
+    let folderVersion: string | null = null,
+      actualVersion: string | null = null;
 
     const folderName = launcherPath.split(/[/\\]/).slice(-2, -1)[0];
     if (folderName) {
@@ -202,17 +201,16 @@ export async function getVersionFromBinary(launcherPath: string) {
 
     try {
       const result = await spawnAsync(launcherPath, ['--version'], {
-        stdio: ['ignore', 'pipe', 'pipe'],
-        timeout: 30_000,
-      });
-
-      const allOutput = (result.stdout + result.stderr).trim();
-      const lines = allOutput.split('\n').filter((line) => line.trim());
+          stdio: ['ignore', 'pipe', 'pipe'],
+          timeout: 30_000,
+        }),
+        allOutput = (result.stdout + result.stderr).trim(),
+        lines = allOutput.split('\n').filter((line) => line.trim());
 
       if (lines.length > 0) {
-        const lastLine = lines[lines.length - 1].trim();
-        const versionMatch =
-          /^(?<version>\d+\.\d+(?:\.\d+)?(?:\.[a-zA-Z0-9]+)*(?:-[a-zA-Z0-9]+)*)$/.exec(lastLine);
+        const lastLine = lines[lines.length - 1].trim(),
+          versionMatch =
+            /^(?<version>\d+\.\d+(?:\.\d+)?(?:\.[a-zA-Z0-9]+)*(?:-[a-zA-Z0-9]+)*)$/.exec(lastLine);
         if (versionMatch) {
           actualVersion = versionMatch[1];
         }

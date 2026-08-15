@@ -42,11 +42,11 @@ async function downloadFile(asset: GitHubAsset, tempPackedFilePath: string) {
     await unlink(tempPackedFilePath);
   } catch {}
 
-  const writer = createWriteStream(tempPackedFilePath);
-  const mainWindow = getMainWindow();
+  const writer = createWriteStream(tempPackedFilePath),
+    mainWindow = getMainWindow();
 
-  let downloadedBytes = 0;
-  let lastProgressUpdate = 0;
+  let downloadedBytes = 0,
+    lastProgressUpdate = 0;
 
   const response = await fetch(asset.browser_download_url);
   if (!response.ok || !response.body) {
@@ -54,32 +54,31 @@ async function downloadFile(asset: GitHubAsset, tempPackedFilePath: string) {
     throw new Error(`Failed to download: ${response.statusText}`);
   }
 
-  const totalBytes = parseInt(response.headers.get('content-length') ?? '0', 10);
-  const reader = response.body.getReader();
+  const totalBytes = parseInt(response.headers.get('content-length') ?? '0', 10),
+    reader = response.body.getReader(),
+    pump = async () => {
+      const { done, value } = await reader.read();
 
-  const pump = async () => {
-    const { done, value } = await reader.read();
-
-    if (done) {
-      writer.end();
-      mainWindow.webContents.send('download-progress', 100);
-      return;
-    }
-
-    downloadedBytes += value.length;
-    if (totalBytes > 0) {
-      const progress = (downloadedBytes / totalBytes) * 100;
-      const now = Date.now();
-
-      if (now - lastProgressUpdate > 100) {
-        mainWindow.webContents.send('download-progress', progress);
-        lastProgressUpdate = now;
+      if (done) {
+        writer.end();
+        mainWindow.webContents.send('download-progress', 100);
+        return;
       }
-    }
 
-    writer.write(Buffer.from(value));
-    return pump();
-  };
+      downloadedBytes += value.length;
+      if (totalBytes > 0) {
+        const progress = (downloadedBytes / totalBytes) * 100,
+          now = Date.now();
+
+        if (now - lastProgressUpdate > 100) {
+          mainWindow.webContents.send('download-progress', progress);
+          lastProgressUpdate = now;
+        }
+      }
+
+      writer.write(Buffer.from(value));
+      return pump();
+    };
 
   await pump();
 
@@ -107,8 +106,8 @@ async function setupLauncher(tempPackedFilePath: string, unpackedDirPath: string
 
   if (!launcherPath || !(await pathExists(launcherPath))) {
     const expectedLauncherName =
-      platform === 'win32' ? 'koboldcpp-launcher.exe' : 'koboldcpp-launcher';
-    const newLauncherPath = join(unpackedDirPath, expectedLauncherName);
+        platform === 'win32' ? 'koboldcpp-launcher.exe' : 'koboldcpp-launcher',
+      newLauncherPath = join(unpackedDirPath, expectedLauncherName);
 
     if (await pathExists(tempPackedFilePath)) {
       try {
@@ -142,11 +141,11 @@ async function unpackKoboldCpp(packedPath: string, unpackDir: string) {
     });
   } catch (error) {
     const spawnError = error as {
-      stderr?: string;
-      stdout?: string;
-      message: string;
-    };
-    const errorMessage = spawnError.stderr ?? spawnError.stdout ?? spawnError.message;
+        stderr?: string;
+        stdout?: string;
+        message: string;
+      },
+      errorMessage = spawnError.stderr ?? spawnError.stdout ?? spawnError.message;
     throw new Error(`Unpack failed: ${errorMessage}`, { cause: error });
   }
 }
@@ -209,10 +208,10 @@ export async function downloadRelease(asset: GitHubAsset, options: DownloadRelea
     throw new Error('KoboldCpp is currently running. Stop it before updating.');
   }
 
-  const tempPackedFilePath = join(getInstallDir(), `${asset.name}.packed`);
-  const baseFilename = stripAssetExtensions(asset.name);
-  const folderName = asset.version ? `${baseFilename}-${asset.version}` : baseFilename;
-  const unpackedDirPath = join(getInstallDir(), folderName);
+  const tempPackedFilePath = join(getInstallDir(), `${asset.name}.packed`),
+    baseFilename = stripAssetExtensions(asset.name),
+    folderName = asset.version ? `${baseFilename}-${asset.version}` : baseFilename,
+    unpackedDirPath = join(getInstallDir(), folderName);
 
   try {
     await downloadFile(asset, tempPackedFilePath);
@@ -263,22 +262,21 @@ export async function importLocalBackend() {
       };
     }
 
-    const version = backendVersion.actualVersion ?? backendVersion.version;
-    const filename = basename(selectedPath);
-    const baseFilename = stripAssetExtensions(filename);
-    const folderName = `${baseFilename}-${version}`;
-    const installDir = join(getInstallDir(), folderName);
-    const packedFilePath = join(getInstallDir(), `${filename}.packed`);
+    const version = backendVersion.actualVersion ?? backendVersion.version,
+      filename = basename(selectedPath),
+      baseFilename = stripAssetExtensions(filename),
+      folderName = `${baseFilename}-${version}`,
+      installDir = join(getInstallDir(), folderName),
+      packedFilePath = join(getInstallDir(), `${filename}.packed`);
 
     await copyFile(selectedPath, packedFilePath);
 
     const launcherPath = await installBackend({
-      packedFilePath,
-      skipUnpackError: true,
-      unpackedDirPath: installDir,
-    });
-
-    const existingPaths = getAppConfig('localBackendPaths') ?? [];
+        packedFilePath,
+        skipUnpackError: true,
+        unpackedDirPath: installDir,
+      }),
+      existingPaths = getAppConfig('localBackendPaths') ?? [];
     if (!existingPaths.includes(launcherPath)) {
       await setAppConfig('localBackendPaths', [...existingPaths, launcherPath]);
     }

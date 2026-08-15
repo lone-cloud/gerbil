@@ -14,8 +14,8 @@ const GitHubIcon = ({ style }: { style?: CSSProperties }) => (
 );
 
 export const AboutTab = () => {
-  const [versionInfo, setVersionInfo] = useState<SystemVersionInfo | null>(null);
-  const { handleLogoClick, getLogoStyles } = useLogoClickSounds();
+  const [versionInfo, setVersionInfo] = useState<SystemVersionInfo | null>(null),
+    { handleLogoClick, getLogoStyles } = useLogoClickSounds();
 
   useEffect(() => {
     const loadVersionInfo = async () => {

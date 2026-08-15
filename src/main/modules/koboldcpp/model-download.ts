@@ -34,8 +34,8 @@ function parseHuggingFaceUrl(url: string) {
     );
 
   if (hfMatch) {
-    const pathWithQuery = hfMatch[3];
-    const pathWithoutQuery = pathWithQuery.split('?')[0];
+    const pathWithQuery = hfMatch[3],
+      pathWithoutQuery = pathWithQuery.split('?')[0];
     return {
       author: hfMatch[1],
       filename: basename(pathWithoutQuery),
@@ -51,8 +51,8 @@ function parseHuggingFaceUrl(url: string) {
 }
 
 export function getModelLocalPath(url: string, paramType: ModelParamType) {
-  const installDir = getInstallDir();
-  const { author, model, filename } = parseHuggingFaceUrl(url);
+  const installDir = getInstallDir(),
+    { author, model, filename } = parseHuggingFaceUrl(url);
 
   return join(installDir, 'models', paramType, author, model, filename);
 }
@@ -69,38 +69,37 @@ async function downloadFile(
   outputPath: string,
   onProgress: (progress: DownloadProgress) => void,
 ) {
-  const normalizedUrl = normalizeUrl(url);
-  const outputDir = dirname(outputPath);
-  const tempPath = `${outputPath}.tmp`;
+  const normalizedUrl = normalizeUrl(url),
+    outputDir = dirname(outputPath),
+    tempPath = `${outputPath}.tmp`;
 
   await mkdir(outputDir, { recursive: true });
 
   return new Promise<boolean>((resolve, reject) => {
     const httpModule = normalizedUrl.startsWith('https') ? httpsGet : httpGet;
-    let currentRequest: IncomingMessage | null = null;
-    let fileStream: ReturnType<typeof createWriteStream>;
-    let isAborted = false;
+    let currentRequest: IncomingMessage | null = null,
+      fileStream: ReturnType<typeof createWriteStream>,
+      isAborted = false;
 
     const cleanup = async () => {
-      await new Promise<void>((done) => {
-        if (fileStream) {
-          fileStream.close(() => done());
-        } else {
-          done();
-        }
-      });
-      await unlink(tempPath).catch(() => void 0);
-    };
-
-    const abortController = {
-      abort: () => {
-        isAborted = true;
-        currentRequest?.destroy();
-        void cleanup();
-        reject(new Error('Download aborted by user'));
+        await new Promise<void>((done) => {
+          if (fileStream) {
+            fileStream.close(() => done());
+          } else {
+            done();
+          }
+        });
+        await unlink(tempPath).catch(() => void 0);
       },
-      tempPath,
-    };
+      abortController = {
+        abort: () => {
+          isAborted = true;
+          currentRequest?.destroy();
+          void cleanup();
+          reject(new Error('Download aborted by user'));
+        },
+        tempPath,
+      };
 
     activeDownloads.add(abortController);
 
@@ -142,11 +141,11 @@ async function downloadFile(
         }
 
         const totalBytes = parseInt(response.headers['content-length'] ?? '0', 10);
-        let downloadedBytes = 0;
-        let lastReportTime = Date.now();
-        let lastReportedBytes = 0;
-        const speedSamples: number[] = [];
-        const SPEED_WINDOW = 10;
+        let downloadedBytes = 0,
+          lastReportTime = Date.now(),
+          lastReportedBytes = 0;
+        const speedSamples: number[] = [],
+          SPEED_WINDOW = 10;
 
         fileStream = createWriteStream(tempPath);
 
@@ -154,30 +153,27 @@ async function downloadFile(
           downloadedBytes += chunk.length;
           fileStream.write(chunk);
 
-          const now = Date.now();
-          const timeDiff = (now - lastReportTime) / 1000;
+          const now = Date.now(),
+            timeDiff = (now - lastReportTime) / 1000;
 
           if (timeDiff >= 0.5) {
-            const bytesDiff = downloadedBytes - lastReportedBytes;
-            const instantSpeed = bytesDiff / timeDiff;
+            const bytesDiff = downloadedBytes - lastReportedBytes,
+              instantSpeed = bytesDiff / timeDiff;
             speedSamples.push(instantSpeed);
             if (speedSamples.length > SPEED_WINDOW) speedSamples.shift();
-            const speedBytesPerSec = speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length;
-            const percent = totalBytes ? Math.round((downloadedBytes / totalBytes) * 100) : 0;
-            const downloadedMB = (downloadedBytes / 1024 / 1024).toFixed(2);
-            const totalMB = (totalBytes / 1024 / 1024).toFixed(2);
-            const speedMBPerSec = (speedBytesPerSec / 1024 / 1024).toFixed(2);
-
-            const remainingBytes = totalBytes - downloadedBytes;
-            const etaSeconds = speedBytesPerSec ? Math.round(remainingBytes / speedBytesPerSec) : 0;
-            const etaMinutes = Math.floor(etaSeconds / 60);
-            const etaSecondsRemainder = etaSeconds % 60;
-            const etaStr =
-              etaMinutes > 0 ? `${etaMinutes}m${etaSecondsRemainder}s` : `${etaSeconds}s`;
-
-            const progressMsg = totalBytes
-              ? `Downloaded ${downloadedMB}MB / ${totalMB}MB (${percent}%) - ${speedMBPerSec}MB/s - ETA: ${etaStr}`
-              : `Downloaded ${downloadedMB}MB - ${speedMBPerSec}MB/s`;
+            const speedBytesPerSec = speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length,
+              percent = totalBytes ? Math.round((downloadedBytes / totalBytes) * 100) : 0,
+              downloadedMB = (downloadedBytes / 1024 / 1024).toFixed(2),
+              totalMB = (totalBytes / 1024 / 1024).toFixed(2),
+              speedMBPerSec = (speedBytesPerSec / 1024 / 1024).toFixed(2),
+              remainingBytes = totalBytes - downloadedBytes,
+              etaSeconds = speedBytesPerSec ? Math.round(remainingBytes / speedBytesPerSec) : 0,
+              etaMinutes = Math.floor(etaSeconds / 60),
+              etaSecondsRemainder = etaSeconds % 60,
+              etaStr = etaMinutes > 0 ? `${etaMinutes}m${etaSecondsRemainder}s` : `${etaSeconds}s`,
+              progressMsg = totalBytes
+                ? `Downloaded ${downloadedMB}MB / ${totalMB}MB (${percent}%) - ${speedMBPerSec}MB/s - ETA: ${etaStr}`
+                : `Downloaded ${downloadedMB}MB - ${speedMBPerSec}MB/s`;
 
             sendToRenderer('kobold-output', `\r${progressMsg}`);
 
@@ -276,8 +272,8 @@ function isValidModelUrl(url: string) {
     return false;
   }
 
-  const validExtensions = ['.gguf', '.safetensors', '.bin', '.ggml'];
-  const urlPath = url.split('?')[0];
+  const validExtensions = ['.gguf', '.safetensors', '.bin', '.ggml'],
+    urlPath = url.split('?')[0];
   return validExtensions.some((ext) => urlPath.toLowerCase().endsWith(ext));
 }
 
@@ -327,8 +323,8 @@ export async function resolveModelPath(
 }
 
 export async function getLocalModelsForType(paramType: ModelParamType) {
-  const installDir = getInstallDir();
-  const modelsDir = join(installDir, 'models', paramType);
+  const installDir = getInstallDir(),
+    modelsDir = join(installDir, 'models', paramType);
 
   if (!(await pathExists(modelsDir))) {
     return [];
@@ -340,22 +336,22 @@ export async function getLocalModelsForType(paramType: ModelParamType) {
     const authors = await readdir(modelsDir);
 
     for (const author of authors) {
-      const authorPath = join(modelsDir, author);
-      const authorStat = await stat(authorPath);
+      const authorPath = join(modelsDir, author),
+        authorStat = await stat(authorPath);
 
       if (authorStat.isDirectory()) {
         const modelDirs = await readdir(authorPath);
 
         for (const modelDir of modelDirs) {
-          const modelPath = join(authorPath, modelDir);
-          const modelStat = await stat(modelPath);
+          const modelPath = join(authorPath, modelDir),
+            modelStat = await stat(modelPath);
 
           if (modelStat.isDirectory()) {
             const files = await readdir(modelPath);
 
             for (const file of files) {
-              const filePath = join(modelPath, file);
-              const fileStat = await stat(filePath);
+              const filePath = join(modelPath, file),
+                fileStat = await stat(filePath);
 
               if (fileStat.isFile()) {
                 models.push({
