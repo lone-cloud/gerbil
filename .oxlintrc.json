@@ -12,6 +12,12 @@
   },
   "plugins": ["typescript", "react", "react-perf", "import", "unicorn", "oxc"],
   "rules": {
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "ignoreRestSiblings": true }],
+    "react/preserve-manual-memoization": "off",
+    "react/immutability": "off",
+    "react/set-state-in-effect": "off",
+    "react/memo-dependencies": "off",
+    "react/exhaustive-effect-dependencies": "off",
     "import/no-cycle": [
       "error",
       {

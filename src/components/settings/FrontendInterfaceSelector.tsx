@@ -1,6 +1,6 @@
 import { Anchor, Box, Button, Group, Stack, Text, rem } from '@mantine/core';
 import { Image, Monitor } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { Modal } from '@/components/Modal';
 import { Select } from '@/components/Select';
@@ -25,6 +25,41 @@ interface FrontendInterfaceSelectorProps {
   isOnInterfaceScreen?: boolean;
 }
 
+const frontendConfigs: FrontendConfig[] = [
+  {
+    label: FRONTENDS.LLAMA_CPP,
+    value: 'llamacpp',
+  },
+  {
+    label: FRONTENDS.KOBOLDAI_LITE,
+    value: 'koboldcpp',
+  },
+  {
+    label: FRONTENDS.SILLYTAVERN,
+    requirementCheck: () => window.electronAPI.dependencies.isNpxAvailable(),
+    requirements: [
+      {
+        id: 'nodejs',
+        name: 'Node.js',
+        url: 'https://nodejs.org/',
+      },
+    ],
+    value: 'sillytavern',
+  },
+  {
+    label: FRONTENDS.OPENWEBUI,
+    requirementCheck: () => window.electronAPI.dependencies.isUvAvailable(),
+    requirements: [
+      {
+        id: 'uv',
+        name: 'uv',
+        url: 'https://docs.astral.sh/uv/getting-started/installation/',
+      },
+    ],
+    value: 'openwebui',
+  },
+];
+
 export const FrontendInterfaceSelector = ({
   isOnInterfaceScreen = false,
 }: FrontendInterfaceSelectorProps) => {
@@ -36,43 +71,6 @@ export const FrontendInterfaceSelector = ({
     } = usePreferencesStore(),
     [frontendRequirements, setFrontendRequirements] = useState(new Map()),
     [showClearDataModal, setShowClearDataModal] = useState(false),
-    frontendConfigs: FrontendConfig[] = useMemo(
-      () => [
-        {
-          label: FRONTENDS.LLAMA_CPP,
-          value: 'llamacpp',
-        },
-        {
-          label: FRONTENDS.KOBOLDAI_LITE,
-          value: 'koboldcpp',
-        },
-        {
-          label: FRONTENDS.SILLYTAVERN,
-          requirementCheck: () => window.electronAPI.dependencies.isNpxAvailable(),
-          requirements: [
-            {
-              id: 'nodejs',
-              name: 'Node.js',
-              url: 'https://nodejs.org/',
-            },
-          ],
-          value: 'sillytavern',
-        },
-        {
-          label: FRONTENDS.OPENWEBUI,
-          requirementCheck: () => window.electronAPI.dependencies.isUvAvailable(),
-          requirements: [
-            {
-              id: 'uv',
-              name: 'uv',
-              url: 'https://docs.astral.sh/uv/getting-started/installation/',
-            },
-          ],
-          value: 'openwebui',
-        },
-      ],
-      [],
-    ),
     checkAllFrontendRequirements = useCallback(async () => {
       const requirementResults = new Map<string, boolean>();
 
@@ -93,7 +91,7 @@ export const FrontendInterfaceSelector = ({
       if (currentFrontendConfig && !requirementResults.get(frontendPreference)) {
         setFrontendPreference('llamacpp');
       }
-    }, [frontendConfigs, frontendPreference, setFrontendPreference]),
+    }, [frontendPreference, setFrontendPreference, setFrontendRequirements]),
     getSelectedFrontendConfig = () =>
       frontendConfigs.find((config) => config.value === frontendPreference),
     getUnmetRequirements = () => {
@@ -193,7 +191,7 @@ export const FrontendInterfaceSelector = ({
 
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [checkAllFrontendRequirements, frontendPreference]);
+  }, [checkAllFrontendRequirements]);
 
   return (
     <>

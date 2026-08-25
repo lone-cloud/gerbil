@@ -1,6 +1,6 @@
 {
   "name": "gerbil",
-  "version": "1.28.",
+  "version": "1.28.0",
   "description": "Run Large Language Models locally",
   "keywords": [
     "ai",
@@ -34,7 +34,7 @@
   "dependencies": {
     "electron-updater": "^6.8.9",
     "mime-types": "^3.0.2",
-    "systeminformation": "^5.33.2",
+    "systeminformation": "^5.33.3",
     "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0",
     "yauzl": "^3.4.0"
