@@ -226,6 +226,14 @@ const UI_COVERED_ARGS = new Set([
       type: 'boolean',
     },
     {
+      aliases: ['--directio', '--direct-io', '-dio'],
+      category: 'Advanced',
+      description:
+        'Use direct I/O to load GGUF models if available. May improve cold-load times on some storage.',
+      flag: '--usedirectio',
+      type: 'boolean',
+    },
+    {
       category: 'Advanced',
       default: '',
       description: 'An optional shell command to execute after the model has been loaded.',
