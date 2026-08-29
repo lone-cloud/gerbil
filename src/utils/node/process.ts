@@ -6,6 +6,7 @@ import { StringDecoder } from 'node:string_decoder';
 interface SpawnAsyncOptions {
   timeout?: number;
   env?: Record<string, string | undefined>;
+  shell?: boolean;
   stdio?: SpawnOptions['stdio'];
   reject?: boolean;
 }
@@ -28,6 +29,7 @@ export function spawnAsync(
   return new Promise((resolve, reject) => {
     const cp = spawn(command, args, {
         env: opts.env,
+        shell: opts.shell,
         stdio: opts.stdio ?? 'pipe',
       }),
       stdoutDecoder = new StringDecoder('utf8'),

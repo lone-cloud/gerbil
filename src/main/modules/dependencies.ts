@@ -36,7 +36,13 @@ async function executeCommand(
   timeout = 5000,
 ) {
   try {
-    const result = await spawnAsync(command, args, { env, reject: false, timeout });
+    // On Windows, commands like npx are .cmd shims and need a shell to resolve
+    const result = await spawnAsync(command, args, {
+      env,
+      reject: false,
+      shell: platform === 'win32',
+      timeout,
+    });
     if (result.failed) {
       return { success: false };
     }
