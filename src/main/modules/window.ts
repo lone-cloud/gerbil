@@ -272,7 +272,7 @@ function setupContextMenu(window: BrowserWindow) {
       menuItems.push({
         click: () => {
           if (params.linkURL) {
-            clipboard.writeText(params.linkURL);
+            void clipboard.writeText(params.linkURL);
           }
         },
         label: 'Copy Link Address',
