@@ -106,7 +106,8 @@ const UI_COVERED_ARGS = new Set([
     {
       category: 'Advanced',
       default: '',
-      description: 'Reads the metadata, weight types and tensor names in any GGUF file.',
+      description:
+        'Reads the metadata, weight types and tensor names in any GGUF or safetensors file.',
       flag: '--analyze',
       metavar: '[filename]',
     },
@@ -232,6 +233,16 @@ const UI_COVERED_ARGS = new Set([
         'Use direct I/O to load GGUF models if available. May improve cold-load times on some storage.',
       flag: '--usedirectio',
       type: 'boolean',
+    },
+    {
+      aliases: ['--n-cpu-ffn', '-ncffn'],
+      category: 'Advanced',
+      default: 0,
+      description:
+        'Keep the dense FFN weights of the first N layers in the CPU. If no value is provided, applies to all layers.',
+      flag: '--ffncpu',
+      metavar: '[layers affected]',
+      type: 'int',
     },
     {
       category: 'Advanced',
@@ -527,7 +538,7 @@ const UI_COVERED_ARGS = new Set([
     },
     {
       category: 'Advanced',
-      choices: ['default', 'none', 'low', 'medium', 'high'],
+      choices: ['default', 'none', 'low', 'medium', 'high', 'xhigh'],
       default: 'default',
       description: 'A quick way to set the default reasoning effort. API values override this.',
       flag: '--reasoningeffort',
