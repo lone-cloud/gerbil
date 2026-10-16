@@ -93,7 +93,7 @@ async function resolveModelPaths(args: string[]) {
     modelParams = new Set([
       '--model',
       '--sdmodel',
-      '--sdt5xxl',
+      '--sdllm',
       '--sdclipl',
       '--sdclipg',
       '--sdphotomaker',

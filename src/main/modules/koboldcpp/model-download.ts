@@ -50,6 +50,20 @@ function parseHuggingFaceUrl(url: string) {
   };
 }
 
+export async function migrateLegacyModelDirs() {
+  const modelsDir = join(getInstallDir(), 'models'),
+    legacyDir = join(modelsDir, 'sdt5xxl'),
+    currentDir = join(modelsDir, 'sdllm');
+
+  if ((await pathExists(legacyDir)) && !(await pathExists(currentDir))) {
+    try {
+      await rename(legacyDir, currentDir);
+    } catch (error) {
+      logError('Failed to migrate legacy sdt5xxl model directory:', error as Error);
+    }
+  }
+}
+
 export function getModelLocalPath(url: string, paramType: ModelParamType) {
   const installDir = getInstallDir(),
     { author, model, filename } = parseHuggingFaceUrl(url);

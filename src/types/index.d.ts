@@ -21,7 +21,7 @@ export type Screen = 'welcome' | 'download' | 'launch' | 'interface';
 export type ModelParamType =
   | 'model'
   | 'sdmodel'
-  | 'sdt5xxl'
+  | 'sdllm'
   | 'sdclipl'
   | 'sdclipg'
   | 'sdphotomaker'

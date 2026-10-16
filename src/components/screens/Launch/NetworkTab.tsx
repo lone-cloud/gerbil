@@ -1,4 +1,4 @@
-import { Group, Stack, Text, TextInput } from '@mantine/core';
+import { Group, NumberInput, Stack, Text, TextInput } from '@mantine/core';
 
 import { CheckboxWithTooltip } from '@/components/CheckboxWithTooltip';
 import { InfoTooltip } from '@/components/InfoTooltip';
@@ -8,14 +8,14 @@ export const NetworkTab = () => {
   const {
     port,
     host,
-    multiuser,
+    queueLimit,
     multiplayer,
     remotetunnel,
     nocertify,
     websearch,
     setPort,
     setHost,
-    setMultiuser,
+    setQueueLimit,
     setMultiplayer,
     setRemotetunnel,
     setNocertify,
@@ -70,18 +70,28 @@ export const NetworkTab = () => {
             aria-label="Port"
           />
         </div>
+
+        <div>
+          <Group gap="xs" align="center" mb="xs">
+            <Text size="sm" fw={500}>
+              Queue Limit
+            </Text>
+            <InfoTooltip label="Maximum number of queued incoming requests allowed. Requests beyond this limit are rejected. Default is 10." />
+          </Group>
+          <NumberInput
+            value={queueLimit}
+            onChange={(value) => setQueueLimit(typeof value === 'number' ? Math.trunc(value) : 10)}
+            min={0}
+            allowDecimal={false}
+            w="6rem"
+            aria-label="Queue limit"
+          />
+        </div>
       </Group>
 
       <div>
         <Stack gap="md">
           <Group gap="lg" align="flex-start" wrap="nowrap">
-            <CheckboxWithTooltip
-              checked={multiuser}
-              onChange={setMultiuser}
-              label="Multiuser Mode"
-              tooltip="Allows requests by multiple different clients to be queued and handled in sequence."
-            />
-
             <CheckboxWithTooltip
               checked={multiplayer}
               onChange={setMultiplayer}

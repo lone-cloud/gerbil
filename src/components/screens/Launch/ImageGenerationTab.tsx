@@ -10,7 +10,7 @@ import { useLaunchConfigStore } from '@/stores/launchConfig';
 export const ImageGenerationTab = () => {
   const {
       sdmodel,
-      sdt5xxl,
+      sdllm,
       sdclipl,
       sdclipg,
       sdphotomaker,
@@ -20,7 +20,7 @@ export const ImageGenerationTab = () => {
       sdvaecpu,
       sdclipgpu,
       setSdmodel,
-      setSdt5xxl,
+      setSdllm,
       setSdclipl,
       setSdclipg,
       setSdphotomaker,
@@ -51,7 +51,7 @@ export const ImageGenerationTab = () => {
             applyPreset(value);
           } else {
             setSdmodel('');
-            setSdt5xxl('');
+            setSdllm('');
             setSdclipl('');
             setSdclipg('');
             setSdphotomaker('');
@@ -79,18 +79,16 @@ export const ImageGenerationTab = () => {
       />
 
       <ModelFileField
-        label="T5XXL File"
-        value={sdt5xxl}
-        placeholder="Select a T5-XXL encoder file or enter a direct URL"
-        tooltip="T5-XXL text encoder model for advanced text understanding."
-        onChange={setSdt5xxl}
-        onSelectFile={() => void selectFile('sdt5xxl', 'Select T5XXL Model')}
+        label="Text Encoder / LLM"
+        value={sdllm}
+        placeholder="Select a text encoder or LLM file, or enter a direct URL"
+        tooltip="Image generation text encoder or LLM (.safetensors or .gguf). T5-XXL for FLUX and Chroma, or a vision LLM such as Qwen3-VL for Qwen Image."
+        onChange={setSdllm}
+        onSelectFile={() => void selectFile('sdllm', 'Select Text Encoder / LLM Model')}
         searchParams={{
-          filter: 'safetensors',
-          search: 't5xxl',
           sort: 'trendingScore',
         }}
-        paramType="sdt5xxl"
+        paramType="sdllm"
       />
 
       <ModelFileField

@@ -11,6 +11,7 @@ import {
   initialize as initializeConfig,
 } from '@/main/modules/config';
 import { stopKoboldCpp } from '@/main/modules/koboldcpp/launcher';
+import { migrateLegacyModelDirs } from '@/main/modules/koboldcpp/model-download';
 import { stopFrontend as stopOpenWebUI } from '@/main/modules/openwebui';
 import { stopFrontend as stopSillyTavern } from '@/main/modules/sillytavern';
 import { stopStaticServer } from '@/main/modules/static-server';
@@ -47,6 +48,7 @@ export async function initializeApp(options?: { startMinimized?: boolean }) {
   app.setName(PRODUCT_NAME);
   await initializeConfig();
   await ensureDir(installDir);
+  await migrateLegacyModelDirs();
 
   const startMinimized = argv.includes('--relaunched')
       ? false

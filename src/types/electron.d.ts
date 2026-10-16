@@ -86,7 +86,7 @@ export interface KoboldConfig {
   contextsize?: number;
   port?: number;
   host?: string;
-  multiuser?: number;
+  queuelimit?: number;
   multiplayer?: boolean;
   remotetunnel?: boolean;
   nocertify?: boolean;
@@ -105,7 +105,7 @@ export interface KoboldConfig {
   tensorSplit?: string;
   gpuPlatform?: number;
   sdmodel?: string;
-  sdt5xxl?: string;
+  sdllm?: string;
   sdclipl?: string;
   sdclipg?: string;
   sdphotomaker?: string;
@@ -119,7 +119,7 @@ export interface KoboldConfig {
   moecpu?: number;
   moeexperts?: number;
   smartcache?: boolean;
-  pipelineparallel?: boolean;
+  ubatchsize?: number;
   quantkv?: number;
   jinja?: boolean;
   jinjatools?: boolean;

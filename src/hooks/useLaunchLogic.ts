@@ -14,7 +14,7 @@ interface LaunchArgs {
   contextSize: number;
   port: number;
   host: string;
-  multiuser: boolean;
+  queueLimit: number;
   multiplayer: boolean;
   remotetunnel: boolean;
   nocertify: boolean;
@@ -33,7 +33,7 @@ interface LaunchArgs {
   debugmode: boolean;
   additionalArguments: string;
   preLaunchCommands: string[];
-  sdt5xxl: string;
+  sdllm: string;
   sdclipl: string;
   sdclipg: string;
   sdphotomaker: string;
@@ -45,7 +45,7 @@ interface LaunchArgs {
   moecpu: number;
   moeexperts: number;
   smartcache: boolean;
-  pipelineparallel: boolean;
+  ubatchSize: number;
   quantkv: number;
   jinja: boolean;
   jinjatools: boolean;
@@ -63,7 +63,7 @@ const buildModelArgs = (model: string, sdmodel: string, launchArgs: LaunchArgs) 
       args.push('--sdmodel', sdmodel);
 
       const imageModels = [
-        ['--sdt5xxl', launchArgs.sdt5xxl],
+        ['--sdllm', launchArgs.sdllm],
         ['--sdclipl', launchArgs.sdclipl],
         ['--sdclipg', launchArgs.sdclipg],
         ['--sdphotomaker', launchArgs.sdphotomaker],
@@ -120,8 +120,11 @@ const buildModelArgs = (model: string, sdmodel: string, launchArgs: LaunchArgs) 
       args.push('--host', launchArgs.host);
     }
 
+    if (launchArgs.queueLimit !== 10) {
+      args.push('--queuelimit', launchArgs.queueLimit.toString());
+    }
+
     const flagMappings: [boolean, string, string?][] = [
-      [launchArgs.multiuser, '--multiuser', '1'],
       [launchArgs.multiplayer, '--multiplayer'],
       [launchArgs.remotetunnel, '--remotetunnel'],
       [launchArgs.nocertify, '--nocertify'],
@@ -155,8 +158,8 @@ const buildModelArgs = (model: string, sdmodel: string, launchArgs: LaunchArgs) 
       args.push('--smartcache');
     }
 
-    if (!launchArgs.pipelineparallel) {
-      args.push('--nopipelineparallel');
+    if (launchArgs.ubatchSize !== -1) {
+      args.push('--ubatchsize', launchArgs.ubatchSize.toString());
     }
 
     const quantkvMap: Record<number, string> = { 1: 'q8_0', 2: 'q4_0', 3: 'bf16', 4: 'q5_1' };

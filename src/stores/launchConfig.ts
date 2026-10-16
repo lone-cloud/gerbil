@@ -13,7 +13,7 @@ interface LaunchConfigState {
   preLaunchCommands: string[];
   port?: number;
   host: string;
-  multiuser: boolean;
+  queueLimit: number;
   multiplayer: boolean;
   remotetunnel: boolean;
   nocertify: boolean;
@@ -31,7 +31,7 @@ interface LaunchConfigState {
   tensorSplit: string;
   gpuPlatform: number;
   sdmodel: string;
-  sdt5xxl: string;
+  sdllm: string;
   sdclipl: string;
   sdclipg: string;
   sdphotomaker: string;
@@ -43,7 +43,7 @@ interface LaunchConfigState {
   moecpu: number;
   moeexperts: number;
   smartcache: boolean;
-  pipelineparallel: boolean;
+  ubatchSize: number;
   quantkv: number;
   jinja: boolean;
   jinjatools: boolean;
@@ -58,7 +58,7 @@ interface LaunchConfigState {
   setAdditionalArguments: (args: string) => void;
   setPort: (port?: number) => void;
   setHost: (host: string) => void;
-  setMultiuser: (multiuser: boolean) => void;
+  setQueueLimit: (queueLimit: number) => void;
   setMultiplayer: (multiplayer: boolean) => void;
   setRemotetunnel: (remotetunnel: boolean) => void;
   setNocertify: (nocertify: boolean) => void;
@@ -77,7 +77,7 @@ interface LaunchConfigState {
   setTensorSplit: (split: string) => void;
   setGpuPlatform: (platform: number) => void;
   setSdmodel: (model: string) => void;
-  setSdt5xxl: (model: string) => void;
+  setSdllm: (model: string) => void;
   setSdclipl: (model: string) => void;
   setSdclipg: (model: string) => void;
   setSdphotomaker: (model: string) => void;
@@ -89,7 +89,7 @@ interface LaunchConfigState {
   setMoecpu: (moecpu: number) => void;
   setMoeexperts: (moeexperts: number) => void;
   setSmartcache: (smartcache: boolean) => void;
-  setPipelineparallel: (pipelineparallel: boolean) => void;
+  setUbatchSize: (ubatchSize: number) => void;
   setQuantkv: (quantkv: number) => void;
   setJinja: (jinja: boolean) => void;
   setJinjatools: (jinjatools: boolean) => void;
@@ -104,7 +104,7 @@ interface LaunchConfigState {
     field:
       | 'model'
       | 'sdmodel'
-      | 'sdt5xxl'
+      | 'sdllm'
       | 'sdclipl'
       | 'sdclipg'
       | 'sdphotomaker'
@@ -125,7 +125,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
       set({
         sdmodel: preset.sdmodel,
         isImageGenerationMode: Boolean(preset.sdmodel?.trim()),
-        sdt5xxl: preset.sdt5xxl,
+        sdllm: preset.sdllm,
         sdclipl: preset.sdclipl,
         sdclipg: preset.sdclipg || '',
         sdvae: preset.sdvae,
@@ -168,7 +168,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   moecpu: 0,
   moeexperts: -1,
   multiplayer: false,
-  multiuser: false,
+  queueLimit: 10,
   noavx2: false,
   nocertify: false,
   noshift: false,
@@ -231,10 +231,10 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
         updates.host = '';
       }
 
-      if (typeof configData.multiuser === 'number') {
-        updates.multiuser = configData.multiuser === 1;
+      if (typeof configData.queuelimit === 'number') {
+        updates.queueLimit = configData.queuelimit;
       } else {
-        updates.multiuser = false;
+        updates.queueLimit = 10;
       }
 
       if (typeof configData.multiplayer === 'boolean') {
@@ -334,8 +334,11 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
         updates.isImageGenerationMode = Boolean(configData.sdmodel?.trim());
       }
 
-      if (typeof configData.sdt5xxl === 'string') {
-        updates.sdt5xxl = configData.sdt5xxl;
+      const legacySdllm = (configData as { sdt5xxl?: unknown }).sdt5xxl;
+      if (typeof configData.sdllm === 'string') {
+        updates.sdllm = configData.sdllm;
+      } else if (typeof legacySdllm === 'string') {
+        updates.sdllm = legacySdllm;
       }
 
       if (typeof configData.sdclipl === 'string') {
@@ -394,10 +397,10 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
         updates.smartcache = false;
       }
 
-      if (typeof configData.pipelineparallel === 'boolean') {
-        updates.pipelineparallel = configData.pipelineparallel;
+      if (typeof configData.ubatchsize === 'number') {
+        updates.ubatchSize = configData.ubatchsize;
       } else {
-        updates.pipelineparallel = true;
+        updates.ubatchSize = -1;
       }
 
       if (typeof configData.quantkv === 'number') {
@@ -427,7 +430,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
       set(updates);
     }
   },
-  pipelineparallel: true,
+  ubatchSize: -1,
   quantkv: 0,
   jinja: false,
   jinjatools: false,
@@ -443,7 +446,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   sdlora: '',
   sdmodel: '',
   sdphotomaker: '',
-  sdt5xxl: '',
+  sdllm: '',
   sdvae: '',
 
   sdvaecpu: false,
@@ -484,11 +487,11 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
   setMoecpu: (moeCpu) => set({ moecpu: moeCpu }),
   setMoeexperts: (moeExperts) => set({ moeexperts: moeExperts }),
   setMultiplayer: (multiplayer) => set({ multiplayer }),
-  setMultiuser: (multiuser) => set({ multiuser }),
+  setQueueLimit: (queueLimit) => set({ queueLimit }),
   setNoavx2: (noavx2) => set({ noavx2 }),
   setNocertify: (nocertify) => set({ nocertify }),
   setNoshift: (noshift) => set({ noshift }),
-  setPipelineparallel: (pipelineparallel) => set({ pipelineparallel }),
+  setUbatchSize: (ubatchSize) => set({ ubatchSize }),
   setQuantkv: (quantkv) => set({ quantkv }),
   setPort: (port) => set({ port }),
   setPreLaunchCommands: (commands) => set({ preLaunchCommands: commands }),
@@ -505,7 +508,7 @@ export const useLaunchConfigStore = create<LaunchConfigState>((set, get) => ({
       isImageGenerationMode: Boolean(model?.trim()),
     }),
   setSdphotomaker: (model) => set({ sdphotomaker: model }),
-  setSdt5xxl: (model) => set({ sdt5xxl: model }),
+  setSdllm: (model) => set({ sdllm: model }),
   setSdvae: (vae) => set({ sdvae: vae }),
   setSdvaecpu: (enabled) => set({ sdvaecpu: enabled }),
   setSmartcache: (smartcache) => set({ smartcache }),

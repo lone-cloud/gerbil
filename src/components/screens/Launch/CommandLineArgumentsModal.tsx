@@ -28,7 +28,7 @@ const UI_COVERED_ARGS = new Set([
     '--contextsize',
     '--port',
     '--host',
-    '--multiuser',
+    '--queuelimit',
     '--multiplayer',
     '--remotetunnel',
     '--nocertify',
@@ -43,7 +43,7 @@ const UI_COVERED_ARGS = new Set([
     '--usecuda',
     '--usevulkan',
     '--tensorsplit',
-    '--sdt5xxl',
+    '--sdllm',
     '--sdclipl',
     '--sdclipg',
     '--sdclip1',
@@ -62,7 +62,7 @@ const UI_COVERED_ARGS = new Set([
     '--jinja_tools',
     '--jinja_kwargs',
     '--smartcache',
-    '--nopipelineparallel',
+    '--ubatchsize',
     '--quantkv',
     '--usecpu',
     '--autofit',
@@ -146,10 +146,25 @@ const UI_COVERED_ARGS = new Set([
       category: 'Advanced',
       default: 1,
       description:
-        'Allows multiple requests to be batched and executed in parallel. Only works for basic text generation requests. Experimental. Set to number of simultaneous generations to allow.',
+        'Allows multiple text and multimodal generation requests to be processed in parallel. Experimental. Set to number of simultaneous generations to allow.',
       flag: '--parallelrequests',
       metavar: '[slots]',
       type: 'int',
+    },
+    {
+      category: 'Advanced',
+      description:
+        'Launches the simple KoboldCpp Agent in a new terminal window, or the current terminal with --cli.',
+      flag: '--agent',
+      type: 'boolean',
+    },
+    {
+      category: 'Advanced',
+      default: '',
+      description: 'Load a KoboldCpp Agent JSON save file when launching the agent.',
+      flag: '--agentload',
+      metavar: '[filename]',
+      type: 'string',
     },
     {
       aliases: ['--batchthreads', '--threadsbatch', '--threads-batch'],
@@ -667,6 +682,15 @@ const UI_COVERED_ARGS = new Set([
     },
     {
       category: 'Administration',
+      default: 256,
+      description:
+        'Keep model families at or below this combined file size resident in autoswap mode, in MB (default 256). Only one model family above the threshold is loaded at a time.',
+      flag: '--autoswapthreshold',
+      metavar: '[size in MB]',
+      type: 'int',
+    },
+    {
+      category: 'Administration',
       default: '',
       description:
         'Specify a base .kcpps config to apply if no custom base config is selected during a model swap. The config will be merged with the config being loaded.',
@@ -772,7 +796,7 @@ const UI_COVERED_ARGS = new Set([
     },
     {
       category: 'Image Generation',
-      default: 768,
+      default: 512,
       description:
         'Adjust the automatic VAE tiling trigger for images above this size. 0 disables vae tiling.',
       flag: '--sdtiledvae',
@@ -823,6 +847,14 @@ const UI_COVERED_ARGS = new Set([
       default: '',
       description: 'Specify an image generation audio VAE for LTX2.3 video generation.',
       flag: '--sdaudiovae',
+      metavar: '[filename]',
+    },
+    {
+      category: 'Image Generation',
+      default: '',
+      description:
+        'Specify an image generation text encoder or LLM (.safetensors or .gguf). Leave blank if prebaked or unused.',
+      flag: '--sdllm',
       metavar: '[filename]',
     },
     {

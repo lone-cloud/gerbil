@@ -13,7 +13,19 @@ const KV_QUANT_OPTIONS = [
     { value: '3', label: 'BF16' },
     { value: '4', label: 'Q5 (5-bit)' },
   ],
-  FLEX_COL: CSSProperties = { flex: 1, minWidth: 200 };
+  FLEX_COL: CSSProperties = { flex: 1, minWidth: 200 },
+  UBATCH_OPTIONS = [
+    { value: '-1', label: 'Match Batch Size' },
+    { value: '16', label: '16' },
+    { value: '32', label: '32' },
+    { value: '64', label: '64' },
+    { value: '128', label: '128' },
+    { value: '256', label: '256' },
+    { value: '512', label: '512' },
+    { value: '1024', label: '1024' },
+    { value: '2048', label: '2048' },
+    { value: '4096', label: '4096' },
+  ];
 
 export const PerformanceTab = () => {
   const {
@@ -26,7 +38,7 @@ export const PerformanceTab = () => {
       moecpu,
       moeexperts,
       smartcache,
-      pipelineparallel,
+      ubatchSize,
       quantkv,
       setNoshift,
       setFlashattention,
@@ -36,7 +48,7 @@ export const PerformanceTab = () => {
       setMoecpu,
       setMoeexperts,
       setSmartcache,
-      setPipelineparallel,
+      setUbatchSize,
       setQuantkv,
     } = useLaunchConfigStore(),
     isGpuAcceleration = acceleration === 'cuda' || acceleration === 'rocm',
@@ -107,18 +119,6 @@ export const PerformanceTab = () => {
           />
 
           <CheckboxWithTooltip
-            checked={pipelineparallel && isGpuAcceleration}
-            onChange={setPipelineparallel}
-            label="Pipeline Parallel"
-            tooltip={
-              !isGpuAcceleration
-                ? 'Pipeline Parallelism is only available for multi-GPU setups.'
-                : 'Enable Pipeline Parallelism for faster multi-GPU speeds but using more memory. Only active for multi-GPU setups.'
-            }
-            disabled={!isGpuAcceleration}
-          />
-
-          <CheckboxWithTooltip
             checked={usemmap}
             onChange={setUsemmap}
             label="MMAP"
@@ -150,6 +150,23 @@ export const PerformanceTab = () => {
                 suffer.
               </Text>
             )}
+          </div>
+
+          <div>
+            <Group gap="xs" align="center" mb="xs">
+              <Text size="sm" fw={500}>
+                Physical Batch Size
+              </Text>
+              <InfoTooltip label="How many tokens to process at once in each physical batch. The default matches Batch Size. Smaller values use less memory, and enable Pipeline Parallelism for faster multi-GPU speeds when running below the Batch Size." />
+            </Group>
+            <Select
+              value={String(ubatchSize)}
+              onChange={(value) => setUbatchSize(Number(value ?? '-1'))}
+              data={UBATCH_OPTIONS}
+              size="sm"
+              allowDeselect={false}
+              aria-label="Physical batch size"
+            />
           </div>
 
           <Group gap="lg" align="flex-start" wrap="nowrap">
