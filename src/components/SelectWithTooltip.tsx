@@ -9,7 +9,7 @@ interface SelectWithTooltipProps {
   label: string;
   tooltip: string;
   value: string;
-  onChange: (value: string | null, option: ComboboxItem) => void;
+  onChange: (value: string | null, option: ComboboxItem | null) => void;
   data: SelectOption[];
   placeholder?: string;
   disabled?: boolean;

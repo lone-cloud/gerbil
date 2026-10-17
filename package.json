@@ -47,8 +47,8 @@
     "@fontsource/barlow-semi-condensed": "^5.3.0",
     "@fontsource/geist": "^5.3.0",
     "@huggingface/gguf": "^0.4.6",
-    "@mantine/core": "^9.7.2",
-    "@mantine/hooks": "^9.7.2",
+    "@mantine/core": "^9.7.3",
+    "@mantine/hooks": "^9.7.3",
     "@types/mime-types": "^3.0.1",
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
@@ -57,11 +57,11 @@
     "@uiw/react-codemirror": "^4.25.12",
     "@vitejs/plugin-react": "^6.1.2",
     "cross-env": "^10.1.0",
-    "electron": "~44.8.0",
+    "electron": "~44.9.0",
     "electron-builder": "^26.17.0",
     "electron-vite": "6.0.0",
     "jiti": "^2.7.0",
-    "lucide-react": "^1.57.0",
+    "lucide-react": "^1.59.0",
     "oxfmt": "^0.73.0",
     "oxlint": "^1.88.0",
     "oxlint-tsgolint": "^7.0.2004",
@@ -81,7 +81,7 @@
   "engines": {
     "node": ">=24.0.0"
   },
-  "packageManager": "pnpm@12.11.2",
+  "packageManager": "pnpm@12.14.0",
   "build": {
     "appId": "com.gerbil.app",
     "productName": "Gerbil",
