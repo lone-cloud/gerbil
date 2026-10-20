@@ -16,8 +16,7 @@ import { sendKoboldOutput, sendToRenderer } from './window';
 
 let openWebUIProcess: ChildProcess | null = null;
 
-const OPENWEBUI_VERSION = '0.6.41',
-  OPENWEBUI_BASE_ARGS = ['--python', '3.11', `open-webui@${OPENWEBUI_VERSION}`, 'serve'];
+const OPENWEBUI_BASE_ARGS = ['--python', '3.11', 'open-webui@latest', 'serve'];
 
 process.on('SIGINT', () => {
   void stopFrontend();
