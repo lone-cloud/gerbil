@@ -152,6 +152,16 @@ const UI_COVERED_ARGS = new Set([
       type: 'int',
     },
     {
+      aliases: ['--parallel-total-context'],
+      category: 'Advanced',
+      default: 0,
+      description:
+        'Sets the total shared KV cache size in tokens for parallel requests. Defaults to --contextsize when unset; lower values are raised to --contextsize.',
+      flag: '--paralleltotalcontext',
+      metavar: '[tokens]',
+      type: 'int',
+    },
+    {
       category: 'Advanced',
       description:
         'Launches the simple KoboldCpp Agent in a new terminal window, or the current terminal with --cli.',
@@ -260,6 +270,25 @@ const UI_COVERED_ARGS = new Set([
       type: 'int',
     },
     {
+      aliases: ['--lazymode'],
+      category: 'Advanced',
+      choices: ['auto', 'on', 'off'],
+      default: 'auto',
+      description:
+        'On-demand reading of architecture-marked tensors such as Qwen PLE embeddings: auto for tensors larger than 4 GiB, on to force lazy reading, off to keep them resident.',
+      flag: '--lazy-mode',
+    },
+    {
+      aliases: ['--moecache'],
+      category: 'Advanced',
+      default: 0,
+      description:
+        'Experimental GPU cache size in MiB for CPU-resident MoE experts. Split among GPUs like layers. Uses additional VRAM; combine with --moecpu or --autofit (default 0, disabled).',
+      flag: '--moe-cache-mib',
+      metavar: 'MiB',
+      type: 'int',
+    },
+    {
       category: 'Advanced',
       default: '',
       description: 'An optional shell command to execute after the model has been loaded.',
@@ -305,7 +334,7 @@ const UI_COVERED_ARGS = new Set([
       category: 'Advanced',
       default: 0,
       description:
-        'Sets the maximum number of generated tokens, it will restrict all generations to this or lower. Also usable with --prompt or --benchmark.',
+        'Sets the maximum number of generated tokens, it will restrict all generations to this or lower. Also usable with --prompt or --benchmark. If you are looking to increase the default token limit, use --defaultgenamt instead.',
       flag: '--genlimit',
       metavar: '[token limit]',
       type: 'int',
@@ -627,6 +656,14 @@ const UI_COVERED_ARGS = new Set([
       metavar: '[remotehost1:port1,remotehost2:port2]',
     },
     {
+      category: 'RPC',
+      default: '',
+      description:
+        'RPC host mode only. Cache large weight tensors received from clients in the provided directory, so reloading the same model skips sending them over the network. Cache files are never deleted and any connected client can write to it, so only use with trusted clients.',
+      flag: '--rpccache',
+      metavar: '<directory>',
+    },
+    {
       category: 'Administration',
       description:
         'Enables admin mode, allowing you to unload and reload different configurations or models.',
@@ -860,7 +897,8 @@ const UI_COVERED_ARGS = new Set([
     {
       category: 'Audio',
       default: '',
-      description: 'Specify a Whisper .bin model to enable Speech-To-Text transcription.',
+      description:
+        'Specify a Whisper .bin for speech-to-text or a SheetSage2 .gguf for music-to-ABC transcription.',
       flag: '--whispermodel',
       metavar: '[filename]',
     },
@@ -932,7 +970,7 @@ const UI_COVERED_ARGS = new Set([
     {
       category: 'Music Generation',
       default: '',
-      description: 'Select music LLM model (e.g acestep-5Hz-lm-0.6B)',
+      description: 'Select music LLM model (e.g. ACE-Step LM or yue2-3b-q8_0.gguf)',
       flag: '--musicllm',
       metavar: '[filename]',
     },
@@ -953,7 +991,7 @@ const UI_COVERED_ARGS = new Set([
     {
       category: 'Music Generation',
       default: '',
-      description: 'Select music VAE model',
+      description: 'Select music VAE model (e.g. yue2-vae-f16.gguf)',
       flag: '--musicvae',
       metavar: '[filename]',
     },
